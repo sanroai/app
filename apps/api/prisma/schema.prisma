@@ -1,0 +1,1320 @@
+// Sanro AI - Prisma schema
+// PostgreSQL 18
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  SUPER_ADMIN
+  INSTITUTION_ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum InstitutionType {
+  SCHOOL
+  COACHING_CENTRE
+}
+
+enum InstitutionStatusEnum {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+  PENDING
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  DEACTIVATED
+}
+
+enum AcademicYearStatus {
+  ACTIVE
+  PREPARING
+  COMPLETED
+  ARCHIVED
+}
+
+enum GroupType {
+  CLASS
+  DIVISION
+  BATCH
+}
+
+enum GroupStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum StudentStatus {
+  ACTIVE
+  DEACTIVATED
+}
+
+enum ContentType {
+  VIDEO
+  NOTES
+  PDF
+  QUIZ
+  MODEL_3D
+  GAME
+  PRACTICE_SET
+  ARTICLE
+  IMAGE
+}
+
+enum ContentStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+enum Visibility {
+  PUBLIC
+  INSTITUTION_ONLY
+  PRIVATE
+}
+
+enum QuestionType {
+  MCQ
+  TRUE_FALSE
+  MULTI_SELECT
+  FILL_BLANK
+  VERY_SHORT_ANSWER
+  SHORT_ANSWER
+  LONG_ANSWER
+  NUMERICAL
+}
+
+enum QuestionStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  ARCHIVED
+}
+
+enum QuestionSource {
+  MANUAL
+  AI
+  IMPORT
+  SEED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum PaperStatus {
+  DRAFT
+  READY
+  EXPORTED
+  ARCHIVED
+}
+
+enum AssessmentStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  ARCHIVED
+}
+
+enum AssessmentMode {
+  DIGITAL
+  PRINT
+  BOTH
+}
+
+enum AttemptStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  AUTO_SUBMITTED
+  EXPIRED
+}
+
+enum MasteryLevel {
+  NEEDS_INTERVENTION
+  WEAK
+  DEVELOPING
+  GOOD
+  MASTERED
+  INSUFFICIENT_EVIDENCE
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  VALIDATED
+  COMMITTED
+  FAILED
+}
+
+enum ImportRowStatus {
+  VALID
+  INVALID
+  DUPLICATE
+  EXISTING
+  SKIPPED
+  IMPORTED
+}
+
+enum ImportEntityType {
+  STUDENTS
+  TEACHERS
+}
+
+enum RemediationPlanStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum RemediationItemStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
+enum NotificationEventType {
+  ASSESSMENT_ASSIGNED
+  ASSESSMENT_DUE
+  ASSESSMENT_RESULT
+  WEAK_CONCEPT_DETECTED
+  REMEDIATION_ASSIGNED
+  PRACTICE_ASSIGNED
+  RETEST_AVAILABLE
+  RETEST_RESULT
+  ACHIEVEMENT_UNLOCKED
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+  WHATSAPP
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIAL
+  EXPIRED
+  CANCELLED
+  PAST_DUE
+  SUSPENDED
+}
+
+enum SubscriptionPlanKey {
+  STUDENT_MONTHLY
+  STUDENT_YEARLY
+  INSTITUTION
+}
+
+enum ReportType {
+  STUDENT
+  CLASS
+  TEACHER
+  INSTITUTION
+  ASSESSMENT
+  CONCEPT
+  IMPROVEMENT
+}
+
+enum AuditAction {
+  STUDENT_IMPORTED
+  STUDENT_CREATED
+  STUDENT_MOVED
+  TEACHER_ADDED
+  QUESTION_GENERATED
+  QUESTION_APPROVED
+  PAPER_CREATED
+  PAPER_EXPORTED
+  ASSESSMENT_PUBLISHED
+  RESULT_MODIFIED
+  REMEDIATION_ASSIGNED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Language {
+  EN
+  MR
+  HI
+}
+
+enum ContentProgressState {
+  NOT_STARTED
+  STARTED
+  QUARTER
+  HALF
+  THREE_QUARTER
+  COMPLETED
+}
+
+enum UploadEntity {
+  DOCUMENT
+  VIDEO
+  IMAGE
+  MODEL_3D
+  IMPORT_FILE
+  LOGO
+  CONFIGURED
+}
+
+// ============================================================================
+// AUTH & USERS
+// ============================================================================
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  phone         String?
+  name          String
+  passwordHash  String?
+  isActive      Boolean  @default(true)
+  isSuperAdmin  Boolean  @default(false)
+  language      Language @default(EN)
+  avatarUrl     String?
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships        InstitutionMember[]
+  sessions           Session[]
+  passwordResetTokens PasswordResetToken[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+  teacher            Teacher?
+  student            Student?
+  parent             Parent?
+  createdInstitutions Institution[] @relation("InstitutionCreatedBy")
+  createdPapers      QuestionPaper[] @relation("PaperCreatedBy")
+  createdQuestions   Question[]     @relation("QuestionCreatedBy")
+  createdAssessments Assessment[]   @relation("AssessmentCreatedBy")
+  createdImports     ImportJob[]
+  createdPlans       RemediationPlan[] @relation("PlanCreatedBy")
+
+  @@index([email])
+}
+
+model Session {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid
+  refreshJti String   @unique
+  userAgent  String?
+  ip         String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash String   @unique
+  userId    String   @db.Uuid
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================================
+// TENANCY & INSTITUTIONS
+// ============================================================================
+
+model Institution {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  type         InstitutionType
+  status       InstitutionStatusEnum @default(PENDING)
+  code         String?  @unique
+  logoUrl      String?
+  address      String?
+  city         String?
+  state        String?
+  primaryPhone String?
+  primaryEmail String?
+  seatLimit    Int?
+  createdById  String?  @db.Uuid
+  createdAt    DateTime @default(now())
+  archivedAt   DateTime?
+
+  createdBy      User?               @relation("InstitutionCreatedBy", fields: [createdById], references: [id])
+  members        InstitutionMember[]
+  academicYears  AcademicYear[]
+  groups         Group[]
+  students       Student[]
+  teachers       Teacher[]
+  parents        Parent[]
+  questions      Question[]
+  papers         QuestionPaper[]
+  assessments    Assessment[]
+  imports        ImportJob[]
+  content        ContentItem[]
+  subscriptions  Subscription[]
+  supportTickets SupportTicket[]
+  reports        Report[]
+  auditLogs      AuditLog[]
+
+  @@index([status])
+  @@index([createdById])
+}
+
+model InstitutionMember {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @db.Uuid
+  userId        String   @db.Uuid
+  role          Role
+  status        MembershipStatus @default(ACTIVE)
+  joinedAt      DateTime @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([institutionId, userId])
+  @@index([userId])
+  @@index([institutionId, role])
+}
+
+model AcademicYear {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @db.Uuid
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  status        AcademicYearStatus @default(PREPARING)
+  createdAt     DateTime @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  groups     Group[]
+  students   Student[]
+  imports    ImportJob[]
+  groupMemberships GroupMembership[]
+  teacherAssignments TeacherGroup[]
+
+  @@unique([institutionId, name])
+  @@index([institutionId, status])
+}
+
+model Group {
+  id             String    @id @default(uuid()) @db.Uuid
+  institutionId  String    @db.Uuid
+  academicYearId String    @db.Uuid
+  parentGroupId  String?   @db.Uuid
+  name           String
+  type           GroupType
+  grade          String?
+  status         GroupStatus @default(ACTIVE)
+  createdAt      DateTime  @default(now())
+  archivedAt     DateTime?
+
+  institution  Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear         @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  parentGroup  Group?               @relation("GroupHierarchy", fields: [parentGroupId], references: [id])
+  children     Group[]              @relation("GroupHierarchy")
+  memberships  GroupMembership[]
+  teacherGroups TeacherGroup[]
+  assessmentAssignments AssessmentAssignment[] @relation("AssignmentGroup")
+
+  @@unique([academicYearId, name])
+  @@index([institutionId])
+  @@index([academicYearId])
+  @@index([parentGroupId])
+}
+
+model GroupMembership {
+  id            String   @id @default(uuid()) @db.Uuid
+  groupId       String   @db.Uuid
+  studentId     String   @db.Uuid
+  academicYearId String  @db.Uuid
+  joinedAt      DateTime @default(now())
+  leftAt        DateTime?
+
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, studentId, academicYearId])
+  @@index([studentId])
+  @@index([academicYearId])
+}
+
+// ============================================================================
+// PEOPLE: TEACHERS / STUDENTS / PARENTS
+// ============================================================================
+
+model Teacher {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @db.Uuid
+  userId        String   @unique @db.Uuid
+  employeeId    String?
+  status        MembershipStatus @default(ACTIVE)
+  createdAt     DateTime @default(now())
+  deactivatedAt DateTime?
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects    TeacherSubject[]
+  groups      TeacherGroup[]
+  assessments Assessment[] @relation("AssessmentTeacher")
+
+  @@unique([institutionId, employeeId])
+  @@index([institutionId])
+  @@index([userId])
+}
+
+model TeacherSubject {
+  id        String @id @default(uuid()) @db.Uuid
+  teacherId String @db.Uuid
+  subjectId String @db.Uuid
+
+  teacher  Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  subject  Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, subjectId])
+}
+
+model TeacherGroup {
+  id            String @id @default(uuid()) @db.Uuid
+  teacherId     String @db.Uuid
+  groupId       String @db.Uuid
+  academicYearId String @db.Uuid
+
+  teacher      Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  group        Group        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+
+  @@unique([teacherId, groupId, academicYearId])
+  @@index([groupId])
+}
+
+model Student {
+  id            String        @id @default(uuid()) @db.Uuid
+  institutionId String        @db.Uuid
+  academicYearId String       @db.Uuid
+  userId        String?       @unique @db.Uuid
+  name          String
+  email         String?
+  phone         String?
+  gender        String?
+  dateOfBirth   DateTime?
+  rollNumber    String?
+  grade         String?
+  status        StudentStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  deactivatedAt DateTime?
+
+  institution  Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear    @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  user         User?           @relation(fields: [userId], references: [id])
+  groupMemberships GroupMembership[]
+  parentLinks ParentStudentLink[]
+  attempts     AssessmentAttempt[]
+  mastery      ConceptMastery[]
+  diagnostics  DiagnosticResult[]
+  remediationPlans RemediationPlan[]
+  practiceSets PracticeSet[]
+  contentProgress ContentProgress[]
+  gamification GamificationProfile?
+  achievements StudentAchievement[]
+  assessmentAssignments AssessmentAssignment[]
+
+  @@unique([institutionId, email])
+  @@index([institutionId])
+  @@index([academicYearId])
+  @@index([grade])
+}
+
+model Parent {
+  id            String  @id @default(uuid()) @db.Uuid
+  institutionId String  @db.Uuid
+  userId        String? @unique @db.Uuid
+  name          String
+  email         String?
+  phone         String?
+  createdAt     DateTime @default(now())
+
+  institution Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user        User?             @relation(fields: [userId], references: [id])
+  studentLinks ParentStudentLink[]
+
+  @@index([institutionId])
+  @@index([email])
+}
+
+model ParentStudentLink {
+  id        String @id @default(uuid()) @db.Uuid
+  parentId  String @db.Uuid
+  studentId String @db.Uuid
+
+  parent  Parent  @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([parentId, studentId])
+  @@index([studentId])
+}
+
+// ============================================================================
+// CURRICULUM
+// ============================================================================
+
+model Board {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  code      String   @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  grades    Grade[]
+  subjects  Subject[]
+  questions Question[]
+  content   ContentItem[]
+
+  @@index([active])
+}
+
+model Grade {
+  id      String @id @default(uuid()) @db.Uuid
+  boardId String @db.Uuid
+  name    String
+  order   Int    @default(0)
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, name])
+}
+
+model Subject {
+  id          String  @id @default(uuid()) @db.Uuid
+  boardId     String  @db.Uuid
+  code        String
+  name        String
+  icon        String?
+  color       String?
+  order       Int     @default(0)
+  description String?
+  active      Boolean @default(true)
+
+  board      Board            @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  chapters   Chapter[]
+  questions  Question[]
+  papers     QuestionPaper[]
+  assessments Assessment[]
+  content    ContentItem[]
+  teacherSubjects TeacherSubject[]
+
+  @@unique([boardId, code])
+  @@index([boardId])
+}
+
+model Chapter {
+  id          String @id @default(uuid()) @db.Uuid
+  subjectId   String @db.Uuid
+  name        String
+  code        String
+  grade       String
+  order       Int    @default(0)
+  description String?
+
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics    Topic[]
+  questions Question[]
+  content   ContentItem[]
+  assessments Assessment[]
+
+  @@unique([subjectId, code])
+  @@index([subjectId, grade])
+}
+
+model Topic {
+  id        String @id @default(uuid()) @db.Uuid
+  chapterId String @db.Uuid
+  name      String
+  order     Int    @default(0)
+
+  chapter   Chapter   @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  concepts  Concept[]
+  questions Question[]
+
+  @@unique([chapterId, name])
+  @@index([chapterId])
+}
+
+model Concept {
+  id          String  @id @default(uuid()) @db.Uuid
+  topicId     String  @db.Uuid
+  name        String
+  order       Int     @default(0)
+  description String?
+
+  topic      Topic               @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questions  Question[]
+  questionMappings QuestionConcept[]
+  mastery    ConceptMastery[]
+  diagnostics DiagnosticResult[]
+  remediationPlans RemediationPlan[]
+  content    ContentItem[]
+  practiceSets PracticeSet[]
+
+  @@unique([topicId, name])
+  @@index([topicId])
+  @@index([name])
+}
+
+// ============================================================================
+// CONTENT
+// ============================================================================
+
+model ContentItem {
+  id              String        @id @default(uuid()) @db.Uuid
+  type            ContentType
+  status          ContentStatus @default(DRAFT)
+  visibility      Visibility    @default(INSTITUTION_ONLY)
+  title           String
+  description     String?
+  durationSeconds Int?
+  thumbnailUrl    String?
+  url             String?
+  institutionId   String?       @db.Uuid
+  boardId         String?       @db.Uuid
+  subjectId       String?       @db.Uuid
+  chapterId       String?       @db.Uuid
+  topicId         String?       @db.Uuid
+  conceptId       String?       @db.Uuid
+  language        Language      @default(EN)
+  createdById     String?       @db.Uuid
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  institution Institution? @relation(fields: [institutionId], references: [id])
+  board      Board?          @relation(fields: [boardId], references: [id])
+  subject    Subject?        @relation(fields: [subjectId], references: [id])
+  chapter    Chapter?     @relation(fields: [chapterId], references: [id])
+  concept    Concept?     @relation(fields: [conceptId], references: [id])
+  progress   ContentProgress[]
+  remediationItems RemediationItem[]
+
+  @@index([institutionId])
+  @@index([conceptId])
+  @@index([type, status])
+}
+
+model ContentProgress {
+  id             String              @id @default(uuid()) @db.Uuid
+  contentId      String              @db.Uuid
+  studentId      String              @db.Uuid
+  state          ContentProgressState @default(NOT_STARTED)
+  secondsWatched Int?
+  completedAt    DateTime?
+
+  content ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  student Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, studentId])
+  @@index([studentId])
+}
+
+// ============================================================================
+// QUESTION BANK
+// ============================================================================
+
+model Question {
+  id            String         @id @default(uuid()) @db.Uuid
+  institutionId String?        @db.Uuid
+  boardId       String         @db.Uuid
+  grade         String
+  subjectId     String         @db.Uuid
+  chapterId     String         @db.Uuid
+  topicId       String?        @db.Uuid
+  conceptId     String?        @db.Uuid
+  type          QuestionType
+  status        QuestionStatus @default(DRAFT)
+  source        QuestionSource @default(MANUAL)
+  difficulty    Difficulty     @default(MEDIUM)
+  marks         Int?
+  text          String
+  hint          String?
+  explanation   String?
+  answer        String
+  language      Language       @default(EN)
+  createdById   String?        @db.Uuid
+  aiGenerated   Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  institution Institution?      @relation(fields: [institutionId], references: [id])
+  board       Board             @relation(fields: [boardId], references: [id])
+  subject     Subject           @relation(fields: [subjectId], references: [id])
+  chapter     Chapter           @relation(fields: [chapterId], references: [id])
+  topic       Topic?            @relation(fields: [topicId], references: [id])
+  concept     Concept?          @relation(fields: [conceptId], references: [id])
+  createdBy   User?             @relation("QuestionCreatedBy", fields: [createdById], references: [id])
+  options     QuestionOption[]
+  mappings    QuestionConcept[]
+  paperQuestions QuestionPaperQuestion[]
+  assessmentQuestions AssessmentQuestion[]
+  practiceAnswers PracticeAnswer[]
+
+  @@index([institutionId])
+  @@index([boardId, grade, subjectId, chapterId])
+  @@index([status])
+  @@index([conceptId])
+}
+
+model QuestionOption {
+  id         String @id @default(uuid()) @db.Uuid
+  questionId String @db.Uuid
+  text       String
+  isCorrect  Boolean @default(false)
+  order      Int     @default(0)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId])
+}
+
+model QuestionConcept {
+  id          String   @id @default(uuid()) @db.Uuid
+  questionId  String   @db.Uuid
+  conceptId   String   @db.Uuid
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  concept  Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, conceptId])
+  @@index([conceptId])
+}
+
+// ============================================================================
+// QUESTION PAPERS
+// ============================================================================
+
+model QuestionPaper {
+  id             String       @id @default(uuid()) @db.Uuid
+  institutionId  String       @db.Uuid
+  sourcePaperId  String?      @db.Uuid
+  title          String
+  examName       String
+  boardId        String       @db.Uuid
+  grade          String
+  subjectId      String       @db.Uuid
+  totalMarks     Int
+  durationMinutes Int
+  date           DateTime?
+  instructions   String?
+  language       Language     @default(EN)
+  distribution   Json
+  versionName    String?
+  status         PaperStatus  @default(DRAFT)
+  createdById    String       @db.Uuid
+  exportedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  institution   Institution          @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject       Subject              @relation(fields: [subjectId], references: [id])
+  createdBy     User                 @relation("PaperCreatedBy", fields: [createdById], references: [id])
+  questions     QuestionPaperQuestion[]
+  sourcePaper   QuestionPaper?       @relation("PaperVersion", fields: [sourcePaperId], references: [id])
+  versions      QuestionPaper[]      @relation("PaperVersion")
+  assessments   Assessment[]
+
+  @@index([institutionId])
+  @@index([status])
+  @@index([subjectId])
+}
+
+model QuestionPaperQuestion {
+  id           String @id @default(uuid()) @db.Uuid
+  paperId      String @db.Uuid
+  questionId   String @db.Uuid
+  sectionName  String
+  sectionOrder Int
+  order        Int
+  marks        Int
+
+  paper    QuestionPaper @relation(fields: [paperId], references: [id], onDelete: Cascade)
+  question Question      @relation(fields: [questionId], references: [id])
+
+  @@unique([paperId, questionId])
+  @@index([paperId, sectionOrder, order])
+}
+
+// ============================================================================
+// ASSESSMENTS
+// ============================================================================
+
+model Assessment {
+  id                String           @id @default(uuid()) @db.Uuid
+  institutionId     String           @db.Uuid
+  sourcePaperId     String?          @db.Uuid
+  title             String
+  subjectId         String           @db.Uuid
+  chapterId         String?          @db.Uuid
+  totalMarks        Int
+  durationMinutes   Int
+  status            AssessmentStatus @default(DRAFT)
+  mode              AssessmentMode   @default(DIGITAL)
+  attemptsAllowed   Int              @default(1)
+  teacherId         String?          @db.Uuid
+  dueAt             DateTime?
+  startsAt          DateTime?
+  autoSubmitOnExpiry Boolean         @default(true)
+  createdById       String           @db.Uuid
+  createdAt         DateTime         @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subject     Subject     @relation(fields: [subjectId], references: [id])
+  chapter     Chapter?    @relation(fields: [chapterId], references: [id])
+  sourcePaper QuestionPaper? @relation(fields: [sourcePaperId], references: [id])
+  createdBy   User        @relation("AssessmentCreatedBy", fields: [createdById], references: [id])
+  teacher     Teacher?    @relation("AssessmentTeacher", fields: [teacherId], references: [id])
+  questions   AssessmentQuestion[]
+  assignments AssessmentAssignment[]
+  attempts    AssessmentAttempt[]
+
+  @@index([institutionId])
+  @@index([status])
+}
+
+model AssessmentQuestion {
+  id           String     @id @default(uuid()) @db.Uuid
+  assessmentId String     @db.Uuid
+  questionId   String?    @db.Uuid
+  text         String
+  type         QuestionType
+  marks        Int
+  answer       String?
+  explanation  String?
+  conceptId    String?    @db.Uuid
+  options      Json
+  order        Int
+
+  assessment Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  question   Question?          @relation(fields: [questionId], references: [id])
+  answers    StudentAnswer[]
+
+  @@index([assessmentId, order])
+  @@index([conceptId])
+}
+
+model AssessmentAssignment {
+  id           String   @id @default(uuid()) @db.Uuid
+  assessmentId String   @db.Uuid
+  groupId      String?  @db.Uuid
+  studentId    String   @db.Uuid
+  assignedAt   DateTime @default(now())
+
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  group      Group?     @relation("AssignmentGroup", fields: [groupId], references: [id])
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, studentId])
+  @@index([studentId])
+}
+
+model AssessmentAttempt {
+  id            String        @id @default(uuid()) @db.Uuid
+  assessmentId  String        @db.Uuid
+  studentId     String        @db.Uuid
+  attemptIndex  Int           @default(1)
+  status        AttemptStatus @default(NOT_STARTED)
+  startedAt     DateTime?
+  submittedAt   DateTime?
+  score         Int?
+  maxScore      Int?
+  correctCount  Int?
+  wrongCount    Int?
+  skippedCount  Int?
+  accuracy      Decimal?      @db.Decimal(5, 2)
+  timeSpentSeconds Int?
+  createdAt     DateTime      @default(now())
+
+  assessment   Assessment      @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student      Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers      StudentAnswer[]
+  diagnostics  DiagnosticResult[]
+
+  @@unique([assessmentId, studentId, attemptIndex])
+  @@index([studentId])
+  @@index([status])
+}
+
+model StudentAnswer {
+  id             String   @id @default(uuid()) @db.Uuid
+  attemptId      String   @db.Uuid
+  assessmentQuestionId String @db.Uuid
+  answer         String?
+  isCorrect      Boolean?
+  marksAwarded   Int?
+  maxMarks       Int?
+  gradedByTeacher Boolean @default(false)
+  gradedById     String?  @db.Uuid
+  gradedAt       DateTime?
+  updatedAt      DateTime @updatedAt
+
+  attempt  AssessmentAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question AssessmentQuestion @relation(fields: [assessmentQuestionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, assessmentQuestionId])
+  @@index([attemptId])
+}
+
+// ============================================================================
+// DIAGNOSIS / MASTERY / REMEDIATION / PRACTICE
+// ============================================================================
+
+model ConceptMastery {
+  id          String      @id @default(uuid()) @db.Uuid
+  studentId   String      @db.Uuid
+  conceptId   String      @db.Uuid
+  score       Int
+  attempts    Int
+  correct     Int
+  evidenceCount Int
+  level       MasteryLevel
+  lastUpdatedAt DateTime  @updatedAt
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, conceptId])
+  @@index([studentId, level])
+}
+
+model DiagnosticResult {
+  id          String      @id @default(uuid()) @db.Uuid
+  studentId   String      @db.Uuid
+  conceptId   String      @db.Uuid
+  attemptId   String?     @db.Uuid
+  score       Int
+  attempts    Int
+  correct     Int
+  level       MasteryLevel
+  evidence    String      @default("SUFFICIENT")
+  createdAt   DateTime    @default(now())
+
+  student Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  concept Concept          @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  attempt AssessmentAttempt? @relation(fields: [attemptId], references: [id])
+
+  @@index([studentId])
+  @@index([conceptId, level])
+  @@index([attemptId])
+}
+
+model RemediationPlan {
+  id          String              @id @default(uuid()) @db.Uuid
+  studentId   String              @db.Uuid
+  conceptId   String              @db.Uuid
+  status      RemediationPlanStatus @default(ACTIVE)
+  createdById String?             @db.Uuid
+  createdAt   DateTime            @default(now())
+  completedAt DateTime?
+
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  concept Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  createdBy User?  @relation("PlanCreatedBy", fields: [createdById], references: [id])
+  items    RemediationItem[]
+
+  @@index([studentId])
+  @@index([conceptId])
+}
+
+model RemediationItem {
+  id          String               @id @default(uuid()) @db.Uuid
+  planId      String               @db.Uuid
+  order       Int
+  contentType ContentType
+  contentId   String?              @db.Uuid
+  title       String
+  status      RemediationItemStatus @default(PENDING)
+  completedAt DateTime?
+
+  plan    RemediationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  content ContentItem?    @relation(fields: [contentId], references: [id])
+
+  @@index([planId])
+}
+
+model PracticeSet {
+  id           String   @id @default(uuid()) @db.Uuid
+  studentId    String   @db.Uuid
+  conceptId    String?  @db.Uuid
+  conceptIds   Json
+  questionIds  Json
+  status       String   @default("IN_PROGRESS")
+  score        Int?
+  total        Int?
+  correctCount Int?
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  student Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  concept Concept?          @relation(fields: [conceptId], references: [id])
+  answers PracticeAnswer[]
+
+  @@index([studentId])
+  @@index([conceptId])
+}
+
+model PracticeAnswer {
+  id           String   @id @default(uuid()) @db.Uuid
+  practiceSetId String  @db.Uuid
+  questionId   String   @db.Uuid
+  answer       String?
+  isCorrect    Boolean?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  practiceSet PracticeSet @relation(fields: [practiceSetId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([practiceSetId, questionId])
+  @@index([practiceSetId])
+}
+
+// ============================================================================
+// GAMIFICATION
+// ============================================================================
+
+model GamificationProfile {
+  id           String   @id @default(uuid()) @db.Uuid
+  studentId    String   @db.Uuid
+  xp           Int      @default(0)
+  streakDays   Int      @default(0)
+  lastActiveAt DateTime?
+  createdAt    DateTime @default(now())
+
+  student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId])
+}
+
+model StudentAchievement {
+  id           String   @id @default(uuid()) @db.Uuid
+  studentId    String   @db.Uuid
+  achievementId String  @db.Uuid
+  unlockedAt   DateTime @default(now())
+
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievement  Achievement  @relation(fields: [achievementId], references: [id])
+
+  @@unique([studentId, achievementId])
+}
+
+model Achievement {
+  id       String @id @default(uuid()) @db.Uuid
+  key      String @unique
+  name     String
+  description String?
+  xp       Int    @default(0)
+  icon     String?
+
+  studentAchievements StudentAchievement[]
+}
+
+// ============================================================================
+// IMPORTS
+// ============================================================================
+
+model ImportJob {
+  id            String          @id @default(uuid()) @db.Uuid
+  institutionId String          @db.Uuid
+  academicYearId String         @db.Uuid
+  entityType    ImportEntityType
+  fileName      String
+  originalName  String
+  status        ImportStatus    @default(PENDING)
+  totalRows     Int             @default(0)
+  validRows     Int             @default(0)
+  invalidRows   Int             @default(0)
+  duplicateRows Int             @default(0)
+  existingRows  Int             @default(0)
+  importedRows  Int             @default(0)
+  createdById   String          @db.Uuid
+  errorReportPath String?
+  createdAt     DateTime        @default(now())
+  completedAt   DateTime?
+
+  institution  Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
+  createdBy    User        @relation(fields: [createdById], references: [id])
+  rows         ImportRow[]
+
+  @@index([institutionId])
+}
+
+model ImportRow {
+  id        String        @id @default(uuid()) @db.Uuid
+  jobId     String        @db.Uuid
+  rowNumber Int
+  name      String?
+  status    ImportRowStatus
+  errors    Json
+  data      Json
+  importedEntityId String? @db.Uuid
+
+  job ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  recipientId String   @db.Uuid
+  type        NotificationEventType
+  channel     NotificationChannel @default(IN_APP)
+  title       String
+  body        String
+  entityType  String?
+  entityId    String?  @db.Uuid
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  recipient User @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, readAt])
+  @@index([recipientId, createdAt])
+}
+
+// ============================================================================
+// SUBSCRIPTIONS / PLANS
+// ============================================================================
+
+model Plan {
+  id            String              @id @default(uuid()) @db.Uuid
+  key           SubscriptionPlanKey @unique
+  name          String
+  priceMonthly  Int?
+  priceYearly   Int?
+  perSeat       Int                 @default(0)
+  active        Boolean             @default(true)
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id            String             @id @default(uuid()) @db.Uuid
+  institutionId String             @db.Uuid
+  planId        String             @db.Uuid
+  status        SubscriptionStatus @default(TRIAL)
+  startedAt     DateTime           @default(now())
+  endsAt        DateTime?
+  seatLimit     Int?
+  createdAt     DateTime           @default(now())
+
+  institution  Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  plan         Plan        @relation(fields: [planId], references: [id])
+
+  @@index([institutionId])
+  @@index([status])
+}
+
+// ============================================================================
+// REPORTS / SUPPORT / FILES / AUDIT
+// ============================================================================
+
+model Report {
+  id            String     @id @default(uuid()) @db.Uuid
+  institutionId String     @db.Uuid
+  type          ReportType
+  params        Json
+  pdfUrl        String?
+  generatedById String?    @db.Uuid
+  createdAt     DateTime   @default(now())
+
+  institution    Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+}
+
+model SupportTicket {
+  id            String              @id @default(uuid()) @db.Uuid
+  institutionId String              @db.Uuid
+  createdBy     String              @db.Uuid
+  subject       String
+  description   String
+  status        SupportTicketStatus @default(OPEN)
+  createdAt     DateTime            @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+}
+
+model UploadedFile {
+  id        String       @id @default(uuid()) @db.Uuid
+  entity    UploadEntity
+  originalName String
+  storedName String
+  mimeType  String
+  sizeBytes Int
+  url       String?
+  createdById String?    @db.Uuid
+  createdAt DateTime     @default(now())
+
+  @@index([createdById])
+}
+
+model AuditLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  institutionId String?   @db.Uuid
+  userId      String      @db.Uuid
+  action      AuditAction
+  entityType  String?
+  entityId    String?     @db.Uuid
+  metadata    Json
+  createdAt   DateTime    @default(now())
+
+  institution Institution? @relation(fields: [institutionId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+
+  @@index([institutionId, createdAt])
+  @@index([action])
+}
+
+model AiUsageLog {
+  id            String        @id @default(uuid()) @db.Uuid
+  institutionId String?       @db.Uuid
+  userId        String        @db.Uuid
+  operation     String
+  model         String
+  tokensIn      Int?
+  tokensOut     Int?
+  cost          Decimal?      @db.Decimal(10, 6)
+  metadata      Json
+  createdAt     DateTime      @default(now())
+
+  @@index([institutionId, createdAt])
+  @@index([userId])
+}

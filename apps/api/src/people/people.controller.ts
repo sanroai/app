@@ -1,0 +1,121 @@
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { StudentsService } from './students.service';
+import { TeachersService } from './teachers.service';
+import { ParentsService } from './parents.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { RequestUser } from '../common/types/auth-context';
+
+@ApiTags('students')
+@Controller('students')
+export class StudentsController {
+  constructor(private readonly service: StudentsService) {}
+
+  @Get()
+  list(@CurrentUser() user: RequestUser, @Query() query: Record<string, string | undefined>) {
+    return this.service.listStudents(user, {
+      academicYearId: query.academicYearId,
+      groupId: query.groupId,
+      search: query.search,
+      status: query.status,
+      page: query.page ? Number(query.page) : 1,
+      pageSize: query.pageSize ? Number(query.pageSize) : 25,
+    });
+  }
+
+  @Post()
+  create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+    return this.service.createStudent(user, body as Parameters<typeof this.service.createStudent>[1]);
+  }
+
+  @Get(':id')
+  detail(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.studentDetail(user, id);
+  }
+
+  @Patch(':id')
+  update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
+    return this.service.updateStudent(user, id, body as Parameters<typeof this.service.updateStudent>[2]);
+  }
+
+  @Post(':id/deactivate')
+  deactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.setStatus(user, id, 'DEACTIVATED');
+  }
+
+  @Post(':id/activate')
+  reactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.setStatus(user, id, 'ACTIVE');
+  }
+
+  @Post(':id/move')
+  move(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
+    return this.service.moveStudent(user, id, body as Parameters<typeof this.service.moveStudent>[2]);
+  }
+
+  @Post(':id/link-parent')
+  linkParent(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() body: { name: string; phone?: string; email?: string },
+  ) {
+    const institutionId = user.institutionId as string;
+    return this.service.linkParent(institutionId, id, body);
+  }
+}
+
+@ApiTags('teachers')
+@Controller('teachers')
+export class TeachersController {
+  constructor(private readonly service: TeachersService) {}
+
+  @Get()
+  list(@CurrentUser() user: RequestUser) {
+    return this.service.listTeachers(user);
+  }
+
+  @Post()
+  create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+    return this.service.createTeacher(user, body as Parameters<typeof this.service.createTeacher>[1]);
+  }
+
+  @Post(':id/deactivate')
+  deactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.setStatus(user, id, 'DEACTIVATED');
+  }
+
+  @Post(':id/activate')
+  reactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.setStatus(user, id, 'ACTIVE');
+  }
+
+  @Post(':id/assign-groups')
+  assignGroups(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Body() body: { groupIds: string[] },
+  ) {
+    return this.service.assignGroups(user, id, body.groupIds);
+  }
+}
+
+@ApiTags('parents')
+@Controller('parents')
+export class ParentsController {
+  constructor(private readonly service: ParentsService) {}
+
+  @Get()
+  list(@CurrentUser() user: RequestUser) {
+    return this.service.listParents(user);
+  }
+
+  @Post(':id/link-student')
+  linkStudent(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { studentId: string }) {
+    return this.service.linkChild(user, id, body.studentId);
+  }
+
+  @Get('me/dashboard')
+  dashboard(@CurrentUser() user: RequestUser) {
+    return this.service.parentDashboard(user);
+  }
+}

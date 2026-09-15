@@ -1,0 +1,41 @@
+{
+  "name": "sanro",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sanro AI - academic intelligence and learning platform",
+  "packageManager": "pnpm@12.4.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma",
+      "esbuild",
+      "playwright",
+      "bcryptjs",
+      "@scarf/scarf",
+      "sharp"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @sanro/api db:generate",
+    "db:migrate": "pnpm --filter @sanro/api db:migrate",
+    "db:seed": "pnpm --filter @sanro/api db:seed",
+    "db:push": "pnpm --filter @sanro/api db:push",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.23.13",
+    "turbo": "^2.3.4",
+    "typescript": "^5.7.3"
+  }
+}

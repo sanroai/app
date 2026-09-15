@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# NestJS build
+dist/
+build/
+
+# Expo
+.expo/
+apps/mobile/.expo/
+apps/mobile/dist/
+apps/mobile/ios/
+apps/mobile/android/
+
+# environment
+.env
+.env.local
+.env.*.local
+
+# generated
+packages/db/src/generated/
+
+# test coverage
+coverage/
+
+# misc
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# turbo
+.turbo/
+
+# prisma
+*.sqlite3

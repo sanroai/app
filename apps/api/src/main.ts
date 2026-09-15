@@ -1,0 +1,48 @@
+import { NestFactory } from '@nestjs/core';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { APP_CONFIG_TOKEN } from './common/common.module';
+import { AppConfig } from './config/app.config';
+import { AppModule } from './app.module';
+
+async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create(AppModule, { bodyParser: true });
+  const config = app.get<AppConfig>(APP_CONFIG_TOKEN);
+
+  app.setGlobalPrefix('api/v1');
+  const corsOrigins =
+    config.CORS_ORIGINS.length > 0
+      ? config.CORS_ORIGINS
+      : true;
+  app.enableCors({
+    origin: corsOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, transform: true, forbidUnknownValues: false }),
+  );
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  const swagger = new DocumentBuilder()
+    .setTitle('Sanro AI API')
+    .setDescription('Academic intelligence platform - assessment, diagnosis, remediation, retest')
+    .setVersion('0.1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swagger);
+  SwaggerModule.setup('docs', app, document);
+
+  await app.listen(config.API_PORT, '0.0.0.0');
+  const logger = new Logger('Bootstrap');
+  logger.log(`API running at http://localhost:${config.API_PORT}/api/v1`);
+  logger.log(`Swagger at http://localhost:${config.API_PORT}/docs`);
+}
+
+bootstrap().catch((err) => {
+  const logger = new Logger('Bootstrap');
+  logger.error(`Failed to start API: ${err.message}`, err.stack);
+  process.exit(1);
+});

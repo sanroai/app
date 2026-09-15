@@ -1,0 +1,60 @@
+import { Body, Controller, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { AiService } from '../ai/ai.service';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { ChatSchema } from '@sanro/validation';
+import { PrismaService } from '../prisma/prisma.service';
+
+@ApiTags('chat')
+@Controller('chat')
+export class ChatController {
+  constructor(private readonly ai: AiService, private readonly prisma: PrismaService) {}
+
+  @Post('ask-sanro')
+  async ask(
+    @CurrentUser() user: RequestUser,
+    @Body(new ZodValidationPipe(ChatSchema)) body: { message: string; context?: { conceptId?: string; questionId?: string; assessmentId?: string } },
+  ) {
+    const context = await this.buildContext(body.context);
+    return this.ai.answerChat({
+      userId: user.sub,
+      institutionId: user.institutionId,
+      role: this.effectiveRole(user.role),
+      message: body.message,
+      context,
+    });
+  }
+
+  private effectiveRole(role: RequestUser['role']): 'STUDENT' | 'TEACHER' | 'PARENT' {
+    switch (role) {
+      case 'STUDENT':
+        return 'STUDENT';
+      case 'PARENT':
+        return 'PARENT';
+      default:
+        return 'TEACHER';
+    }
+  }
+
+  private async buildContext(ctx?: { conceptId?: string; questionId?: string; assessmentId?: string }) {
+    if (!ctx) return undefined;
+    const result: { conceptName?: string; questionText?: string; relatedContent?: string[] } = {};
+    if (ctx.conceptId) {
+      const concept = await this.prisma.concept.findUnique({ where: { id: ctx.conceptId } });
+      result.conceptName = concept?.name;
+      const content = await this.prisma.contentItem.findMany({
+        where: { conceptId: ctx.conceptId, status: 'APPROVED' },
+        select: { title: true },
+        take: 3,
+      });
+      result.relatedContent = content.map((c) => c.title);
+    }
+    if (ctx.questionId) {
+      const question = await this.prisma.question.findUnique({ where: { id: ctx.questionId } });
+      result.questionText = question?.text;
+    }
+    return result;
+  }
+}

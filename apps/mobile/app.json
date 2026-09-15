@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "Sanro AI",
+    "slug": "sanro-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "sanro-ai",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#7c3aed"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sanro.ai"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#7c3aed",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "com.sanro.ai"
+    },
+    "plugins": ["expo-router", "expo-secure-store"]
+  }
+}
