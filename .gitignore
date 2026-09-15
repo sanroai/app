@@ -40,3 +40,5 @@ Thumbs.db
 
 # prisma
 *.sqlite3
+.vercel
+.env*

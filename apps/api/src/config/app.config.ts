@@ -23,7 +23,7 @@ const envSchema = z.object({
   AUTH_ISSUER: z.string().default('sanro-api'),
   AI_API_KEY: z.string().optional().default(''),
   AI_MODEL: z.string().default('gpt-4o-mini'),
-  AI_PROVIDER: z.enum(['mock', 'openai']).default('mock'),
+  AI_PROVIDER: z.enum(['mock', 'openai', 'gemini']).default('mock'),
   AI_BASE_URL: z.string().optional().default('https://api.openai.com/v1'),
   STORAGE_TYPE: z.enum(['local', 's3']).default('local'),
   STORAGE_URL: z.string().optional().default(''),

@@ -65,12 +65,16 @@ export class AiService implements AIProvider {
     return Boolean(this.config.AI_API_KEY);
   }
 
+  private get remote(): boolean {
+    return (this.config.AI_PROVIDER === 'openai' || this.config.AI_PROVIDER === 'gemini') && this.available();
+  }
+
   async generateQuestion(ctx: AIContext, seed?: string): Promise<GeneratedQuestion> {
-    if (this.config.AI_PROVIDER === 'openai' && this.available()) {
+    if (this.remote) {
       try {
         return await this.openaiGenerateQuestion(ctx, seed);
       } catch (err) {
-        this.logger.warn(`OpenAI generation failed: ${(err as Error).message}`);
+        this.logger.warn(`${this.config.AI_PROVIDER} generation failed: ${(err as Error).message}`);
         throw new ServiceUnavailableException();
       }
     }
@@ -87,18 +91,18 @@ export class AiService implements AIProvider {
   }
 
   async answerChat(input: ChatInput) {
-    if (this.config.AI_PROVIDER === 'openai' && this.available()) {
+    if (this.remote) {
       try {
         return await this.openaiChat(input);
       } catch (err) {
-        this.logger.warn(`OpenAI chat failed: ${(err as Error).message}`);
+        this.logger.warn(`${this.config.AI_PROVIDER} chat failed: ${(err as Error).message}`);
       }
     }
     return this.mockChat(input);
   }
 
   async generateExplanation(ctx: AIContext): Promise<string> {
-    if (this.config.AI_PROVIDER === 'openai' && this.available()) {
+    if (this.remote) {
       try {
         return await this.openaiExplain(ctx);
       } catch {
