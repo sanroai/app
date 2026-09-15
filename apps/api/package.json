@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Sanro AI - NestJS backend API",
+  "packageManager": "pnpm@12.4.1",
   "scripts": {
     "build": "nest build",
     "start": "nest start",
