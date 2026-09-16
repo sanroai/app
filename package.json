@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Sanro AI - academic intelligence and learning platform",
-  "packageManager": "pnpm@12.4.1",
+  "packageManager": "pnpm@12.4.2",
   "pnpm": {
     "onlyBuiltDependencies": [
       "@prisma/client",
