@@ -14,12 +14,12 @@
 | **Mobile** | Expo SDK 52, React Native 0.76.5, expo-router 4 |
 | **Database** | PostgreSQL 18 on Railway (production: `api.sanroai.com`, `sanro_dev`) |
 | **AI** | OpenAI-compatible (`gpt-4o-mini`), mock fallback |
-| **Storage** | Local filesystem only (`storage/pdfs/`). Cloudflare R2 NOT connected. |
-| **PDF** | Playwright chromium rendering. `PDF_ENGINE=none` likely in production. |
+| **Storage** | Local filesystem + Cloudflare R2 support via `StorageService`. R2 client ready but needs bucket setup. |
+| **PDF** | Playwright chromium rendering with HTML fallback. `PDF_ENGINE=none` → returns HTML preview. |
 | **Queue/Job** | NONE |
-| **Embeddings/Vector** | NONE |
-| **YouTube** | Embed URLs only in `ContentItem.url`. No YouTube API. |
-| **Knowledge Base** | NONE |
+| **Embeddings/Vector** | NONE (pgvector not installed) |
+| **YouTube** | Embed URLs in `ContentItem.url`. YouTube import via `POST /content-import/youtube`. |
+| **Knowledge Base** | `KnowledgeBase` + `KnowledgeChunk` + `ProcessingJob` models. Full CRUD + search + stats API. |
 
 ---
 
@@ -44,10 +44,16 @@
 | AI (explain, chat) | `apps/api/src/ai/` |
 | Notifications (create, list, mark-read) | `apps/api/src/common/services/` |
 | Audit logs | `apps/api/src/common/services/` |
+| Storage abstraction (local + R2) | `apps/api/src/common/services/storage.service.ts` |
+| Knowledge base (CRUD, chunks, stats, search) | `apps/api/src/knowledge-base/` |
+| Content import (PDF, video, YouTube, notes) | `apps/api/src/imports/content-import.service.ts` |
+| Content search + grade filtering | `apps/api/src/curriculum/content.service.ts` |
+| Generate questions from knowledge base | `apps/api/src/questions/questions.service.ts` |
+| Content processing dashboard | `apps/web/app/(dashboard)/app/content-processing/page.tsx` |
 
 ### Counts
 
-- **33** Prisma models, **22** enums, ~**100** API endpoints
+- **55** Prisma models (3 new: KnowledgeBase, KnowledgeChunk, ProcessingJob), **25** enums, ~**110** API endpoints
 - **18** passing tests (3 spec files)
 - **Web:** 48 pages, 17 components, 8 hook files
 - **Mobile:** 22 screens, 8 components, 7 lib files
