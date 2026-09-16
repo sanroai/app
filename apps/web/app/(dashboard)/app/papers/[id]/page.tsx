@@ -42,13 +42,32 @@ export default function PaperDetailPage() {
   async function downloadPdf(kind: 'STUDENT' | 'ANSWER_KEY' = 'STUDENT') {
     setExporting(true);
     try {
-      const result = await api<{ url: string }>(`/papers/${id}/export`, {
+      const result = await api<{ url: string; html?: string; engine?: string }>(`/papers/${id}/export`, {
         method: 'POST',
         token,
         body: { kind },
       });
-      if (result.url) {
-        window.open(result.url, '_blank');
+      if (result.engine === 'html-fallback' && result.html) {
+        const blob = new Blob([result.html], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${paper.title.replace(/[^a-z0-9]/gi, '_')}_${kind}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else if (result.url) {
+        if (result.url.endsWith('.pdf')) {
+          const a = document.createElement('a');
+          a.href = result.url;
+          a.download = `${paper.title.replace(/[^a-z0-9]/gi, '_')}_${kind}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        } else {
+          window.open(result.url, '_blank');
+        }
       }
     } catch (e) {
       alert('Unable to generate PDF. Please try again.');

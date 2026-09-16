@@ -127,6 +127,12 @@ export const CreateTeacherSchema = z.object({
   groupIds: z.array(z.string().uuid()).default([]),
 });
 
+export const CreateParentSchema = z.object({
+  name: z.string().trim().min(2, 'Name is required'),
+  email: emailSchema,
+  phone: phoneSchema,
+});
+
 export const importConfigSchema = z.object({
   entityType: z.enum(Object.values(ImportEntityType) as [string, ...string[]]),
   academicYearId: z.string().uuid(),

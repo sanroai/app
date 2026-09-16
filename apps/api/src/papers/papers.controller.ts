@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Res, ServiceUnavailableException } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Patch, Post, Query, Res, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaperStatus, Role } from '@sanro/types';
 import { PapersService } from './papers.service';
@@ -14,6 +14,7 @@ import { Response } from 'express';
 @ApiTags('papers')
 @Controller('papers')
 export class PapersController {
+  private readonly logger = new Logger(PapersController.name);
   constructor(
     private readonly service: PapersService,
     private readonly pdf: PdfService,
@@ -79,10 +80,11 @@ export class PapersController {
       const name = `${paper.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${kind}_${Date.now()}.pdf`;
       const result = await this.pdf.renderHtmlToPdf(html, name);
       await this.service.setStatus(user, id, 'EXPORTED' as PaperStatus, kind);
-      return { url: result.url, file: result.path };
+      return { url: result.url, file: result.path, engine: 'playwright' };
     } catch (err) {
-      if (err instanceof ServiceUnavailableException) throw err;
-      throw new ServiceUnavailableException('Unable to generate the paper right now.');
+      this.logger.warn(`Playwright PDF failed, falling back to HTML preview: ${(err as Error).message}`);
+      const previewUrl = `/api/v1/papers/${id}/preview?kind=${kind}`;
+      return { url: previewUrl, html, engine: 'html-fallback' };
     }
   }
 

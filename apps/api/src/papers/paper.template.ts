@@ -133,11 +133,11 @@ export function paperHTML(paper: ResolvedPaper, kind: 'STUDENT' | 'ANSWER_KEY'):
   .instructions { border: 1px solid #999; padding: 8px 12px; margin-bottom: 14px; background: #fafafa; }
   .instructions h4 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; }
   .instructions p { margin: 0; font-size: 11.5px; }
-  section { margin-bottom: 14px; page-break-inside: avoid; }
+  section { margin-bottom: 14px; }
   .sechead { font-size: 13px; font-weight: 700; border-bottom: 1px solid #111; padding-bottom: 3px; margin: 0 0 8px; }
   .secsub { font-weight: 400; }
   .secmarks { float: right; font-weight: 600; font-size: 11px; }
-  .q { display: flex; margin-bottom: 10px; }
+  .q { display: flex; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid; }
   .qno { width: 24px; font-weight: 600; }
   .qbody { flex: 1; }
   .qtext { margin-bottom: 3px; }
@@ -150,7 +150,17 @@ export function paperHTML(paper: ResolvedPaper, kind: 'STUDENT' | 'ANSWER_KEY'):
   .answer { margin-top: 5px; padding: 5px 8px; background: #f5f5dc; border-left: 3px solid #caa; font-size: 11px; }
   .answer .explanation { margin-top: 3px; color: #444; }
   printfoot { display: block; text-align: center; margin-top: 18px; font-size: 10.5px; color: #555; }
-  @media print { .no-print { display:none; } body { -webkit-print-color-adjust: exact; } }
+  @media print {
+    .no-print { display:none; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { max-width: none; margin: 0; }
+    section { page-break-inside: avoid; }
+    .q { page-break-inside: avoid; break-inside: avoid; }
+    .sechead { page-break-after: avoid; }
+    .insthead { page-break-after: avoid; }
+    .titleblock { page-break-after: avoid; }
+    .instructions { page-break-after: avoid; }
+  }
 </style>
 </head>
 <body>

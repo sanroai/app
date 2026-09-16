@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { hash } from 'bcryptjs';
 
 @Injectable()
 export class ParentsService {
@@ -9,6 +10,35 @@ export class ParentsService {
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
   ) {}
+
+  async createParent(user: RequestUser, data: { name: string; email: string; phone?: string }) {
+    const institutionId = this.tenant.requireInstitution(user);
+
+    const existing = await this.prisma.user.findFirst({ where: { email: data.email } });
+    if (existing) throw new ConflictException('A user with this email already exists');
+
+    const password = await hash('sanro123', 10);
+
+    const parent = await this.prisma.$transaction(async (tx) => {
+      const u = await tx.user.create({
+        data: {
+          name: data.name,
+          email: data.email,
+          phone: data.phone || null,
+          passwordHash: password,
+        },
+      });
+      await tx.institutionMember.create({
+        data: { userId: u.id, institutionId, role: 'PARENT' },
+      });
+      const p = await tx.parent.create({
+        data: { userId: u.id, institutionId, name: data.name, email: data.email, phone: data.phone || null },
+      });
+      return p;
+    });
+
+    return parent;
+  }
 
   async listParents(user: RequestUser) {
     const institutionId = this.tenant.requireInstitution(user);

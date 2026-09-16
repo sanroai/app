@@ -1,13 +1,26 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useParents } from '@/lib/people-hooks';
+import { useAuthStore } from '@/lib/auth-store';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Spinner, ErrorBanner } from '@/components/ui';
-import { Users, Mail, Phone, GraduationCap, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Mail, Phone, GraduationCap, ChevronDown, ChevronUp, UserPlus } from 'lucide-react';
 
 export default function ParentsPage() {
+  const user = useAuthStore((s) => s.user);
+  const isAdmin = user?.role === 'INSTITUTION_ADMIN' || user?.role === 'SUPER_ADMIN';
   const { data: parents, isLoading, error } = useParents();
+
+  if (!isAdmin) {
+    return (
+      <div className="text-center py-12 text-surface-500">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   if (isLoading) return <Spinner label="Loading parents…" />;
   if (error) return <ErrorBanner message={(error as Error).message} />;
@@ -16,8 +29,14 @@ export default function ParentsPage() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-surface-900">Parent Management</h1>
+        <Button asChild>
+          <Link href="/app/parents/new">
+            <UserPlus className="h-4 w-4" />
+            Add Parent
+          </Link>
+        </Button>
       </div>
 
       {list.length === 0 ? (

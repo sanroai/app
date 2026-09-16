@@ -14,12 +14,30 @@ import {
   Loader2,
   Download,
   Users,
+  UserPlus,
+  GraduationCap,
 } from 'lucide-react';
 
 const ENTITY_TYPES = [
-  { value: 'STUDENTS', label: 'Students' },
-  { value: 'TEACHERS', label: 'Teachers' },
+  { value: 'STUDENTS', label: 'Students', icon: GraduationCap },
+  { value: 'TEACHERS', label: 'Teachers', icon: UserPlus },
+  { value: 'PARENTS', label: 'Parents', icon: Users },
 ] as const;
+
+const SAMPLE_FILES: Record<string, { filename: string; columns: string }> = {
+  STUDENTS: {
+    filename: 'sample-students.csv',
+    columns: 'name, email, phone, rollNumber, parentName, parentPhone, grade',
+  },
+  TEACHERS: {
+    filename: 'sample-teachers.csv',
+    columns: 'name, email, phone, employeeId',
+  },
+  PARENTS: {
+    filename: 'sample-parents.csv',
+    columns: 'name, email, phone',
+  },
+};
 
 type ImportResult = {
   jobId: string;
@@ -42,11 +60,13 @@ export default function ImportPage() {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [commitResult, setCommitResult] = useState<CommitResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const uploadMutation = useImportUpload();
   const commitMutation = useImportCommit();
-  const { data: history } = useImportHistory();
+  const { data: history, isLoading: historyLoading } = useImportHistory();
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -56,29 +76,41 @@ export default function ImportPage() {
       const ext = dropped.name.split('.').pop()?.toLowerCase();
       if (ext === 'xlsx' || ext === 'csv' || ext === 'xls') {
         setFile(dropped);
+        setUploadError(null);
       }
     }
   }, []);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = e.target.files?.[0];
-    if (selected) setFile(selected);
+    if (selected) {
+      setFile(selected);
+      setUploadError(null);
+    }
   }
 
   function handleUpload() {
     if (!file) return;
+    setUploadError(null);
     uploadMutation.mutate(
       { file, entityType, academicYearId: '' },
       {
         onSuccess: (data) => setResult(data),
+        onError: (err) => setUploadError(err.message),
       },
     );
   }
 
   function handleCommit() {
+    setShowConfirm(true);
+  }
+
+  function confirmCommit() {
     if (!result?.jobId) return;
+    setShowConfirm(false);
     commitMutation.mutate(result.jobId, {
       onSuccess: (data) => setCommitResult(data),
+      onError: (err) => setUploadError(err.message),
     });
   }
 
@@ -86,6 +118,26 @@ export default function ImportPage() {
     setFile(null);
     setResult(null);
     setCommitResult(null);
+    setUploadError(null);
+  }
+
+  function downloadSample(type: string) {
+    const sample = SAMPLE_FILES[type as keyof typeof SAMPLE_FILES];
+    if (!sample) return;
+    const header = sample.columns;
+    const row = type === 'STUDENTS'
+      ? 'Aarav Sharma,aarav@example.com,9876543210,101,Sunita Sharma,9876543211,10'
+      : type === 'TEACHERS'
+        ? 'Priya Patel,priya@school.com,9876543212,T001'
+        : 'Rahul Verma,rahul@example.com,9876543213';
+    const csv = `${header}\n${row}\n`;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = sample.filename;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -96,9 +148,27 @@ export default function ImportPage() {
           Bulk Import
         </h1>
         <p className="text-surface-500 text-sm mt-1">
-          Import students or teachers from an XLSX/CSV file
+          Import students, teachers, or parents from an XLSX/CSV file
         </p>
       </div>
+
+      {/* Error display */}
+      {uploadError && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+              <div className="flex-1">
+                <p className="font-semibold text-red-900">Import Error</p>
+                <p className="text-sm text-red-700 mt-1">{uploadError}</p>
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => setUploadError(null)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Commit success */}
       {commitResult && (
@@ -119,6 +189,9 @@ export default function ImportPage() {
                     ))}
                   </div>
                 )}
+                <Button variant="outline" size="sm" className="mt-3" onClick={handleReset}>
+                  Import Another File
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -136,7 +209,7 @@ export default function ImportPage() {
             {/* Entity type selector */}
             <div>
               <label className="text-sm font-medium text-surface-700 mb-2 block">Entity Type</label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {ENTITY_TYPES.map((et) => (
                   <Button
                     key={et.value}
@@ -144,11 +217,23 @@ export default function ImportPage() {
                     size="sm"
                     onClick={() => setEntityType(et.value)}
                   >
-                    <Users className="mr-1 h-4 w-4" />
+                    <et.icon className="mr-1 h-4 w-4" />
                     {et.label}
                   </Button>
                 ))}
               </div>
+            </div>
+
+            {/* Sample file download */}
+            <div className="flex items-center gap-2 text-sm">
+              <Download className="h-4 w-4 text-surface-400" />
+              <span className="text-surface-500">Need a template?</span>
+              <button
+                onClick={() => downloadSample(entityType)}
+                className="text-brand-600 hover:text-brand-700 font-medium underline underline-offset-2"
+              >
+                Download sample {entityType.toLowerCase()} CSV
+              </button>
             </div>
 
             {/* Drop zone */}
@@ -200,7 +285,7 @@ export default function ImportPage() {
                   <Upload className="h-10 w-10 text-surface-400 mb-2" />
                   <p className="font-medium text-surface-900">Drop your file here</p>
                   <p className="text-sm text-surface-500 mt-1">or click to browse</p>
-                  <p className="text-xs text-surface-400 mt-2">Supports XLSX, XLS, CSV</p>
+                  <p className="text-xs text-surface-400 mt-2">Supports XLSX, XLS, CSV (max 10 MB)</p>
                 </>
               )}
             </div>
@@ -239,7 +324,7 @@ export default function ImportPage() {
                   {result.totalRows} rows found in {result.entityType.toLowerCase()} file
                 </CardDescription>
               </div>
-              <Badge variant={result.invalidRows === 0 ? 'success' : 'warning'}>
+              <Badge variant={result.invalidRows === 0 ? 'default' : 'destructive'}>
                 {result.validRows} valid, {result.invalidRows} invalid
               </Badge>
             </div>
@@ -295,46 +380,86 @@ export default function ImportPage() {
         </Card>
       )}
 
+      {/* Confirmation Dialog */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <Card className="max-w-md mx-4">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <AlertTriangle className="h-6 w-6 text-amber-500 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-surface-900">Confirm Import</h3>
+                  <p className="text-sm text-surface-600 mt-1">
+                    This will create {result?.validRows} new {result?.entityType.toLowerCase()} records.
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowConfirm(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={confirmCommit} className="bg-green-600 hover:bg-green-700">
+                  Yes, Import
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Import History */}
-      {history && history.length > 0 && !commitResult && (
+      {!commitResult && (
         <Card>
           <CardHeader>
             <CardTitle>Import History</CardTitle>
             <CardDescription>Recent import jobs</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {history.slice(0, 5).map((job) => (
-                <div
-                  key={job.id}
-                  className="flex items-center justify-between rounded-xl bg-surface-50 p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center">
-                      <FileSpreadsheet className="h-5 w-5 text-brand-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-surface-900 text-sm">{job.fileName}</p>
-                      <p className="text-xs text-surface-500">
-                        {job.entityType} · {job.totalRows} rows ·{' '}
-                        {new Date(job.createdAt).toLocaleDateString('en-IN')}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={
-                      job.status === 'COMMITTED'
-                        ? 'success'
-                        : job.status === 'VALIDATED'
-                          ? 'warning'
-                          : 'secondary'
-                    }
+            {historyLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-surface-400" />
+              </div>
+            ) : !history || history.length === 0 ? (
+              <div className="text-center py-8">
+                <FileSpreadsheet className="h-10 w-10 text-surface-300 mx-auto mb-3" />
+                <p className="text-sm text-surface-500">No import history yet.</p>
+                <p className="text-xs text-surface-400 mt-1">Your import jobs will appear here.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {history.slice(0, 5).map((job) => (
+                  <div
+                    key={job.id}
+                    className="flex items-center justify-between rounded-xl bg-surface-50 p-4"
                   >
-                    {job.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center">
+                        <FileSpreadsheet className="h-5 w-5 text-brand-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-surface-900 text-sm">{job.fileName}</p>
+                        <p className="text-xs text-surface-500">
+                          {job.entityType} · {job.totalRows} rows ·{' '}
+                          {new Date(job.createdAt).toLocaleDateString('en-IN')}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={
+                        job.status === 'COMMITTED'
+                          ? 'default'
+                          : job.status === 'VALIDATED'
+                            ? 'secondary'
+                            : 'outline'
+                      }
+                    >
+                      {job.status}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

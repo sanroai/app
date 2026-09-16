@@ -8,7 +8,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { CreateStudentSchema, UpdateStudentSchema, MoveStudentSchema, CreateTeacherSchema } from '@sanro/validation';
+import { CreateStudentSchema, UpdateStudentSchema, MoveStudentSchema, CreateTeacherSchema, CreateParentSchema } from '@sanro/validation';
 
 @ApiTags('students')
 @Controller('students')
@@ -121,6 +121,12 @@ export class ParentsController {
   @Get()
   list(@CurrentUser() user: RequestUser) {
     return this.service.listParents(user);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN)
+  @Post()
+  create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateParentSchema)) body: unknown) {
+    return this.service.createParent(user, body as Parameters<typeof this.service.createParent>[1]);
   }
 
   @Post(':id/link-student')
