@@ -122,4 +122,16 @@ export class ContentController {
   quality(@CurrentUser() user: RequestUser) {
     return this.service.qualityReport(user);
   }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Get(':id/versions')
+  versions(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.getVersionHistory(user, id);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.SUPER_ADMIN)
+  @Post(':id/versions/:version/restore')
+  restoreVersion(@CurrentUser() user: RequestUser, @Param('id') id: string, @Param('version') version: string) {
+    return this.service.restoreVersion(user, id, parseInt(version, 10));
+  }
 }

@@ -77,6 +77,64 @@ export class ContentService {
     return item;
   }
 
+  async getVersionHistory(user: RequestUser, contentId: string) {
+    const institutionId = this.tenant.requireInstitution(user);
+    const item = await this.prisma.contentItem.findFirst({
+      where: { id: contentId, institutionId },
+    });
+    if (!item) throw new NotFoundException('Content not found');
+
+    const versions = await this.prisma.contentVersion.findMany({
+      where: { contentId },
+      orderBy: { version: 'desc' },
+      take: 20,
+    });
+
+    return { currentVersion: item.version, versions };
+  }
+
+  async restoreVersion(user: RequestUser, contentId: string, version: number) {
+    const institutionId = this.tenant.requireInstitution(user);
+    if (user.role !== 'INSTITUTION_ADMIN' && user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only admins can restore versions');
+    }
+
+    const item = await this.prisma.contentItem.findFirst({
+      where: { id: contentId, institutionId },
+    });
+    if (!item) throw new NotFoundException('Content not found');
+
+    const versionRecord = await this.prisma.contentVersion.findFirst({
+      where: { contentId, version },
+    });
+    if (!versionRecord) throw new NotFoundException('Version not found');
+
+    const snapshot = versionRecord.snapshot as any;
+    const newVersion = item.version + 1;
+
+    await this.prisma.contentVersion.create({
+      data: {
+        contentId,
+        version: newVersion,
+        title: item.title,
+        description: item.description,
+        url: item.url,
+        snapshot: { title: item.title, description: item.description, url: item.url, status: item.status },
+        createdById: user.sub,
+      },
+    });
+
+    return this.prisma.contentItem.update({
+      where: { id: contentId },
+      data: {
+        title: snapshot.title,
+        description: snapshot.description,
+        url: snapshot.url,
+        version: newVersion,
+      },
+    });
+  }
+
   async create(
     user: RequestUser,
     data: {

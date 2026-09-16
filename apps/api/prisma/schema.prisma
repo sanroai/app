@@ -703,6 +703,7 @@ model ContentItem {
   durationSeconds Int?
   thumbnailUrl    String?
   url             String?
+  version         Int           @default(1)
   institutionId   String?       @db.Uuid
   boardId         String?       @db.Uuid
   subjectId       String?       @db.Uuid
@@ -721,6 +722,7 @@ model ContentItem {
   concept    Concept?     @relation(fields: [conceptId], references: [id])
   progress   ContentProgress[]
   remediationItems RemediationItem[]
+  versions   ContentVersion[]
 
   @@index([institutionId])
   @@index([conceptId])
@@ -1392,4 +1394,21 @@ model AiUsageLog {
 
   @@index([institutionId, createdAt])
   @@index([userId])
+}
+
+model ContentVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  contentId   String   @db.Uuid
+  version     Int
+  title       String
+  description String?
+  url         String?
+  snapshot    Json
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  content ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, version])
+  @@unique([contentId, version])
 }
