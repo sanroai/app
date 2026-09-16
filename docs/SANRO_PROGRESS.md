@@ -50,10 +50,16 @@
 | Content search + grade filtering | `apps/api/src/curriculum/content.service.ts` |
 | Generate questions from knowledge base | `apps/api/src/questions/questions.service.ts` |
 | Content processing dashboard | `apps/web/app/(dashboard)/app/content-processing/page.tsx` |
+| Content lifecycle transitions (DRAFT→REVIEW→APPROVED→ARCHIVED) | `apps/api/src/curriculum/content.service.ts` |
+| Completeness matrix (curriculum coverage) | `apps/api/src/curriculum/content.service.ts` |
+| Content quality report | `apps/api/src/curriculum/content.service.ts` |
+| PDF book ingestion (text extraction + chunking) | `apps/api/src/knowledge-base/content-processor.service.ts` |
+| YouTube video inline embedding | `apps/web/app/(dashboard)/app/learn/concepts/[conceptId]/page.tsx` |
+| Mobile content processing | `apps/mobile/app/(tabs)/content-processing.tsx` |
 
 ### Counts
 
-- **55** Prisma models (3 new: KnowledgeBase, KnowledgeChunk, ProcessingJob), **25** enums, ~**110** API endpoints
+- **55** Prisma models (3 new: KnowledgeBase, KnowledgeChunk, ProcessingJob), **25** enums, ~**120** API endpoints
 - **18** passing tests (3 spec files)
 - **Web:** 48 pages, 17 components, 8 hook files
 - **Mobile:** 22 screens, 8 components, 7 lib files
