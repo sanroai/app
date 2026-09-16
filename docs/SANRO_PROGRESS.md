@@ -56,10 +56,13 @@
 | PDF book ingestion (text extraction + chunking) | `apps/api/src/knowledge-base/content-processor.service.ts` |
 | YouTube video inline embedding | `apps/web/app/(dashboard)/app/learn/concepts/[conceptId]/page.tsx` |
 | Mobile content processing | `apps/mobile/app/(tabs)/content-processing.tsx` |
+| Flashcard generation from knowledge base | `apps/api/src/knowledge-base/content-generator.service.ts` |
+| Notes generation from knowledge base | `apps/api/src/knowledge-base/content-generator.service.ts` |
+| Content versioning (version history, restore) | `apps/api/src/curriculum/content.service.ts` + `ContentVersion` model |
 
 ### Counts
 
-- **55** Prisma models (3 new: KnowledgeBase, KnowledgeChunk, ProcessingJob), **25** enums, ~**120** API endpoints
+- **56** Prisma models (3 new: KnowledgeBase, KnowledgeChunk, ProcessingJob, ContentVersion), **25** enums, ~**125** API endpoints
 - **18** passing tests (3 spec files)
 - **Web:** 48 pages, 17 components, 8 hook files
 - **Mobile:** 22 screens, 8 components, 7 lib files
@@ -77,10 +80,14 @@
 | Content update/delete | Only create exists |
 | Content approval workflow | Implicit on create, no explicit transitions |
 | Bulk import for questions/content | Only students/teachers supported |
-| Content versioning | Not implemented |
-| Search | No cross-content search |
-| Content processing dashboard | Not implemented |
-| Completeness matrix | Not implemented |
+| Content versioning | `ContentVersion` model + endpoints, but no version diff UI |
+| Search | Basic content search + grade filtering works, no cross-content search |
+| Content processing dashboard | Implemented at `/app/content-processing` |
+| Completeness matrix | Implemented in `ContentService.matrix` |
+| Content lifecycle transitions | Implemented with 4 valid transitions |
+| Content quality report | Implemented in `ContentService.qualityReport` |
+| Flashcard generation from KB | Implemented, generates Q&A from KB chunks |
+| Notes generation from KB | Implemented, generates structured notes from KB chunks |
 
 ---
 
@@ -102,23 +109,7 @@
 ## Missing
 
 ### Core Platform
-- Cloudflare R2 storage service
-- Storage abstraction layer
-- PDF book ingestion pipeline
-- Knowledge base + chunks
-- Embeddings + vector search
-- Bulk content import (PDFs, videos, notes)
-- Content processing dashboard
-- Question generation from knowledge base
-- Notes generation from knowledge
-- Flashcard generation from knowledge
-- Content search
-- Student content filtering by grade
-- Content lifecycle (`DRAFT` → `REVIEW` → `APPROVED` → `PUBLISHED` → `ARCHIVED`)
-- Book-to-curriculum mapping
-- Content quality report
-- Completeness matrix
-- Content versioning
+- Embeddings + vector search (pgvector not installed)
 - Queue/job system for background processing
 
 ### Observability
