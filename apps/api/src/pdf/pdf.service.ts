@@ -4,7 +4,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { AppConfig } from '../config/app.config';
-import { APP_CONFIG_TOKEN } from '../common/common.module';
+import { APP_CONFIG_TOKEN } from '../common/common.constants';
 import { StorageService } from '../common/services/storage.service';
 
 @Injectable()

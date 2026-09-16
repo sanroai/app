@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from '
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { AppConfig } from '../../config/app.config';
-import { APP_CONFIG_TOKEN } from '../common.module';
+import { APP_CONFIG_TOKEN } from '../common.constants';
 
 export interface StorageResult {
   url: string;

@@ -12,7 +12,7 @@ import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { StringValue } from 'ms';
 import { AppConfig } from '../config/app.config';
-import { APP_CONFIG_TOKEN } from '../common/common.module';
+import { APP_CONFIG_TOKEN } from '../common/common.constants';
 import { NotificationsService } from '../common/services/audit-notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 

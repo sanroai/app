@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { QuestionType, Difficulty, Language } from '@sanro/types';
 import { AppConfig } from '../config/app.config';
-import { APP_CONFIG_TOKEN } from '../common/common.module';
+import { APP_CONFIG_TOKEN } from '../common/common.constants';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface GeneratedQuestion {

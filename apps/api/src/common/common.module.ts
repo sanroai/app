@@ -5,8 +5,7 @@ import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 import { StorageService } from '../common/services/storage.service';
-
-export const APP_CONFIG_TOKEN = 'APP_CONFIG';
+import { APP_CONFIG_TOKEN } from './common.constants';
 
 @Global()
 @Module({
