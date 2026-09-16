@@ -24,17 +24,126 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [refetchHome, refetchAssess]);
 
+  const role = user?.role ?? 'STUDENT';
+  const isStudent = role === 'STUDENT';
+  const isTeacher = role === 'TEACHER';
+  const isParent = role === 'PARENT';
+  const isAdmin = role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
+
+  const firstName = user?.name ? user.name.split(' ')[0] : 'Student';
+
+  // Student-specific data
   const weakConcepts = diagnosis?.weakConcepts ?? [];
   const pendingAssessments = (assessments?.assignments ?? []).filter((a) =>
     !a.attempts.some((at) => at.status === 'SUBMITTED' || at.status === 'AUTO_SUBMITTED'),
   );
-
-  const firstName = user?.name ? user.name.split(' ')[0] : 'Student';
-
   const xp = gamification?.profile?.totalXp ?? 0;
   const streak = gamification?.profile?.currentStreak ?? 0;
   const mastery = gamification?.profile?.averageMastery ?? 0;
 
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  // ─── Teacher / Admin Home ───
+  if (isTeacher || isAdmin) {
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.greetingWrap}>
+              <Text style={styles.greetingSmall}>{greeting()},</Text>
+              <Text style={styles.greeting}>{firstName}</Text>
+              <Text style={styles.roleChip}>{roleLabel}</Text>
+            </View>
+            <TouchableOpacity style={styles.logoWrap} onPress={() => router.push('/(tabs)/me')}>
+              <Ionicons name="school" size={30} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.subHeader}>ASSESS → DIAGNOSE → FIX → RETEST</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/classes')}>
+            <Ionicons name="people" size={24} color={Colors.primary} />
+            <Text style={styles.actionLabel}>My Classes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
+            <Ionicons name="clipboard" size={24} color="#10b981" />
+            <Text style={styles.actionLabel}>Assessments</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn}>
+            <Ionicons name="bar-chart" size={24} color="#f59e0b" />
+            <Text style={styles.actionLabel}>Reports</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionTitle}>Your Groups</Text>
+        <Card style={styles.emptyCard}>
+          <Ionicons name="people-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.emptyText}>Groups will appear once assigned</Text>
+        </Card>
+      </ScrollView>
+    );
+  }
+
+  // ─── Parent Home ───
+  if (isParent) {
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.greetingWrap}>
+              <Text style={styles.greetingSmall}>{greeting()},</Text>
+              <Text style={styles.greeting}>{firstName}</Text>
+              <Text style={styles.roleChip}>{roleLabel}</Text>
+            </View>
+            <TouchableOpacity style={styles.logoWrap} onPress={() => router.push('/(tabs)/me')}>
+              <Ionicons name="school" size={30} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.subHeader}>Track your children's academic progress</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Your Children</Text>
+        <Card style={styles.emptyCard}>
+          <Ionicons name="people-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.emptyText}>No children linked yet</Text>
+          <Text style={styles.emptyHint}>Contact your school to link accounts</Text>
+        </Card>
+
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <View style={styles.actionsRow}>
+          <TouchableOpacity style={styles.actionBtn}>
+            <Ionicons name="bar-chart" size={24} color={Colors.primary} />
+            <Text style={styles.actionLabel}>Reports</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn}>
+            <Ionicons name="alert-circle" size={24} color="#ef4444" />
+            <Text style={styles.actionLabel}>Weak Areas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionBtn}>
+            <Ionicons name="calendar" size={24} color="#10b981" />
+            <Text style={styles.actionLabel}>Upcoming</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  // ─── Student Home (default) ───
   return (
     <ScrollView
       style={styles.container}
@@ -44,7 +153,7 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View style={styles.greetingWrap}>
-            <Text style={styles.greetingSmall}>Good day,</Text>
+            <Text style={styles.greetingSmall}>{greeting()},</Text>
             <Text style={styles.greeting}>{firstName}</Text>
             <Text style={styles.roleChip}>{roleLabel}</Text>
           </View>
@@ -55,17 +164,15 @@ export default function HomeScreen() {
         <Text style={styles.subHeader}>TODAY → DO THIS → IMPROVE</Text>
       </View>
 
-      {/* Progress strip */}
       <View style={styles.statsRow}>
         <StatChip icon="star" label="XP" value={String(xp)} color={Colors.accent} />
         <StatChip icon="flame" label="Streak" value={`${streak}d`} color="#f97316" />
         <StatChip icon="fitness" label="Mastery" value={`${Math.round(mastery)}%`} color={Colors.primary} />
       </View>
 
-      {/* Focus today */}
       {weakConcepts.length > 0 || pendingAssessments.length > 0 ? (
         <>
-          <Text style={styles.sectionTitle}>🎯 Your Focus Today</Text>
+          <Text style={styles.sectionTitle}>Your Focus Today</Text>
 
           {weakConcepts.slice(0, 2).map((wc) => (
             <Card key={wc.conceptId} accent style={styles.focusCard}>
@@ -115,7 +222,6 @@ export default function HomeScreen() {
         </>
       ) : null}
 
-      {/* Continue learning */}
       <Text style={styles.sectionTitle}>Continue Learning</Text>
       {home && home.boards.length > 0 ? (
         home.boards.flatMap((b) =>
@@ -164,9 +270,6 @@ export default function HomeScreen() {
           <Text style={styles.emptyText}>Loading your classes…</Text>
         </Card>
       )}
-
-      {/* Recent activity */}
-      {homeLoading || assessLoading ? null : null}
     </ScrollView>
   );
 }
@@ -256,4 +359,16 @@ const styles = StyleSheet.create({
   progressFill: { height: 6, backgroundColor: Colors.primary, borderRadius: 3 },
   emptyCard: { marginHorizontal: Spacing.lg, alignItems: 'center', padding: Spacing.xl },
   emptyText: { color: Colors.textSecondary, fontSize: 14 },
+  emptyHint: { color: Colors.textMuted, fontSize: 12, marginTop: 4 },
+  actionsRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, gap: Spacing.md },
+  actionBtn: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    alignItems: 'center',
+    gap: Spacing.sm,
+    ...Shadow.sm,
+  },
+  actionLabel: { fontSize: 12, fontWeight: '600', color: Colors.text, textAlign: 'center' },
 });

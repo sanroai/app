@@ -60,8 +60,11 @@ export default function RootLayout() {
           <AuthGate />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.background } }}>
             <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="learn/[boardId]/[grade]/[subjectId]" options={{ headerShown: true, title: 'Chapters', headerTintColor: Colors.primary }} />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="classes" options={{ headerShown: true, title: 'Classes', headerTintColor: Colors.primary }} />
+          <Stack.Screen name="assessments" options={{ headerShown: true, title: 'Assessments', headerTintColor: Colors.primary }} />
+          <Stack.Screen name="children" options={{ headerShown: true, title: 'Children', headerTintColor: Colors.primary }} />
+          <Stack.Screen name="learn/[boardId]/[grade]/[subjectId]" options={{ headerShown: true, title: 'Chapters', headerTintColor: Colors.primary }} />
             <Stack.Screen name="learn/chapter/[chapterId]" options={{ headerShown: true, title: 'Chapter', headerTintColor: Colors.primary }} />
             <Stack.Screen name="concept/[conceptId]" options={{ headerShown: true, title: 'Concept', headerTintColor: Colors.primary }} />
             <Stack.Screen name="practice/[practiceId]" options={{ headerShown: true, title: 'Practice', headerTintColor: Colors.primary }} />
