@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUserDisplayRole } from '../../lib/hooks';
 import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile } from '../../lib/hooks';
+import { useRoleTheme } from '../../lib/role-theme';
 import { Card } from '../../components/Card';
 import { Colors, Spacing, BorderRadius, Shadow } from '../../constants/theme';
 
@@ -12,6 +13,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const roleLabel = useUserDisplayRole();
+  const theme = useRoleTheme();
   const { data: home, refetch: refetchHome, isFetching: homeLoading } = useLearningHome();
   const { data: diagnosis } = useMyDiagnosis();
   const { data: assessments, refetch: refetchAssess, isFetching: assessLoading } = useMyAssessments();
@@ -56,7 +58,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: theme.primary }]}>
           <View style={styles.headerTop}>
             <View style={styles.greetingWrap}>
               <Text style={styles.greetingSmall}>{greeting()},</Text>
@@ -80,7 +82,7 @@ export default function HomeScreen() {
             <Ionicons name="clipboard" size={24} color="#10b981" />
             <Text style={styles.actionLabel}>Assessments</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/leaderboard')}>
             <Ionicons name="bar-chart" size={24} color="#f59e0b" />
             <Text style={styles.actionLabel}>Reports</Text>
           </TouchableOpacity>
@@ -103,7 +105,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: theme.primary }]}>
           <View style={styles.headerTop}>
             <View style={styles.greetingWrap}>
               <Text style={styles.greetingSmall}>{greeting()},</Text>
@@ -114,7 +116,7 @@ export default function HomeScreen() {
               <Ionicons name="school" size={30} color={Colors.white} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.subHeader}>Track your children's academic progress</Text>
+          <Text style={styles.subHeader}>Track your children&apos;s academic progress</Text>
         </View>
 
         <Text style={styles.sectionTitle}>Your Children</Text>
@@ -126,15 +128,15 @@ export default function HomeScreen() {
 
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsRow}>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
             <Ionicons name="bar-chart" size={24} color={Colors.primary} />
             <Text style={styles.actionLabel}>Reports</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
             <Ionicons name="alert-circle" size={24} color="#ef4444" />
             <Text style={styles.actionLabel}>Weak Areas</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
             <Ionicons name="calendar" size={24} color="#10b981" />
             <Text style={styles.actionLabel}>Upcoming</Text>
           </TouchableOpacity>
@@ -150,7 +152,7 @@ export default function HomeScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.primary }]}>
         <View style={styles.headerTop}>
           <View style={styles.greetingWrap}>
             <Text style={styles.greetingSmall}>{greeting()},</Text>

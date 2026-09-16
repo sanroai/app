@@ -1,3 +1,61 @@
+export interface RoleTheme {
+  primary: string;
+  primaryLight: string;
+  primaryDark: string;
+  accent: string;
+  accentLight: string;
+  gradientStart: string;
+  gradientEnd: string;
+}
+
+export const ROLE_THEMES: Record<string, RoleTheme> = {
+  STUDENT: {
+    primary: '#7c3aed',
+    primaryLight: '#a78bfa',
+    primaryDark: '#5b21b6',
+    accent: '#8b5cf6',
+    accentLight: '#ede9fe',
+    gradientStart: '#7c3aed',
+    gradientEnd: '#9333ea',
+  },
+  TEACHER: {
+    primary: '#4f46e5',
+    primaryLight: '#818cf8',
+    primaryDark: '#3730a3',
+    accent: '#6366f1',
+    accentLight: '#e0e7ff',
+    gradientStart: '#4f46e5',
+    gradientEnd: '#2563eb',
+  },
+  PARENT: {
+    primary: '#0d9488',
+    primaryLight: '#5eead4',
+    primaryDark: '#115e59',
+    accent: '#14b8a6',
+    accentLight: '#ccfbf1',
+    gradientStart: '#0d9488',
+    gradientEnd: '#059669',
+  },
+  INSTITUTION_ADMIN: {
+    primary: '#1e40af',
+    primaryLight: '#60a5fa',
+    primaryDark: '#1e3a8a',
+    accent: '#3b82f6',
+    accentLight: '#dbeafe',
+    gradientStart: '#1e40af',
+    gradientEnd: '#4338ca',
+  },
+  SUPER_ADMIN: {
+    primary: '#475569',
+    primaryLight: '#94a3b8',
+    primaryDark: '#334155',
+    accent: '#6366f1',
+    accentLight: '#e0e7ff',
+    gradientStart: '#475569',
+    gradientEnd: '#4f46e5',
+  },
+};
+
 export const Colors = {
   primary: '#7c3aed',
   primaryLight: '#a78bfa',

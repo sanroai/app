@@ -2,9 +2,11 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/theme';
 import { useAuthStore } from '../../lib/auth-store';
+import { useRoleTheme } from '../../lib/role-theme';
 
 export default function TabsLayout() {
   const user = useAuthStore((s) => s.user);
+  const theme = useRoleTheme();
   const role = user?.role ?? 'STUDENT';
   const isStudent = role === 'STUDENT';
   const isTeacher = role === 'TEACHER';
@@ -14,7 +16,7 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.primary,
+        tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: Colors.textMuted,
         headerShown: false,
         tabBarStyle: {

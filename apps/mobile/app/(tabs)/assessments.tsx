@@ -1,5 +1,6 @@
 import { ScrollView, View, Text, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useCallback } from 'react';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAssessmentsList } from '../../lib/hooks';
 import { Card } from '../../components/Card';
@@ -7,6 +8,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 export default function AssessmentsScreen() {
+  const router = useRouter();
   const { data: assessments, isLoading, refetch, isRefetching } = useAssessmentsList();
 
   const onRefresh = useCallback(() => { refetch(); }, [refetch]);
@@ -33,15 +35,15 @@ export default function AssessmentsScreen() {
 
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
           <Ionicons name="add-circle" size={28} color={Colors.primary} />
           <Text style={styles.actionLabel}>New{'\n'}Assessment</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
           <Ionicons name="file-tray" size={28} color="#10b981" />
           <Text style={styles.actionLabel}>Question{'\n'}Bank</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
           <Ionicons name="document-text" size={28} color="#f59e0b" />
           <Text style={styles.actionLabel}>Generate{'\n'}Paper</Text>
         </TouchableOpacity>

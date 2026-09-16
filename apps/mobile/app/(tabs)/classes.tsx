@@ -1,4 +1,4 @@
-import { ScrollView, View, Text, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -67,7 +67,7 @@ export default function ClassesScreen() {
           <TouchableOpacity
             key={group.id}
             style={styles.groupCard}
-            onPress={() => router.push(`/(tabs)/me`)}
+            onPress={() => Alert.alert(group.name, `Grade ${group.grade ?? '?'} — ${group.studentCount} students`, [{ text: 'OK' }])}
           >
             <View style={styles.groupIcon}>
               <Ionicons name="school" size={24} color={Colors.primary} />

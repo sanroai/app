@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
+import { useRoleTheme, useRole } from '@/lib/role-theme';
 import {
   LogOut,
   Home,
@@ -46,17 +47,22 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  SUPER_ADMIN: 'from-red-500 to-pink-500',
-  INSTITUTION_ADMIN: 'from-blue-500 to-cyan-500',
-  TEACHER: 'from-green-500 to-emerald-500',
-  STUDENT: 'from-brand-500 to-purple-500',
-  PARENT: 'from-amber-500 to-orange-500',
+  SUPER_ADMIN: 'from-slate-600 to-indigo-600',
+  INSTITUTION_ADMIN: 'from-blue-700 to-indigo-700',
+  TEACHER: 'from-indigo-600 to-blue-600',
+  STUDENT: 'from-violet-600 to-purple-600',
+  PARENT: 'from-teal-600 to-emerald-600',
 };
 
 function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const theme = useRoleTheme();
   const staff = role === 'TEACHER' || role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
   const isAdmin = role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
+  const isSuperAdmin = role === 'SUPER_ADMIN';
+
+  const activeClass = `bg-gradient-to-r ${theme.gradient} text-white shadow-md`;
+  const inactiveClass = 'text-surface-500 hover:bg-surface-100 hover:text-surface-900';
 
   const primaryLinks = [
     { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
@@ -68,10 +74,16 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
           { href: '/app/gamification', label: 'Progress', icon: Trophy },
         ]
       : []),
+    ...(role === 'PARENT'
+      ? [
+          { href: '/app/children', label: 'Children', icon: Users },
+        ]
+      : []),
     ...(staff
       ? [
           { href: '/app/papers', label: 'Papers', icon: FileText },
           { href: '/app/remediation', label: 'Remediation', icon: Lightbulb },
+          { href: '/app/reports', label: 'Reports', icon: BarChart2 },
         ]
       : []),
   ];
@@ -92,6 +104,14 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
       ]
     : [];
 
+  const superAdminLinks = isSuperAdmin
+    ? [
+        { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
+        { href: '/app/curriculum', label: 'Curriculum', icon: BookOpen },
+        { href: '/app/analytics', label: 'Analytics', icon: BarChart2 },
+      ]
+    : [];
+
   if (mobile) {
     return (
       <div className="flex flex-col gap-1 p-2">
@@ -105,7 +125,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
               className={cn(
                 'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
                 active
-                  ? 'bg-brand-50 text-brand-700'
+                  ? activeClass
                   : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
               )}
             >
@@ -164,6 +184,31 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
             })}
           </>
         )}
+        {superAdminLinks.length > 0 && (
+          <>
+            <div className="mx-4 my-2 border-t border-surface-100" />
+            <p className="mx-4 text-xs font-semibold text-surface-400 uppercase">Platform</p>
+            {superAdminLinks.map((l) => {
+              const active = pathname === l.href || pathname.startsWith(`${l.href}/`);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => onNavigate?.()}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+                    active
+                      ? 'bg-brand-50 text-brand-700'
+                      : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
+                  )}
+                >
+                  <l.icon className="h-5 w-5" />
+                  {l.label}
+                </Link>
+              );
+            })}
+          </>
+        )}
       </div>
     );
   }
@@ -179,7 +224,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
             className={cn(
               'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
               active
-                ? 'bg-brand-100 text-brand-700'
+                ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
                 : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
             )}
           >
@@ -234,6 +279,29 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+
+      {/* Super Admin Dropdown */}
+      {superAdminLinks.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
+              <GraduationCap className="h-4 w-4" />
+              Platform
+              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {superAdminLinks.map((l) => (
+              <DropdownMenuItem key={l.href} asChild>
+                <Link href={l.href} className="flex items-center gap-2">
+                  <l.icon className="h-4 w-4" />
+                  {l.label}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </nav>
   );
 }
@@ -242,6 +310,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const { user, token, clearSession } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const theme = useRoleTheme();
+  const role = useRole();
 
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
 
@@ -270,7 +340,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Link href="/app" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-600">
+              <div className={`flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br ${theme.gradient}`}>
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
               <span className="text-lg font-bold text-surface-900 hidden sm:block">Sanro AI</span>
@@ -280,7 +350,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Search className="h-4 w-4 text-surface-400" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search students, concepts..."
                 className="bg-transparent text-sm text-surface-900 placeholder:text-surface-400 focus:outline-none w-48"
               />
             </div>

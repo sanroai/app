@@ -1,5 +1,6 @@
 import { ScrollView, View, Text, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useCallback } from 'react';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useChildren } from '../../lib/hooks';
 import { useAuthStore } from '../../lib/auth-store';
@@ -8,6 +9,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 export default function ChildrenScreen() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const { data: children, isLoading, refetch, isRefetching } = useChildren();
 
@@ -64,15 +66,15 @@ export default function ChildrenScreen() {
 
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
           <Ionicons name="bar-chart" size={24} color={Colors.primary} />
           <Text style={styles.actionLabel}>View{'\n'}Reports</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
           <Ionicons name="alert-circle" size={24} color="#ef4444" />
           <Text style={styles.actionLabel}>Weak{'\n'}Areas</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
           <Ionicons name="calendar" size={24} color="#10b981" />
           <Text style={styles.actionLabel}>Upcoming{'\n'}Tests</Text>
         </TouchableOpacity>
