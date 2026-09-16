@@ -895,55 +895,55 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
 
       {/* Progress Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-surface-500 font-medium">Total XP</p>
-                <p className="text-2xl font-bold text-surface-900 mt-1">{(gamification?.totalXp as number) ?? 0}</p>
+                <p className="text-sm text-violet-600 font-medium">Total XP</p>
+                <p className="text-2xl font-bold text-violet-900 mt-1">{(gamification?.totalXp as number) ?? 0}</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-brand-600" />
+              <div className="h-10 w-10 rounded-xl bg-violet-100 flex items-center justify-center">
+                <Zap className="h-5 w-5 text-violet-600" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-surface-400">
+            <div className="mt-3 flex items-center gap-2 text-xs text-violet-500">
               <TrendingUp className="h-3.5 w-3.5" />
               +{(gamification?.todayXp as number) ?? 0} today
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-surface-500 font-medium">Streak</p>
-                <p className="text-2xl font-bold text-surface-900 mt-1">{(gamification?.currentStreak as number) ?? 0} days</p>
+                <p className="text-sm text-amber-600 font-medium">Streak</p>
+                <p className="text-2xl font-bold text-amber-900 mt-1">{(gamification?.currentStreak as number) ?? 0} days</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-orange-100 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-orange-600" />
+              <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
+                <Flame className="h-5 w-5 text-amber-600" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-surface-400">
+            <div className="mt-3 flex items-center gap-2 text-xs text-amber-500">
               <Star className="h-3.5 w-3.5" />
               Best: {((gamification as Record<string, unknown>)?.bestStreak as number) ?? 0}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-surface-500 font-medium">Mastery</p>
-                <p className="text-2xl font-bold text-surface-900 mt-1">{((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0}%</p>
+                <p className="text-sm text-emerald-600 font-medium">Mastery</p>
+                <p className="text-2xl font-bold text-emerald-900 mt-1">{((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0}%</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center">
-                <Target className="h-5 w-5 text-green-600" />
+              <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                <Target className="h-5 w-5 text-emerald-600" />
               </div>
             </div>
             <div className="mt-3">
-              <Progress value={((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0} className="h-1.5" />
+              <Progress value={((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0} className="h-1.5 bg-emerald-100" />
             </div>
           </CardContent>
         </Card>

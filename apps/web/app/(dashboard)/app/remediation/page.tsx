@@ -1,12 +1,13 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useDiagnosisMy, useRemediationMy } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { titleCase } from '@/lib/format';
-import { Check, Circle, Target, CheckCircle2 } from 'lucide-react';
+import { Check, Circle, Target, CheckCircle2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 const LEVEL_STYLE: Record<string, string> = {
@@ -22,6 +23,7 @@ export default function RemediationPage() {
   const diag = useDiagnosisMy();
   const plans = useRemediationMy();
   const queryClient = useQueryClient();
+  const [pendingItems, setPendingItems] = useState<Set<string>>(new Set());
 
   if (diag.isLoading || plans.isLoading) return <Spinner label="Loading mastery…" />;
   const err = diag.error ?? plans.error;
@@ -31,6 +33,7 @@ export default function RemediationPage() {
   const planList = plans.data;
 
   async function setItemStatus(planId: string, itemId: string, status: 'COMPLETED' | 'SKIPPED') {
+    setPendingItems((prev) => new Set(prev).add(itemId));
     try {
       await api(`/remediation/items/${itemId}/status`, {
         method: 'POST',
@@ -40,6 +43,12 @@ export default function RemediationPage() {
       await queryClient.invalidateQueries({ queryKey: ['remediation', 'my'] });
     } catch (e) {
       alert(e instanceof Error ? e.message : 'Update failed');
+    } finally {
+      setPendingItems((prev) => {
+        const next = new Set(prev);
+        next.delete(itemId);
+        return next;
+      });
     }
   }
 
@@ -124,9 +133,14 @@ export default function RemediationPage() {
                       <Button
                         variant="outline"
                         onClick={() => setItemStatus(plan.id, item.id, 'COMPLETED')}
+                        disabled={pendingItems.has(item.id)}
                         className="shrink-0"
                       >
-                        <Circle className="h-4 w-4" />
+                        {pendingItems.has(item.id) ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Circle className="h-4 w-4" />
+                        )}
                         Mark complete
                       </Button>
                     )}

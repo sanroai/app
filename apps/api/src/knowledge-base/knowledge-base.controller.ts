@@ -7,6 +7,7 @@ import { Role } from '@prisma/client';
 import { KnowledgeBaseService } from './knowledge-base.service';
 import { ContentProcessorService } from './content-processor.service';
 import { ContentGeneratorService } from './content-generator.service';
+import { JobQueueService } from '../common/services/job-queue.service';
 
 @ApiTags('knowledge-base')
 @ApiBearerAuth()
@@ -16,6 +17,7 @@ export class KnowledgeBaseController {
     private readonly service: KnowledgeBaseService,
     private readonly processor: ContentProcessorService,
     private readonly generator: ContentGeneratorService,
+    private readonly jobQueue: JobQueueService,
   ) {}
 
   @Roles(Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER)
@@ -142,5 +144,43 @@ export class KnowledgeBaseController {
   @ApiOperation({ summary: 'Get knowledge base summary' })
   getSummary(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     return this.generator.generateSummary(user, id);
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Post(':id/process-async')
+  @ApiOperation({ summary: 'Queue knowledge base for background processing' })
+  async processAsync(
+    @Param('id') id: string,
+    @CurrentUser() user: RequestUser,
+    @Body() body: { type?: string; count?: number; grade?: string; subject?: string },
+  ) {
+    const institutionId = (user as any).institutionId || user.institutionId;
+    const jobType = (body.type || 'CONTENT_PROCESSING').toUpperCase().replace(' ', '_') as any;
+    const job = await this.jobQueue.addJob(jobType, {
+      knowledgeBaseId: id,
+      institutionId: institutionId || '',
+      userId: user.sub,
+      options: body,
+    });
+    return { jobId: job.id, status: job.status, type: job.type };
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Get('jobs')
+  @ApiOperation({ summary: 'List all processing jobs' })
+  listJobs() {
+    return {
+      queue: this.jobQueue.getQueue(),
+      stats: this.jobQueue.getStats(),
+    };
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Get('jobs/:jobId')
+  @ApiOperation({ summary: 'Get job status' })
+  getJob(@Param('jobId') jobId: string) {
+    const job = this.jobQueue.getJob(jobId);
+    if (!job) return { error: 'Job not found' };
+    return job;
   }
 }

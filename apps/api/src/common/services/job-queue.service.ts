@@ -1,0 +1,261 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+
+export type JobType = 'CONTENT_PROCESSING' | 'QUESTION_GENERATION' | 'FLASHCARD_GENERATION' | 'NOTES_GENERATION';
+export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
+export interface JobPayload {
+  knowledgeBaseId: string;
+  institutionId: string;
+  userId: string;
+  options?: Record<string, any>;
+}
+
+export interface Job {
+  id: string;
+  type: JobType;
+  status: JobStatus;
+  payload: JobPayload;
+  result?: any;
+  error?: string;
+  attempts: number;
+  maxAttempts: number;
+  createdAt: Date;
+  startedAt?: Date;
+  completedAt?: Date;
+}
+
+@Injectable()
+export class JobQueueService {
+  private readonly logger = new Logger(JobQueueService.name);
+  private queue: Job[] = [];
+  private processing = false;
+  private processingInterval: NodeJS.Timeout | null = null;
+
+  constructor(private readonly prisma: PrismaService) {
+    this.startProcessor();
+  }
+
+  private startProcessor() {
+    this.processingInterval = setInterval(() => this.processNext(), 2000);
+  }
+
+  private stopProcessor() {
+    if (this.processingInterval) {
+      clearInterval(this.processingInterval);
+      this.processingInterval = null;
+    }
+  }
+
+  async addJob(type: JobType, payload: JobPayload, maxAttempts = 3): Promise<Job> {
+    const job: Job = {
+      id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      type,
+      status: 'PENDING',
+      payload,
+      attempts: 0,
+      maxAttempts,
+      createdAt: new Date(),
+    };
+
+    this.queue.push(job);
+    this.logger.log(`Job ${job.id} added to queue (${type})`);
+
+    await this.prisma.processingJob.create({
+      data: {
+        id: job.id,
+        knowledgeBaseId: payload.knowledgeBaseId,
+        inputType: type,
+        status: 'PENDING',
+        metadata: payload as any,
+      },
+    });
+
+    return job;
+  }
+
+  getJob(id: string): Job | undefined {
+    return this.queue.find((j) => j.id === id);
+  }
+
+  getQueue(): Job[] {
+    return [...this.queue];
+  }
+
+  getStats() {
+    return {
+      total: this.queue.length,
+      pending: this.queue.filter((j) => j.status === 'PENDING').length,
+      processing: this.queue.filter((j) => j.status === 'PROCESSING').length,
+      completed: this.queue.filter((j) => j.status === 'COMPLETED').length,
+      failed: this.queue.filter((j) => j.status === 'FAILED').length,
+    };
+  }
+
+  private async processNext() {
+    if (this.processing) return;
+
+    const nextJob = this.queue.find((j) => j.status === 'PENDING');
+    if (!nextJob) return;
+
+    this.processing = true;
+    nextJob.status = 'PROCESSING';
+    nextJob.startedAt = new Date();
+    nextJob.attempts++;
+
+    try {
+      await this.prisma.processingJob.update({
+        where: { id: nextJob.id },
+        data: { status: 'PROCESSING', startedAt: nextJob.startedAt },
+      });
+
+      const result = await this.executeJob(nextJob);
+      nextJob.status = 'COMPLETED';
+      nextJob.result = result;
+      nextJob.completedAt = new Date();
+
+      await this.prisma.processingJob.update({
+        where: { id: nextJob.id },
+        data: {
+          status: 'COMPLETED',
+          completedAt: nextJob.completedAt,
+        },
+      });
+
+      this.logger.log(`Job ${nextJob.id} completed`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Job ${nextJob.id} failed: ${message}`);
+
+      if (nextJob.attempts < nextJob.maxAttempts) {
+        nextJob.status = 'PENDING';
+        this.logger.log(`Job ${nextJob.id} will retry (${nextJob.attempts}/${nextJob.maxAttempts})`);
+      } else {
+        nextJob.status = 'FAILED';
+        nextJob.error = message;
+        nextJob.completedAt = new Date();
+
+        await this.prisma.processingJob.update({
+          where: { id: nextJob.id },
+          data: {
+            status: 'FAILED',
+            error: message,
+            completedAt: nextJob.completedAt,
+          },
+        });
+      }
+    } finally {
+      this.processing = false;
+    }
+  }
+
+  private async executeJob(job: Job): Promise<any> {
+    switch (job.type) {
+      case 'CONTENT_PROCESSING':
+        return this.processContent(job);
+      case 'QUESTION_GENERATION':
+        return this.generateQuestions(job);
+      case 'FLASHCARD_GENERATION':
+        return this.generateFlashcards(job);
+      case 'NOTES_GENERATION':
+        return this.generateNotes(job);
+      default:
+        throw new Error(`Unknown job type: ${job.type}`);
+    }
+  }
+
+  private async processContent(job: Job): Promise<any> {
+    const { knowledgeBaseId } = job.payload;
+    const chunks = await this.prisma.knowledgeChunk.findMany({
+      where: { knowledgeBaseId },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    let processed = 0;
+    for (const chunk of chunks) {
+      if (!chunk.grade && chunk.content) {
+        const gradeMatch = chunk.content.match(/class\s+(\d+)/i);
+        if (gradeMatch) {
+          await this.prisma.knowledgeChunk.update({
+            where: { id: chunk.id },
+            data: { grade: gradeMatch[1] },
+          });
+        }
+      }
+      processed++;
+    }
+
+    return { chunksProcessed: processed, total: chunks.length };
+  }
+
+  private async generateQuestions(job: Job): Promise<any> {
+    const { knowledgeBaseId, options } = job.payload;
+    const count = options?.count || 10;
+
+    const chunks = await this.prisma.knowledgeChunk.findMany({
+      where: { knowledgeBaseId },
+      take: 5,
+    });
+
+    const questions: any[] = [];
+    for (const chunk of chunks) {
+      const sentences = chunk.content.split(/[.!?]+/).filter((s: string) => s.trim().length > 30);
+      for (const sentence of sentences.slice(0, 2)) {
+        questions.push({
+          text: `Based on the text, what is described?`,
+          type: 'SHORT_ANSWER',
+          difficulty: 'MEDIUM',
+          marks: 1,
+        });
+      }
+    }
+
+    return { questionsGenerated: questions.length, questions: questions.slice(0, count) };
+  }
+
+  private async generateFlashcards(job: Job): Promise<any> {
+    const { knowledgeBaseId, options } = job.payload;
+    const count = options?.count || 10;
+
+    const chunks = await this.prisma.knowledgeChunk.findMany({
+      where: { knowledgeBaseId },
+      take: 10,
+    });
+
+    const flashcards: any[] = [];
+    for (const chunk of chunks) {
+      const words = chunk.content.split(/\s+/).filter((w: string) => w.length > 5);
+      for (const word of words.slice(0, 2)) {
+        flashcards.push({
+          front: `Define: ${word}`,
+          back: chunk.content.substring(0, 200),
+          difficulty: 'MEDIUM',
+        });
+      }
+    }
+
+    return { flashcardsGenerated: flashcards.length, flashcards: flashcards.slice(0, count) };
+  }
+
+  private async generateNotes(job: Job): Promise<any> {
+    const { knowledgeBaseId } = job.payload;
+
+    const chunks = await this.prisma.knowledgeChunk.findMany({
+      where: { knowledgeBaseId },
+      take: 20,
+    });
+
+    const content = chunks.map((c: any) => c.content).join('\n\n');
+    const sections = content.split(/\n\n+/).filter((p: string) => p.trim().length > 50);
+
+    return {
+      notesGenerated: true,
+      sections: sections.length,
+      wordCount: content.split(/\s+/).length,
+    };
+  }
+
+  onModuleDestroy() {
+    this.stopProcessor();
+  }
+}

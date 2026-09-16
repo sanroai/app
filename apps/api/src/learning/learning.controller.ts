@@ -1,20 +1,25 @@
-import { Controller, Get, Param, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { LearningService } from './learning.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ParentContentGuard, PARENT_RESTRICTED_KEY } from '../common/guards/parent-content.guard';
+import { SetMetadata } from '@nestjs/common';
 
 @ApiTags('learning')
 @Controller('learning')
+@UseGuards(ParentContentGuard)
 export class LearningController {
   constructor(private readonly service: LearningService) {}
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('home')
   home(@CurrentUser() user: RequestUser) {
     return this.service.getLearningHome(user);
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('boards/:boardId/grades/:grade/subjects/:subjectId/chapters')
   chapters(
     @CurrentUser() user: RequestUser,
@@ -25,27 +30,32 @@ export class LearningController {
     return this.service.getChapters(user, boardId, grade, subjectId);
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('chapters/:chapterId')
   chapterDetail(@CurrentUser() user: RequestUser, @Param('chapterId') chapterId: string) {
     return this.service.getChapterDetail(user, chapterId);
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('concepts/:conceptId')
   conceptDetail(@CurrentUser() user: RequestUser, @Param('conceptId') conceptId: string) {
     return this.service.getConceptDetail(user, conceptId);
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Post('content/:contentId/complete')
   completeContent(@CurrentUser() user: RequestUser, @Param('contentId') contentId: string) {
     return this.service.completeContent(user, contentId);
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('progress')
   progress(@CurrentUser() user: RequestUser) {
     return this.service.getLearningProgress(user);
   }
 
   @Roles('STUDENT')
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Post('practice/start')
   startPractice(
     @CurrentUser() user: RequestUser,

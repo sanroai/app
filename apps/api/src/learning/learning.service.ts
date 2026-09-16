@@ -17,6 +17,15 @@ export class LearningService {
   async getLearningHome(user: RequestUser) {
     const institutionId = this.tenant.requireInstitution(user);
 
+    // For students, get their assigned grade for filtering
+    let studentGrade: string | null = null;
+    if (user.role === 'STUDENT') {
+      const student = await this.identity.resolveForUser(user);
+      if (student?.grade) {
+        studentGrade = student.grade;
+      }
+    }
+
     const boards = await this.prisma.board.findMany({
       where: { active: true },
       orderBy: { name: 'asc' },
@@ -143,7 +152,9 @@ export class LearningService {
         id: b.id,
         name: b.name,
         code: b.code,
-        grades: b.grades.map((g) => ({
+        grades: b.grades
+          .filter((g) => !studentGrade || g.name === studentGrade)
+          .map((g) => ({
           id: g.id,
           grade: g.name,
           boardId: b.id,
@@ -168,6 +179,14 @@ export class LearningService {
 
   async getChapters(user: RequestUser, boardId: string, grade: string, subjectId: string) {
     this.tenant.requireInstitution(user);
+
+    // For students, verify they can only access their assigned grade
+    if (user.role === 'STUDENT') {
+      const student = await this.identity.resolveForUser(user);
+      if (student?.grade && student.grade !== grade) {
+        throw new ForbiddenException('You can only access content for your assigned grade');
+      }
+    }
 
     const subject = await this.prisma.subject.findFirst({
       where: { id: subjectId, boardId, active: true },
@@ -294,6 +313,14 @@ export class LearningService {
     });
     if (!chapter) throw new NotFoundException('Chapter not found');
 
+    // For students, verify they can only access their assigned grade
+    if (user.role === 'STUDENT') {
+      const student = await this.identity.resolveForUser(user);
+      if (student?.grade && student.grade !== chapter.grade) {
+        throw new ForbiddenException('You can only access content for your assigned grade');
+      }
+    }
+
     const conceptIds = chapter.topics.flatMap((t) => t.concepts.map((c) => c.id));
     const allContent = await this.prisma.contentItem.findMany({
       where: { chapterId, status: 'APPROVED' },
@@ -392,6 +419,14 @@ export class LearningService {
       },
     });
     if (!concept) throw new NotFoundException('Concept not found');
+
+    // For students, verify they can only access their assigned grade
+    if (user.role === 'STUDENT') {
+      const student = await this.identity.resolveForUser(user);
+      if (student?.grade && student.grade !== concept.topic.chapter.grade) {
+        throw new ForbiddenException('You can only access content for your assigned grade');
+      }
+    }
 
     const contentItems = await this.prisma.contentItem.findMany({
       where: { conceptId, status: 'APPROVED' },

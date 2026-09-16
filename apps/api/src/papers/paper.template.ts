@@ -121,35 +121,35 @@ export function paperHTML(paper: ResolvedPaper, kind: 'STUDENT' | 'ANSWER_KEY'):
   body { font-family: Georgia, 'Times New Roman', serif; color: #111; margin: 0; font-size: 12.5px; line-height: 1.45; }
   .page { max-width: 190mm; margin: 0 auto; }
   .least { color: #666; font-size: 11px; }
-  .insthead { display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 12px; }
-  .logo { width: 64px; height: 64px; object-fit: contain; margin-right: 12px; }
+  .insthead { display: flex; align-items: center; justify-content: center; border-bottom: 2px solid #111; padding-bottom: 8px; margin-bottom: 8px; }
+  .logo { width: 50px; height: 50px; object-fit: contain; margin-right: 10px; }
   .inst { text-align: center; }
-  .inst h1 { font-size: 20px; margin: 0 0 2px; letter-spacing: 0.5px; }
-  .inst .addr { font-size: 11px; color: #444; }
-  .ktag { background:#000; color:#fff; text-align:center; font-weight:700; padding:3px 8px; margin-bottom:10px; font-size:11px; letter-spacing:2px; }
-  .titleblock { text-align: center; border: 1.5px solid #111; padding: 10px 14px; margin-bottom: 12px; }
-  .titleblock h2 { font-size: 17px; margin: 0 0 5px; }
-  .meta { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; max-width: 320px; margin: 0 auto; }
-  .instructions { border: 1px solid #999; padding: 8px 12px; margin-bottom: 14px; background: #fafafa; }
-  .instructions h4 { margin: 0 0 4px; font-size: 12px; text-transform: uppercase; }
-  .instructions p { margin: 0; font-size: 11.5px; }
-  section { margin-bottom: 14px; }
-  .sechead { font-size: 13px; font-weight: 700; border-bottom: 1px solid #111; padding-bottom: 3px; margin: 0 0 8px; }
+  .inst h1 { font-size: 18px; margin: 0 0 2px; letter-spacing: 0.5px; }
+  .inst .addr { font-size: 10px; color: #444; }
+  .ktag { background:#000; color:#fff; text-align:center; font-weight:700; padding:2px 8px; margin-bottom:8px; font-size:11px; letter-spacing:2px; }
+  .titleblock { text-align: center; border: 1.5px solid #111; padding: 8px 12px; margin-bottom: 10px; }
+  .titleblock h2 { font-size: 15px; margin: 0 0 4px; }
+  .meta { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; max-width: 320px; margin: 0 auto; }
+  .instructions { border: 1px solid #999; padding: 6px 10px; margin-bottom: 10px; background: #fafafa; }
+  .instructions h4 { margin: 0 0 3px; font-size: 11px; text-transform: uppercase; }
+  .instructions p { margin: 0; font-size: 11px; }
+  section { margin-bottom: 12px; }
+  .sechead { font-size: 13px; font-weight: 700; border-bottom: 1px solid #111; padding-bottom: 3px; margin: 0 0 6px; }
   .secsub { font-weight: 400; }
   .secmarks { float: right; font-weight: 600; font-size: 11px; }
-  .q { display: flex; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid; }
-  .qno { width: 24px; font-weight: 600; }
+  .q { display: flex; margin-bottom: 8px; page-break-inside: avoid; break-inside: avoid; }
+  .qno { width: 22px; font-weight: 600; }
   .qbody { flex: 1; }
-  .qtext { margin-bottom: 3px; }
+  .qtext { margin-bottom: 2px; }
   .concept { display: inline-block; background:#eef; border:1px solid #ccd; color:#334; font-size:9.5px; padding:0 5px; border-radius:3px; margin-left:4px; }
-  ol.options { margin: 4px 0 2px 18px; padding: 0; }
-  ol.options li { margin-bottom: 2px; }
-  .blank { border-bottom: 1px dotted #333; height: 18px; margin: 4px 0; }
-  .blank.tall { height: 72px; }
-  .qmarks { width: 46px; text-align: right; font-weight: 600; font-size: 11px; }
-  .answer { margin-top: 5px; padding: 5px 8px; background: #f5f5dc; border-left: 3px solid #caa; font-size: 11px; }
-  .answer .explanation { margin-top: 3px; color: #444; }
-  printfoot { display: block; text-align: center; margin-top: 18px; font-size: 10.5px; color: #555; }
+  ol.options { margin: 3px 0 2px 18px; padding: 0; }
+  ol.options li { margin-bottom: 1px; }
+  .blank { border-bottom: 1px dotted #333; height: 16px; margin: 3px 0; }
+  .blank.tall { height: 60px; }
+  .qmarks { width: 42px; text-align: right; font-weight: 600; font-size: 11px; }
+  .answer { margin-top: 4px; padding: 4px 8px; background: #f5f5dc; border-left: 3px solid #caa; font-size: 11px; }
+  .answer .explanation { margin-top: 2px; color: #444; }
+  printfoot { display: block; text-align: center; margin-top: 14px; font-size: 10.5px; color: #555; }
   @media print {
     .no-print { display:none; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

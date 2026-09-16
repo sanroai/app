@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, SetMetadata } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AiService } from './ai.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -7,9 +7,11 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ChatSchema } from '@sanro/validation';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException } from '@nestjs/common';
+import { ParentContentGuard, PARENT_RESTRICTED_KEY } from '../common/guards/parent-content.guard';
 
 @ApiTags('ai')
 @Controller('ai')
+@UseGuards(ParentContentGuard)
 export class AiController {
   constructor(
     private readonly ai: AiService,
@@ -47,6 +49,7 @@ export class AiController {
     };
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Post('chat')
   @HttpCode(HttpStatus.OK)
   async chat(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(ChatSchema)) body: { message: string; context?: { conceptId?: string; questionId?: string; assessmentId?: string } }) {

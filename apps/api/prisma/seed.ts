@@ -815,7 +815,7 @@ async function seedPlansAndInstitution() {
     where: { code: 'DEMO01' },
     update: {},
     create: {
-      name: 'Sanro Demo Academy',
+      name: 'Sanro Demo School',
       type: 'SCHOOL',
       status: 'ACTIVE',
       code: 'DEMO01',
@@ -926,14 +926,14 @@ async function seedUsers(institutionId: string, academicYearId: string) {
       email: 'student@sanroai.com',
       phone: '9822000003',
       rollNumber: 'R1001',
-      grade: '8',
+      grade: '10',
       status: 'ACTIVE',
     },
   });
   await prisma.gamificationProfile.upsert({
     where: { studentId: student.id },
     update: {},
-    create: { studentId: student.id, xp: 0, streakDays: 0 },
+    create: { studentId: student.id, xp: 285, streakDays: 5 },
   });
 
   const parentUser = await prisma.user.upsert({
@@ -958,9 +958,9 @@ async function seedUsers(institutionId: string, academicYearId: string) {
   });
 
   const group = await prisma.group.upsert({
-    where: { academicYearId_name: { academicYearId, name: 'Class 8 - A' } },
+    where: { academicYearId_name: { academicYearId, name: 'Class 10 - A' } },
     update: {},
-    create: { institutionId, academicYearId, name: 'Class 8 - A', type: 'CLASS', grade: '8', status: 'ACTIVE' },
+    create: { institutionId, academicYearId, name: 'Class 10 - A', type: 'CLASS', grade: '10', status: 'ACTIVE' },
   });
   await prisma.groupMembership.upsert({
     where: { groupId_studentId_academicYearId: { groupId: group.id, studentId: student.id, academicYearId } },

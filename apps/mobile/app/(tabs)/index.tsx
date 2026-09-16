@@ -167,9 +167,9 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.statsRow}>
-        <StatChip icon="star" label="XP" value={String(xp)} color={Colors.accent} />
-        <StatChip icon="flame" label="Streak" value={`${streak}d`} color="#f97316" />
-        <StatChip icon="fitness" label="Mastery" value={`${Math.round(mastery)}%`} color={Colors.primary} />
+        <StatChip icon="star" label="XP" value={String(xp)} color="#7c3aed" />
+        <StatChip icon="flame" label="Streak" value={`${streak}d`} color="#f59e0b" />
+        <StatChip icon="fitness" label="Mastery" value={`${Math.round(mastery)}%`} color="#059669" />
       </View>
 
       {weakConcepts.length > 0 || pendingAssessments.length > 0 ? (
@@ -278,9 +278,9 @@ export default function HomeScreen() {
 
 function StatChip({ icon, label, value, color }: { icon: any; label: string; value: string; color: string }) {
   return (
-    <View style={styles.statChip}>
+    <View style={[styles.statChip, { backgroundColor: color + '15', borderColor: color + '30' }]}>
       <Ionicons name={icon} size={14} color={color} />
-      <Text style={styles.statValue}>{value}</Text>
+      <Text style={[styles.statValue, { color }]}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
@@ -330,6 +330,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
+    borderWidth: 1,
     ...Shadow.sm,
   },
   statValue: { fontSize: 14, fontWeight: '700', color: Colors.text },
