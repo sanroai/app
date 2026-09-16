@@ -1,6 +1,6 @@
 # Implementation Status
 
-> Last updated: 2026-09-16 (Session 11 — Mobile release build, quiz/challenge scoring, offline login, branded app icon)
+> Last updated: 2026-09-16 (Session 12 — Production deployment LIVE: Railway API + Vercel web + EAS Android build)
 > Audit: Full codebase review against Sanro AI Product Specification
 
 ---
@@ -29,6 +29,9 @@
 | Content | ✅ | 135+ content items with YouTube URLs + markdown notes |
 | Achievements | ✅ | 8 seeded, gamification profile (285 XP, 5-day streak) |
 | Screenshots | ✅ | 26 pages captured |
+| Production API | ✅ | LIVE: `https://api.sanroai.com` (Railway + managed Postgres, cert valid to Dec 2026) |
+| Production web | ✅ | LIVE: `https://sanroai.com` (Vercel CLI deploy, `NEXT_PUBLIC_API_URL` → prod API) |
+| Android production build | ✅ | `.aab` built via EAS (STORE distribution, `com.sanro.ai`) |
 
 ---
 
@@ -159,6 +162,19 @@ SANRO is NOT a content library. It is an academic intelligence platform that con
 ---
 
 ## Changelog
+
+### Session 12 (2026-09-16 — Production deployment)
+- **API LIVE on Railway** (`https://api.sanroai.com`): monorepo build via `railway.json` at repo root (pnpm 12.4.1, rootDirectory `""`, start `node apps/api/dist/main.js`). Managed PostgreSQL connected; `DATABASE_URL` points at the private `.railway.internal` host. `preDeployCommand` runs `prisma migrate deploy` + idempotent `db:seed` (CBSE board, 10 grades, content, demo users, question bank, achievements).
+- **Railway healthcheck root-cause fixed**: Railway v2 probes the injected `PORT` env var. App bound 4000 while no listener existed on the probed port → "service unavailable" despite the app being up. Fixed by setting `API_PORT=3000` AND `PORT=3000`; code also hardened to honor `PORT` (`app.config.ts` default falls back to `process.env.PORT`, `main.ts` listens on `config.PORT ?? config.API_PORT`).
+- **Custom domain `api.sanroai.com` LIVE**: CNAME `api → uhf507e3.up.railway.app` + `_railway-verify.api` TXT (required — without the TXT the cert stays at 404/unverified). Certificate issued 2026-09-15, valid through 2026-12-14.
+- **Prod smoke tests**: `/api/v1/health` → 200 `{status:"ok",database:"connected"}`; student/teacher login; `/dashboard/student` (Aarav Sharma, grade 8, XP 285, streak 5); `/curriculum/grades` → `["1".."10"]`, all against the live production API.
+- **Web LIVE on Vercel** (`https://sanroai.com`): `NEXT_PUBLIC_API_URL` → `https://api.sanroai.com/api/v1`. Vercel git webhook is not active, so deploys use the Vercel CLI from the repo root (project rootDirectory `apps/web`). Built JS bundles reference `api.sanroai.com/api/v1` (no localhost).
+- **EAS Android production build SUCCESS** (`@harishpanditkar/sanro-ai`, build ~/release): `.aab` artifact at `https://expo.dev/artifacts/eas/Jm1J1k991ajIsW-FnW_VpXn142fc46jJ9krgMOYYIqc.aab` (STORE distribution, SDK 52, `com.sanro.ai`, version 1.0.0 build 1). `eas.json` profiles set `EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1`.
+- **Mobile bundle fixes for pnpm monorepo**:
+  - SDK 52 Windows/monorepo release-bundle bug where `expo-router/entry` resolves to an incorrect relative path → added explicit `apps/mobile/index.js` (`import 'expo-router/entry'`) + `"main": "index.js"` and set `metro.config.js` `server.unstable_serverRoot = workspaceRoot`.
+  - EAS eager bundle failed to resolve `query-string` (an undeclared runtime dep of expo-router's `getPathFromState.js`, only resolving locally by pnpm store coincidence) → declared `query-string@^7.1.3` in `apps/mobile`.
+  - Gradle `:expo-modules-core:compileReleaseKotlin` failure — Compose Compiler 1.5.15 requires Kotlin 1.9.25 but RN's default was 1.9.24 → added `expo-build-properties` with `android.kotlinVersion: "1.9.25"`.
+- **Verification**: `pnpm --filter @sanro/mobile typecheck` ✓, local `npx expo export --platform android` ✓ and `npx expo export:embed --eager` ✓ (the exact steps EAS runs), EAS Android build ✓.
 
 ### Session 11 (2026-09-16)
 - **Android release build unblocked**: pnpm symlink made `expo-modules-autolinking` unresolvable from `apps/mobile/node_modules/expo`, so `loadConfigAsync` returned null and the resolver fell back to `expo.core.ExpoModulesPackage` (wrong class). Added `expo-modules-autolinking@2.0.8` devDep to `apps/mobile/package.json`, purged `android/build/generated/autolinking`, regenerated → correct `expo.modules.ExpoModulesPackage`. `assembleRelease` succeeds → `app-release.apk` (74 MB).
