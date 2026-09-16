@@ -13,7 +13,7 @@ import {
 } from '@/lib/api-hooks';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { formatDate, formatScore, titleCase } from '@/lib/format';
-import { Play, RotateCw, Eye } from 'lucide-react';
+import { Play, RotateCw, Eye, ClipboardList } from 'lucide-react';
 
 export default function AssessmentsPage() {
   const user = useAuthStore((s) => s.user);
@@ -136,7 +136,12 @@ function StudentAssessments() {
             </Card>
           );
         })}
-        {data?.assignments?.length === 0 ? <p className="text-sm text-slate-400">No assessments assigned yet.</p> : null}
+        {data?.assignments?.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+            <ClipboardList className="h-10 w-10 text-slate-300 mb-3" />
+            <p className="text-sm text-slate-500 max-w-sm">No assessments assigned yet — check back soon or ask your teacher.</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

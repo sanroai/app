@@ -156,12 +156,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-surface-900">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 leading-tight">
             {greeting}, {user.name.split(' ')[0]}! 👋
           </h1>
-          <p className="text-surface-600 mt-1">
+          <p className="text-surface-600 mt-1 text-sm sm:text-base">
             {isStudent
               ? "Let's continue your learning journey"
               : isTeacher
@@ -172,7 +172,7 @@ export default function DashboardPage() {
           </p>
         </div>
         {isStudent && (
-          <Button className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
+          <Button className="sm:w-auto w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
             <Lightbulb className="mr-2 h-4 w-4" />
             Continue Learning
           </Button>

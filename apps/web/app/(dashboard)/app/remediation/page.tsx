@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { titleCase } from '@/lib/format';
-import { Check, Circle } from 'lucide-react';
+import { Check, Circle, Target, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 const LEVEL_STYLE: Record<string, string> = {
@@ -82,7 +82,10 @@ export default function RemediationPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-slate-400">No mastery data yet — complete an assessment to build it.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+            <Target className="h-10 w-10 text-slate-300 mb-3" />
+            <p className="text-sm text-slate-500 max-w-sm">No mastery data yet — complete an assessment to build it.</p>
+          </div>
         )}
       </section>
 
@@ -133,7 +136,10 @@ export default function RemediationPage() {
             </Card>
           ))}
           {Array.isArray(planList) && planList.length === 0 ? (
-            <p className="text-sm text-slate-400">No active remediation plans — weak concepts will appear here after assessments.</p>
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
+              <CheckCircle2 className="h-10 w-10 text-slate-300 mb-3" />
+              <p className="text-sm text-slate-500 max-w-sm">No active remediation plans — weak concepts will appear here after assessments.</p>
+            </div>
           ) : null}
         </div>
       </section>
