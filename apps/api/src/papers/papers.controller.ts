@@ -7,6 +7,8 @@ import { PdfService } from '../pdf/pdf.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { CreatePaperSchema, RegeneratePaperQuestionsSchema } from '@sanro/validation';
 import { Response } from 'express';
 
 @ApiTags('papers')
@@ -24,7 +26,7 @@ export class PapersController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+  create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreatePaperSchema)) body: unknown) {
     return this.service.generate(user, body as Parameters<typeof this.service.generate>[1]);
   }
 
@@ -41,7 +43,7 @@ export class PapersController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/regenerate')
-  regenerate(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { questionId: string }) {
+  regenerate(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(RegeneratePaperQuestionsSchema)) body: { questionId: string }) {
     return this.service.regenerateQuestion(user, id, body.questionId);
   }
 

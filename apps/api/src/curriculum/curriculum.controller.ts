@@ -6,6 +6,7 @@ import { ContentService } from './content.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
 @ApiTags('curriculum')
 @Controller('curriculum')

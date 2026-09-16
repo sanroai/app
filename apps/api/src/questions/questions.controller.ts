@@ -6,7 +6,9 @@ import { AiService } from '../ai/ai.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateQuestionSchema, UpdateQuestionSchema, ReviewQuestionSchema } from '@sanro/validation';
 
 @ApiTags('questions')
 @Controller('questions')
@@ -29,13 +31,13 @@ export class QuestionsController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+  create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateQuestionSchema)) body: unknown) {
     return this.service.create(user, body as Parameters<typeof this.service.create>[1]);
   }
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Patch(':id')
-  update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: Record<string, unknown>) {
+  update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(UpdateQuestionSchema)) body: Record<string, unknown>) {
     return this.service.update(user, id, body);
   }
 
@@ -47,7 +49,7 @@ export class QuestionsController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/review')
-  review(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { action: 'APPROVE' | 'REJECT' | 'ARCHIVE' }) {
+  review(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(ReviewQuestionSchema)) body: { action: 'APPROVE' | 'REJECT' | 'ARCHIVE' }) {
     return this.service.review(user, id, body.action);
   }
 

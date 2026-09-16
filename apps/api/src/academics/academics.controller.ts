@@ -5,6 +5,8 @@ import { AcademicsService } from './academics.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { CreateAcademicYearSchema, CreateGroupSchema, UpdateGroupSchema } from '@sanro/validation';
 
 @ApiTags('academics')
 @Controller('academics')
@@ -20,7 +22,7 @@ export class AcademicsController {
   @Post('academic-years')
   createYear(
     @CurrentUser() user: RequestUser,
-    @Body() body: { name: string; startDate: string; endDate: string },
+    @Body(new ZodValidationPipe(CreateAcademicYearSchema)) body: { name: string; startDate: string; endDate: string },
   ) {
     return this.service.createAcademicYear(user, body);
   }
@@ -38,7 +40,7 @@ export class AcademicsController {
 
   @Roles(Role.INSTITUTION_ADMIN)
   @Post('groups')
-  createGroup(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+  createGroup(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateGroupSchema)) body: unknown) {
     return this.service.createGroup(user, body as Parameters<typeof this.service.createGroup>[1]);
   }
 
@@ -49,7 +51,7 @@ export class AcademicsController {
 
   @Roles(Role.INSTITUTION_ADMIN)
   @Patch('groups/:id')
-  updateGroup(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
+  updateGroup(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(UpdateGroupSchema)) body: unknown) {
     return this.service.updateGroup(user, id, body as Parameters<typeof this.service.updateGroup>[2]);
   }
 }

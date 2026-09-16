@@ -7,6 +7,8 @@ import { ParentsService } from './parents.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { CreateStudentSchema, UpdateStudentSchema, MoveStudentSchema, CreateTeacherSchema } from '@sanro/validation';
 
 @ApiTags('students')
 @Controller('students')
@@ -27,7 +29,7 @@ export class StudentsController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+  create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateStudentSchema)) body: unknown) {
     return this.service.createStudent(user, body as Parameters<typeof this.service.createStudent>[1]);
   }
 
@@ -38,7 +40,7 @@ export class StudentsController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Patch(':id')
-  update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
+  update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(UpdateStudentSchema)) body: unknown) {
     return this.service.updateStudent(user, id, body as Parameters<typeof this.service.updateStudent>[2]);
   }
 
@@ -56,7 +58,7 @@ export class StudentsController {
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/move')
-  move(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
+  move(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(MoveStudentSchema)) body: unknown) {
     return this.service.moveStudent(user, id, body as Parameters<typeof this.service.moveStudent>[2]);
   }
 
@@ -84,7 +86,7 @@ export class TeachersController {
 
   @Roles(Role.INSTITUTION_ADMIN)
   @Post()
-  create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+  create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateTeacherSchema)) body: unknown) {
     return this.service.createTeacher(user, body as Parameters<typeof this.service.createTeacher>[1]);
   }
 

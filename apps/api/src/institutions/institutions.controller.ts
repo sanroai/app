@@ -5,6 +5,8 @@ import { InstitutionsService } from './institutions.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import { UpdateInstitutionSchema } from '@sanro/validation';
 
 @ApiTags('institutions')
 @Controller('institutions')
@@ -18,7 +20,7 @@ export class InstitutionsController {
 
   @Roles(Role.INSTITUTION_ADMIN)
   @Patch('mine')
-  updateMine(@CurrentUser() user: RequestUser, @Body() body: unknown) {
+  updateMine(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(UpdateInstitutionSchema)) body: unknown) {
     return this.service.updateForUser(user, body as Parameters<typeof this.service.updateForUser>[1]);
   }
 
