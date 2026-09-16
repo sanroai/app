@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK",
-    "buildCommand": "pnpm install && pnpm --filter @sanro/api db:generate && pnpm --filter '@sanro/api...' run build"
+    "buildCommand": "pnpm install --frozen-lockfile && pnpm --filter @sanro/api db:generate && pnpm --filter '@sanro/api...' run build"
   },
   "deploy": {
     "startCommand": "node apps/api/dist/main.js",
