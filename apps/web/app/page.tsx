@@ -405,13 +405,12 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
                 <a
                   href="/downloads/sanroai.apk"
-                  download
                   className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-6 py-4 text-white shadow-xl shadow-brand-600/25 hover:shadow-2xl hover:shadow-brand-600/40 transition-all"
                 >
                   <Download className="h-6 w-6" />
                   <span className="text-left">
                     <span className="block text-xs font-medium text-white/80">Download for</span>
-                    <span className="block text-lg font-bold leading-tight">Android APP</span>
+                    <span className="block text-lg font-bold leading-tight">Android</span>
                   </span>
                 </a>
 
