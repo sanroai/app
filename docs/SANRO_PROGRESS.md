@@ -59,10 +59,16 @@
 | Flashcard generation from knowledge base | `apps/api/src/knowledge-base/content-generator.service.ts` |
 | Notes generation from knowledge base | `apps/api/src/knowledge-base/content-generator.service.ts` |
 | Content versioning (version history, restore) | `apps/api/src/curriculum/content.service.ts` + `ContentVersion` model |
+| Parent content restriction (API guard) | `apps/api/src/common/guards/parent-content.guard.ts` |
+| Student grade filtering (server-side) | `apps/api/src/learning/learning.service.ts` |
+| Demo school seed (Sanro Demo School, Class 10) | `apps/api/prisma/seed.ts` |
+| Student dashboard role colors (violet/amber/emerald) | `apps/web/app/(dashboard)/app/page.tsx` + `apps/mobile/app/(tabs)/index.tsx` |
+| Print CSS fix (compact header, questions on page 1) | `apps/api/src/papers/paper.template.ts` |
+| Background job queue (retry, status tracking) | `apps/api/src/common/services/job-queue.service.ts` |
 
 ### Counts
 
-- **56** Prisma models (3 new: KnowledgeBase, KnowledgeChunk, ProcessingJob, ContentVersion), **25** enums, ~**125** API endpoints
+- **56** Prisma models (KnowledgeBase, KnowledgeChunk, ProcessingJob, ContentVersion), **25** enums, ~**130** API endpoints
 - **18** passing tests (3 spec files)
 - **Web:** 48 pages, 17 components, 8 hook files
 - **Mobile:** 22 screens, 8 components, 7 lib files
@@ -82,12 +88,7 @@
 | Bulk import for questions/content | Only students/teachers supported |
 | Content versioning | `ContentVersion` model + endpoints, but no version diff UI |
 | Search | Basic content search + grade filtering works, no cross-content search |
-| Content processing dashboard | Implemented at `/app/content-processing` |
-| Completeness matrix | Implemented in `ContentService.matrix` |
-| Content lifecycle transitions | Implemented with 4 valid transitions |
-| Content quality report | Implemented in `ContentService.qualityReport` |
-| Flashcard generation from KB | Implemented, generates Q&A from KB chunks |
-| Notes generation from KB | Implemented, generates structured notes from KB chunks |
+| Background job queue | In-memory queue with retry, no persistent queue (Redis/Bull) |
 
 ---
 
@@ -95,14 +96,13 @@
 
 | Issue | Details |
 |---|---|
-| PDF download in production | Likely `PDF_ENGINE=none` on Railway, Playwright not available |
-| Print CSS | Header takes page 1, questions start on page 2 (unnecessary page break) |
+| PDF download in production | Playwright not available on Railway; HTML fallback works |
+| Print CSS | Reduced header spacing — questions now start on page 1 when space exists |
 | Mobile API defaults to localhost | `EXPO_PUBLIC_API_URL` not set in production |
 | Super Admin nav links | `/app/institutions`, `/app/curriculum`, `/app/analytics` pages don't exist |
 | Search bar in dashboard | Purely decorative, no functionality |
 | `ChatController` duplicates `AiController` | `POST /chat/ask-sanro` = `POST /ai/chat` |
 | Duplicate UI component systems | `components/ui.tsx` (legacy) and `components/ui/` (shadcn) |
-| `console.log` left in proxy route | — |
 
 ---
 
@@ -110,7 +110,7 @@
 
 ### Core Platform
 - Embeddings + vector search (pgvector not installed)
-- Queue/job system for background processing
+- Persistent queue (Redis/Bull) — currently in-memory
 
 ### Observability
 - Error tracking (Sentry)
