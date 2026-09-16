@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Spinner, ErrorBanner } from '@/components/ui';
-import { BookOpen, GraduationCap, ChevronRight } from 'lucide-react';
+import { BookOpen, GraduationCap, ChevronRight, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 
 function SkeletonCard() {
@@ -23,6 +25,7 @@ function SkeletonCard() {
 
 export default function LearnPage() {
   const { data, isLoading, error } = useLearningHome();
+  const [search, setSearch] = useState('');
 
   if (isLoading) {
     return (
@@ -63,6 +66,15 @@ export default function LearnPage() {
         <p className="mt-1 text-sm text-surface-500">
           {totalClasses} classes · {totalSubjects} subjects available — select a subject to start learning
         </p>
+        <div className="relative mt-4 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
+          <Input
+            placeholder="Search subjects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </div>
 
       {boards.length === 0 ? (
@@ -84,7 +96,12 @@ export default function LearnPage() {
               <Badge variant="secondary">{board.code}</Badge>
             </div>
 
-            {board.grades.filter((grade) => grade.subjects.length > 0).map((grade) => (
+            {board.grades.filter((grade) => grade.subjects.length > 0).map((grade) => {
+              const filteredSubjects = search
+                ? grade.subjects.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+                : grade.subjects;
+              if (filteredSubjects.length === 0) return null;
+              return (
               <div key={grade.id} className="mb-8">
                 <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-surface-800">
                   <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-sm font-bold text-brand-700">
@@ -93,7 +110,7 @@ export default function LearnPage() {
                   Class {grade.grade}
                 </h3>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {grade.subjects.map((subject) => {
+                  {filteredSubjects.map((subject) => {
                     const pct =
                       subject.totalContent > 0
                         ? Math.round((subject.completedContent / subject.totalContent) * 100)
@@ -152,7 +169,8 @@ export default function LearnPage() {
                   })}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </section>
         ))
       )}
