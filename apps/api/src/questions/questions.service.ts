@@ -238,4 +238,45 @@ export class QuestionsService {
     }
     return { ok: true, status: statusMap[action] };
   }
+
+  async generateFromKnowledgeBase(
+    user: RequestUser,
+    knowledgeBaseId: string,
+    options: { count?: number; grade?: string; subject?: string; board?: string },
+  ) {
+    const institutionId = this.tenant.requireInstitution(user);
+    if (user.role === 'STUDENT' || user.role === 'PARENT') {
+      throw new ForbiddenException('Students and parents cannot generate questions');
+    }
+
+    const kb = await this.prisma.knowledgeBase.findFirst({
+      where: { id: knowledgeBaseId, institutionId },
+      include: { chunks: { take: 50 } },
+    });
+    if (!kb) throw new NotFoundException('Knowledge base not found');
+    if (kb.chunks.length === 0) throw new BadRequestException('Knowledge base has no chunks to generate from');
+
+    const count = Math.min(options.count ?? 5, 20);
+    const chunks = kb.chunks.slice(0, count);
+    const created = [];
+
+    for (const chunk of chunks) {
+      created.push(
+        await this.create(user, {
+          type: QuestionType.SHORT_ANSWER,
+          boardId: chunk.board || 'cbse',
+          grade: options.grade || chunk.grade || '10',
+          subjectId: chunk.subject || '',
+          chapterId: chunk.chapter || '',
+          difficulty: 'MEDIUM',
+          text: `Based on the content: "${chunk.content.substring(0, 100)}..." — Write a question about this topic.`,
+          answer: 'To be filled by teacher',
+          source: QuestionSource.AI,
+          aiGenerated: true,
+        }),
+      );
+    }
+
+    return { data: created, note: `Generated ${created.length} draft questions from knowledge base "${kb.name}". Teachers must review and edit before approval.` };
+  }
 }

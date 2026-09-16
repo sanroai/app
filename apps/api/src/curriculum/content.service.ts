@@ -26,6 +26,15 @@ export class ContentService {
     if (query.subjectId) where.subjectId = query.subjectId;
     if (query.chapterId) where.chapterId = query.chapterId;
     if (query.conceptId) where.conceptId = query.conceptId;
+    if (query.search) {
+      where.OR = [
+        { title: { contains: query.search, mode: 'insensitive' } },
+        { description: { contains: query.search, mode: 'insensitive' } },
+      ];
+    }
+    if (query.grade) {
+      where.chapter = { grade: query.grade };
+    }
 
     return this.prisma.contentItem.findMany({
       where: where as object,

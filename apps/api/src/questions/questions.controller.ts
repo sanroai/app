@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ServiceUnavailableException } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { QuestionSource, QuestionType, Role } from '@sanro/types';
 import { QuestionsService } from './questions.service';
 import { AiService } from '../ai/ai.service';
@@ -108,5 +108,20 @@ export class QuestionsController {
       );
     }
     return { data: created, note: 'Generated questions are DRAFT and require teacher review before approval.' };
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Post('generate-from-knowledge-base')
+  @ApiOperation({ summary: 'Generate draft questions from knowledge base content' })
+  generateFromKB(
+    @CurrentUser() user: RequestUser,
+    @Body() body: { knowledgeBaseId: string; count?: number; grade?: string; subject?: string; board?: string },
+  ) {
+    return this.service.generateFromKnowledgeBase(user, body.knowledgeBaseId, {
+      count: body.count,
+      grade: body.grade,
+      subject: body.subject,
+      board: body.board,
+    });
   }
 }
