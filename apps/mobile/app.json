@@ -24,6 +24,11 @@
       },
       "package": "com.sanro.ai"
     },
-    "plugins": ["expo-router", "expo-secure-store"]
+    "plugins": ["expo-router", "expo-secure-store"],
+    "extra": {
+      "eas": {
+        "projectId": "64bed9b4-b74b-410a-99c8-035ba4c9de62"
+      }
+    }
   }
 }
