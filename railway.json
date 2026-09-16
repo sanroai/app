@@ -6,7 +6,7 @@
   },
   "deploy": {
     "startCommand": "node apps/api/dist/main.js",
-    "preDeployCommand": "pnpm --filter @sanro/api exec prisma migrate deploy && pnpm --filter @sanro/api db:seed",
+    "preDeployCommand": "pnpm --filter @sanro/api exec prisma db push --skip-generate && pnpm --filter @sanro/api db:seed",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/api/v1/health",
