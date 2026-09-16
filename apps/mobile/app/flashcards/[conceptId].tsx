@@ -37,6 +37,17 @@ export default function FlashcardsScreen() {
     );
   }
 
+  const getAnswer = (card: any): string => {
+    if (card.type === 'MCQ' || card.type === 'MULTI_SELECT') {
+      const correct = card.options?.filter((o: any) => o.isCorrect);
+      if (correct && correct.length > 0) return correct.map((o: any) => o.text).join(', ');
+    }
+    if (card.type === 'TRUE_FALSE') {
+      return 'True or False — think about the statement carefully.';
+    }
+    return 'Think about the answer, then tap to reveal.';
+  };
+
   const rate = (r: 'Again' | 'Hard' | 'Good' | 'Easy') => {
     const next = [...ratings, r];
     setRatings(next);
@@ -88,7 +99,7 @@ export default function FlashcardsScreen() {
           <Text style={styles.cardBadgeText}>{flipped ? 'ANSWER' : 'QUESTION'}</Text>
         </View>
         {flipped ? (
-          <Text style={styles.cardTextAnswer}>{card.text}</Text>
+          <Text style={styles.cardTextAnswer}>{getAnswer(card)}</Text>
         ) : (
           <Text style={styles.cardText}>{card.text}</Text>
         )}

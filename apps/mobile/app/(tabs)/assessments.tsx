@@ -1,22 +1,30 @@
 import { ScrollView, View, Text, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useAssessmentsList } from '../../lib/hooks';
 import { Card } from '../../components/Card';
+import { EmptyState } from '../../components/EmptyState';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 export default function AssessmentsScreen() {
-  const [refreshing, setRefreshing] = useState(false);
+  const { data: assessments, isLoading, refetch, isRefetching } = useAssessmentsList();
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  const onRefresh = useCallback(() => { refetch(); }, [refetch]);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PUBLISHED': return '#10b981';
+      case 'DRAFT': return '#f59e0b';
+      case 'CLOSED': return '#6b7280';
+      default: return Colors.textSecondary;
+    }
+  };
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />}
     >
       <View style={styles.header}>
         <Text style={styles.title}>Assessments</Text>
@@ -40,11 +48,49 @@ export default function AssessmentsScreen() {
       </View>
 
       <Text style={styles.sectionTitle}>Recent Assessments</Text>
-      <Card style={styles.emptyCard}>
-        <Ionicons name="clipboard-outline" size={48} color={Colors.textMuted} />
-        <Text style={styles.emptyText}>No assessments created yet</Text>
-        <Text style={styles.emptyHint}>Create your first assessment to get started</Text>
-      </Card>
+      {isLoading ? (
+        <Card style={styles.emptyCard}>
+          <Ionicons name="hourglass-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.emptyText}>Loading assessments...</Text>
+        </Card>
+      ) : !assessments || assessments.length === 0 ? (
+        <EmptyState
+          icon="clipboard-outline"
+          title="No assessments yet"
+          subtitle="Create your first assessment to get started"
+        />
+      ) : (
+        assessments.slice(0, 10).map((a) => (
+          <View key={a.id} style={styles.assessmentCard}>
+            <View style={styles.assessmentHeader}>
+              <Text style={styles.assessmentTitle} numberOfLines={1}>{a.title}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: `${getStatusColor(a.status)}20` }]}>
+                <Text style={[styles.statusText, { color: getStatusColor(a.status) }]}>{a.status}</Text>
+              </View>
+            </View>
+            <View style={styles.assessmentMeta}>
+              {a.type && (
+                <View style={styles.metaItem}>
+                  <Ionicons name="document-outline" size={14} color={Colors.textSecondary} />
+                  <Text style={styles.metaText}>{a.type}</Text>
+                </View>
+              )}
+              {a.groupNames && a.groupNames.length > 0 && (
+                <View style={styles.metaItem}>
+                  <Ionicons name="school-outline" size={14} color={Colors.textSecondary} />
+                  <Text style={styles.metaText}>{a.groupNames.join(', ')}</Text>
+                </View>
+              )}
+              {a.dueAt && (
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
+                  <Text style={styles.metaText}>Due {new Date(a.dueAt).toLocaleDateString()}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -75,5 +121,26 @@ const styles = StyleSheet.create({
   actionLabel: { fontSize: 12, fontWeight: '600', color: Colors.text, textAlign: 'center' },
   emptyCard: { marginHorizontal: Spacing.lg, alignItems: 'center', padding: Spacing.xl },
   emptyText: { color: Colors.textSecondary, fontSize: 14, marginTop: Spacing.md },
-  emptyHint: { color: Colors.textMuted, fontSize: 12, marginTop: 4 },
+  assessmentCard: {
+    backgroundColor: Colors.surface,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+  },
+  assessmentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  assessmentTitle: { fontSize: 16, fontWeight: '600', color: Colors.text, flex: 1, marginRight: Spacing.sm },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  statusText: { fontSize: 11, fontWeight: '600' },
+  assessmentMeta: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText: { fontSize: 12, color: Colors.textSecondary },
 });

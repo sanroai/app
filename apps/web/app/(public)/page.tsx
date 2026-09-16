@@ -192,7 +192,7 @@ export default function HomePage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                href="/login"
+                href="/register"
                 className="rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white hover:from-brand-700 hover:to-purple-700 transition-all shadow-xl shadow-brand-600/30 hover:shadow-2xl flex items-center gap-2"
               >
                 Get Started
@@ -531,7 +531,7 @@ export default function HomePage() {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
-                  href="/login"
+                  href="/register"
                   className="rounded-2xl bg-white px-8 py-4 text-lg font-semibold text-brand-700 hover:bg-brand-50 transition-all shadow-xl"
                 >
                   Get Started

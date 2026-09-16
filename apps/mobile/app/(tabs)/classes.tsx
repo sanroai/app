@@ -1,22 +1,19 @@
 import { ScrollView, View, Text, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../lib/auth-store';
+import { useGroups } from '../../lib/hooks';
 import { Card } from '../../components/Card';
+import { EmptyState } from '../../components/EmptyState';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
-
-type Group = { id: string; name: string; grade?: string; studentCount: number };
 
 export default function ClassesScreen() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
-  const [refreshing, setRefreshing] = useState(false);
+  const { data: groups, isLoading, refetch, isRefetching } = useGroups();
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  const onRefresh = useCallback(() => { refetch(); }, [refetch]);
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -29,7 +26,7 @@ export default function ClassesScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} />}
     >
       <View style={styles.header}>
         <Text style={styles.greetingSmall}>{greeting()},</Text>
@@ -47,17 +44,44 @@ export default function ClassesScreen() {
           <Ionicons name="people" size={24} color="#10b981" />
           <Text style={styles.actionLabel}>View{'\n'}Students</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/leaderboard')}>
           <Ionicons name="bar-chart" size={24} color="#f59e0b" />
-          <Text style={styles.actionLabel}>View{'\n'}Reports</Text>
+          <Text style={styles.actionLabel}>Leaderboard</Text>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.sectionTitle}>Your Groups</Text>
-      <Card style={styles.emptyCard}>
-        <Ionicons name="people-outline" size={48} color={Colors.textMuted} />
-        <Text style={styles.emptyText}>Groups will appear here once assigned</Text>
-      </Card>
+      {isLoading ? (
+        <Card style={styles.emptyCard}>
+          <Ionicons name="hourglass-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.emptyText}>Loading groups...</Text>
+        </Card>
+      ) : !groups || groups.length === 0 ? (
+        <EmptyState
+          icon="people-outline"
+          title="No groups yet"
+          subtitle="Groups will appear here once assigned by your institution admin"
+        />
+      ) : (
+        groups.map((group) => (
+          <TouchableOpacity
+            key={group.id}
+            style={styles.groupCard}
+            onPress={() => router.push(`/(tabs)/me`)}
+          >
+            <View style={styles.groupIcon}>
+              <Ionicons name="school" size={24} color={Colors.primary} />
+            </View>
+            <View style={styles.groupInfo}>
+              <Text style={styles.groupName}>{group.name}</Text>
+              <Text style={styles.groupMeta}>
+                {group.grade ? `Grade ${group.grade}` : ''} · {group.studentCount} student{group.studentCount !== 1 ? 's' : ''}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
+          </TouchableOpacity>
+        ))
+      )}
     </ScrollView>
   );
 }
@@ -89,4 +113,25 @@ const styles = StyleSheet.create({
   actionLabel: { fontSize: 12, fontWeight: '600', color: Colors.text, textAlign: 'center' },
   emptyCard: { marginHorizontal: Spacing.lg, alignItems: 'center', padding: Spacing.xl },
   emptyText: { color: Colors.textSecondary, fontSize: 14, marginTop: Spacing.md },
+  groupCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  groupIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  groupInfo: { flex: 1 },
+  groupName: { fontSize: 16, fontWeight: '600', color: Colors.text },
+  groupMeta: { fontSize: 13, color: Colors.textSecondary, marginTop: 2 },
 });

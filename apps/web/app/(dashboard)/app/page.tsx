@@ -967,11 +967,9 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
               <CardDescription>Pick up where you left off</CardDescription>
             </div>
             <Link href="/app/learn">
-            <Link href="/app/students">
               <Button variant="ghost" size="sm">
                 View all <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
-            </Link>
             </Link>
           </div>
         </CardHeader>
@@ -1272,7 +1270,7 @@ function QuickActions({ role }: { role: string }) {
       <CardContent>
         <div className="space-y-3">
           {actions.map((action) => (
-            <a
+            <Link
               key={action.label}
               href={action.href}
               className="flex items-center gap-3 rounded-xl p-3 hover:bg-surface-50 transition-all"
@@ -1282,7 +1280,7 @@ function QuickActions({ role }: { role: string }) {
               </div>
               <span className="font-medium text-surface-900">{action.label}</span>
               <ArrowRight className="ml-auto h-4 w-4 text-surface-400" />
-            </a>
+            </Link>
           ))}
         </div>
       </CardContent>

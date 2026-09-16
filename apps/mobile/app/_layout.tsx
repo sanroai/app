@@ -28,10 +28,12 @@ function AuthGate() {
 
 export default function RootLayout() {
   const hydrate = useAuthStore((s) => s.hydrate);
+  const hydrateOffline = useOfflineStore((s) => s.hydrate);
 
   useEffect(() => {
     hydrate();
-  }, [hydrate]);
+    hydrateOffline();
+  }, [hydrate, hydrateOffline]);
 
   useEffect(() => {
     const unsub = useOfflineStore.subscribe((s) => {

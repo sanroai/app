@@ -446,7 +446,7 @@ export class LearningService {
         difficulty: true,
         text: true,
         marks: true,
-        options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
+        options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true, isCorrect: true } },
       },
     });
 

@@ -424,3 +424,81 @@ export function useSubjects(boardId: string, grade: string) {
     enabled: !!boardId && !!grade,
   });
 }
+
+// ─── Teacher / Admin: Groups ──────────────────────────────
+export interface GroupInfo {
+  id: string;
+  name: string;
+  grade?: string;
+  studentCount: number;
+  institutionId: string;
+}
+
+export function useGroups() {
+  return useQuery<GroupInfo[]>({
+    queryKey: ['groups'],
+    queryFn: () => apiAuthed<GroupInfo[]>('/academics/groups'),
+  });
+}
+
+// ─── Teacher / Admin: Assessments ────────────────────────
+export interface AssessmentSummary {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  dueAt?: string;
+  paperTitle?: string;
+  groupNames?: string[];
+  assignedCount?: number;
+}
+
+export function useAssessmentsList() {
+  return useQuery<AssessmentSummary[]>({
+    queryKey: ['assessments', 'list'],
+    queryFn: () => apiAuthed<AssessmentSummary[]>('/assessments'),
+  });
+}
+
+// ─── Teacher / Admin: Students ───────────────────────────
+export interface StudentSummary {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  grade?: string;
+  status: string;
+  groupName?: string;
+  xp?: number;
+  mastery?: number;
+}
+
+export function useStudentsList(params?: { search?: string; status?: string; page?: number }) {
+  const query = new URLSearchParams();
+  if (params?.search) query.set('search', params.search);
+  if (params?.status) query.set('status', params.status);
+  if (params?.page) query.set('page', String(params.page));
+  const qs = query.toString();
+  return useQuery<{ students: StudentSummary[]; total: number }>({
+    queryKey: ['students', params],
+    queryFn: () => apiAuthed(`/students${qs ? `?${qs}` : ''}`),
+  });
+}
+
+// ─── Parent: Children ────────────────────────────────────
+export interface ChildInfo {
+  id: string;
+  name: string;
+  grade?: string;
+  institutionName?: string;
+  xp?: number;
+  streak?: number;
+  mastery?: number;
+}
+
+export function useChildren() {
+  return useQuery<ChildInfo[]>({
+    queryKey: ['children'],
+    queryFn: () => apiAuthed<ChildInfo[]>('/parents/me/dashboard'),
+  });
+}
