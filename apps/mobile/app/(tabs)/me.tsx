@@ -108,6 +108,12 @@ export default function MeScreen() {
         <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.menuRow} onPress={() => router.push('/profile-edit')}>
+        <Ionicons name="person-outline" size={20} color={Colors.primary} />
+        <Text style={styles.menuLabel}>Edit Profile</Text>
+        <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.menuRow} onPress={handleLogout}>
         <Ionicons name="log-out" size={20} color={Colors.error} />
         <Text style={[styles.menuLabel, { color: Colors.error }]}>Log out</Text>

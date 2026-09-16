@@ -76,6 +76,7 @@ export default function RootLayout() {
             <Stack.Screen name="challenge/[conceptId]" options={{ headerShown: true, title: 'Challenge', headerTintColor: Colors.primary }} />
             <Stack.Screen name="ask/[conceptId]" options={{ headerShown: true, title: 'Ask SANRO', headerTintColor: Colors.primary }} />
             <Stack.Screen name="leaderboard" options={{ headerShown: true, title: 'Leaderboard', headerTintColor: Colors.primary }} />
+            <Stack.Screen name="profile-edit" options={{ headerShown: true, title: 'Edit Profile', headerTintColor: Colors.primary }} />
           </Stack>
         </QueryProvider>
       </ErrorBoundary>
