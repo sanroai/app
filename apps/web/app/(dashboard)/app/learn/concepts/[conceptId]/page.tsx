@@ -71,6 +71,7 @@ export default function ConceptDetailPage() {
   const [activeTab, setActiveTab] = useState('learn');
   const [showAnswer, setShowAnswer] = useState<number | null>(null);
   const [quizScore, setQuizScore] = useState<{ correct: number; total: number } | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [flashcardIndex, setFlashcardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
@@ -221,31 +222,47 @@ export default function ConceptDetailPage() {
                 Video Lessons
               </h2>
               <div className="grid gap-4 md:grid-cols-2">
-                {videos.map((item: any) => (
-                  <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all group cursor-pointer" onClick={() => item.url && window.open(item.url, '_blank')}>
-                    <div className="relative aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-all">
-                        <Play className="h-8 w-8 text-white ml-1" />
-                      </div>
-                      {item.durationSeconds && (
-                        <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 text-xs text-white">
-                          {Math.ceil(item.durationSeconds / 60)} min
+                {videos.map((item: any) => {
+                  const isYouTube = item.url && (item.url.includes('youtube.com') || item.url.includes('youtu.be'));
+                  const youtubeId = isYouTube ? (item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/) || [])[1] : null;
+                  return (
+                    <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all group">
+                      {youtubeId ? (
+                        <div className="relative aspect-video">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${youtubeId}`}
+                            className="absolute inset-0 w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            title={item.title}
+                          />
+                        </div>
+                      ) : (
+                        <div className="relative aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center cursor-pointer" onClick={() => item.url && window.open(item.url, '_blank')}>
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-all">
+                            <Play className="h-8 w-8 text-white ml-1" />
+                          </div>
+                          {item.durationSeconds && (
+                            <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 text-xs text-white">
+                              {Math.ceil(item.durationSeconds / 60)} min
+                            </div>
+                          )}
                         </div>
                       )}
-                    </div>
-                    <CardContent className="p-4">
-                      <p className="font-semibold text-surface-900 line-clamp-2">{item.title}</p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <Badge variant="secondary" className="text-[10px]">
-                          <Video className="mr-1 h-3 w-3" /> VIDEO
-                        </Badge>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600" onClick={(e) => { e.stopPropagation(); completeContent.mutate(item.id); }} disabled={completeContent.isPending}>
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Done
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      <CardContent className="p-4">
+                        <p className="font-semibold text-surface-900 line-clamp-2">{item.title}</p>
+                        <div className="mt-2 flex items-center justify-between">
+                          <Badge variant="secondary" className="text-[10px]">
+                            <Video className="mr-1 h-3 w-3" /> VIDEO
+                          </Badge>
+                          <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
+                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Done
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </section>
           )}
@@ -450,12 +467,17 @@ export default function ConceptDetailPage() {
                         {(q.options ?? q.choices ?? []).map((opt: any, oi: number) => (
                           <button
                             key={oi}
-                            onClick={() => setShowAnswer(i)}
+                            onClick={() => {
+                              setSelectedAnswers((prev) => ({ ...prev, [i]: oi }));
+                              setShowAnswer(i);
+                            }}
                             className={cn(
                               'rounded-lg border p-2 text-sm text-left transition-all',
                               showAnswer === i && opt.isCorrect
                                 ? 'border-green-300 bg-green-50 text-green-700'
-                                : 'border-surface-200 hover:bg-surface-50'
+                                : showAnswer === i
+                                  ? 'border-red-300 bg-red-50 text-red-700'
+                                  : 'border-surface-200 hover:bg-surface-50'
                             )}
                           >
                             {String.fromCharCode(65 + oi)}. {opt.text}
@@ -469,8 +491,17 @@ export default function ConceptDetailPage() {
                     onClick={() => {
                       const quizQuestions = questions.slice(0, 5);
                       let correct = 0;
-                      quizQuestions.forEach((q: any) => {
-                        if (q.answer || q.correctOptionIndex != null) correct++;
+                      quizQuestions.forEach((q: any, i: number) => {
+                        const opts = q.options ?? q.choices ?? [];
+                        const selectedIdx = selectedAnswers[i];
+                        if (selectedIdx != null) {
+                          const selectedOpt = opts[selectedIdx];
+                          if (selectedOpt?.isCorrect || q.correctOptionIndex === selectedIdx) {
+                            correct++;
+                          }
+                        } else if (q.correctOptionIndex != null) {
+                          // No selection but question has a correct answer — unanswered
+                        }
                       });
                       setQuizScore({ correct, total: quizQuestions.length });
                     }}
