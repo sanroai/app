@@ -1,25 +1,32 @@
-import { Controller, Get, Param, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { createReadStream } from 'node:fs';
-import { join } from 'node:path';
 import { Response } from 'express';
-import { PdfService } from '../pdf/pdf.service';
+import { StorageService } from '../common/services/storage.service';
 import { Public } from '../common/decorators/auth.decorators';
 
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
-  constructor(private readonly pdf: PdfService) {}
+  constructor(private readonly storage: StorageService) {}
 
   @Public()
   @Get('pdfs/:name')
-  getPdf(@Param('name') name: string, @Res({ passthrough: true }) res: Response): StreamableFile {
+  async getPdf(@Param('name') name: string, @Res({ passthrough: true }) res: Response) {
     const safe = name.replace(/[^a-zA-Z0-9.\-]/g, '');
-    const file = createReadStream(join(this.pdf.getPdfDir(), safe));
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${safe}"`,
-    });
-    return new StreamableFile(file);
+    const key = `pdfs/${safe}`;
+
+    if (this.storage.getStorageType() === 'local') {
+      const { createReadStream } = await import('node:fs');
+      const { join } = await import('node:path');
+      const file = createReadStream(join(process.cwd(), 'storage', key));
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `inline; filename="${safe}"`,
+      });
+      return file;
+    }
+
+    const signedUrl = await this.storage.getSignedUrl(key);
+    res.redirect(signedUrl);
   }
 }
