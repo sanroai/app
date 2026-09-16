@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -91,28 +90,5 @@ export class UsersController {
   @Post('me/notifications/read-all')
   markAllNotificationsRead(@CurrentUser() user: RequestUser) {
     return this.notifications.markAllRead(user.sub);
-  }
-
-  @Post('admin/backfill-student-links')
-  async backfillStudentLinks(@CurrentUser() user: RequestUser) {
-    if (user.role !== 'SUPER_ADMIN') throw new ForbiddenException('Admin only');
-    const orphaned = await this.prisma.student.findMany({ where: { userId: null } });
-    let linked = 0;
-    let skipped = 0;
-    for (const student of orphaned) {
-      const candidates = await this.prisma.user.findMany({
-        where: {
-          OR: [
-            ...(student.email ? [{ email: student.email.toLowerCase() }] : []),
-            ...(student.phone ? [{ phone: student.phone }] : []),
-          ],
-          memberships: { some: { institutionId: student.institutionId, role: 'STUDENT', status: 'ACTIVE' } },
-        },
-      });
-      if (candidates.length !== 1) { skipped++; continue; }
-      await this.prisma.student.update({ where: { id: student.id }, data: { userId: candidates[0].id } });
-      linked++;
-    }
-    return { orphaned: orphaned.length, linked, skipped };
   }
 }
