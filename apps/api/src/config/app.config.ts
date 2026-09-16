@@ -5,7 +5,8 @@ const envSchema = z.object({
   APP_NAME: z.string().default('Sanro AI'),
   APP_URL: z.string().default('http://localhost:3000'),
   API_URL: z.string().default('http://localhost:4000'),
-  API_PORT: z.coerce.number().default(4000),
+  API_PORT: z.coerce.number().default(process.env.PORT ? Number(process.env.PORT) : 4000),
+  PORT: z.coerce.number().optional(),
   CORS_ORIGINS: z
     .string()
     .optional()

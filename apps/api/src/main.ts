@@ -35,10 +35,11 @@ async function bootstrap(): Promise<void> {
   const document = SwaggerModule.createDocument(app, swagger);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(config.API_PORT, '0.0.0.0');
+  const port = config.PORT ?? config.API_PORT;
+  await app.listen(port, '0.0.0.0');
   const logger = new Logger('Bootstrap');
-  logger.log(`API running at http://localhost:${config.API_PORT}/api/v1`);
-  logger.log(`Swagger at http://localhost:${config.API_PORT}/docs`);
+  logger.log(`API running at http://localhost:${port}/api/v1`);
+  logger.log(`Swagger at http://localhost:${port}/docs`);
 }
 
 bootstrap().catch((err) => {
