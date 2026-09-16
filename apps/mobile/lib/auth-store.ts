@@ -39,6 +39,7 @@ interface AuthState {
 const TOKEN_KEY = 'sanro-token';
 const REFRESH_KEY = 'sanro-refresh';
 const USER_KEY = 'sanro-user';
+const MEMBERSHIPS_KEY = 'sanro-memberships';
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: null,
@@ -51,6 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     SecureStore.setItem(TOKEN_KEY, data.accessToken);
     SecureStore.setItem(REFRESH_KEY, data.refreshToken);
     SecureStore.setItem(USER_KEY, JSON.stringify(data.user));
+    SecureStore.setItem(MEMBERSHIPS_KEY, JSON.stringify(data.memberships));
     set({
       token: data.accessToken,
       refreshToken: data.refreshToken,
@@ -63,20 +65,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     SecureStore.deleteItemAsync(TOKEN_KEY);
     SecureStore.deleteItemAsync(REFRESH_KEY);
     SecureStore.deleteItemAsync(USER_KEY);
+    SecureStore.deleteItemAsync(MEMBERSHIPS_KEY);
     set({ token: null, refreshToken: null, user: null, memberships: [] });
   },
 
   hydrate: async () => {
-    const [token, refreshToken, userStr] = await Promise.all([
+    const [token, refreshToken, userStr, membershipsStr] = await Promise.all([
       SecureStore.getItemAsync(TOKEN_KEY),
       SecureStore.getItemAsync(REFRESH_KEY),
       SecureStore.getItemAsync(USER_KEY),
+      SecureStore.getItemAsync(MEMBERSHIPS_KEY),
     ]);
     set({
       token,
       refreshToken,
       user: userStr ? JSON.parse(userStr) : null,
-      memberships: [],
+      memberships: membershipsStr ? JSON.parse(membershipsStr) : [],
       _hasHydrated: true,
     });
   },

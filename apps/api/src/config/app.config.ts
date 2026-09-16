@@ -18,7 +18,7 @@ const envSchema = z.object({
         .filter(Boolean),
     ),
   DATABASE_URL: z.string().min(1),
-  AUTH_SECRET: z.string().min(8).default('dev-only-secret-change-me'),
+  AUTH_SECRET: z.string().min(32).default('dev-only-secret-change-me-dev-only-secret'),
   AUTH_TOKEN_EXPIRES_IN: z.string().default('7d'),
   AUTH_REFRESH_EXPIRES_IN: z.string().default('30d'),
   AUTH_ISSUER: z.string().default('sanro-api'),

@@ -172,16 +172,20 @@ export default function DashboardPage() {
           </p>
         </div>
         {isStudent && (
-          <Button className="sm:w-auto w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
-            <Lightbulb className="mr-2 h-4 w-4" />
-            Continue Learning
-          </Button>
+          <Link href="/app/learn">
+            <Button className="sm:w-auto w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
+              <Lightbulb className="mr-2 h-4 w-4" />
+              Continue Learning
+            </Button>
+          </Link>
         )}
         {isTeacher && (
-          <Button className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
-            <FileText className="mr-2 h-4 w-4" />
-            Create Assessment
-          </Button>
+          <Link href="/app/papers/new">
+            <Button className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
+              <FileText className="mr-2 h-4 w-4" />
+              Create Assessment
+            </Button>
+          </Link>
         )}
       </div>
 
@@ -392,14 +396,18 @@ function ClassCard({ cls }: { cls: TeacherClass }) {
           </div>
         )}
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" className="flex-1">
-            <Eye className="mr-1 h-4 w-4" />
-            View Class
-          </Button>
-          <Button size="sm" className="flex-1">
-            <ListChecks className="mr-1 h-4 w-4" />
-            Create Assessment
-          </Button>
+          <Link href={`/app/students?groupId=${cls.id}`}>
+            <Button size="sm" variant="outline" className="flex-1">
+              <Eye className="mr-1 h-4 w-4" />
+              View Class
+            </Button>
+          </Link>
+          <Link href="/app/papers/new">
+            <Button size="sm" className="flex-1">
+              <ListChecks className="mr-1 h-4 w-4" />
+              Create Assessment
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>
@@ -771,9 +779,11 @@ function ChildCard({ child }: { child: ChildData }) {
                     </Badge>
                   </div>
                 ))}
-                <Button size="sm" variant="link" className="h-auto p-0 text-xs">
-                  Start Remediation <ArrowRight className="ml-1 h-3 w-3" />
-                </Button>
+                <Link href="/app/remediation">
+                  <Button size="sm" variant="link" className="h-auto p-0 text-xs">
+                    Start Remediation <ArrowRight className="ml-1 h-3 w-3" />
+                  </Button>
+                </Link>
               </div>
             )}
           </div>
@@ -957,9 +967,11 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
               <CardDescription>Pick up where you left off</CardDescription>
             </div>
             <Link href="/app/learn">
+            <Link href="/app/students">
               <Button variant="ghost" size="sm">
                 View all <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
+            </Link>
             </Link>
           </div>
         </CardHeader>
@@ -1012,9 +1024,11 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
                       </p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="rounded-xl">
-                    Start
-                  </Button>
+                  <Link href={`/app/assessments`}>
+                    <Button variant="outline" size="sm" className="rounded-xl">
+                      Start
+                    </Button>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -1163,9 +1177,11 @@ function StaffContent({ data, role }: { data: Record<string, unknown> | null; ro
                       </p>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline">
-                    Manage
-                  </Button>
+                  <Link href={`/app/students?groupId=${item.id as string}`}>
+                    <Button size="sm" variant="outline">
+                      Manage
+                    </Button>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -1180,9 +1196,11 @@ function StaffContent({ data, role }: { data: Record<string, unknown> | null; ro
               <CardTitle>Subjects</CardTitle>
               <CardDescription>Active subjects this term</CardDescription>
             </div>
-            <Button variant="ghost" size="sm">
-              View all <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
+            <Link href="/app/learn">
+              <Button variant="ghost" size="sm">
+                View all <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+            </Link>
           </div>
         </CardHeader>
         <CardContent>
@@ -1231,19 +1249,19 @@ function QuickActions({ role }: { role: string }) {
     ? [
         { label: 'Take Assessment', icon: ListChecks, color: 'bg-brand-100 text-brand-600', href: '/app/assessments' },
         { label: 'View Remediation', icon: Target, color: 'bg-purple-100 text-purple-600', href: '/app/remediation' },
-        { label: 'Leaderboard', icon: Trophy, color: 'bg-amber-100 text-amber-600', href: '/app/leaderboard' },
+        { label: 'Leaderboard', icon: Trophy, color: 'bg-amber-100 text-amber-600', href: '/app/gamification/leaderboard' },
       ]
     : isTeacher
       ? [
           { label: 'Create Paper', icon: FileText, color: 'bg-brand-100 text-brand-600', href: '/app/papers/new' },
           { label: 'New Assessment', icon: ListChecks, color: 'bg-green-100 text-green-600', href: '/app/assessments' },
-          { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/reports' },
+          { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/gamification' },
           { label: 'Grade Attempts', icon: CheckCircle2, color: 'bg-amber-100 text-amber-600', href: '/app/assessments' },
         ]
       : [
           { label: 'Create Paper', icon: FileText, color: 'bg-brand-100 text-brand-600', href: '/app/papers/new' },
           { label: 'New Assessment', icon: ListChecks, color: 'bg-green-100 text-green-600', href: '/app/assessments' },
-          { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/reports' },
+          { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/gamification' },
         ];
 
   return (

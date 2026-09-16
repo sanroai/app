@@ -1,7 +1,9 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Role } from '@sanro/types';
 import { RemediationService } from './remediation.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 
 @ApiTags('remediation')
@@ -24,6 +26,7 @@ export class RemediationController {
     return this.service.detectWeakConcepts(user, studentId ?? '');
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post('items/:id/status')
   setItemStatus(
     @CurrentUser() user: RequestUser,
@@ -33,6 +36,7 @@ export class RemediationController {
     return this.service.updateItemStatus(user, id, body.status);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post('retest')
   createRetest(@CurrentUser() user: RequestUser, @Body() body: { studentId: string; conceptIds: string[] }) {
     return this.service.createRetest(user, body.studentId, body.conceptIds);

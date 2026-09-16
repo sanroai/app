@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/lib/auth-store';
 
 export type NotificationItem = {
   id: string;
@@ -17,35 +18,27 @@ export type NotificationItem = {
 
 export type UnreadCount = { count: number };
 
-async function fetchNotifications(): Promise<NotificationItem[]> {
-  return api<NotificationItem[]>('/users/me/notifications');
-}
-
-async function fetchUnreadCount(): Promise<UnreadCount> {
-  return api<UnreadCount>('/users/me/notifications/unread');
-}
-
-async function markNotificationRead(id: string) {
-  return api(`/users/me/notifications/${id}/read`, { method: 'POST' });
-}
-
-async function markAllNotificationsRead() {
-  return api('/users/me/notifications/read-all', { method: 'POST' });
+function useToken() {
+  return useAuthStore((s) => s.token);
 }
 
 export function useNotifications() {
+  const token = useToken();
   return useQuery({
     queryKey: ['notifications'],
-    queryFn: fetchNotifications,
+    queryFn: () => api<NotificationItem[]>('/users/me/notifications', { token }),
+    enabled: !!token,
     refetchInterval: 60_000,
     staleTime: 30_000,
   });
 }
 
 export function useUnreadCount() {
+  const token = useToken();
   return useQuery({
     queryKey: ['notifications', 'unread'],
-    queryFn: fetchUnreadCount,
+    queryFn: () => api<UnreadCount>('/users/me/notifications/unread', { token }),
+    enabled: !!token,
     refetchInterval: 30_000,
     staleTime: 0,
   });
@@ -53,8 +46,9 @@ export function useUnreadCount() {
 
 export function useMarkNotificationRead() {
   const qc = useQueryClient();
+  const token = useToken();
   return useMutation({
-    mutationFn: (id: string) => markNotificationRead(id),
+    mutationFn: (id: string) => api(`/users/me/notifications/${id}/read`, { method: 'POST', token }),
     onSuccess: (_data, id) => {
       qc.setQueryData<NotificationItem[]>(
         ['notifications'],
@@ -67,8 +61,9 @@ export function useMarkNotificationRead() {
 
 export function useMarkAllNotificationsRead() {
   const qc = useQueryClient();
+  const token = useToken();
   return useMutation({
-    mutationFn: markAllNotificationsRead,
+    mutationFn: () => api('/users/me/notifications/read-all', { method: 'POST', token }),
     onSuccess: () => {
       qc.setQueryData<NotificationItem[]>(['notifications'], (current) =>
         current?.map((n) => (n.readAt ? n : { ...n, readAt: new Date().toISOString() })),

@@ -1,9 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Role } from '@sanro/types';
 import { StudentsService } from './students.service';
 import { TeachersService } from './teachers.service';
 import { ParentsService } from './parents.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 
 @ApiTags('students')
@@ -23,6 +25,7 @@ export class StudentsController {
     });
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createStudent(user, body as Parameters<typeof this.service.createStudent>[1]);
@@ -33,26 +36,31 @@ export class StudentsController {
     return this.service.studentDetail(user, id);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Patch(':id')
   update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
     return this.service.updateStudent(user, id, body as Parameters<typeof this.service.updateStudent>[2]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/deactivate')
   deactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.setStatus(user, id, 'DEACTIVATED');
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/activate')
   reactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.setStatus(user, id, 'ACTIVE');
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/move')
   move(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: unknown) {
     return this.service.moveStudent(user, id, body as Parameters<typeof this.service.moveStudent>[2]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/link-parent')
   linkParent(
     @CurrentUser() user: RequestUser,
@@ -74,21 +82,25 @@ export class TeachersController {
     return this.service.listTeachers(user);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createTeacher(user, body as Parameters<typeof this.service.createTeacher>[1]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN)
   @Post(':id/deactivate')
   deactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.setStatus(user, id, 'DEACTIVATED');
   }
 
+  @Roles(Role.INSTITUTION_ADMIN)
   @Post(':id/activate')
   reactivate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.setStatus(user, id, 'ACTIVE');
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/assign-groups')
   assignGroups(
     @CurrentUser() user: RequestUser,

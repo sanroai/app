@@ -302,10 +302,10 @@ export class AuthService {
     });
   }
 
-  async forgotPassword(email: string): Promise<string> {
+  async forgotPassword(email: string): Promise<{ success: boolean }> {
     const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (!user) {
-      return '';
+      return { success: true };
     }
     const token = randomUUID();
     const tokenHash = await bcrypt.hash(token, 10);
@@ -314,7 +314,7 @@ export class AuthService {
       data: { tokenHash, userId: user.id, expiresAt },
     });
     this.logger.warn(`[dev] password reset token for ${email}: ${token}`);
-    return token;
+    return { success: true };
   }
 
   async resetPassword(token: string, newPassword: string): Promise<void> {

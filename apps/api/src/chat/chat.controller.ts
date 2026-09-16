@@ -17,7 +17,7 @@ export class ChatController {
     @CurrentUser() user: RequestUser,
     @Body(new ZodValidationPipe(ChatSchema)) body: { message: string; context?: { conceptId?: string; questionId?: string; assessmentId?: string } },
   ) {
-    const context = await this.buildContext(body.context);
+    const context = await this.buildContext(user, body.context);
     return this.ai.answerChat({
       userId: user.sub,
       institutionId: user.institutionId,
@@ -38,12 +38,16 @@ export class ChatController {
     }
   }
 
-  private async buildContext(ctx?: { conceptId?: string; questionId?: string; assessmentId?: string }) {
+  private async buildContext(user: RequestUser, ctx?: { conceptId?: string; questionId?: string; assessmentId?: string }) {
     if (!ctx) return undefined;
     const result: { conceptName?: string; questionText?: string; relatedContent?: string[] } = {};
     if (ctx.conceptId) {
-      const concept = await this.prisma.concept.findUnique({ where: { id: ctx.conceptId } });
-      result.conceptName = concept?.name;
+      const concept = await this.prisma.concept.findUnique({
+        where: { id: ctx.conceptId },
+        include: { topic: { include: { chapter: { include: { subject: { include: { board: true } } } } } } },
+      });
+      if (!concept) return result;
+      result.conceptName = concept.name;
       const content = await this.prisma.contentItem.findMany({
         where: { conceptId: ctx.conceptId, status: 'APPROVED' },
         select: { title: true },

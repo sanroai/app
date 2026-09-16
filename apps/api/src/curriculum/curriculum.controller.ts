@@ -1,8 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Role } from '@sanro/types';
 import { CurriculumService } from './curriculum.service';
 import { ContentService } from './content.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 
 @ApiTags('curriculum')
@@ -45,26 +47,31 @@ export class CurriculumController {
     return this.service.tree(user, boardId, grade, subjectId);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN)
   @Post('boards')
   createBoard(@CurrentUser() user: RequestUser, @Body() body: { name: string; code: string }) {
     return this.service.createBoard(user, body);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN)
   @Post('subjects')
   createSubject(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createSubject(user, body as Parameters<typeof this.service.createSubject>[1]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN)
   @Post('chapters')
   createChapter(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createChapter(user, body as Parameters<typeof this.service.createChapter>[1]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post('topics')
   createTopic(@CurrentUser() user: RequestUser, @Body() body: { chapterId: string; name: string; order?: number }) {
     return this.service.createTopic(user, body);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post('concepts')
   createConcept(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createConcept(user, body as Parameters<typeof this.service.createConcept>[1]);
@@ -86,6 +93,7 @@ export class ContentController {
     return this.service.detail(user, id);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.create(user, body as Parameters<typeof this.service.create>[1]);

@@ -1,19 +1,35 @@
-import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Role } from '@sanro/types';
 import { ImportsService } from './imports.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ImportEntityType } from '@sanro/types';
 import { memoryStorage } from 'multer';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 @ApiTags('imports')
 @Controller('imports')
 export class ImportsController {
   constructor(private readonly service: ImportsService) {}
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: memoryStorage(),
+      limits: { fileSize: MAX_FILE_SIZE },
+      fileFilter: (_, file, cb) => {
+        if (!file.mimetype.match(/spreadsheet|excel|csv|octet-stream/)) {
+          cb(new BadRequestException('Only Excel/CSV files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
   upload(
     @CurrentUser() user: RequestUser,
     @UploadedFile() file: Express.Multer.File,
@@ -28,6 +44,7 @@ export class ImportsController {
     return this.service.history(user);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':jobId/commit')
   commit(@CurrentUser() user: RequestUser, @Param('jobId') jobId: string) {
     return this.service.commit(user, jobId);

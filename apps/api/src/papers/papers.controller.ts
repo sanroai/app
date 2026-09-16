@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post, Query, Res, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { PaperStatus } from '@sanro/types';
+import { PaperStatus, Role } from '@sanro/types';
 import { PapersService } from './papers.service';
 import { paperHTML } from './paper.template';
 import { PdfService } from '../pdf/pdf.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { Response } from 'express';
 
@@ -21,6 +22,7 @@ export class PapersController {
     return this.service.list(user);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.generate(user, body as Parameters<typeof this.service.generate>[1]);
@@ -31,11 +33,13 @@ export class PapersController {
     return this.service.detail(user, id);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/duplicate')
   duplicate(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.duplicate(user, id);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/regenerate')
   regenerate(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { questionId: string }) {
     return this.service.regenerateQuestion(user, id, body.questionId);
@@ -59,6 +63,7 @@ export class PapersController {
     return html;
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/export')
   async exportPdf(
     @CurrentUser() user: RequestUser,

@@ -1,11 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, ServiceUnavailableException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { QuestionSource, QuestionType, Role } from '@sanro/types';
 import { QuestionsService } from './questions.service';
 import { AiService } from '../ai/ai.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { Roles } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
-import { QuestionSource, QuestionType } from '@sanro/types';
 
 @ApiTags('questions')
 @Controller('questions')
@@ -26,26 +27,31 @@ export class QuestionsController {
     return this.service.detail(user, id);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.create(user, body as Parameters<typeof this.service.create>[1]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Patch(':id')
   update(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: Record<string, unknown>) {
     return this.service.update(user, id, body);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Delete(':id')
   delete(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.delete(user, id);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post(':id/review')
   review(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { action: 'APPROVE' | 'REJECT' | 'ARCHIVE' }) {
     return this.service.review(user, id, body.action);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post('ai-generate')
   async aiGenerate(
     @CurrentUser() user: RequestUser,
