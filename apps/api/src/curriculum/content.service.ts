@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
@@ -138,5 +138,142 @@ export class ContentService {
       update: { state, secondsWatched: body.secondsWatched ?? undefined },
     });
     return { ok: true };
+  }
+
+  async updateStatus(user: RequestUser, id: string, status: ContentStatus) {
+    const institutionId = this.tenant.requireInstitution(user);
+    if (user.role !== 'INSTITUTION_ADMIN' && user.role !== 'SUPER_ADMIN') {
+      throw new ForbiddenException('Only admins can change content status');
+    }
+    const item = await this.prisma.contentItem.findFirst({
+      where: { id, institutionId },
+    });
+    if (!item) throw new NotFoundException('Content not found');
+
+    const allowedTransitions: Record<ContentStatus, ContentStatus[]> = {
+      DRAFT: ['REVIEW', 'APPROVED', 'ARCHIVED'],
+      REVIEW: ['APPROVED', 'DRAFT', 'ARCHIVED'],
+      APPROVED: ['ARCHIVED', 'DRAFT'],
+      ARCHIVED: ['DRAFT'],
+    };
+    if (!allowedTransitions[item.status]?.includes(status)) {
+      throw new BadRequestException(`Cannot transition from ${item.status} to ${status}`);
+    }
+
+    return this.prisma.contentItem.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  async completenessMatrix(user: RequestUser, boardId?: string, grade?: string) {
+    const institutionId = this.tenant.requireInstitution(user);
+
+    const where: any = { institutionId };
+    if (boardId) where.boardId = boardId;
+
+    const chapters = await this.prisma.chapter.findMany({
+      where: grade ? { grade } : {},
+      include: {
+        topics: {
+          include: {
+            concepts: true,
+          },
+        },
+        subject: { select: { id: true, name: true, boardId: true } },
+      },
+      orderBy: [{ subject: { name: 'asc' } }, { order: 'asc' }],
+    });
+
+    const contentCounts = await this.prisma.contentItem.groupBy({
+      by: ['chapterId', 'conceptId', 'type', 'status'],
+      where: { institutionId, status: 'APPROVED' },
+      _count: true,
+    });
+
+    const matrix = chapters.map((ch) => {
+      const totalConcepts = ch.topics.reduce((acc, t) => acc + t.concepts.length, 0);
+      const conceptsCovered = new Set(
+        contentCounts
+          .filter((c) => c.chapterId === ch.id && c.status === 'APPROVED')
+          .map((c) => c.conceptId)
+          .filter(Boolean)
+      ).size;
+
+      const contentByType: Record<string, number> = {};
+      contentCounts
+        .filter((c) => c.chapterId === ch.id && c.status === 'APPROVED')
+        .forEach((c) => {
+          contentByType[c.type] = (contentByType[c.type] || 0) + c._count;
+        });
+
+      return {
+        chapterId: ch.id,
+        chapterName: ch.name,
+        subjectName: ch.subject?.name,
+        grade: ch.grade,
+        totalConcepts,
+        conceptsCovered,
+        coveragePercent: totalConcepts > 0 ? Math.round((conceptsCovered / totalConcepts) * 100) : 0,
+        totalContent: Object.values(contentByType).reduce((a, b) => a + b, 0),
+        contentByType,
+        topics: ch.topics.map((t) => ({
+          topicId: t.id,
+          topicName: t.name,
+          concepts: t.concepts.map((c) => ({
+            conceptId: c.id,
+            conceptName: c.name,
+            hasContent: contentCounts.some(
+              (cc) => cc.conceptId === c.id && cc.chapterId === ch.id && cc.status === 'APPROVED'
+            ),
+          })),
+        })),
+      };
+    });
+
+    const overallTotalConcepts = matrix.reduce((a, m) => a + m.totalConcepts, 0);
+    const overallCovered = matrix.reduce((a, m) => a + m.conceptsCovered, 0);
+
+    return {
+      matrix,
+      summary: {
+        totalChapters: matrix.length,
+        totalConcepts: overallTotalConcepts,
+        conceptsCovered: overallCovered,
+        overallCoverage: overallTotalConcepts > 0 ? Math.round((overallCovered / overallTotalConcepts) * 100) : 0,
+      },
+    };
+  }
+
+  async qualityReport(user: RequestUser) {
+    const institutionId = this.tenant.requireInstitution(user);
+
+    const [total, byStatus, byType, recentlyUpdated, withoutDescription, withoutDuration, withoutThumbnail] = await Promise.all([
+      this.prisma.contentItem.count({ where: { institutionId } }),
+      this.prisma.contentItem.groupBy({ by: ['status'], where: { institutionId }, _count: true }),
+      this.prisma.contentItem.groupBy({ by: ['type'], where: { institutionId, status: 'APPROVED' }, _count: true }),
+      this.prisma.contentItem.findMany({
+        where: { institutionId },
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+        select: { id: true, title: true, type: true, status: true, updatedAt: true },
+      }),
+      this.prisma.contentItem.count({ where: { institutionId, description: null } }),
+      this.prisma.contentItem.count({ where: { institutionId, durationSeconds: null, type: 'VIDEO' } }),
+      this.prisma.contentItem.count({ where: { institutionId, thumbnailUrl: null } }),
+    ]);
+
+    return {
+      total,
+      byStatus: Object.fromEntries(byStatus.map((s) => [s.status, s._count])),
+      byType: Object.fromEntries(byType.map((t) => [t.type, t._count])),
+      recentlyUpdated,
+      qualityIssues: {
+        withoutDescription,
+        withoutDuration,
+        withoutThumbnail,
+        totalIssues: withoutDescription + withoutDuration + withoutThumbnail,
+      },
+    };
   }
 }

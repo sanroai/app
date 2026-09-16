@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { Role } from '@sanro/types';
 import { CurriculumService } from './curriculum.service';
@@ -103,5 +103,23 @@ export class ContentController {
   @Post(':id/progress')
   updateProgress(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { state: string; secondsWatched?: number }) {
     return this.service.recordProgress(user, id, body);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.SUPER_ADMIN)
+  @Patch(':id/status')
+  updateStatus(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { status: string }) {
+    return this.service.updateStatus(user, id, body.status as any);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Get('matrix/completeness')
+  completeness(@CurrentUser() user: RequestUser, @Query('boardId') boardId?: string, @Query('grade') grade?: string) {
+    return this.service.completenessMatrix(user, boardId, grade);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Get('report/quality')
+  quality(@CurrentUser() user: RequestUser) {
+    return this.service.qualityReport(user);
   }
 }
