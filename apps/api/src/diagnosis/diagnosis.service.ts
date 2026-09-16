@@ -2,17 +2,18 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { StudentIdentityService } from '../common/services/student-identity.service';
 
 @Injectable()
 export class DiagnosisService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly identity: StudentIdentityService,
   ) {}
 
   async myMastery(user: RequestUser) {
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
-    if (!student) throw new NotFoundException('Student profile not found');
+    const student = await this.identity.requireForUser(user);
     const mastery = await this.prisma.conceptMastery.findMany({
       where: { studentId: student.id },
       include: { concept: { include: { topic: { include: { chapter: true } } } } },

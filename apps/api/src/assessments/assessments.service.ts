@@ -11,6 +11,7 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
+import { StudentIdentityService } from '../common/services/student-identity.service';
 import { MasteryService } from '../diagnosis/mastery.service';
 import { RemediationService } from '../remediation/remediation.service';
 import { snapshotQuestions } from './assessment.snapshot';
@@ -82,6 +83,7 @@ export class AssessmentsService {
     private readonly notifications: NotificationsService,
     private readonly mastery: MasteryService,
     private readonly remediation: RemediationService,
+    private readonly identity: StudentIdentityService,
   ) {}
 
   private async requireStaffRole(user: RequestUser): Promise<void> {
@@ -255,8 +257,7 @@ export class AssessmentsService {
   }
 
   async myAssignments(user: RequestUser) {
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
-    if (!student) throw new NotFoundException('Student profile not found');
+    const student = await this.identity.requireForUser(user);
     const rows = await this.prisma.assessmentAssignment.findMany({
       where: { studentId: student.id },
       include: {
@@ -287,9 +288,7 @@ export class AssessmentsService {
   }
 
   private async getStudentAttempt(user: RequestUser) {
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
-    if (!student) throw new NotFoundException('Student profile not found');
-    return student;
+    return this.identity.requireForUser(user);
   }
 
   async startAttempt(user: RequestUser, assessmentId: string) {

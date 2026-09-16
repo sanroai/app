@@ -7,6 +7,7 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { NotificationsService } from '../common/services/audit-notifications.service';
+import { StudentIdentityService } from '../common/services/student-identity.service';
 
 @Injectable()
 export class RemediationService {
@@ -14,6 +15,7 @@ export class RemediationService {
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
     private readonly notifications: NotificationsService,
+    private readonly identity: StudentIdentityService,
   ) {}
 
   private async studentBelongs(institutionId: string, studentId: string): Promise<void> {
@@ -83,8 +85,7 @@ export class RemediationService {
   }
 
   async listForStudent(user: RequestUser) {
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
-    if (!student) throw new NotFoundException('Student profile not found');
+    const student = await this.identity.requireForUser(user);
     const plans = await this.prisma.remediationPlan.findMany({
       where: { studentId: student.id },
       include: {

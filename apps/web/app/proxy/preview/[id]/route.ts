@@ -7,7 +7,7 @@ export async function GET(
   const { id } = await ctx.params;
   const token = req.nextUrl.searchParams.get('token');
   const kind = req.nextUrl.searchParams.get('kind') ?? 'STUDENT';
-  const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+  const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
   const res = await fetch(`${API}/papers/${id}/preview?kind=${kind}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     cache: 'no-store',

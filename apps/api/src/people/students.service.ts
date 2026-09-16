@@ -179,6 +179,21 @@ export class StudentsService {
           title: 'Welcome to Sanro AI',
           body: `Your account is ready, ${data.name}. Sign in with ${email}.`,
         });
+      } else {
+        // Reused an existing account (possibly a user in another institution).
+        // Ensure a STUDENT membership exists here so the account can log in as a
+        // student in THIS institution without clobbering other role memberships.
+        await this.prisma.institutionMember.upsert({
+          where: { institutionId_userId: { institutionId, userId: account.id } },
+          create: { institutionId, userId: account.id, role: 'STUDENT', status: 'ACTIVE' },
+          update: {},
+        });
+        await this.notifications.create({
+          recipientUserId: account.id,
+          type: 'ACHIEVEMENT_UNLOCKED',
+          title: 'Welcome to Sanro AI',
+          body: `Your account is ready, ${data.name}. Sign in with ${email}.`,
+        });
       }
     }
 

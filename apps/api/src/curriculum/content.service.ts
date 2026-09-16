@@ -3,12 +3,14 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { ContentType, ContentStatus, Visibility } from '@prisma/client';
+import { StudentIdentityService } from '../common/services/student-identity.service';
 
 @Injectable()
 export class ContentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly identity: StudentIdentityService,
   ) {}
 
   async list(user: RequestUser, query: Record<string, string | undefined> = {}) {
@@ -115,7 +117,7 @@ export class ContentService {
     contentId: string,
     body: { state: string; secondsWatched?: number },
   ) {
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students track progress');
     const states = ['NOT_STARTED', 'STARTED', 'QUARTER', 'HALF', 'THREE_QUARTER', 'COMPLETED'] as const;
     const state = states.includes(body.state as (typeof states)[number])

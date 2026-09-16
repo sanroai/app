@@ -1,4 +1,5 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
 
 export class ApiError extends Error {
   constructor(
@@ -55,7 +56,7 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
     });
   } catch (err) {
     if (err instanceof Error && err.name === 'AbortError') throw err;
-    throw new ApiError('Network error - is the Sanro API running on port 4000?', 0);
+    throw new ApiError('Network error - please check your connection.', 0);
   }
 
   let payload: unknown = null;

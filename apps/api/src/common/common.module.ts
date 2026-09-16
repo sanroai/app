@@ -3,6 +3,7 @@ import { AppConfig } from '../config/app.config';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
+import { StudentIdentityService } from '../common/services/student-identity.service';
 
 export const APP_CONFIG_TOKEN = 'APP_CONFIG';
 
@@ -49,8 +50,9 @@ export const APP_CONFIG_TOKEN = 'APP_CONFIG';
     TenantAccessService,
     AuditService,
     NotificationsService,
+    StudentIdentityService,
   ],
-  exports: [APP_CONFIG_TOKEN, PrismaService, TenantAccessService, AuditService, NotificationsService],
+  exports: [APP_CONFIG_TOKEN, PrismaService, TenantAccessService, AuditService, NotificationsService, StudentIdentityService],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class CommonModule {}

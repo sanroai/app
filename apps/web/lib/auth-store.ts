@@ -29,6 +29,7 @@ type AuthState = {
   user: SessionUser | null;
   _hasHydrated: boolean;
   setSession: (resp: LoginResponse) => void;
+  setUser: (patch: Partial<SessionUser>) => void;
   clearSession: () => void;
   setHasHydrated: (v: boolean) => void;
   refreshTokens: () => Promise<boolean>;
@@ -43,13 +44,15 @@ export const useAuthStore = create<AuthState>()(
       _hasHydrated: false,
       setSession: (resp) =>
         set({ token: resp.accessToken, refreshToken: resp.refreshToken, user: resp.user }),
+      setUser: (patch) =>
+        set((s) => ({ user: s.user ? { ...s.user, ...patch } : null })),
       clearSession: () => set({ token: null, refreshToken: null, user: null }),
       setHasHydrated: (v) => set({ _hasHydrated: v }),
       refreshTokens: async () => {
         const currentRefreshToken = useAuthStore.getState().refreshToken;
         if (!currentRefreshToken) return false;
         try {
-          const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+          const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
           const res = await fetch(`${API_URL}/auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

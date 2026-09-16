@@ -10,6 +10,11 @@ import {
   Zap,
   Target,
   Smartphone,
+  Download,
+  Apple,
+  Flame,
+  Award,
+  CheckCircle2,
 } from 'lucide-react';
 
 const features = [
@@ -95,6 +100,7 @@ export default function HomePage() {
               <a href="#features" className="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">Features</a>
               <a href="#pricing" className="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">Pricing</a>
               <a href="#testimonials" className="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">Testimonials</a>
+              <a href="#download" className="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">App</a>
             </div>
             <div className="flex items-center gap-3">
               <Link href="/login" className="text-sm font-medium text-surface-600 hover:text-surface-900 transition-colors">
@@ -372,6 +378,127 @@ export default function HomePage() {
                 >
                   Book a Demo
                 </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Download App Section */}
+      <section id="download" className="py-20 bg-gradient-to-b from-white to-brand-50/60">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700 mb-6">
+                <Smartphone className="h-4 w-4" />
+                Available now for Android
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-4 leading-tight">
+                Take Sanro AI in your{' '}
+                <span className="gradient-text">pocket</span>
+              </h2>
+              <p className="max-w-xl text-lg text-surface-600 mb-8">
+                Practice, take tests, and fix weak concepts anywhere — even on slow networks. The
+                Sanro AI app is built for every learner on every phone.
+              </p>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+                <a
+                  href="/downloads/sanroai.apk"
+                  download
+                  className="inline-flex items-center gap-3 rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-6 py-4 text-white shadow-xl shadow-brand-600/25 hover:shadow-2xl hover:shadow-brand-600/40 transition-all"
+                >
+                  <Download className="h-6 w-6" />
+                  <span className="text-left">
+                    <span className="block text-xs font-medium text-white/80">Download for</span>
+                    <span className="block text-lg font-bold leading-tight">Android APP</span>
+                  </span>
+                </a>
+
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  title="Coming soon to the App Store"
+                  className="inline-flex items-center gap-3 rounded-2xl border-2 border-surface-200 bg-white px-6 py-4 text-surface-400 opacity-70 cursor-not-allowed"
+                >
+                  <Apple className="h-6 w-6" />
+                  <span className="text-left">
+                    <span className="block text-xs font-medium">Coming soon</span>
+                    <span className="block text-lg font-bold leading-tight">App Store</span>
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-surface-600">
+                <span className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Direct APK download
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" /> Always the latest version
+                </span>
+              </div>
+            </div>
+
+            {/* Phone mockup */}
+            <div className="relative mx-auto w-full max-w-[320px]">
+              <div className="absolute -inset-6 rounded-[3rem] bg-gradient-to-br from-brand-300/40 to-purple-300/40 blur-2xl" aria-hidden />
+              <div className="relative rounded-[2.75rem] border-[10px] border-surface-900 bg-white shadow-2xl overflow-hidden">
+                <div className="flex items-center justify-center bg-surface-900 py-2">
+                  <div className="h-4 w-24 rounded-full bg-surface-800" />
+                </div>
+                <div className="px-5 py-4 space-y-4">
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="text-xl font-bold text-surface-900">Learn</div>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-purple-600">
+                      <GraduationCap className="h-5 w-5 text-white" />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="rounded-xl bg-surface-50 px-2 py-3 text-center">
+                      <div className="text-sm font-bold text-surface-900">285</div>
+                      <div className="text-[10px] text-surface-500">XP</div>
+                    </div>
+                    <div className="rounded-xl bg-surface-50 px-2 py-3 text-center">
+                      <div className="text-sm font-bold text-surface-900">5d</div>
+                      <div className="flex items-center justify-center gap-0.5 text-[10px] text-surface-500">
+                        <Flame className="h-3 w-3 text-amber-500" /> Streak
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-surface-50 px-2 py-3 text-center">
+                      <div className="text-sm font-bold text-surface-900">72%</div>
+                      <div className="flex items-center justify-center gap-0.5 text-[10px] text-surface-500">
+                        <Award className="h-3 w-3 text-brand-500" /> Mastery
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-surface-500">
+                      Your Focus Today
+                    </div>
+                    <div className="rounded-2xl border border-red-100 bg-red-50/70 p-3">
+                      <div className="text-[10px] font-medium text-red-500">Weak concept</div>
+                      <div className="text-sm font-bold text-surface-900">Light — Reflection</div>
+                      <div className="mt-2 rounded-lg bg-red-500 px-3 py-1.5 text-center text-xs font-bold text-white">
+                        Fix This
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-surface-500">
+                      Continue Learning
+                    </div>
+                    <div className="rounded-2xl border border-surface-100 p-3">
+                      <div className="text-sm font-bold text-surface-900">Science · Class 8</div>
+                      <div className="mt-1.5 h-1.5 w-full rounded-full bg-surface-100">
+                        <div className="h-1.5 w-2/3 rounded-full bg-gradient-to-r from-brand-500 to-purple-500" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

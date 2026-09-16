@@ -4,19 +4,18 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
-import { 
-  LogOut, 
-  Home, 
-  LayoutDashboard, 
-  FileText, 
-  BarChart2, 
+import {
+  LogOut,
+  Home,
+  LayoutDashboard,
+  FileText,
+  BarChart2,
   GraduationCap,
   Trophy,
   Target,
   BookOpen,
   Users,
   Settings,
-  Bell,
   Search,
   Menu,
   X,
@@ -24,9 +23,11 @@ import {
   MessageCircle,
   Upload,
   Lightbulb,
+  UserCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { NotificationBell } from '@/components/notification-bell';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -52,7 +53,7 @@ const ROLE_COLORS: Record<string, string> = {
   PARENT: 'from-amber-500 to-orange-500',
 };
 
-function NavLinks({ role, mobile = false }: { role: string; mobile?: boolean }) {
+function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const staff = role === 'TEACHER' || role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
   const isAdmin = role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
@@ -100,6 +101,7 @@ function NavLinks({ role, mobile = false }: { role: string; mobile?: boolean }) 
             <Link
               key={l.href}
               href={l.href}
+              onClick={() => onNavigate?.()}
               className={cn(
                 'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
                 active
@@ -122,6 +124,7 @@ function NavLinks({ role, mobile = false }: { role: string; mobile?: boolean }) 
                 <Link
                   key={l.href}
                   href={l.href}
+                  onClick={() => onNavigate?.()}
                   className={cn(
                     'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
                     active
@@ -146,6 +149,7 @@ function NavLinks({ role, mobile = false }: { role: string; mobile?: boolean }) 
                 <Link
                   key={l.href}
                   href={l.href}
+                  onClick={() => onNavigate?.()}
                   className={cn(
                     'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
                     active
@@ -283,12 +287,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5 text-surface-600" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center">
-                3
-              </span>
-            </Button>
+            <NotificationBell />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -305,9 +304,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
+                <DropdownMenuItem asChild>
+                  <Link href="/app/profile" className="flex items-center">
+                    <UserCircle2 className="mr-2 h-4 w-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/app/settings" className="flex items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600">
@@ -342,9 +349,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile Nav */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-0 top-16 z-30 bg-white border-b border-surface-200 shadow-lg">
-          <NavLinks role={user.role} mobile />
-        </div>
+        <>
+          <div
+            className="md:hidden fixed inset-0 z-30 bg-black/40"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden
+          />
+          <div className="md:hidden fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto overscroll-contain bg-white border-b border-surface-200 shadow-lg">
+            <NavLinks role={user.role} mobile onNavigate={() => setMobileMenuOpen(false)} />
+          </div>
+        </>
       )}
 
       {/* Main Content */}

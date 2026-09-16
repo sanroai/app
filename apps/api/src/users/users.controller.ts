@@ -77,8 +77,18 @@ export class UsersController {
     return this.notifications.listForUser(user.sub, false);
   }
 
+  @Get('me/notifications/unread')
+  unreadCount(@CurrentUser() user: RequestUser) {
+    return this.notifications.unreadCount(user.sub);
+  }
+
   @Post('me/notifications/:id/read')
   readNotification(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.notifications.markRead(user.sub, id);
+  }
+
+  @Post('me/notifications/read-all')
+  markAllNotificationsRead(@CurrentUser() user: RequestUser) {
+    return this.notifications.markAllRead(user.sub);
   }
 }

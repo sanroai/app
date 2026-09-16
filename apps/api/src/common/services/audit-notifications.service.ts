@@ -61,9 +61,23 @@ export class NotificationsService {
     });
   }
 
+  async unreadCount(userId: string) {
+    const count = await this.prisma.notification.count({
+      where: { recipientId: userId, readAt: null },
+    });
+    return { count };
+  }
+
   async markRead(userId: string, notificationId: string) {
     return this.prisma.notification.updateMany({
       where: { id: notificationId, recipientId: userId },
+      data: { readAt: new Date() },
+    });
+  }
+
+  async markAllRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { recipientId: userId, readAt: null },
       data: { readAt: new Date() },
     });
   }

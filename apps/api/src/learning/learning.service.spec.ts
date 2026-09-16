@@ -81,7 +81,11 @@ function buildService() {
 
   const tenant: any = { requireInstitution: () => 'inst-1' };
   const mastery: any = { isObjectiveType: () => true, gradeAssessmentQuestion: () => ({ correct: true }) };
-  const service = new LearningService(prisma, tenant, mastery);
+  const identity: any = {
+    resolveForUser: async () => db.students[0] ?? null,
+    requireForUser: async () => db.students[0] ?? null,
+  };
+  const service = new LearningService(prisma, tenant, mastery, identity);
   return { service, db };
 }
 

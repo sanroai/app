@@ -40,6 +40,13 @@ export const LoginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+export const UpdateProfileSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters'),
+  phone: phoneSchema,
+  language: z.enum(['EN', 'MR', 'HI']).optional(),
+  avatarUrl: z.string().url('Invalid URL').optional().nullable(),
+}).partial();
+
 export const RefreshSchema = z.object({
   refreshToken: z.string().min(1),
 });
@@ -248,6 +255,7 @@ export const IdsQuerySchema = z.object({
 
 export type RegisterInstitution = z.infer<typeof RegisterInstitutionSchema>;
 export type Login = z.infer<typeof LoginSchema>;
+export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;
 export type CreateInstitution = z.infer<typeof CreateInstitutionSchema>;
 export type CreateGroup = z.infer<typeof CreateGroupSchema>;
 export type CreateStudent = z.infer<typeof CreateStudentSchema>;

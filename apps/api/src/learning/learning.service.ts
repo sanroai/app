@@ -3,6 +3,7 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { MasteryService } from '../diagnosis/mastery.service';
+import { StudentIdentityService } from '../common/services/student-identity.service';
 
 @Injectable()
 export class LearningService {
@@ -10,6 +11,7 @@ export class LearningService {
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
     private readonly mastery: MasteryService,
+    private readonly identity: StudentIdentityService,
   ) {}
 
   async getLearningHome(user: RequestUser) {
@@ -99,7 +101,7 @@ export class LearningService {
     const subjectIds = subjects.map((s) => s.id);
 
     // Get mastery per subject per grade
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     let averageMasteryMap = new Map<string, number>();
     if (student) {
       const masteryByConcept = await this.prisma.conceptMastery.findMany({
@@ -206,7 +208,7 @@ export class LearningService {
       select: { id: true, chapterId: true },
     });
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
 
     let completedSet = new Set<string>();
     if (student) {
@@ -310,7 +312,7 @@ export class LearningService {
       }
     }
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
 
     let completedByConcept = new Map<string, number>();
     let masteryMap = new Map<string, { score: number; level: string; attempts: number; correct: number }>();
@@ -406,7 +408,7 @@ export class LearningService {
       },
     });
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
 
     let progressMap = new Map<string, { state: string; secondsWatched: number | null; completedAt: Date | null }>();
     let mastery: { score: number; level: string; attempts: number; correct: number; evidenceCount: number } | null = null;
@@ -470,7 +472,7 @@ export class LearningService {
     const content = await this.prisma.contentItem.findUnique({ where: { id: contentId } });
     if (!content) throw new NotFoundException('Content not found');
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can track learning progress');
 
     const result = await this.prisma.contentProgress.upsert({
@@ -493,7 +495,7 @@ export class LearningService {
   async getLearningProgress(user: RequestUser) {
     this.tenant.requireInstitution(user);
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can track learning progress');
 
     const [totalContent, completedProgress, masterySummary] = await Promise.all([
@@ -558,7 +560,7 @@ export class LearningService {
   async startPractice(user: RequestUser, conceptId: string, questionCount: number) {
     this.tenant.requireInstitution(user);
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can practice');
 
     const concept = await this.prisma.concept.findUnique({ where: { id: conceptId } });
@@ -610,7 +612,7 @@ export class LearningService {
   async getPractice(user: RequestUser, practiceId: string) {
     this.tenant.requireInstitution(user);
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can practice');
 
     const practiceSet = await this.prisma.practiceSet.findUnique({ where: { id: practiceId } });
@@ -658,7 +660,7 @@ export class LearningService {
   ) {
     this.tenant.requireInstitution(user);
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can practice');
 
     const practiceSet = await this.prisma.practiceSet.findUnique({ where: { id: practiceId } });
@@ -701,7 +703,7 @@ export class LearningService {
   async submitPractice(user: RequestUser, practiceId: string) {
     this.tenant.requireInstitution(user);
 
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can practice');
 
     const practiceSet = await this.prisma.practiceSet.findUnique({
@@ -746,7 +748,7 @@ export class LearningService {
 
   async getGamificationProfile(user: RequestUser) {
     this.tenant.requireInstitution(user);
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students have gamification profiles');
 
     const profile = await this.prisma.gamificationProfile.findUnique({
@@ -830,7 +832,7 @@ export class LearningService {
 
   async getAchievements(user: RequestUser) {
     this.tenant.requireInstitution(user);
-    const student = await this.prisma.student.findUnique({ where: { userId: user.sub } });
+    const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students have achievements');
 
     const allAchievements = await this.prisma.achievement.findMany({
