@@ -25,6 +25,7 @@ import {
   Upload,
   Lightbulb,
   UserCircle2,
+  Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -109,6 +110,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
         { href: '/app/curriculum', label: 'Curriculum', icon: BookOpen },
         { href: '/app/analytics', label: 'Analytics', icon: BarChart2 },
+        { href: '/app/content-processing', label: 'Content Processing', icon: Database },
       ]
     : [];
 

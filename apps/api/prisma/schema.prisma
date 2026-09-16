@@ -311,6 +311,7 @@ model User {
   createdAssessments Assessment[]   @relation("AssessmentCreatedBy")
   createdImports     ImportJob[]
   createdPlans       RemediationPlan[] @relation("PlanCreatedBy")
+  createdKnowledgeBases KnowledgeBase[] @relation("KnowledgeBaseCreator")
 
   @@index([email])
 }
@@ -381,6 +382,7 @@ model Institution {
   supportTickets SupportTicket[]
   reports        Report[]
   auditLogs      AuditLog[]
+  knowledgeBases KnowledgeBase[]
 
   @@index([status])
   @@index([createdById])
@@ -1272,18 +1274,91 @@ model SupportTicket {
   @@index([institutionId])
 }
 
-model UploadedFile {
-  id        String       @id @default(uuid()) @db.Uuid
-  entity    UploadEntity
-  originalName String
-  storedName String
-  mimeType  String
-  sizeBytes Int
-  url       String?
-  createdById String?    @db.Uuid
-  createdAt DateTime     @default(now())
+enum ContentLifecycleStatus {
+  DRAFT
+  PROCESSING
+  PROCESSED
+  REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
 
-  @@index([createdById])
+enum ContentSourceType {
+  PDF_BOOK
+  VIDEO
+  NOTES
+  WEBSITE
+  YOUTUBE
+}
+
+enum ProcessingJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model KnowledgeBase {
+  id          String    @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  sourceType  ContentSourceType
+  sourceUrl   String?
+  storageKey  String?
+  institutionId String? @db.Uuid
+  creatorId   String?   @db.Uuid
+  status      ContentLifecycleStatus @default(DRAFT)
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  institution Institution? @relation(fields: [institutionId], references: [id])
+  creator     User?        @relation("KnowledgeBaseCreator", fields: [creatorId], references: [id])
+  chunks      KnowledgeChunk[]
+  jobs        ProcessingJob[]
+
+  @@index([institutionId])
+  @@index([status])
+}
+
+model KnowledgeChunk {
+  id              String  @id @default(uuid()) @db.Uuid
+  knowledgeBaseId String  @db.Uuid
+  content         String
+  chapter         String?
+  topic           String?
+  concept         String?
+  grade           String?
+  subject         String?
+  board           String?
+  tokenCount      Int?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  knowledgeBase KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+
+  @@index([knowledgeBaseId])
+  @@index([grade, subject])
+  @@index([board, grade, subject, chapter])
+}
+
+model ProcessingJob {
+  id              String            @id @default(uuid()) @db.Uuid
+  knowledgeBaseId String            @db.Uuid
+  status          ProcessingJobStatus @default(PENDING)
+  inputType       String
+  outputType      String?
+  error           String?
+  metadata        Json?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+
+  knowledgeBase KnowledgeBase @relation(fields: [knowledgeBaseId], references: [id], onDelete: Cascade)
+
+  @@index([knowledgeBaseId])
+  @@index([status])
 }
 
 model AuditLog {

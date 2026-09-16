@@ -26,6 +26,7 @@ import { ChatModule } from './chat/chat.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminModule } from './admin/admin.module';
 import { LearningModule } from './learning/learning.module';
+import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { LearningModule } from './learning/learning.module';
     DashboardModule,
     AdminModule,
     LearningModule,
+    KnowledgeBaseModule,
   ],
   controllers: [HealthController],
   providers: [
