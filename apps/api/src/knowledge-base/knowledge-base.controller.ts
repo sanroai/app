@@ -5,12 +5,16 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequestUser } from '../common/types/auth-context';
 import { Role } from '@prisma/client';
 import { KnowledgeBaseService } from './knowledge-base.service';
+import { ContentProcessorService } from './content-processor.service';
 
 @ApiTags('knowledge-base')
 @ApiBearerAuth()
 @Controller('knowledge-base')
 export class KnowledgeBaseController {
-  constructor(private readonly service: KnowledgeBaseService) {}
+  constructor(
+    private readonly service: KnowledgeBaseService,
+    private readonly processor: ContentProcessorService,
+  ) {}
 
   @Roles(Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
@@ -100,5 +104,12 @@ export class KnowledgeBaseController {
   @ApiOperation({ summary: 'Delete knowledge base' })
   delete(@Param('id') id: string, @CurrentUser() user: RequestUser) {
     return this.service.delete(id, user);
+  }
+
+  @Roles(Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Post(':id/process')
+  @ApiOperation({ summary: 'Process knowledge base content' })
+  async process(@Param('id') id: string) {
+    return this.processor.processKnowledgeBase(id);
   }
 }
