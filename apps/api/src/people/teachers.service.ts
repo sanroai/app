@@ -155,4 +155,54 @@ export class TeachersService {
     }
     return { ok: true };
   }
+
+  async updateTeacher(user: RequestUser, id: string, data: { name?: string; phone?: string; employeeId?: string; subjectIds?: string[] }) {
+    const institutionId = this.tenant.requireInstitution(user);
+    this.assertAllowed(user);
+    const teacher = await this.prisma.teacher.findFirst({ where: { id, institutionId }, include: { user: true } });
+    if (!teacher) throw new NotFoundException('Teacher not found');
+
+    if (data.name || data.phone) {
+      await this.prisma.user.update({
+        where: { id: teacher.userId },
+        data: {
+          ...(data.name ? { name: data.name } : {}),
+          ...(data.phone !== undefined ? { phone: data.phone } : {}),
+        },
+      });
+    }
+
+    if (data.employeeId !== undefined) {
+      await this.prisma.teacher.update({
+        where: { id },
+        data: { employeeId: data.employeeId || null },
+      });
+    }
+
+    if (data.subjectIds) {
+      await this.prisma.teacherSubject.deleteMany({ where: { teacherId: id } });
+      for (const subjectId of data.subjectIds) {
+        await this.prisma.teacherSubject.create({ data: { teacherId: id, subjectId } });
+      }
+    }
+
+    return this.prisma.teacher.findFirst({
+      where: { id },
+      include: { user: { select: { email: true, name: true, phone: true, isActive: true } }, subjects: { include: { subject: true } }, groups: { include: { group: true } } },
+    });
+  }
+
+  async getTeacherDetail(user: RequestUser, id: string) {
+    const institutionId = this.tenant.requireInstitution(user);
+    const teacher = await this.prisma.teacher.findFirst({
+      where: { id, institutionId },
+      include: {
+        user: { select: { id: true, email: true, name: true, phone: true, isActive: true } },
+        subjects: { include: { subject: true } },
+        groups: { include: { group: true } },
+      },
+    });
+    if (!teacher) throw new NotFoundException('Teacher not found');
+    return teacher;
+  }
 }

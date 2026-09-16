@@ -110,7 +110,7 @@ export class StudentsService {
     ]);
 
     return {
-      data: rows.map((r) => ({
+      students: rows.map((r) => ({
         id: r.id,
         name: r.name,
         email: r.email,
@@ -120,6 +120,11 @@ export class StudentsService {
         grade: r.grade,
         status: r.status,
         academicYearId: r.academicYearId,
+        group: r.groupMemberships.length > 0 ? {
+          id: r.groupMemberships[0].group.id,
+          name: r.groupMemberships[0].group.name,
+          type: r.groupMemberships[0].group.type,
+        } : null,
         groups: r.groupMemberships.map((m) => ({
           id: m.group.id,
           name: m.group.name,

@@ -125,6 +125,7 @@ export class AssessmentsService {
     await this.requireStaffRole(user);
 
     const questions: SnapshotSource[] = [];
+    let paperSubjectId: string | null = null;
     if (data.sourcePaperId && data.sourcePaperId.length > 0) {
       const paper = await this.prisma.questionPaper.findFirst({
         where: { id: data.sourcePaperId, institutionId },
@@ -136,6 +137,7 @@ export class AssessmentsService {
         },
       });
       if (!paper) throw new NotFoundException('Paper not found');
+      paperSubjectId = (paper as any).subjectId ?? null;
       for (const pq of paper.questions) {
         questions.push(mapSnapshot(pq.question));
       }
@@ -158,13 +160,14 @@ export class AssessmentsService {
       throw new BadRequestException('Provide a paper or question ids to build the assessment');
     }
 
+    const subjectId = data.subjectId || paperSubjectId || undefined;
     const totalMarks = data.totalMarks ?? questions.reduce((a, q) => a + q.marks, 0);
     const assessment = await this.prisma.assessment.create({
       data: {
         institutionId,
         sourcePaperId: data.sourcePaperId || null,
         title: data.title,
-        subjectId: data.subjectId,
+        subjectId,
         chapterId: data.chapterId ?? null,
         totalMarks,
         durationMinutes: data.durationMinutes ?? 40,
@@ -583,7 +586,7 @@ export class AssessmentsService {
       },
       assessment: {
         title: attempt.assessment.title,
-        subject: attempt.assessment.subject.name,
+        subject: attempt.assessment.subject?.name ?? 'General',
         totalMarks: attempt.assessment.totalMarks,
       },
       student: isStudentOwner ? undefined : attempt.student,

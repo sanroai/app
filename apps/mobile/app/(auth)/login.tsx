@@ -103,6 +103,10 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>{loading ? 'Signing in…' : 'Sign in'}</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')} disabled={loading}>
+          <Text style={styles.forgotLink}>Forgot password?</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity onPress={() => router.push('/(auth)/register')} disabled={loading}>
           <Text style={styles.switchLink}>
             New here? <Text style={styles.switchLinkStrong}>Create an account</Text>
@@ -136,6 +140,7 @@ const styles = StyleSheet.create({
   buttonText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   switchLink: { textAlign: 'center', marginTop: Spacing.lg, fontSize: 14, color: Colors.textSecondary },
   switchLinkStrong: { color: Colors.primary, fontWeight: '600' },
+  forgotLink: { textAlign: 'center', marginTop: Spacing.md, fontSize: 13, color: Colors.primary, fontWeight: '500' },
   offlineNote: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.lg },
   offlineNoteText: { fontSize: 12, color: Colors.textSecondary, flexShrink: 1 },
 });

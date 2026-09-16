@@ -933,7 +933,7 @@ async function seedUsers(institutionId: string, academicYearId: string) {
   await prisma.gamificationProfile.upsert({
     where: { studentId: student.id },
     update: {},
-    create: { studentId: student.id, xp: 285, streakDays: 5 },
+    create: { studentId: student.id, xp: 420, streakDays: 7 },
   });
 
   const parentUser = await prisma.user.upsert({
@@ -2117,14 +2117,45 @@ async function seedAchievements() {
   if (student) {
     await prisma.gamificationProfile.update({
       where: { studentId: student.id },
-      data: { xp: 285, streakDays: 5, lastActiveAt: new Date() },
+      data: { xp: 420, streakDays: 7, lastActiveAt: new Date() },
     });
-    const awards = ['FIRST_LOGIN', 'FIRST_ASSESSMENT', 'STREAK_3', 'PRACTICE_PRO'];
+    const awards = ['FIRST_LOGIN', 'FIRST_ASSESSMENT', 'STREAK_3', 'STREAK_7', 'PRACTICE_PRO', 'SPEED_DEMON'];
     for (const key of awards) {
-      await prisma.studentAchievement.upsert({
-        where: { studentId_achievementId: { studentId: student.id, achievementId: created[key] } },
-        update: {},
-        create: { studentId: student.id, achievementId: created[key], unlockedAt: new Date() },
+      const ach = await prisma.achievement.findUnique({ where: { key } });
+      if (ach) {
+        await prisma.studentAchievement.upsert({
+          where: { studentId_achievementId: { studentId: student.id, achievementId: ach.id } },
+          update: {},
+          create: { studentId: student.id, achievementId: ach.id, unlockedAt: new Date() },
+        });
+      }
+    }
+
+    // Seed concept mastery for grade 10 concepts
+    const grade10Chapters = await prisma.chapter.findMany({
+      where: { grade: '10' },
+      include: { topics: { include: { concepts: true } } },
+    });
+    const masteryData = [
+      { chapterIdx: 0, topicIdx: 0, conceptIdx: 0, score: 85, level: 'MASTERED' },
+      { chapterIdx: 0, topicIdx: 0, conceptIdx: 1, score: 72, level: 'GOOD' },
+      { chapterIdx: 0, topicIdx: 1, conceptIdx: 0, score: 55, level: 'DEVELOPING' },
+      { chapterIdx: 1, topicIdx: 0, conceptIdx: 0, score: 90, level: 'MASTERED' },
+      { chapterIdx: 1, topicIdx: 0, conceptIdx: 1, score: 68, level: 'GOOD' },
+      { chapterIdx: 1, topicIdx: 1, conceptIdx: 0, score: 40, level: 'WEAK' },
+      { chapterIdx: 2, topicIdx: 0, conceptIdx: 0, score: 30, level: 'NEEDS_INTERVENTION' },
+    ];
+    for (const m of masteryData) {
+      const ch = grade10Chapters[m.chapterIdx];
+      if (!ch) continue;
+      const topic = ch.topics[m.topicIdx];
+      if (!topic) continue;
+      const concept = topic.concepts[m.conceptIdx];
+      if (!concept) continue;
+      await prisma.conceptMastery.upsert({
+        where: { studentId_conceptId: { studentId: student.id, conceptId: concept.id } },
+        update: { score: m.score, level: m.level as any },
+        create: { studentId: student.id, conceptId: concept.id, score: m.score, level: m.level as any },
       });
     }
   }

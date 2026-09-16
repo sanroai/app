@@ -831,10 +831,10 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
   return (
     <>
       {/* Today's Focus */}
-      <Card className="border-orange-200 bg-gradient-to-r from-orange-50 to-red-50">
+      <Card className="border-orange-200 dark:border-orange-800 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30">
         <CardContent className="p-6">
-          <h2 className="text-lg font-bold text-surface-900 mb-1">Your Focus Today</h2>
-          <p className="text-sm text-surface-500 mb-4">What needs your attention right now</p>
+          <h2 className="text-lg font-bold text-surface-900 dark:text-surface-100 mb-1">Your Focus Today</h2>
+          <p className="text-sm text-surface-500 dark:text-surface-400 mb-4">What needs your attention right now</p>
 
           <div className="space-y-3">
             {/* Fix weakness CTA */}
@@ -895,55 +895,55 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
 
       {/* Progress Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="border-violet-200 bg-gradient-to-br from-violet-50 to-purple-50">
+        <Card className="bg-gradient-to-br from-violet-500 to-purple-600 border-0 text-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-violet-600 font-medium">Total XP</p>
-                <p className="text-2xl font-bold text-violet-900 mt-1">{(gamification?.totalXp as number) ?? 0}</p>
+                <p className="text-sm text-violet-100 font-medium">Total XP</p>
+                <p className="text-2xl font-bold text-white mt-1">{(gamification?.totalXp as number) ?? 0}</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-violet-100 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-violet-600" />
+              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Zap className="h-5 w-5 text-white" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-violet-500">
+            <div className="mt-3 flex items-center gap-2 text-xs text-violet-100">
               <TrendingUp className="h-3.5 w-3.5" />
               +{(gamification?.todayXp as number) ?? 0} today
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+        <Card className="bg-gradient-to-br from-amber-400 to-orange-500 border-0 text-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-amber-600 font-medium">Streak</p>
-                <p className="text-2xl font-bold text-amber-900 mt-1">{(gamification?.currentStreak as number) ?? 0} days</p>
+                <p className="text-sm text-amber-100 font-medium">Streak</p>
+                <p className="text-2xl font-bold text-white mt-1">{(gamification?.currentStreak as number) ?? 0} days</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-amber-100 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-amber-600" />
+              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Flame className="h-5 w-5 text-white" />
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-amber-500">
+            <div className="mt-3 flex items-center gap-2 text-xs text-amber-100">
               <Star className="h-3.5 w-3.5" />
               Best: {((gamification as Record<string, unknown>)?.bestStreak as number) ?? 0}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-green-50">
+        <Card className="bg-gradient-to-br from-emerald-400 to-teal-500 border-0 text-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-emerald-600 font-medium">Mastery</p>
-                <p className="text-2xl font-bold text-emerald-900 mt-1">{((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0}%</p>
+                <p className="text-sm text-emerald-100 font-medium">Mastery</p>
+                <p className="text-2xl font-bold text-white mt-1">{((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0}%</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-                <Target className="h-5 w-5 text-emerald-600" />
+              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Target className="h-5 w-5 text-white" />
               </div>
             </div>
             <div className="mt-3">
-              <Progress value={((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0} className="h-1.5 bg-emerald-100" />
+              <Progress value={((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0} className="h-1.5 bg-white/20" />
             </div>
           </CardContent>
         </Card>
@@ -981,7 +981,7 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
               </div>
               <div className="flex-1">
                 <p className="font-medium text-surface-900">Browse All Subjects</p>
-                <p className="text-sm text-surface-500">Class 8-10 · Science & Mathematics</p>
+                <p className="text-sm text-surface-500">Science & Mathematics</p>
               </div>
               <ChevronRight className="h-4 w-4 text-surface-400" />
             </Link>

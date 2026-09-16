@@ -2,12 +2,13 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useDiagnosisMy, useRemediationMy } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { titleCase } from '@/lib/format';
-import { Check, Circle, Target, CheckCircle2, Loader2 } from 'lucide-react';
+import { Check, Circle, Target, CheckCircle2, Loader2, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 const LEVEL_STYLE: Record<string, string> = {
@@ -69,25 +70,30 @@ export default function RemediationPage() {
         {diagnosis && Array.isArray(diagnosis.concepts) && diagnosis.concepts.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {diagnosis.concepts.map((m: any) => (
-              <Card key={m.id}>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-medium text-slate-900">{m.concept?.name ?? 'Concept'}</p>
-                  <Badge className={LEVEL_STYLE[m.level] ?? 'bg-slate-100 text-slate-600'}>{titleCase(m.level ?? '')}</Badge>
-                </div>
-                <p className="mt-1 text-xs text-slate-500">
-                  {m.concept?.topic?.chapter?.name ?? m.concept?.topic?.name ?? ''}
-                </p>
-                <div className="mt-3 h-2 rounded-full bg-slate-100">
-                  <div
-                    className={cn(
-                      'h-2 rounded-full',
-                      m.score >= 80 ? 'bg-green-500' : m.score >= 60 ? 'bg-amber-500' : 'bg-red-500',
-                    )}
-                    style={{ width: `${Math.max(0, Math.min(100, m.score ?? 0))}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-right text-xs text-slate-500">{m.score ?? 0}%</p>
-              </Card>
+              <Link key={m.id} href={`/app/learn/concepts/${m.concept?.id ?? m.conceptId ?? ''}`}>
+                <Card className="group cursor-pointer hover:shadow-md transition-all">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium text-slate-900 group-hover:text-brand-700 transition-colors">{m.concept?.name ?? 'Concept'}</p>
+                    <Badge className={LEVEL_STYLE[m.level] ?? 'bg-slate-100 text-slate-600'}>{titleCase(m.level ?? '')}</Badge>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {m.concept?.topic?.chapter?.name ?? m.concept?.topic?.name ?? ''}
+                  </p>
+                  <div className="mt-3 h-2 rounded-full bg-slate-100">
+                    <div
+                      className={cn(
+                        'h-2 rounded-full',
+                        m.score >= 80 ? 'bg-green-500' : m.score >= 60 ? 'bg-amber-500' : 'bg-red-500',
+                      )}
+                      style={{ width: `${Math.max(0, Math.min(100, m.score ?? 0))}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 flex items-center justify-between">
+                    <p className="text-xs text-slate-500">{m.score ?? 0}%</p>
+                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-brand-500 transition-colors" />
+                  </div>
+                </Card>
+              </Link>
             ))}
           </div>
         ) : (

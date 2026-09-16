@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { GraduationCap, Menu, X } from 'lucide-react';
 
 const navLinks = [
+  { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/features', label: 'Features' },
   { href: '/for-schools', label: 'For Schools' },

@@ -878,7 +878,7 @@ model Assessment {
   institutionId     String           @db.Uuid
   sourcePaperId     String?          @db.Uuid
   title             String
-  subjectId         String           @db.Uuid
+  subjectId         String?          @db.Uuid
   chapterId         String?          @db.Uuid
   totalMarks        Int
   durationMinutes   Int
@@ -893,7 +893,7 @@ model Assessment {
   createdAt         DateTime         @default(now())
 
   institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  subject     Subject     @relation(fields: [subjectId], references: [id])
+  subject     Subject?    @relation(fields: [subjectId], references: [id])
   chapter     Chapter?    @relation(fields: [chapterId], references: [id])
   sourcePaper QuestionPaper? @relation(fields: [sourcePaperId], references: [id])
   createdBy   User        @relation("AssessmentCreatedBy", fields: [createdById], references: [id])

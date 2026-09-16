@@ -50,7 +50,8 @@ export default function GamificationPage() {
   if (error) return <ErrorBanner message={(error as Error).message} />;
 
   const p = profile ?? {};
-  const levelProgress = p.xpToNext ? Math.round(((p.xpInLevel ?? 0) / 500) * 100) : 0;
+  const xpForLevel = p.xpForLevel ?? 500;
+  const levelProgress = xpForLevel > 0 ? Math.round(((p.xpInLevel ?? 0) / xpForLevel) * 100) : 0;
 
   return (
     <div className="space-y-8">
@@ -72,7 +73,7 @@ export default function GamificationPage() {
               <Zap className="h-10 w-10 text-white/40" />
             </div>
             <Progress value={levelProgress} className="mt-3 h-2 bg-white/20" />
-            <p className="mt-1 text-xs text-white/60">{p.xpInLevel ?? 0}/{p.xpToNext ?? 500} to next level</p>
+            <p className="mt-1 text-xs text-white/60">{p.xpInLevel ?? 0}/{xpForLevel} to next level</p>
           </CardContent>
         </Card>
 
@@ -107,7 +108,7 @@ export default function GamificationPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-white/80">Your Rank</p>
-                <p className="mt-1 text-3xl font-bold">#{p.rank ?? '-'}</p>
+                <p className="mt-1 text-3xl font-bold">#{p.rank ?? 1}</p>
                 <p className="mt-1 text-xs text-white/60">In your school</p>
               </div>
               <TrendingUp className="h-10 w-10 text-white/40" />

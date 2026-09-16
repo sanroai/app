@@ -37,6 +37,8 @@
     "@sanro/config": "workspace:*",
     "@sanro/types": "workspace:*",
     "@sanro/validation": "workspace:*",
+    "@sentry/nestjs": "^10.74.0",
+    "@sentry/profiling-node": "^10.74.0",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",

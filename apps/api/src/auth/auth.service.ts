@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -305,7 +306,7 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ success: boolean }> {
     const user = await this.prisma.user.findUnique({ where: { email: email.toLowerCase() } });
     if (!user) {
-      return { success: true };
+      throw new BadRequestException('No account found with this email address');
     }
     const token = randomUUID();
     const tokenHash = await bcrypt.hash(token, 10);

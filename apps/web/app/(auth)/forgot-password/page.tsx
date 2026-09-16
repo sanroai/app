@@ -26,10 +26,13 @@ export default function ForgotPasswordPage() {
     formState: { errors, isSubmitting },
   } = useForm<ForgotPassword>({ resolver: zodResolver(ForgotPasswordSchema) });
 
+  const [sentEmail, setSentEmail] = useState('');
+
   async function onSubmit(values: ForgotPassword) {
     setServerError(null);
     try {
       await api('/auth/forgot-password', { method: 'POST', body: values });
+      setSentEmail(values.email);
       setSent(true);
     } catch (e) {
       setServerError(e instanceof Error ? e.message : 'Failed to send reset email');
@@ -44,7 +47,7 @@ export default function ForgotPasswordPage() {
         </div>
         <h1 className="text-2xl font-bold text-surface-900">Check your email</h1>
         <p className="text-surface-600">
-          If an account exists with <strong>{/* email */ 'your email'}</strong>, we&apos;ve sent password reset instructions.
+          If an account exists with <strong>{sentEmail}</strong>, we&apos;ve sent password reset instructions.
         </p>
         <Button variant="outline" onClick={() => router.push('/login')}>
           <ArrowLeft className="h-4 w-4" />

@@ -793,7 +793,25 @@ export class LearningService {
     const xp = profile?.xp ?? 0;
     const level = Math.floor(xp / 500) + 1;
     const xpInLevel = xp % 500;
-    const xpToNext = 500 - xpInLevel;
+    const xpForLevel = 500;
+
+    // Compute rank within institution
+    const members = await this.prisma.institutionMember.findMany({
+      where: { institutionId: this.tenant.requireInstitution(user), role: 'STUDENT', status: 'ACTIVE' },
+      select: { userId: true },
+    });
+    const allStudentUserIds = members.map((m) => m.userId);
+    const allStudents = await this.prisma.student.findMany({
+      where: { userId: { in: allStudentUserIds }, institutionId: this.tenant.requireInstitution(user) },
+      select: { id: true },
+    });
+    const allStudentIds = allStudents.map((s) => s.id);
+    const allProfiles = await this.prisma.gamificationProfile.findMany({
+      where: { studentId: { in: allStudentIds } },
+      select: { studentId: true, xp: true },
+    });
+    const sorted = allProfiles.sort((a, b) => b.xp - a.xp);
+    const rank = sorted.findIndex((p) => p.studentId === student.id) + 1 || 1;
 
     const achievementCount = await this.prisma.studentAchievement.count({
       where: { studentId: student.id },
@@ -810,7 +828,8 @@ export class LearningService {
       xp,
       level,
       xpInLevel,
-      xpToNext,
+      xpForLevel,
+      rank,
       streakDays: profile?.streakDays ?? 0,
       achievementCount,
       recentAchievements: recentAchievements.map((a) => ({

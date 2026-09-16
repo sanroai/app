@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as Sentry from '@sentry/nestjs';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { APP_CONFIG_TOKEN } from './common/common.module';
 import { AppConfig } from './config/app.config';
@@ -9,6 +10,14 @@ import { AppModule } from './app.module';
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bodyParser: true });
   const config = app.get<AppConfig>(APP_CONFIG_TOKEN);
+
+  if (config.NODE_ENV === 'production') {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      enabled: !!process.env.SENTRY_DSN,
+      tracesSampleRate: 0.1,
+    });
+  }
 
   if (config.NODE_ENV === 'production' && config.AUTH_SECRET.startsWith('dev-')) {
     const logger = new Logger('Bootstrap');

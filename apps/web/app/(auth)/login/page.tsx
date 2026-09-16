@@ -55,6 +55,13 @@ export default function LoginPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-surface-600 hover:text-brand-600 transition-colors">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Home
+        </Link>
+      </div>
+
       <div className="text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700 mb-4">
           <GraduationCap className="h-4 w-4" />

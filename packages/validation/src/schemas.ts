@@ -197,7 +197,7 @@ export const ExportPaperSchema = z.object({
 
 export const CreateAssessmentSchema = z.object({
   title: z.string().min(1),
-  subjectId: z.string().uuid(),
+  subjectId: z.string().uuid().optional().or(emptyToUndefined),
   chapterId: z.string().uuid().optional().or(emptyToUndefined),
   totalMarks: z.coerce.number().int().positive().default(25),
   durationMinutes: z.coerce.number().int().positive().default(40),

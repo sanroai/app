@@ -50,7 +50,12 @@ export class DashboardService {
       profile: { name: student.name, rollNumber: student.rollNumber, grade: student.grade ?? undefined },
       gamification,
       masterySummary: { avgScore, weakCount, conceptCount: mastery.length },
-      weakContacts: mastery.filter((m) => m.level === 'WEAK' || m.level === 'NEEDS_INTERVENTION').slice(0, 4),
+      weakConcepts: mastery.filter((m) => m.level === 'WEAK' || m.level === 'NEEDS_INTERVENTION').slice(0, 4).map((m) => ({
+        name: m.concept.name,
+        score: m.score,
+        level: m.level,
+        conceptId: m.conceptId,
+      })),
       recentAttempts: attempts,
       pendingAssignments: assignments,
       activeRemediationPlans: plans.map((p) => ({
@@ -361,7 +366,7 @@ export class DashboardService {
       if (!attemptedSet.has(`${ua.studentId}:${ua.assessmentId}`)) {
         const list = upcomingByStudent.get(ua.studentId) ?? [];
         if (list.length < 5) {
-          list.push({ title: ua.assessment.title, date: ua.assessment.dueAt, subject: ua.assessment.subject.name });
+          list.push({ title: ua.assessment.title, date: ua.assessment.dueAt, subject: ua.assessment.subject?.name ?? 'General' });
         }
         upcomingByStudent.set(ua.studentId, list);
       }
