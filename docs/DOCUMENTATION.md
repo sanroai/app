@@ -1,6 +1,6 @@
 # Sanro AI — Master Documentation
 
-> Last updated: 2026-09-15 (Session 8)
+> Last updated: 2026-09-16 (Session 13 — Security, mobile multi-role, Zod validation, dead links fix)
 > Version: 0.1.0 (active development)
 
 ---
@@ -208,12 +208,18 @@ pnpm build  # Runs Turbo (5 tasks)
 
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/sanro_dev
-JWT_SECRET=your-secret-key
+AUTH_SECRET=dev-secret-minimum-32-characters-long
 JWT_EXPIRES_IN=7d
 REFRESH_TOKEN_EXPIRES_IN=30d
 PORT=4000
 NODE_ENV=development
 ```
+
+**Security notes:**
+- `AUTH_SECRET` must be at least 32 characters in production
+- Production refuses dev defaults (starts with `dev-`)
+- CORS locked to explicit origins in production
+- Swagger disabled in production
 
 ### Web (`apps/web/.env.local`)
 
@@ -722,6 +728,19 @@ pnpm --filter @sanro/api db:migrate:prod
 | Zustand hydration race condition | ✅ Fixed | Added `_hasHydrated` flag, dashboard waits for hydration |
 | "signal is aborted without reason" error banner | ⚠️ Minor | AbortController cleanup on dashboard fetch |
 | Missing `FileText` import in dashboard | ✅ Fixed | Added to import list |
+| Web dashboard dead links (12 buttons) | ✅ Fixed | All buttons point to correct routes |
+| CORS wildcard in production | ✅ Fixed | Explicit origins only: sanroai.com, app.sanroai.com |
+| JWT secret accepts weak defaults in production | ✅ Fixed | Min 32 chars, production guardrail |
+| Forgot-password returns raw token | ✅ Fixed | Returns `{ success: true }` only |
+| Zod validation missing on mutation endpoints | ✅ Fixed | 13+ endpoints wired with ZodValidationPipe |
+| No RBAC on mutation endpoints | ✅ Fixed | @Roles() added to all mutation controllers |
+| Rate limiting missing on auth endpoints | ✅ Fixed | Auth-specific throttling (login 10/min, forgot 3/min) |
+| File upload unlimited | ✅ Fixed | 10MB limit + MIME validation on imports |
+| Swagger exposed in production | ✅ Fixed | Gated behind NODE_ENV !== 'production' |
+| Mobile memberships lost on restart | ✅ Fixed | Persisted to SecureStore |
+| Mobile SafeAreaProvider missing | ✅ Fixed | Added for notch/Dynamic Island |
+| Mobile no error boundary | ✅ Fixed | ErrorBoundary wraps app root |
+| Duplicate config factory | ✅ Fixed | Removed, single source of truth via Zod schema |
 
 ---
 
@@ -729,15 +748,21 @@ pnpm --filter @sanro/api db:migrate:prod
 
 ### Phase 1: Web Feature Completion
 - [ ] Teacher: per-assessment attempts view + manual grading
-- [ ] Parent dashboard
 - [ ] Super admin dashboard
 - [ ] Bulk import UI
 - [ ] Question bank review UI
 
-### Phase 2: Mobile App
-- [ ] Expo React Native app (Android-first)
-- [ ] Reuse API + shared packages
+### Phase 2: Mobile App (In Progress)
+- [x] Expo React Native app (Android-first)
+- [x] Multi-role tabs (student/teacher/parent/admin)
+- [x] Learn flow (6 modes)
+- [x] Assessment attempt + result
+- [x] SafeAreaProvider
+- [x] Memberships persistence (SecureStore)
+- [x] ErrorBoundary
 - [ ] Push notifications
+- [ ] Profile editing
+- [ ] Settings
 
 ### Phase 3: Shared Packages
 - [ ] Extract `packages/ui` (Sanro UI kit)
@@ -752,14 +777,44 @@ pnpm --filter @sanro/api db:migrate:prod
 - [ ] AIProvider real backend (GPT/Claude)
 
 ### Phase 5: Products
-- [ ] PDF export hardening
+- [ ] PDF export hardening (needs Chromium container or pdf-lib)
 - [ ] Notifications UI
 - [ ] Seat/plan enforcement
 - [ ] Analytics dashboards
 
 ---
 
-## 17. Screenshots
+## 17. Mobile App (Expo)
+
+### Stack
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| Framework | React Native | 0.76.5 |
+| SDK | Expo | 52 |
+| Router | expo-router | 4 |
+| State | Zustand + TanStack Query | 5.x |
+| Auth | expo-secure-store | — |
+
+### Role-Specific Tabs
+- **Student**: Home, Learn, Practice, Tests, Me
+- **Teacher/Admin**: Home, Classes, Assessments, Me
+- **Parent**: Home, Children, Me
+
+### Key Screens
+- Home: Role-specific content (student: XP/streak/mastery, teacher: quick actions + groups, parent: children)
+- Learn flow: Board → Grade → Subject → Chapter → Concept
+- 6-mode concept detail: Learn, Practice, Quick Quiz, Flashcards, Challenge, Ask SANRO
+- Assessment attempt with 15s autosave + result review
+- Leaderboard
+
+### Safety
+- SafeAreaProvider for notch/Dynamic Island
+- Memberships persisted to SecureStore
+- ErrorBoundary wrapping app root
+
+---
+
+## 18. Screenshots
 
 Screenshots are saved in `screenshots/` after running `npx tsx scripts/screenshots.mts`.
 

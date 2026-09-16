@@ -798,6 +798,8 @@ The mobile app should simply become another client of the same production API.
 
 ---
 
+> Last updated: 2026-09-16 (Session 13 — Security hardening, dead links, mobile multi-role)
+
 ## Annex A — Deployment Report (2026-09-16)
 
 > Actual production status. Kept inside this spec doc so the §110 Definition of Done can be graded against real evidence.
@@ -809,12 +811,14 @@ The mobile app should simply become another client of the same production API.
 | Production database connected | ✅ | `sanro_dev`/`sanro_test` untouched; Railway managed PostgreSQL (private `.railway.internal` host) |
 | Production migrations applied safely | ✅ | `preDeployCommand`: `prisma migrate deploy` (no `migrate reset`) |
 | Production env vars configured | ✅ | Full idempotent var set incl. `DATABASE_URL`, `PORT=3000`, `API_PORT=3000`, `AUTH_SECRET`, `CORS_ORIGINS=https://sanroai.com,https://app.sanroai.com`, AI provider, rate limits |
-| CORS configured | ✅ | Only `sanroai.com` + `app.sanroai.com`; no wildcard with auth |
+| CORS configured | ✅ | Only `sanroai.com` + `app.sanroai.com` + `www.sanroai.com`; no wildcard with auth; startup assertion |
 | HTTPS active | ✅ | `api.sanroai.com` cert valid 2026-09-15 → 2026-12-14; Vercel TLS on `sanroai.com` |
 | Web reachable | ✅ | `https://sanroai.com` HTTP 200 |
 | API reachable | ✅ | `GET https://api.sanroai.com/api/v1/health` → `{"status":"ok","database":"connected"}` |
 | Authentication works | ✅ | Student + teacher login against prod API return valid JWTs |
-| Role authorization works | ✅ | Role is on `InstitutionMember`; JWT strategy enforced in prod |
+| Role authorization works | ✅ | @Roles() on all mutation endpoints; JWT strategy enforced in prod |
+| Rate limiting | ✅ | Auth-specific throttling (login 10/min, forgot-password 3/min, register 5/min) |
+| Input validation | ✅ | Zod schemas on 13+ endpoints, forbidUnknownValues: true |
 | Tenant isolation verified | 🔧 | Enforced server-side by design; automated cross-tenant audit not yet scripted |
 | Student journey verified | ✅ | `/dashboard/student` returns real profile (Aarav Sharma, grade 8, XP 285, streak 5) |
 | Teacher journey verified | ✅ | Teacher login + curriculum/people endpoints respond against prod |
@@ -862,7 +866,7 @@ The mobile app should simply become another client of the same production API.
 
 ### Annex B — Operational notes
 
-- **Railway redeploys don't auto-trigger on push.** Use `serviceInstanceDeploy(..., latestCommit: true)` (or restart the service) to deploy the latest commit. Current live build: commit `840b490`.
+- **Railway redeploys auto-trigger on push to master.** No manual deploy needed for production pushes. Current live build: commit `342a4f5` (security + dead links + mobile improvements).
 - **Railway env updates are all-or-nothing.** `variableCollectionUpsert(replace: true)` sends the FULL var set; always include every var. `PORT` must equal the port your app binds (Railway uses `PORT` for v2 health checks).
 - **Custom domains need the matching TXT.** Adding `_railway-verify.api` TXT was required before Railway issued the certificate.
 - **Vercel webhook not active** — deploy via `vercel deploy --prod --yes` from repo root (project settings rootDirectory = `apps/web`).

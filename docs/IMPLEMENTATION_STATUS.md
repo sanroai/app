@@ -1,6 +1,6 @@
 # Implementation Status
 
-> Last updated: 2026-09-16 (Session 12 — Production deployment LIVE: Railway API + Vercel web + EAS Android build)
+> Last updated: 2026-09-16 (Session 13 — Security hardening, dead links fix, mobile multi-role, Zod validation)
 > Audit: Full codebase review against Sanro AI Product Specification
 
 ---
@@ -22,8 +22,8 @@
 | Item | Status | Notes |
 |------|--------|-------|
 | Typecheck | ✅ | 0 errors across all packages (incl. mobile) |
-| Build | ✅ | `pnpm build` 6/6 tasks, 23 web routes |
-| Tests | ✅ | 11/11 Vitest (mastery.service + learning.service) |
+| Build | ✅ | `pnpm build` 6/6 tasks, 48+ web routes |
+| Tests | ✅ | 18/18 Vitest (student-identity, learning, mastery) |
 | Token refresh | ✅ | Auto-refresh on 401, singleton promise, store update |
 | Board | ✅ | CBSE (Classes 1-10) |
 | Content | ✅ | 135+ content items with YouTube URLs + markdown notes |
@@ -32,6 +32,8 @@
 | Production API | ✅ | LIVE: `https://api.sanroai.com` (Railway + managed Postgres, cert valid to Dec 2026) |
 | Production web | ✅ | LIVE: `https://sanroai.com` (Vercel CLI deploy, `NEXT_PUBLIC_API_URL` → prod API) |
 | Android production build | ✅ | `.aab` built via EAS (STORE distribution, `com.sanro.ai`) |
+| Security hardening | ✅ | CORS lockdown, RBAC on all mutations, rate limiting, Zod validation, file upload limits |
+| Mobile multi-role | ✅ | Role-specific tabs for student/teacher/parent/admin |
 
 ---
 
@@ -163,6 +165,25 @@ SANRO is NOT a content library. It is an academic intelligence platform that con
 
 ## Changelog
 
+### Session 13 (2026-09-16 — Security hardening, dead links, mobile multi-role)
+- **CRITICAL Security fixes**:
+  - CORS: production fallback to explicit origins (`sanroai.com`, `app.sanroai.com`, `www.sanroai.com`) instead of wildcard; added startup assertion
+  - JWT secret: min 32 chars enforced; production guardrail refuses dev default (`AUTH_SECRET` must not start with `dev-`)
+  - Forgot-password: raw reset token no longer returned in API response (was `{ token: "..." }`, now `{ success: true }`)
+  - Duplicate config factory removed — `common.module.ts` now uses `loadConfig()` from Zod schema as single source of truth
+- **RBAC hardening**: `@Roles()` decorators added to 13+ mutation controllers (people, questions, papers, curriculum, academics, institutions, imports, remediation)
+- **Rate limiting**: Endpoint-specific throttling on auth (login 10/min, forgot-password 3/min, register 5/min)
+- **File upload**: 10MB size limit + MIME validation on imports endpoint
+- **Input validation**: `forbidUnknownValues: true` in global ValidationPipe; Zod schemas wired to 13+ unvalidated endpoints via `ZodValidationPipe`
+- **Swagger**: Gated behind `NODE_ENV !== 'production'`
+- **Dead links fixed**: 12 dead buttons/links in web dashboard page (Continue Learning → `/app/learn`, Create Assessment → `/app/papers/new`, View Class → `/app/students?groupId=`, Start Remediation → `/app/remediation`, Start → `/app/assessments`, View all (groups) → `/app/students`, Manage → `/app/students?groupId=`, View all (subjects) → `/app/learn`, Leaderboard → `/app/gamification/leaderboard`, View Reports → `/app/gamification`)
+- **Mobile multi-role architecture**: Role-aware tab layout (student: Learn/Practice/Tests, teacher/admin: Classes/Assessments, parent: Children), role-specific home screens with quick actions
+- **Mobile improvements**: SafeAreaProvider for notch/Dynamic Island, memberships persisted to SecureStore (was lost on restart), ErrorBoundary component wrapping app root
+- **New mobile screens**: `classes.tsx` (teacher/admin), `assessments.tsx` (teacher/admin), `children.tsx` (parent)
+- **Web deployed** to Vercel (commit `342a4f5`, `55dcaa6`, `752bbaa`)
+- **API deployed** to Railway (auto-deploy from master)
+- **Verification**: `pnpm -r typecheck` ✓ (0 errors), `pnpm --filter @sanro/api test` ✓ (18/18), `pnpm --filter @sanro/mobile typecheck` ✓
+
 ### Session 12 (2026-09-16 — Production deployment)
 - **API LIVE on Railway** (`https://api.sanroai.com`): monorepo build via `railway.json` at repo root (pnpm 12.4.1, rootDirectory `""`, start `node apps/api/dist/main.js`). Managed PostgreSQL connected; `DATABASE_URL` points at the private `.railway.internal` host. `preDeployCommand` runs `prisma migrate deploy` + idempotent `db:seed` (CBSE board, 10 grades, content, demo users, question bank, achievements).
 - **Railway healthcheck root-cause fixed**: Railway v2 probes the injected `PORT` env var. App bound 4000 while no listener existed on the probed port → "service unavailable" despite the app being up. Fixed by setting `API_PORT=3000` AND `PORT=3000`; code also hardened to honor `PORT` (`app.config.ts` default falls back to `process.env.PORT`, `main.ts` listens on `config.PORT ?? config.API_PORT`).
@@ -271,8 +292,7 @@ SANRO is NOT a content library. It is an academic intelligence platform that con
 | Bug | Severity | Location | Description |
 |-----|----------|----------|-------------|
 | Route ordering | HIGH | `assessments.controller.ts` | `/assessments/my` matched by `/:id` wildcard |
-| Duplicate chat endpoints | LOW | `ai.controller.ts` + `chat.controller.ts` | `/ai/chat` and `/chat/ask-sanro` identical |
-| Missing Zod validation | MEDIUM | Most controllers | Body accepted as `unknown` with unsafe cast |
+| Duplicate chat endpoints | LOW | `ai.controller.ts` + `chat.controller.ts` | `/ai/chat` and `/chat/ask-sanro` identical (kept for mobile/web compatibility) |
 | Achievement icon display | LOW | `gamification/page.tsx` | Icon names shown as text, not mapped to Lucide icons |
 
 ---

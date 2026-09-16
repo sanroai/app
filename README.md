@@ -25,7 +25,8 @@ pnpm --filter @sanro/web dev        # Web on :3000
 | Package | Tech | Port | Description |
 |---------|------|:----:|-------------|
 | `apps/api` | NestJS 11, Prisma 6.19 | 4000 | REST API, JWT auth, paper generator, assessments, mastery diagnosis |
-| `apps/web` | Next.js 15, Tailwind 3.4 | 3000 | Web app with gamified student dashboard, teacher tools |
+| `apps/web` | Next.js 15, Tailwind 3.4 | 3000 | Web app with gamified student dashboard, teacher tools, 12 public pages |
+| `apps/mobile` | Expo SDK 52, React Native | — | Mobile app (student-first, multi-role tabs for teacher/parent/admin) |
 | `packages/types` | TypeScript | — | Shared types & enums |
 | `packages/validation` | Zod 3.24 | — | Shared validation schemas |
 | `packages/config` | TypeScript | — | Shared configuration |
@@ -33,7 +34,8 @@ pnpm --filter @sanro/web dev        # Web on :3000
 ## Features
 
 ### Implemented
-- **Landing Page** — Hero, features, pricing, testimonials, CTA
+- **Landing Page** — Complete 12-page public website (Home, About, Features, For Students, For Teachers, For Schools, For Parents, Pricing, Contact, Download, Privacy, Terms)
+- **SEO** — robots.txt, sitemap, Open Graph, metadata across all pages
 - **Auth** — Login, register, JWT with refresh tokens, multi-tenant
 - **Student Dashboard** — XP, streaks, mastery level, badges, pending assessments
 - **Paper Generator** — Board→Grade→Subject, configurable distributions, HTML preview
@@ -44,26 +46,26 @@ pnpm --filter @sanro/web dev        # Web on :3000
 - **Gamification** — XP, streaks, achievements, leaderboard
 - **AI Tutor** — Context-aware chat with curriculum grounding
 - **Question Bank** — 7-filter search, CRUD, bulk import
+- **Mobile App** — Expo React Native with 5-tab student shell + role-specific tabs for teacher/parent/admin
+- **Security** — CORS production lockdown, RBAC on all mutation endpoints, rate limiting, Zod validation, file upload limits
 
 ### In Progress
 - Content population for Classes 1-7
 - Achievement icon mapping to Lucide icons
-- Loading skeletons
-- Error boundaries
 
 ### Planned
-- Mobile app (Expo React Native)
-- Shared UI component library
 - Playwright E2E tests
 - Real AI provider integration
 - Redis/BullMQ job queues
+- 3D/AR viewer
 
 ## Tech Stack
 
 | Layer | Technologies |
 |-------|-------------|
 | Frontend | Next.js 15, React 19, Tailwind 3.4, shadcn/ui-style, TanStack Query, Zustand, RHF + Zod |
-| Backend | NestJS 11, Prisma 6.19, PostgreSQL 18, JWT, Zod validation |
+| Mobile | Expo SDK 52, React Native 0.76.5, expo-router 4, Zustand, TanStack Query, expo-secure-store |
+| Backend | NestJS 11, Prisma 6.19, PostgreSQL 18, JWT, Zod validation, @nestjs/throttler |
 | Tooling | pnpm 12, Turborepo, TypeScript 5.7, Vitest |
 
 ## Demo Users
@@ -78,19 +80,13 @@ pnpm --filter @sanro/web dev        # Web on :3000
 
 All passwords: `Sanro@123`
 
-## Screenshots
+## Production
 
-| Page | Preview |
-|------|---------|
-| Landing | ![Landing](screenshots/01-landing.png) |
-| Login | ![Login](screenshots/02-login.png) |
-| Register | ![Register](screenshots/03-register.png) |
-| Dashboard | ![Dashboard](screenshots/04-dashboard-student.png) |
-| Papers | ![Papers](screenshots/05-papers.png) |
-| New Paper | ![New Paper](screenshots/06-papers-new.png) |
-| Assessments | ![Assessments](screenshots/07-assessments.png) |
-| New Assessment | ![New Assessment](screenshots/08-assessments-new.png) |
-| Remediation | ![Remediation](screenshots/09-remediation.png) |
+| Service | URL | Status |
+|---------|-----|--------|
+| Web | https://sanroai.com | ✅ LIVE |
+| API | https://api.sanroai.com | ✅ LIVE |
+| Android | https://sanroai.com/downloads/sanroai.apk | ✅ LIVE |
 
 ## Documentation
 
@@ -99,7 +95,8 @@ All passwords: `Sanro@123`
 | [Full Documentation](docs/DOCUMENTATION.md) | Comprehensive project documentation |
 | [Architecture](docs/architecture.md) | System design & module map |
 | [API Reference](docs/api.md) | Endpoint documentation |
-| [Status](docs/status.md) | Build health & completed features |
+| [Implementation Status](docs/IMPLEMENTATION_STATUS.md) | Feature status & changelog |
+| [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md) | Deployment spec & verification |
 
 ## License
 

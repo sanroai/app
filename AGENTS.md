@@ -6,7 +6,7 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 ## Commands
 ```bash
 pnpm -r typecheck              # Typecheck all packages
-pnpm --filter @sanro/api test  # Run Vitest (8/8)
+pnpm --filter @sanro/api test  # Run Vitest (18/18)
 pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 pnpm --filter @sanro/mobile dev     # Expo dev server (mobile)
@@ -23,9 +23,13 @@ Always build shared packages first: `@sanro/types` → `@sanro/validation` → `
 ## Mobile App (apps/mobile)
 - Expo SDK 52 / React Native 0.76.5 / expo-router 4 / React 18.3.1 — primary student experience (P0)
 - 5-tab shell: Home / Learn / Practice / Tests / Me; concept page has 6 modes (Learn, Practice, Quick Quiz, Flashcards, Challenge, Ask SANRO)
+- **Multi-role tabs**: student (Learn/Practice/Tests), teacher/admin (Classes/Assessments), parent (Children)
 - Stack: TypeScript strict, Zod, Zustand, TanStack Query 5, expo-secure-store
 - Runtime is Expo (no native build step in turbo; `@sanro/mobile#build` is a stub)
 - Tokens in SecureStore keys `sanro-token` / `sanro-refresh` / `sanro-user`; API base `http://localhost:4000/api/v1`
+- SafeAreaProvider for notch/Dynamic Island
+- Memberships persisted to SecureStore
+- ErrorBoundary wrapping app root
 - RN peer pulls `@types/react@18`; web uses `@types/react@19`. Do NOT try to unify these versions — web's tsconfig `paths` for `react`/`react-dom`/`jsx-runtime` keeps the two React type identities separate.
 
 ## Code Style
@@ -48,6 +52,16 @@ PostgreSQL 18 native (no Docker). User: `postgres`, Password: `postgres`, DBs: `
 
 ## Auth
 JWT-based. Zustand persist store in localStorage key `sanro-auth`. Hydration tracked via `_hasHydrated` flag.
+
+## Security (Session 13)
+- **CORS**: Production locked to explicit origins (`sanroai.com`, `app.sanroai.com`, `www.sanroai.com`)
+- **JWT Secret**: Min 32 chars; production refuses dev default (`AUTH_SECRET` must not start with `dev-`)
+- **RBAC**: `@Roles()` on all mutation endpoints (people, questions, papers, curriculum, academics, institutions, imports, remediation)
+- **Rate Limiting**: Auth-specific (login 10/min, forgot-password 3/min, register 5/min)
+- **Validation**: Zod schemas on 13+ endpoints, `forbidUnknownValues: true`
+- **File Upload**: 10MB limit + MIME validation on imports
+- **Forgot-Password**: Raw token no longer returned (returns `{ success: true }`)
+- **Swagger**: Gated behind `NODE_ENV !== 'production'`
 
 ## Prisma Notes
 - `User` has no `role` field — role is on `InstitutionMember`

@@ -1,26 +1,32 @@
 # Architecture
 
-> Last updated: 2026-09-15
+> Last updated: 2026-09-16 (Session 13)
 
 ## Overview
 
-Sanro AI is a **pnpm + Turborepo monorepo** with three layers:
+Sanro AI is a **pnpm + Turborepo monorepo** with four layers:
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    Frontend (Web)                     │
+│                 Frontend (Web)                        │
 │  Next.js 15 · Tailwind · TanStack Query · Zustand   │
 │  Port 3000                                           │
 └───────────────────┬─────────────────────────────────┘
                     │ REST API (JSON)
 ┌───────────────────▼─────────────────────────────────┐
-│                    Backend (API)                      │
+│                 Frontend (Mobile)                     │
+│  Expo SDK 52 · React Native · expo-router · Zustand │
+│  Talks to same production API                        │
+└───────────────────┬─────────────────────────────────┘
+                    │ REST API (JSON)
+┌───────────────────▼─────────────────────────────────┐
+│                 Backend (API)                         │
 │  NestJS 11 · Prisma 6.19 · JWT Auth · Zod           │
 │  Port 4000                                           │
 └───────────────────┬─────────────────────────────────┘
                     │
 ┌───────────────────▼─────────────────────────────────┐
-│                    Database                           │
+│                 Database                              │
 │  PostgreSQL 18 · Prisma migrations                   │
 │  DBs: sanro_dev / sanro_test                         │
 └─────────────────────────────────────────────────────┘
@@ -90,27 +96,86 @@ Retest → Improved mastery closes the loop
 ## Cross-Cutting Concerns
 
 - **Auth**: Stateless JWT + refresh-token sessions table; roles via guards + `@Roles()`
-- **Validation**: Zod schemas in `packages/validation`, enforced by global `ZodValidationPipe`
-- **DI/Config**: `AppConfig` via `@Inject(APP_CONFIG_TOKEN)` from `common/common.module`
+- **Validation**: Zod schemas in `packages/validation`, enforced by global `ZodValidationPipe` (`forbidUnknownValues: true`)
+- **RBAC**: `@Roles()` decorators on all mutation endpoints (people, questions, papers, curriculum, academics, institutions, imports, remediation)
+- **Rate Limiting**: `@nestjs/throttler` — global 120/min; auth-specific (login 10/min, forgot-password 3/min, register 5/min)
+- **CORS**: Production locked to explicit origins (`sanroai.com`, `app.sanroai.com`); dev allows all
+- **JWT Secret**: Min 32 chars; production guardrail refuses dev default
+- **File Upload**: 10MB limit + MIME validation on imports
+- **DI/Config**: `AppConfig` via `@Inject(APP_CONFIG_TOKEN)` from `common/common.module` (single source of truth via Zod schema)
 - **Response Shape**: Payloads returned directly (no envelope). Errors: `{ code, message, requestId, statusCode, details? }`
 - **Logging**: NestJS built-in logger with request IDs
-- **Rate Limiting**: `@nestjs/throttler` (configurable)
 
 ## Frontend Architecture
 
+### Web (Next.js)
+
 ```
 app/
-├── page.tsx                    # Landing (public)
-├── login/                      # Auth pages (public)
-├── register/
-├── (dashboard)/                # Protected layout wrapper
-│   ├── layout.tsx              # Nav, auth check, hydration guard
+├── (public)/                  # Public pages (shared header/footer)
+│   ├── layout.tsx             # Public layout (nav, footer)
+│   ├── page.tsx               # Landing page
+│   ├── about/                 # About page
+│   ├── features/              # Features page
+│   ├── for-students/          # For Students page
+│   ├── for-teachers/          # For Teachers page
+│   ├── for-schools/           # For Schools page
+│   ├── for-parents/           # For Parents page
+│   ├── pricing/               # Pricing page
+│   ├── contact/               # Contact page
+│   ├── download/              # Download page
+│   ├── privacy/               # Privacy page
+│   └── terms/                 # Terms page
+├── (dashboard)/               # Protected layout wrapper
+│   ├── layout.tsx             # Nav, auth check, hydration guard
 │   └── app/
-│       ├── page.tsx            # Dashboard home
-│       ├── papers/             # Paper management
-│       ├── assessments/        # Assessment management
-│       └── remediation/        # Remediation tracking
-└── proxy/preview/[id]/         # Authenticated iframe proxy
+│       ├── page.tsx           # Dashboard home (role-specific)
+│       ├── papers/            # Paper management
+│       ├── assessments/       # Assessment management
+│       ├── remediation/       # Remediation tracking
+│       ├── questions/         # Question bank
+│       ├── students/          # Student management
+│       ├── teachers/          # Teacher management
+│       ├── parents/           # Parent management
+│       ├── chat/              # AI tutor chat
+│       ├── gamification/      # XP, achievements, leaderboard
+│       ├── profile/           # User profile
+│       ├── settings/          # Settings
+│       └── import/            # Bulk import
+├── login/                     # Auth pages (public)
+├── register/
+├── robots.ts                  # SEO: robots.txt
+├── sitemap.ts                 # SEO: sitemap
+└── proxy/preview/[id]/        # Authenticated iframe proxy
+```
+
+### Mobile (Expo)
+
+```
+app/
+├── _layout.tsx                # Root layout (SafeAreaProvider, ErrorBoundary, AuthGate)
+├── (auth)/
+│   ├── login.tsx              # Login screen
+│   └── register.tsx           # Register screen
+├── (tabs)/
+│   ├── _layout.tsx            # Role-aware tab layout
+│   ├── index.tsx              # Home (role-specific content)
+│   ├── learn.tsx              # Learn (student only)
+│   ├── practice.tsx           # Practice (student only)
+│   ├── tests.tsx              # Tests (student only)
+│   ├── classes.tsx            # Classes (teacher/admin only)
+│   ├── assessments.tsx        # Assessments (teacher/admin only)
+│   ├── children.tsx           # Children (parent only)
+│   └── me.tsx                 # Profile
+├── learn/                     # Learn flow screens
+├── concept/                   # Concept detail (6 modes)
+├── practice/                  # Practice session
+├── attempt/                   # Assessment attempt
+├── quiz/                      # Quick Quiz
+├── flashcards/                # Flashcards
+├── challenge/                 # Timed Challenge
+├── ask/                       # Ask SANRO
+└── leaderboard.tsx            # Leaderboard
 ```
 
 **State Management**:
