@@ -2,6 +2,18 @@
 
 Format: date — phase — change.
 
+## 2026-09-17 — Deployment
+- Commit `34c3523` pushed to origin/master.
+- **API live**: Railway deploy `23b7042f` Online. Verified prod: health + DB ok,
+  Reports API (improvement/class/student/concept-performance) with seed data,
+  `admin/leads` (contact_leads migration applied), `site/contact` 400 on invalid,
+  Helmet headers active. `.railwayignore` added (excludes 78 MB web APK from upload).
+- **WEB BLOCKED**: `app.sanroai.com` still pre-rebuild — `/api/contact` 404. Needs
+  `vercel login` or `VERCEL_TOKEN` (CLI has no local credentials; no git auto-deploy).
+- **APK BLOCKED**: EAS session (`harishpanditkar`) lacks access to the `sanroai`
+  project `eb098800-6294-4a77-ae94-fe34128a8364`. Needs `eas login` with sanroai owner
+  account or `EXPO_TOKEN`. eas.json already injects prod API URL on all profiles.
+
 ## 2026-09-17 — Durable queue + security + mobile + deploy prep
 - Queue: `JobQueueService` now restores `PENDING`/`PROCESSING` jobs from the DB at
   bootstrap (crash-safe; PROCESSING reset to PENDING). Proven live: restart

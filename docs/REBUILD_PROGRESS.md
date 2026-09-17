@@ -35,7 +35,7 @@ Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
 | 21 | Website | ⬜ TODO | Contact flow fixed |
 | 22 | Security + performance | ✅ DONE | Helmet + compression added; sweep complete (see below) |
 | 23 | QA | ⏳ PARTIAL | CI/CD done; QA phase pending |
-| 24 | Deployment | ⏳ IN PROGRESS | Push + prod verification pending |
+| 24 | Deployment | ⏳ PARTIAL | API live + verified; web/APK blocked on credentials (see below) |
 | 25 | Android APK | ⬜ TODO | |
 | — | Final audit + report | ⬜ TODO | |
 
@@ -218,6 +218,51 @@ uses `dangerouslyAllowAllBuilds`). New `csv.spec.ts` brings API tests to 49/49.
 ### Build health at this point
 - API tests 49/49 (7 files) ✅ · `pnpm -r typecheck` clean ✅ · API build ✅ ·
   helmet/compression headers verified on running server ✅
+
+---
+
+### Phase 24 — Deployment (commit 34c3523, pushed to origin/master)
+**API — DEPLOYED + VERIFIED LIVE.** Proved `railway up` (CLI, linked project
+`sanroai`, service `api`). `.railwayignore` added to keep the 78 MB web APK out
+of the Railway upload. Deployment `23b7042f` is Online. Verified against
+`https://api.sanroai.com/api/v1`:
+- `/health` ok, DB connected; **Helmet headers live** (X-Frame-Options SAMEORIGIN,
+  HSTS, nosniff)
+- `/reports/improvement` → 401 unauth / 200 authed (real seed data, CSV embedded)
+- `/reports/class/:groupId`, `/reports/student/:studentId`,
+  `/reports/concept-performance` → 200 (teacher token; scoping 403 respected)
+- `/admin/leads` (SUPER_ADMIN) → 200 → proves `contact_leads` migration applied
+- `POST /site/contact` invalid → 400 (Zod live)
+- Railway preDeploy runs `prisma migrate deploy` + idempotent seed on every build
+  (prod DB confirmed on baseline, no drift).
+
+**WEB — BLOCKED.** `app.sanroai.com` (Vercel behind Cloudflare, `x-vercel-id`)
+still serves the pre-rebuild build: the new `/api/contact` route returns 404 and
+the old marketing HTML is cached (`Age≈2400s`). Vercel git auto-deploy did **not**
+trigger from the push (repo default branch is `master` and no webhook action is
+visible). Vercel CLI on this machine has **no credentials** (`~/.vercel/auth.json`
+and `com.vercel.cli` absent) and no `VERCEL_TOKEN` env.
+**Required to unblock:** run `vercel login` (interactive) in `apps/web`, or set
+`VERCEL_TOKEN` (scope: deployment) and re-run `vercel --prod`.
+**Required to diagnose:** GitHub repo `admin:repo_hook` scope (webhook 404 was
+silent, not a real 404 response).
+
+**APK — BLOCKED.** `apps/mobile` has a live Expo session, but it belongs to
+`harishpanditkar`, which has **no access** to the EAS project
+`eb098800-6294-4a77-ae94-fe34128a8364` (`Entity not authorized`). 
+**Required to unblock:** `eas login` with the `sanroai` (owner) Expo account or
+set `EXPO_TOKEN` with access to that project; then
+`eas build --platform android --profile preview --non-interactive` (APK) +
+`production` (AAB). `eas.json` already injects
+`EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1` on every profile.
+
+### Follow-ups (non-blocking)
+- Railway warns `railway.json` Config-as-Code deprecation → migrate to
+  `.railway/railway.ts` (`railway config migrate`) before 2026-12-01.
+- PDF report export remains a documented follow-up (HTML fallback on Railway).
+- Web tests / E2E screenshots after web redeploy.
+
+### Build health at this point
 
 ---
 
