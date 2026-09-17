@@ -149,7 +149,9 @@ No localhost references are introduced by AR/3D.
   profiles inject `EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1`.
 - `apps/mobile/app.json`: name "Sanro AI", slug `sanro-ai`, owner `sanroai`, package/bundle
   `com.sanro.ai`, version `1.0.0`, `newArchEnabled: true`.
-- Output: `releases/sanroai-latest.apk`.
+- Output: `releases/sanroai.apk`, published in place to the stable web path
+  `apps/web/public/downloads/sanroai.apk` → `https://sanroai.com/downloads/sanroai.apk` (via
+  `node scripts/publish-apk.mjs releases/sanroai.apk`). One APK only; it is overwritten on each build.
 
 Build result:
 
@@ -157,7 +159,7 @@ Build result:
 | --- | --- |
 | EAS build ID | `9b2fb441-8de2-4e54-a53e-e7bd3a8e21b8` |
 | Status | FINISHED |
-| Artifact | `releases/sanroai-latest.apk` (78,061,514 bytes) |
+| Artifact | `releases/sanroai.apk` → `/downloads/sanroai.apk` (78,061,514 bytes) |
 | Package | `com.sanro.ai` (versionCode 1, versionName 1.0.0) |
 | Label | Sanro AI |
 | minSdk / targetSdk | 24 / 34 |

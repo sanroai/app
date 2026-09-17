@@ -583,6 +583,12 @@ export class ArService {
 
   async institutionUsage(user: RequestUser, institutionId?: string) {
     const scope = this.adminScope(user, institutionId);
+    const activityScope =
+      user.role === 'SUPER_ADMIN'
+        ? institutionId
+          ? { institutionId }
+          : {}
+        : { institutionId: this.tenant.requireInstitution(user) };
     const [byStatus, byDifficulty, topConcepts, activityByType, total] = await Promise.all([
       this.prisma.arContent.groupBy({ by: ['status'], where: scope, _count: true }),
       this.prisma.arContent.groupBy({ by: ['difficulty'], where: scope, _count: true }),
@@ -595,7 +601,7 @@ export class ArService {
       }),
       this.prisma.arActivity.groupBy({
         by: ['type'],
-        where: scope.institutionId ? { institutionId: scope.institutionId } : {},
+        where: activityScope,
         _count: true,
       }),
       this.prisma.arContent.count({ where: scope }),
@@ -719,7 +725,8 @@ export class ArService {
     if (user.role === 'SUPER_ADMIN') {
       return requestedInstitutionId ? { institutionId: requestedInstitutionId } : {};
     }
-    return { institutionId: this.tenant.requireInstitution(user) };
+    const institutionId = this.tenant.requireInstitution(user);
+    return { OR: [{ institutionId: null }, { institutionId }] };
   }
 
   private async studentGrade(user: RequestUser): Promise<string | null> {
