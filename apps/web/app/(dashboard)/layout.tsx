@@ -23,6 +23,9 @@ import {
   Upload,
   Lightbulb,
   UserCircle2,
+  Layers,
+  Database,
+  Boxes,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -35,7 +38,6 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/cn';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: 'Super Admin',
@@ -73,6 +75,10 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
         { href: '/app/students', label: 'Students', icon: Users },
         { href: '/app/teachers', label: 'Teachers', icon: Users },
+        { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
+        { href: '/app/questions', label: 'Questions', icon: HelpCircle },
+        { href: '/app/content-processing', label: 'Content', icon: Database },
+        { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
         { href: '/app/settings', label: 'Settings', icon: Settings },
       ]
     : [];
@@ -118,8 +124,10 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const contentLinks = staff && !isSuperAdmin
     ? [
+        { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
         { href: '/app/papers/new', label: 'New Paper', icon: FileText },
         { href: '/app/questions', label: 'Questions', icon: HelpCircle },
+        { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
       ]
     : [];
 
@@ -316,7 +324,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-3">
-            <ThemeToggle />
             <NotificationBell />
 
             <DropdownMenu>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useChat } from '@/lib/ai-hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,15 +32,28 @@ export default function ChatPage() {
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatMutation = useChat();
+  const searchParams = useSearchParams();
+  const conceptId = searchParams.get('conceptId') ?? undefined;
+  const prefill = searchParams.get('q') ?? '';
+  const autoSentRef = useRef(false);
+
+  const [input, setInput] = useState(prefill);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (prefill && !autoSentRef.current) {
+      autoSentRef.current = true;
+      handleSend(prefill);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill]);
 
   function handleSend(text?: string) {
     const message = (text ?? input).trim();
@@ -55,7 +69,7 @@ export default function ChatPage() {
     setInput('');
 
     chatMutation.mutate(
-      { message },
+      { message, context: conceptId ? { conceptId } : undefined },
       {
         onSuccess: (data) => {
           setMessages((prev) => [

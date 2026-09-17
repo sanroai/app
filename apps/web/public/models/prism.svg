@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#f5f3ff"/>
+  <circle cx="256" cy="210" r="120" fill="#e64d8c" opacity="0.9"/>
+  <text x="256" y="420" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="600" fill="#4c1d95" text-anchor="middle">TriangularPrism</text>
+</svg>

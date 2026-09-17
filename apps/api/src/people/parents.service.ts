@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { Role } from '@sanro/types';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
@@ -53,6 +54,11 @@ export class ParentsService {
 
   async linkChild(user: RequestUser, parentId: string, studentId: string) {
     const institutionId = this.tenant.requireInstitution(user);
+    const isSelf = user.role === Role.PARENT;
+    if (isSelf) {
+      const ownParent = await this.prisma.parent.findFirst({ where: { userId: user.sub, id: parentId } });
+      if (!ownParent) throw new ForbiddenException('Parents can only link students to their own account');
+    }
     const parent = await this.prisma.parent.findFirst({ where: { id: parentId, institutionId } });
     if (!parent) throw new NotFoundException('Parent not found');
     const student = await this.prisma.student.findFirst({ where: { id: studentId, institutionId } });

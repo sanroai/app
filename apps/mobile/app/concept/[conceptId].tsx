@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useConceptDetail, useCompleteContent, useStartPractice } from '../../lib/hooks';
+import { useConceptAr } from '../../lib/ar-hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
+import { ArConceptPanel } from '../../components/ArConceptPanel';
 
 const TABS = [
   { id: 'learn', label: 'Learn', icon: 'play-circle' as const, color: '#3b82f6' },
@@ -16,6 +18,8 @@ const TABS = [
   { id: 'ask', label: 'Ask SANRO', icon: 'fitness' as const, color: Colors.primary },
 ];
 
+const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: 'cube' as const, color: '#4f46e5' };
+
 export default function ConceptDetailScreen() {
   const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
   const router = useRouter();
@@ -23,6 +27,9 @@ export default function ConceptDetailScreen() {
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
   const startPractice = useStartPractice();
+  const { data: arItems } = useConceptAr(conceptId);
+  const arContent = arItems ?? [];
+  const tabs = arContent.length > 0 ? [...TABS.slice(0, 5), AR_TAB, ...TABS.slice(5)] : TABS;
 
   if (isLoading) {
     return (
@@ -82,7 +89,7 @@ export default function ConceptDetailScreen() {
 
       {/* Tab bar */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar} contentContainerStyle={styles.tabBarContent}>
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <TouchableOpacity
             key={t.id}
             style={[styles.tab, tab === t.id && styles.tabActive]}
@@ -323,6 +330,10 @@ export default function ConceptDetailScreen() {
               <Text style={styles.primaryBtnText}>Open AI Chat</Text>
             </TouchableOpacity>
           </Card>
+        )}
+
+        {tab === 'ar' && arContent.length > 0 && (
+          <ArConceptPanel conceptId={conceptId} items={arContent} />
         )}
       </ScrollView>
     </View>

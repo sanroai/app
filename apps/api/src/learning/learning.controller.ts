@@ -92,6 +92,17 @@ export class LearningController {
     return this.service.submitPractice(user, practiceId);
   }
 
+  @Roles('STUDENT')
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Post('flashcards/:questionId/rate')
+  rateFlashcard(
+    @CurrentUser() user: RequestUser,
+    @Param('questionId') questionId: string,
+    @Body() body: { rating: string },
+  ) {
+    return this.service.rateFlashcard(user, questionId, body.rating);
+  }
+
   @Get('gamification/profile')
   gamificationProfile(@CurrentUser() user: RequestUser) {
     return this.service.getGamificationProfile(user);

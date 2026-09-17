@@ -42,3 +42,7 @@ Thumbs.db
 *.sqlite3
 .vercel
 .env*
+
+# deployment artifacts (local only)
+.railway/
+releases/

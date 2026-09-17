@@ -2,6 +2,7 @@
   "expo": {
     "name": "Sanro AI",
     "slug": "sanro-ai",
+    "owner": "sanroai",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "sanro-ai",
@@ -37,8 +38,11 @@
       ]
     ],
     "extra": {
+      "router": {
+        "origin": false
+      },
       "eas": {
-        "projectId": "64bed9b4-b74b-410a-99c8-035ba4c9de62"
+        "projectId": "eb098800-6294-4a77-ae94-fe34128a8364"
       }
     }
   }

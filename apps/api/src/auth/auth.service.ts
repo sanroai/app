@@ -314,7 +314,9 @@ export class AuthService {
     await this.prisma.passwordResetToken.create({
       data: { tokenHash, userId: user.id, expiresAt },
     });
-    this.logger.warn(`[dev] password reset token for ${email}: ${token}`);
+    if (this.config.NODE_ENV === 'development') {
+      this.logger.warn(`[dev] password reset token for ${email}: ${token}`);
+    }
     return { success: true };
   }
 

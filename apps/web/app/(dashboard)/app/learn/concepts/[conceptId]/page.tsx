@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useConceptDetail, useCompleteContent, useStartPractice } from '@/lib/learning-hooks';
+import { useConceptDetail, useCompleteContent, useStartPractice, useRateFlashcard } from '@/lib/learning-hooks';
+import { useConceptAr } from '@/lib/ar-hooks';
+import { ConceptArPanel } from '@/components/ar/ConceptArPanel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,6 +38,7 @@ import {
   X,
   ArrowRight,
   GraduationCap,
+  Boxes,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
@@ -57,12 +60,7 @@ const TABS = [
   { id: 'ask', label: 'Ask SANRO', icon: Brain, color: 'text-brand-600' },
 ];
 
-const MOCK_FLASHCARDS = [
-  { front: 'What is the law of conservation of mass?', back: 'Mass can neither be created nor destroyed in a chemical reaction. The total mass of reactants equals the total mass of products.' },
-  { front: 'What is a covalent bond?', back: 'A chemical bond formed by the sharing of electron pairs between atoms. Carbon typically forms 4 covalent bonds.' },
-  { front: 'State Ohm\'s Law', back: 'V = IR. The current through a conductor is directly proportional to the voltage across it, given constant temperature.' },
-  { front: 'What is the pH of a neutral solution?', back: 'pH = 7. Solutions with pH < 7 are acidic, pH > 7 are basic.' },
-];
+const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: Boxes, color: 'text-indigo-600' };
 
 export default function ConceptDetailPage() {
   const params = useParams();
@@ -78,6 +76,8 @@ export default function ConceptDetailPage() {
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
   const startPractice = useStartPractice();
+  const rateFlashcard = useRateFlashcard();
+  const { data: arItems } = useConceptAr(conceptId);
 
   if (isLoading) {
     return (
@@ -102,6 +102,8 @@ export default function ConceptDetailPage() {
   const mastery = concept.mastery;
   const masteryStyle = mastery?.level ? MASTERY_STYLE[mastery.level] : null;
   const contentItems = concept.content ?? [];
+  const arContent = arItems ?? [];
+  const tabs = arContent.length > 0 ? [...TABS.slice(0, 5), AR_TAB, ...TABS.slice(5)] : TABS;
   const questions = concept.practiceQuestions ?? [];
   const weakMastery =
     mastery?.level === 'WEAK' ||
@@ -190,7 +192,7 @@ export default function ConceptDetailPage() {
 
       {/* Tab Navigation */}
       <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
@@ -534,12 +536,17 @@ export default function ConceptDetailPage() {
                     className="relative min-h-[200px] rounded-2xl bg-white border-2 border-pink-200 p-6 cursor-pointer transition-all hover:shadow-lg"
                     onClick={() => setFlipped(!flipped)}
                   >
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-3 flex items-center gap-2">
+                      {concept.flashcardRatings?.[questions[flashcardIndex]?.id] && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          {concept.flashcardRatings[questions[flashcardIndex].id]}
+                        </Badge>
+                      )}
                       <Badge variant="secondary" className="text-[10px]">{flipped ? 'ANSWER' : 'QUESTION'}</Badge>
                     </div>
                     <p className="text-lg font-medium text-surface-900 mt-4">
                       {flipped
-                        ? ((q: any) => q.explanation ?? q.answer ?? 'Answer will appear here')(questions[flashcardIndex])
+                        ? (questions[flashcardIndex]?.explanation ?? questions[flashcardIndex]?.answer ?? 'Answer will appear here')
                         : questions[flashcardIndex]?.text ?? 'Question'
                       }
                     </p>
@@ -548,15 +555,17 @@ export default function ConceptDetailPage() {
                   {flipped && (
                     <div className="mt-4 flex gap-2">
                       {[
-                        { label: 'Again', icon: '😕', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
-                        { label: 'Hard', icon: '🙂', color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
-                        { label: 'Good', icon: '😊', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-                        { label: 'Easy', icon: '🔥', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
+                        { label: 'Again', rating: 'AGAIN', icon: '😕', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
+                        { label: 'Hard', rating: 'HARD', icon: '🙂', color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
+                        { label: 'Good', rating: 'GOOD', icon: '😊', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
+                        { label: 'Easy', rating: 'EASY', icon: '🔥', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
                       ].map((btn) => (
                         <button
                           key={btn.label}
                           className={cn('flex-1 rounded-xl px-3 py-2 text-sm font-medium transition-all', btn.color)}
                           onClick={() => {
+                            const current = questions[flashcardIndex];
+                            if (current) rateFlashcard.mutate({ questionId: current.id, rating: btn.rating });
                             setFlashcardIndex(Math.min(questions.length - 1, flashcardIndex + 1));
                             setFlipped(false);
                           }}
@@ -643,7 +652,7 @@ export default function ConceptDetailPage() {
                 </div>
               </div>
               <div className="space-y-3">
-                <Link href="/app/chat" className="block rounded-xl bg-white p-4 border border-surface-100 hover:shadow-md transition-all">
+                <Link href={`/app/chat?conceptId=${conceptId}`} className="block rounded-xl bg-white p-4 border border-surface-100 hover:shadow-md transition-all">
                   <div className="flex items-center gap-3">
                     <MessageSquare className="h-5 w-5 text-brand-600" />
                     <div>
@@ -658,7 +667,7 @@ export default function ConceptDetailPage() {
                   `Give me practice problems on ${concept.name}`,
                   `What are the key formulas for ${concept.name}?`,
                 ].map((q, i) => (
-                  <Link key={i} href={`/app/chat?q=${encodeURIComponent(q)}`} className="block rounded-xl bg-white/60 p-3 border border-surface-100 hover:bg-white transition-all">
+                  <Link key={i} href={`/app/chat?conceptId=${conceptId}&q=${encodeURIComponent(q)}`} className="block rounded-xl bg-white/60 p-3 border border-surface-100 hover:bg-white transition-all">
                     <p className="text-sm text-surface-700">{q}</p>
                   </Link>
                 ))}
@@ -666,6 +675,10 @@ export default function ConceptDetailPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {activeTab === 'ar' && arContent.length > 0 && (
+        <ConceptArPanel conceptId={conceptId} items={arContent} />
       )}
     </div>
   );

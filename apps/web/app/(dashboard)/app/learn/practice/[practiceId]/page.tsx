@@ -118,8 +118,8 @@ export default function PracticePage() {
   }, [token, practiceId, submitting]);
 
   const goToConcept = useCallback(() => {
-    if (practiceData?.questions[0]) {
-      router.push('/app/learn');
+    if (practiceData?.conceptId) {
+      router.push(`/app/learn/concepts/${practiceData.conceptId}`);
     } else {
       router.push('/app/learn');
     }

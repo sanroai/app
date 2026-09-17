@@ -43,6 +43,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       body.code = 'RATE_LIMITED';
       body.message = 'Too many requests. Please try again later.';
       body.statusCode = status;
+    } else if (exception instanceof ServiceUnavailableException) {
+      status = HttpStatus.SERVICE_UNAVAILABLE;
+      body.code = 'SERVICE_UNAVAILABLE';
+      body.message = 'AI generation is temporarily unavailable.';
+      body.statusCode = status;
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res = exception.getResponse();
@@ -56,11 +61,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         body.details = obj.details ?? (Array.isArray(obj.message) ? obj.message : undefined);
         if (obj.error) body.error = String(obj.error);
       }
-      body.statusCode = status;
-    } else if (exception instanceof ServiceUnavailableException) {
-      status = HttpStatus.SERVICE_UNAVAILABLE;
-      body.code = 'SERVICE_UNAVAILABLE';
-      body.message = 'AI generation is temporarily unavailable.';
       body.statusCode = status;
     } else {
       const err = exception as Error;

@@ -129,6 +129,7 @@ export class ParentsController {
     return this.service.createParent(user, body as Parameters<typeof this.service.createParent>[1]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.PARENT)
   @Post(':id/link-student')
   linkStudent(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { studentId: string }) {
     return this.service.linkChild(user, id, body.studentId);

@@ -1,7 +1,7 @@
 # SANRO Progress Snapshot
 
-> **Date:** September 16, 2026
-> **Status:** Live — Web + API deployed, Mobile APK available
+> **Date:** September 17, 2026
+> **Status:** Live — Web + API deployed. QA hardening pass applied (see "QA Hardening Pass" below). Mobile APK rebuild blocked on EAS/Play credentials.
 
 ---
 
@@ -49,14 +49,14 @@
 | Content import (PDF, video, YouTube, notes) | `apps/api/src/imports/content-import.service.ts` |
 | Content search + grade filtering | `apps/api/src/curriculum/content.service.ts` |
 | Generate questions from knowledge base | `apps/api/src/questions/questions.service.ts` |
-| Content processing dashboard | `apps/web/app/(dashboard)/app/content-processing/page.tsx` |
+| Content processing dashboard (real API: stats, list, chunks, jobs, create/process/delete) | `apps/web/app/(dashboard)/app/content-processing/page.tsx` |
 | Content lifecycle transitions (DRAFT→REVIEW→APPROVED→ARCHIVED) | `apps/api/src/curriculum/content.service.ts` |
 | Completeness matrix (curriculum coverage) | `apps/api/src/curriculum/content.service.ts` |
 | Content quality report | `apps/api/src/curriculum/content.service.ts` |
 | PDF book ingestion (text extraction + chunking) | `apps/api/src/knowledge-base/content-processor.service.ts` |
 | YouTube video inline embedding | `apps/web/app/(dashboard)/app/learn/concepts/[conceptId]/page.tsx` |
-| Mobile content processing | `apps/mobile/app/(tabs)/content-processing.tsx` |
 | Flashcard generation from knowledge base | `apps/api/src/knowledge-base/content-generator.service.ts` |
+| Flashcard answer/explanation in concept payload + persisted confidence rating | `apps/api/src/learning/learning.service.ts` + `FlashcardRating` model |
 | Notes generation from knowledge base | `apps/api/src/knowledge-base/content-generator.service.ts` |
 | Content versioning (version history, restore) | `apps/api/src/curriculum/content.service.ts` + `ContentVersion` model |
 | Parent content restriction (API guard) | `apps/api/src/common/guards/parent-content.guard.ts` |
@@ -68,7 +68,7 @@
 
 ### Counts
 
-- **56** Prisma models (KnowledgeBase, KnowledgeChunk, ProcessingJob, ContentVersion), **25** enums, ~**130** API endpoints
+- **57** Prisma models (KnowledgeBase, KnowledgeChunk, ProcessingJob, ContentVersion, FlashcardRating), **25** enums, ~**132** API endpoints
 - **18** passing tests (3 spec files)
 - **Web:** 48 pages, 17 components, 8 hook files
 - **Mobile:** 22 screens, 8 components, 7 lib files
@@ -82,13 +82,13 @@
 | Item | Notes |
 |---|---|
 | S3/R2 storage | Config fields exist (`STORAGE_TYPE`, `STORAGE_KEY`, etc.) but no S3 client code |
-| `UploadedFile` model | Schema exists but no controller/service |
-| Content update/delete | Only create exists |
-| Content approval workflow | Implicit on create, no explicit transitions |
+| Content update/delete | Only create exists for content items |
+| Content approval workflow | Lifecycle transitions exist; no review-assignment workflow |
 | Bulk import for questions/content | Only students/teachers supported |
 | Content versioning | `ContentVersion` model + endpoints, but no version diff UI |
 | Search | Basic content search + grade filtering works, no cross-content search |
 | Background job queue | In-memory queue with retry, no persistent queue (Redis/Bull) |
+| Dashboard search bar | Decorative only — no search wiring |
 
 ---
 
@@ -96,13 +96,33 @@
 
 | Issue | Details |
 |---|---|
-| PDF download in production | Playwright not available on Railway; HTML fallback works |
-| Print CSS | Reduced header spacing — questions now start on page 1 when space exists |
-| Mobile API defaults to localhost | `EXPO_PUBLIC_API_URL` not set in production |
-| Super Admin nav links | `/app/institutions`, `/app/curriculum`, `/app/analytics` pages don't exist |
+| PDF download in production | Playwright not available on Railway; HTML fallback works. Not re-verified in this pass. |
+| Mobile API defaults to localhost | `EXPO_PUBLIC_API_URL` must be set to `https://api.sanroai.com/api/v1` in production builds |
 | Search bar in dashboard | Purely decorative, no functionality |
 | `ChatController` duplicates `AiController` | `POST /chat/ask-sanro` = `POST /ai/chat` |
 | Duplicate UI component systems | `components/ui.tsx` (legacy) and `components/ui/` (shadcn) |
+
+---
+
+## QA Hardening Pass (Sept 17, 2026)
+
+Fixes applied after a deep web/API/mobile verification sweep:
+
+| Area | Fix |
+|---|---|
+| Web dashboard | Corrected field mappings for XP, streak, mastery, pending assessments, recent activity; role-aware staff stats & quick actions |
+| API RBAC | Added `@Roles` to `papers/:id/status`, `parents/:id/link-student` (+ parent self-link check) |
+| API security | Dev-only reset-token logging gated by `NODE_ENV`; `.env.example` `AUTH_SECRET` now ≥32 chars |
+| API errors | Fixed dead `ServiceUnavailableException` branch in `AllExceptionsFilter` |
+| Uploads | Import cap aligned to 10MB (`IMPORT_LIMITS.MAX_FILE_BYTES`) |
+| Mobile auth | Register screen now calls `/auth/register-institution` (was 404 `/auth/register`) |
+| Mobile tabs | Removed orphan mock `content-processing` tab (auto-registered 6th tab) |
+| Flashcards | Concept payload now returns `answer`/`explanation`; removed dead `MOCK_FLASHCARDS`; confidence rating persisted via new `FlashcardRating` model + `POST /learning/flashcards/:questionId/rate` |
+| Ask SANRO | Web chat reads `?q` (auto-send) and `?conceptId` context; concept page passes both |
+| Curriculum | Added Curriculum / Content nav entries for super admin; fixed dead `goToConcept` branch (now routes to concept) |
+| Content processing | Web page wired to real knowledge-base API (stats, list, chunks, jobs, create/process/delete) |
+| Password reset | Added web `/reset-password` and mobile `reset-password` screens |
+| Dark mode | Removed toggle, hook, root inline script, and `next-themes` dependency (light-only) |
 
 ---
 
@@ -117,10 +137,10 @@
 - Analytics (PostHog or similar)
 
 ### UI/UX
-- Dark mode
 - Mobile PDF handling
 - Mobile inline video playback
-- Mobile profile editing (done but no forgot-password)
+
+> Dark mode is intentionally not supported — the app is light-only (toggle and theme script removed).
 
 ---
 
@@ -147,5 +167,5 @@
 5. **Hardcoded parent password** (`sanro123`)
 6. **Import cross-tenant teacher duplicate check**
 7. **No rate limiting per-endpoint for AI**
-8. **Dead code:** `PdfService.saveHtmlReport`, `MOCK_FLASHCARDS` in concept page
+8. **Dead code:** `PdfService.saveHtmlReport`
 9. **Legacy + shadcn UI component duplication**

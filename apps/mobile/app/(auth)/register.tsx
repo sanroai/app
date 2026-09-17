@@ -17,27 +17,33 @@ interface AuthPayload {
 export default function RegisterScreen() {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
-  const [name, setName] = useState('');
+  const [institutionName, setInstitutionName] = useState('');
+  const [adminName, setAdminName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [institutionCode, setInstitutionCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
-      Alert.alert('Missing details', 'Name, email and password are required.');
+    if (!institutionName || !adminName || !email || !password) {
+      Alert.alert('Missing details', 'Institution name, admin name, email and password are required.');
+      return;
+    }
+    if (password.length < 8) {
+      Alert.alert('Weak password', 'Password must be at least 8 characters.');
       return;
     }
     setLoading(true);
     try {
-      const data = await api<AuthPayload>('/auth/register', {
+      const data = await api<AuthPayload>('/auth/register-institution', {
         method: 'POST',
         body: {
-          name,
-          email: email.trim().toLowerCase(),
-          password,
-          role: 'STUDENT',
-          institutionCode: institutionCode.trim() || undefined,
+          institutionName: institutionName.trim(),
+          institutionType: 'SCHOOL',
+          adminName: adminName.trim(),
+          adminEmail: email.trim().toLowerCase(),
+          adminPhone: phone.trim() || undefined,
+          adminPassword: password,
         },
       });
       setAuth(data);
@@ -59,14 +65,20 @@ export default function RegisterScreen() {
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Create your account</Text>
-        <Text style={styles.subtitle}>Join Sanro AI and start your academic journey.</Text>
+        <Text style={styles.title}>Register your institution</Text>
+        <Text style={styles.subtitle}>Create an account and start transforming education today.</Text>
 
         <View style={styles.card}>
-          <Text style={styles.label}>Full name</Text>
+          <Text style={styles.label}>Institution name</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="business-outline" size={18} color={Colors.textSecondary} />
+            <TextInput style={styles.input} placeholder="Sunrise Public School" value={institutionName} onChangeText={setInstitutionName} editable={!loading} />
+          </View>
+
+          <Text style={styles.label}>Your name</Text>
           <View style={styles.inputWrap}>
             <Ionicons name="person-outline" size={18} color={Colors.textSecondary} />
-            <TextInput style={styles.input} placeholder="Your name" value={name} onChangeText={setName} editable={!loading} />
+            <TextInput style={styles.input} placeholder="Asha Kulkarni" value={adminName} onChangeText={setAdminName} editable={!loading} />
           </View>
 
           <Text style={styles.label}>Email</Text>
@@ -75,20 +87,20 @@ export default function RegisterScreen() {
             <TextInput style={styles.input} placeholder="you@example.com" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" editable={!loading} />
           </View>
 
+          <Text style={styles.label}>Phone (optional)</Text>
+          <View style={styles.inputWrap}>
+            <Ionicons name="call-outline" size={18} color={Colors.textSecondary} />
+            <TextInput style={styles.input} placeholder="+91 98765 43210" value={phone} onChangeText={setPhone} keyboardType="phone-pad" editable={!loading} />
+          </View>
+
           <Text style={styles.label}>Password</Text>
           <View style={styles.inputWrap}>
             <Ionicons name="lock-closed-outline" size={18} color={Colors.textSecondary} />
             <TextInput style={styles.input} placeholder="Min 8 characters" value={password} onChangeText={setPassword} secureTextEntry editable={!loading} />
           </View>
 
-          <Text style={styles.label}>School / institute code (optional)</Text>
-          <View style={styles.inputWrap}>
-            <Ionicons name="business-outline" size={18} color={Colors.textSecondary} />
-            <TextInput style={styles.input} placeholder="e.g. SANRO-001" value={institutionCode} onChangeText={setInstitutionCode} autoCapitalize="characters" editable={!loading} />
-          </View>
-
           <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleRegister} disabled={loading}>
-            <Text style={styles.buttonText}>{loading ? 'Creating…' : 'Create account'}</Text>
+            <Text style={styles.buttonText}>{loading ? 'Creating…' : 'Create institution'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

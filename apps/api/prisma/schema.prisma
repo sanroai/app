@@ -69,6 +69,7 @@ enum ContentType {
   PDF
   QUIZ
   MODEL_3D
+  AR
   GAME
   PRACTICE_SET
   ARTICLE
@@ -546,6 +547,7 @@ model Student {
   gamification GamificationProfile?
   achievements StudentAchievement[]
   assessmentAssignments AssessmentAssignment[]
+  flashcardRatings FlashcardRating[]
 
   @@unique([institutionId, email])
   @@index([institutionId])
@@ -683,6 +685,7 @@ model Concept {
   remediationPlans RemediationPlan[]
   content    ContentItem[]
   practiceSets PracticeSet[]
+  flashcardRatings FlashcardRating[]
 
   @@unique([topicId, name])
   @@index([topicId])
@@ -745,6 +748,110 @@ model ContentProgress {
 }
 
 // ============================================================================
+// AR / 3D LEARNING
+// ============================================================================
+
+enum ArModelFormat {
+  GLB
+  GLTF
+  USDZ
+}
+
+enum ArValidationStatus {
+  PENDING
+  VALID
+  WARNINGS
+  INVALID
+  INCOMPLETE
+}
+
+enum ArActivityType {
+  AR_OPENED
+  AR_STARTED
+  AR_MODEL_INTERACTION
+  AR_QUICK_CHECK_STARTED
+  AR_QUICK_CHECK_COMPLETED
+  AR_COMPLETED
+}
+
+model ArContent {
+  id                String                 @id @default(uuid()) @db.Uuid
+  title             String
+  description       String?
+  learningObjective String?
+  instructions      String?
+  status            ContentLifecycleStatus @default(DRAFT)
+  visibility        Visibility             @default(INSTITUTION_ONLY)
+  difficulty        Difficulty             @default(MEDIUM)
+
+  modelKey          String?
+  modelUrl          String?
+  modelFormat       ArModelFormat?
+  fileSizeBytes     Int?
+  previewKey        String?
+  previewUrl        String?
+  thumbnailUrl      String?
+  hotspots          Json?
+
+  polygonCount      Int?
+  textureMaxDim     Int?
+  validationStatus  ArValidationStatus      @default(PENDING)
+  validationReport  Json?
+
+  source            String?
+  license           String?
+  attribution       String?
+
+  version           Int                    @default(1)
+
+  institutionId     String?                @db.Uuid
+  boardId           String?                @db.Uuid
+  subjectId         String?                @db.Uuid
+  chapterId         String?                @db.Uuid
+  topicId           String?                @db.Uuid
+  conceptId         String?                @db.Uuid
+  grade             String?
+
+  createdById       String?                @db.Uuid
+  reviewedById      String?                @db.Uuid
+  publishedAt       DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([conceptId, status])
+  @@index([institutionId, status])
+  @@index([status])
+}
+
+model ArContentVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  arContentId String   @db.Uuid
+  version     Int
+  snapshot    Json
+  modelKey    String?
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  @@index([arContentId])
+}
+
+model ArActivity {
+  id            String         @id @default(uuid()) @db.Uuid
+  type          ArActivityType
+  arContentId   String         @db.Uuid
+  conceptId     String?        @db.Uuid
+  studentId     String?        @db.Uuid
+  institutionId String?        @db.Uuid
+  sessionId     String?
+  metadata      Json?
+  createdAt     DateTime       @default(now())
+
+  @@index([arContentId, type])
+  @@index([studentId])
+  @@index([institutionId])
+}
+
+// ============================================================================
 // QUESTION BANK
 // ============================================================================
 
@@ -784,6 +891,7 @@ model Question {
   paperQuestions QuestionPaperQuestion[]
   assessmentQuestions AssessmentQuestion[]
   practiceAnswers PracticeAnswer[]
+  flashcardRatings FlashcardRating[]
 
   @@index([institutionId])
   @@index([boardId, grade, subjectId, chapterId])
@@ -1101,6 +1209,24 @@ model PracticeAnswer {
 
   @@unique([practiceSetId, questionId])
   @@index([practiceSetId])
+}
+
+model FlashcardRating {
+  id         String   @id @default(uuid()) @db.Uuid
+  studentId  String   @db.Uuid
+  questionId String   @db.Uuid
+  conceptId  String?  @db.Uuid
+  rating     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  student  Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  question Question  @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  concept  Concept?  @relation(fields: [conceptId], references: [id])
+
+  @@unique([studentId, questionId])
+  @@index([studentId])
+  @@index([conceptId])
 }
 
 // ============================================================================

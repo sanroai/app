@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { seedArContent } from './seed-ar';
 
 const prisma = new PrismaClient();
 
@@ -2167,7 +2168,8 @@ async function main() {
   await seedUsers(institution.id, academicYear.id);
   await seedQuestions();
   await seedAchievements();
-  console.log('Seed complete: 1 board (CBSE), 10 grades, subjects, chapters, topics, concepts, demo users, question bank, content & achievements.');
+  await seedArContent(prisma);
+  console.log('Seed complete: 1 board (CBSE), 10 grades, subjects, chapters, topics, concepts, demo users, question bank, content, AR/3D demo set & achievements.');
 }
 
 main()

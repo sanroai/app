@@ -88,6 +88,7 @@ export class PapersController {
     }
   }
 
+@Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Patch(':id/status')
   setStatus(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { status: PaperStatus }) {
     return this.service.setStatus(user, id, body.status, 'STUDENT');

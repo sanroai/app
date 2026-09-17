@@ -160,6 +160,26 @@ export class StorageService {
     }
   }
 
+  async exists(key: string): Promise<boolean> {
+    if (this.config.STORAGE_TYPE === 'local' || !this.r2Client) {
+      const parts = key.split('/');
+      const path = join(process.cwd(), 'storage', parts[0], parts.slice(1).join('/'));
+      return existsSync(path);
+    }
+
+    try {
+      const { HeadObjectCommand } = require('@aws-sdk/client-s3');
+      const command = new HeadObjectCommand({
+        Bucket: this.config.STORAGE_BUCKET,
+        Key: key,
+      });
+      await this.r2Client.s3.send(command);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   getStorageType(): string {
     return this.config.STORAGE_TYPE;
   }

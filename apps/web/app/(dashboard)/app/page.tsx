@@ -865,8 +865,10 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
                     <FileText className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="font-medium text-surface-900">{(pendingAssignments[0]?.title as string) ?? 'Assessment'}</p>
-                    <p className="text-xs text-blue-600">Upcoming · {(pendingAssignments[0]?.questionCount as number) ?? 0} questions</p>
+                    <p className="font-medium text-surface-900">{((pendingAssignments[0] as Record<string, unknown>)?.assessment as Record<string, unknown>)?.title as string ?? 'Assessment'}</p>
+                    <p className="text-xs text-blue-600">
+                      Upcoming · {(((pendingAssignments[0] as Record<string, unknown>)?.assessment as Record<string, unknown>)?.subject as Record<string, unknown>)?.name as string ?? 'Assessment'}
+                    </p>
                   </div>
                 </div>
                 <Link href="/app/assessments">
@@ -900,7 +902,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-violet-100 font-medium">Total XP</p>
-                <p className="text-2xl font-bold text-white mt-1">{(gamification?.totalXp as number) ?? 0}</p>
+                <p className="text-2xl font-bold text-white mt-1">{(gamification?.xp as number) ?? 0}</p>
               </div>
               <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
                 <Zap className="h-5 w-5 text-white" />
@@ -908,7 +910,9 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-violet-100">
               <TrendingUp className="h-3.5 w-3.5" />
-              +{(gamification?.todayXp as number) ?? 0} today
+              {gamification?.lastActiveAt ? (
+                <>Last active {new Date(gamification.lastActiveAt as string).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</>
+              ) : ('Keep learning every day')}
             </div>
           </CardContent>
         </Card>
@@ -918,7 +922,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-amber-100 font-medium">Streak</p>
-                <p className="text-2xl font-bold text-white mt-1">{(gamification?.currentStreak as number) ?? 0} days</p>
+                <p className="text-2xl font-bold text-white mt-1">{(gamification?.streakDays as number) ?? 0} days</p>
               </div>
               <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
                 <Flame className="h-5 w-5 text-white" />
@@ -926,7 +930,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-amber-100">
               <Star className="h-3.5 w-3.5" />
-              Best: {((gamification as Record<string, unknown>)?.bestStreak as number) ?? 0}
+              Keep your streak alive
             </div>
           </CardContent>
         </Card>
@@ -936,14 +940,14 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-emerald-100 font-medium">Mastery</p>
-                <p className="text-2xl font-bold text-white mt-1">{((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0}%</p>
+                <p className="text-2xl font-bold text-white mt-1">{((mastery as Record<string, unknown>)?.avgScore as number) ?? 0}%</p>
               </div>
               <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
                 <Target className="h-5 w-5 text-white" />
               </div>
             </div>
             <div className="mt-3">
-              <Progress value={((mastery as Record<string, unknown>)?.averageMastery as number) ?? 0} className="h-1.5 bg-white/20" />
+              <Progress value={((mastery as Record<string, unknown>)?.avgScore as number) ?? 0} className="h-1.5 bg-white/20" />
             </div>
           </CardContent>
         </Card>
@@ -1015,10 +1019,13 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
                     </div>
                     <div>
                       <p className="font-medium text-surface-900">
-                        {(item.title as string) ?? 'Assessment'}
+                        {((item.assessment as Record<string, unknown>)?.title as string) ?? 'Assessment'}
                       </p>
                       <p className="text-sm text-surface-500">
-                        {`${(item.questionCount as number) ?? 0} questions`}
+                        {(((item.assessment as Record<string, unknown>)?.subject as Record<string, unknown>)?.name as string) ?? 'General'}
+                        {item.assessment && (item.assessment as Record<string, unknown>).dueAt
+                          ? ` · due ${new Date((item.assessment as Record<string, unknown>).dueAt as string).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`
+                          : ''}
                       </p>
                     </div>
                   </div>
@@ -1042,24 +1049,37 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentAttempts.slice(0, 5).map((item, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-xl bg-surface-50 p-3">
-                  <div className={cn(
-                    'h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold',
-                    ((item.score as number) ?? 0) >= 80
-                      ? 'bg-green-100 text-green-700'
-                      : ((item.score as number) ?? 0) >= 50
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-red-100 text-red-700'
-                  )}>
-                    {(item.score as number) ?? 0}%
+              {recentAttempts.slice(0, 5).map((item, i) => {
+                const scorePct = (() => {
+                  const score = (item.score as number) ?? 0;
+                  const max = (item.maxScore as number) ?? null;
+                  return max ? Math.round((score / max) * 100) : score;
+                })();
+                const assessment = item.assessment as Record<string, unknown> | undefined;
+                const subject = assessment?.subject as Record<string, unknown> | undefined;
+                return (
+                  <div key={i} className="flex items-center gap-3 rounded-xl bg-surface-50 p-3">
+                    <div className={cn(
+                      'h-8 w-8 rounded-lg flex items-center justify-center text-xs font-bold',
+                      scorePct >= 80
+                        ? 'bg-green-100 text-green-700'
+                        : scorePct >= 50
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-red-100 text-red-700'
+                    )}>
+                      {scorePct}%
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-surface-900 truncate">{(assessment?.title as string) ?? 'Assessment'}</p>
+                      <p className="text-xs text-surface-400">
+                        {item.submittedAt
+                          ? `${new Date(item.submittedAt as string).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}${subject?.name ? ` · ${subject.name as string}` : ''}`
+                          : (subject?.name as string) ?? ''}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-surface-900 truncate">{(item.title as string) ?? 'Assessment'}</p>
-                    <p className="text-xs text-surface-400">{(item.date as string) ?? ''}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
@@ -1072,167 +1092,128 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
 
 function StaffStats({ data, role }: { data: Record<string, unknown> | null; role: string }) {
   const platform = data?.platform as Record<string, unknown> | undefined;
+  const usage = data?.usage as Record<string, unknown> | undefined;
+  const isSuperAdmin = role === 'SUPER_ADMIN';
+
+  const stats = isSuperAdmin
+    ? [
+        { label: 'Active Institutions', value: (platform?.institutions as number) ?? 0, icon: Users, gradient: 'from-slate-500 to-indigo-600' },
+        { label: 'Active Students', value: (platform?.activeStudents as number) ?? 0, icon: GraduationCap, gradient: 'from-brand-500 to-purple-600' },
+        { label: 'Teachers', value: (platform?.activeTeachers as number) ?? 0, icon: Users, gradient: 'from-blue-500 to-indigo-500' },
+        { label: 'Assessments', value: (platform?.assessments as number) ?? 0, icon: ListChecks, gradient: 'from-amber-500 to-orange-500' },
+      ]
+    : [
+        { label: 'Active Students', value: (usage?.activeStudents as number) ?? 0, icon: GraduationCap, gradient: 'from-brand-500 to-purple-600' },
+        { label: 'Teachers', value: (usage?.activeTeachers as number) ?? 0, icon: Users, gradient: 'from-blue-500 to-indigo-500' },
+        { label: 'Groups', value: (usage?.groups as number) ?? 0, icon: Users, gradient: 'from-emerald-500 to-teal-500' },
+        { label: 'Assessments', value: (usage?.assessments as number) ?? 0, icon: ListChecks, gradient: 'from-amber-500 to-orange-500' },
+      ];
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Card className="bg-gradient-to-br from-brand-500 to-purple-600 text-white border-0">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/80 text-sm font-medium">Total Students</p>
-              <p className="text-3xl font-bold mt-1">{(platform?.totalStudents as number) ?? 0}</p>
+      {stats.map((stat) => (
+        <Card key={stat.label} className={`bg-gradient-to-br ${stat.gradient} text-white border-0`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/80 text-sm font-medium">{stat.label}</p>
+                <p className="text-3xl font-bold mt-1">{stat.value}</p>
+              </div>
+              <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                <stat.icon className="h-6 w-6" />
+              </div>
             </div>
-            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
-              <Users className="h-6 w-6" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-gradient-to-br from-green-500 to-emerald-500 text-white border-0">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/80 text-sm font-medium">Active Assessments</p>
-              <p className="text-3xl font-bold mt-1">{(platform?.activeAssessments as number) ?? 0}</p>
-            </div>
-            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
-              <ListChecks className="h-6 w-6" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-gradient-to-br from-amber-500 to-orange-500 text-white border-0">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/80 text-sm font-medium">Avg. Score</p>
-              <p className="text-3xl font-bold mt-1">{(platform?.avgScore as number) ?? 0}%</p>
-            </div>
-            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
-              <BarChart3 className="h-6 w-6" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-gradient-to-br from-pink-500 to-rose-500 text-white border-0">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/80 text-sm font-medium">Remediation Plans</p>
-              <p className="text-3xl font-bold mt-1">{(platform?.activeRemediationPlans as number) ?? 0}</p>
-            </div>
-            <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
-              <Lightbulb className="h-6 w-6" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }
 
 function StaffContent({ data, role }: { data: Record<string, unknown> | null; role: string }) {
-  const groups = (data?.groups as Record<string, unknown>[]) ?? [];
-  const subjects = (data?.subjects as Record<string, unknown>[]) ?? [];
+  const isSuperAdmin = role === 'SUPER_ADMIN';
+  const platform = data?.platform as Record<string, unknown> | undefined;
+  const institutionsByType = (platform?.institutionsByType as { type: string; count: number }[]) ?? [];
+  const recentImports = (data?.recentImports as Record<string, unknown>[]) ?? [];
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Your Groups</CardTitle>
-              <CardDescription>Classes you're managing</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm">
-              View all <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {groups.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="h-12 w-12 text-surface-300 mx-auto mb-3" />
-              <p className="text-surface-600">No groups yet. Create your first group!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {groups.slice(0, 4).map((item, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-brand-600" />
+      {isSuperAdmin ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Institutions by Type</CardTitle>
+            <CardDescription>Distribution across the platform</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {institutionsByType.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-surface-300 mx-auto mb-3" />
+                <p className="text-surface-600">No active institutions yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {institutionsByType.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-xl bg-surface-50 p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-brand-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-surface-900">{item.type}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-surface-900">
-                        {(item.name as string) ?? 'Group'}
-                      </p>
-                      <p className="text-sm text-surface-500">
-                        {`${(item.studentCount as number) ?? 0} students`}
-                      </p>
-                    </div>
+                    <Badge variant="secondary">{item.count}</Badge>
                   </div>
-                  <Link href={`/app/students?groupId=${item.id as string}`}>
-                    <Button size="sm" variant="outline">
-                      Manage
-                    </Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Subjects</CardTitle>
-              <CardDescription>Active subjects this term</CardDescription>
-            </div>
-            <Link href="/app/learn">
-              <Button variant="ghost" size="sm">
-                View all <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {subjects.length === 0 ? (
-            <div className="text-center py-8">
-              <BookOpen className="h-12 w-12 text-surface-300 mx-auto mb-3" />
-              <p className="text-surface-600">No subjects configured yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {subjects.slice(0, 4).map((item, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl bg-surface-50 p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-purple-600" />
+                ))}
+                <Link href="/app/institutions">
+                  <Button variant="ghost" size="sm">
+                    View all institutions <ArrowRight className="ml-1 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Imports</CardTitle>
+            <CardDescription>Recently uploaded rosters</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentImports.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-surface-300 mx-auto mb-3" />
+                <p className="text-surface-600">No imports yet. Upload a roster to get started.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentImports.slice(0, 5).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between rounded-xl bg-surface-50 p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                        <FileText className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-surface-900 truncate">{(item.originalName as string) ?? 'Import'}</p>
+                        <p className="text-sm text-surface-500">
+                          {(item.status as string) ?? ''}
+                          {typeof item.totalRows === 'number' ? ` · ${item.totalRows} rows` : ''}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-surface-900">
-                        {(item.name as string) ?? 'Subject'}
-                      </p>
-                      <p className="text-sm text-surface-500">
-                        {`${(item.chapterCount as number) ?? 0} chapters`}
-                      </p>
-                    </div>
+                    <Link href="/app/import">
+                      <Button size="sm" variant="outline">
+                        View
+                      </Button>
+                    </Link>
                   </div>
-                  <Badge variant="secondary">
-                    {(item.grade as string) ?? ''}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }
@@ -1242,6 +1223,8 @@ function StaffContent({ data, role }: { data: Record<string, unknown> | null; ro
 function QuickActions({ role }: { role: string }) {
   const isStudent = role === 'STUDENT';
   const isTeacher = role === 'TEACHER';
+  const isParent = role === 'PARENT';
+  const isSuperAdmin = role === 'SUPER_ADMIN';
 
   const actions = isStudent
     ? [
@@ -1256,11 +1239,22 @@ function QuickActions({ role }: { role: string }) {
           { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/gamification' },
           { label: 'Grade Attempts', icon: CheckCircle2, color: 'bg-amber-100 text-amber-600', href: '/app/assessments' },
         ]
-      : [
-          { label: 'Create Paper', icon: FileText, color: 'bg-brand-100 text-brand-600', href: '/app/papers/new' },
-          { label: 'New Assessment', icon: ListChecks, color: 'bg-green-100 text-green-600', href: '/app/assessments' },
-          { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/gamification' },
-        ];
+      : isParent
+        ? [
+            { label: 'View Children', icon: Users, color: 'bg-teal-100 text-teal-600', href: '/app/children' },
+            { label: 'Progress Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/reports' },
+          ]
+        : isSuperAdmin
+          ? [
+              { label: 'Institutions', icon: Users, color: 'bg-slate-100 text-slate-700', href: '/app/institutions' },
+              { label: 'Curriculum', icon: BookOpen, color: 'bg-brand-100 text-brand-600', href: '/app/curriculum' },
+              { label: 'Questions', icon: ListChecks, color: 'bg-purple-100 text-purple-600', href: '/app/questions' },
+            ]
+          : [
+              { label: 'Create Paper', icon: FileText, color: 'bg-brand-100 text-brand-600', href: '/app/papers/new' },
+              { label: 'New Assessment', icon: ListChecks, color: 'bg-green-100 text-green-600', href: '/app/assessments' },
+              { label: 'View Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/gamification' },
+            ];
 
   return (
     <Card>
@@ -1306,6 +1300,9 @@ function RecentActivity({ data }: { data: Record<string, unknown> | null }) {
             {items.slice(0, 3).map((obj, i) => {
               const assessment = obj?.assessment as Record<string, unknown> | undefined;
               const student = obj?.student as Record<string, unknown> | undefined;
+              const raw = (obj?.score as number) ?? 0;
+              const max = (obj?.maxScore as number) ?? null;
+              const scorePct = max ? Math.round((raw / max) * 100) : raw;
               return (
                 <div key={i} className="flex items-start gap-3">
                   <div className="h-2 w-2 rounded-full bg-brand-500 mt-2" />
@@ -1314,7 +1311,7 @@ function RecentActivity({ data }: { data: Record<string, unknown> | null }) {
                       {(obj?.title as string) ?? (assessment?.title as string) ?? 'Assessment'}
                     </p>
                     <p className="text-xs text-surface-500">
-                      Score: {(obj?.score as number) ?? 0}%
+                      Score: {scorePct}%
                       {student?.name ? ` · ${student.name as string}` : ''}
                     </p>
                   </div>

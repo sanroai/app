@@ -98,7 +98,16 @@ export interface ConceptDetail {
   chapter: { id: string; name: string; grade: string };
   mastery: { level: string; score: number; attempts: number } | null;
   content: ContentItem[];
-  practiceQuestions: Array<{ id: string; text: string; type: string; marks: number }>;
+  practiceQuestions: Array<{
+    id: string;
+    text: string;
+    type: string;
+    marks: number;
+    answer?: string;
+    explanation?: string;
+    options?: Array<{ id: string; text: string; order: number; isCorrect?: boolean }>;
+  }>;
+  flashcardRatings?: Record<string, string>;
 }
 
 export interface LearningProgress {
@@ -168,6 +177,22 @@ export function useCompleteContent() {
   });
 }
 
+export function useRateFlashcard() {
+  const queryClient = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (data: { questionId: string; rating: string }) =>
+      api(`/learning/flashcards/${data.questionId}/rate`, {
+        method: 'POST',
+        token,
+        body: { rating: data.rating },
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['learning', 'concept'] });
+    },
+  });
+}
+
 export function useLearningProgress() {
   const token = useToken();
   return useQuery<LearningProgress>({
@@ -214,6 +239,7 @@ export interface PracticeQuestion {
 
 export interface PracticeStartResponse {
   practiceId: string;
+  conceptId?: string | null;
   questions: PracticeQuestion[];
 }
 

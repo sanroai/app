@@ -28,6 +28,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminModule } from './admin/admin.module';
 import { LearningModule } from './learning/learning.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
+import { ArModule } from './ar/ar.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
     AdminModule,
     LearningModule,
     KnowledgeBaseModule,
+    ArModule,
   ],
   controllers: [HealthController],
   providers: [
