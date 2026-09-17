@@ -148,7 +148,9 @@ No localhost references are introduced by AR/3D.
 - `apps/mobile/eas.json`: `preview` profile builds an **APK**; `production` builds an app bundle. All
   profiles inject `EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1`.
 - `apps/mobile/app.json`: name "Sanro AI", slug `sanro-ai`, owner `sanroai`, package/bundle
-  `com.sanro.ai`, version `1.0.0`, `newArchEnabled: true`.
+  `com.sanro.ai`, version `1.1.0` (`android.versionCode 2`), `newArchEnabled: true`.
+- `apps/mobile/eas.json` uses `appVersionSource: "local"` so `app.json` is the single source of truth for
+  `version` / `versionCode`.
 - Output: `releases/sanroai.apk`, published in place to the stable web path
   `apps/web/public/downloads/sanroai.apk` → `https://sanroai.com/downloads/sanroai.apk` (via
   `node scripts/publish-apk.mjs releases/sanroai.apk`). One APK only; it is overwritten on each build.
@@ -157,10 +159,11 @@ Build result:
 
 | Field | Value |
 | --- | --- |
-| EAS build ID | `9b2fb441-8de2-4e54-a53e-e7bd3a8e21b8` |
+| EAS build ID | `455f6fb2-a76f-4e1f-80e5-e54bba3c0f76` |
 | Status | FINISHED |
-| Artifact | `releases/sanroai.apk` → `/downloads/sanroai.apk` (78,061,514 bytes) |
-| Package | `com.sanro.ai` (versionCode 1, versionName 1.0.0) |
+| Artifact | `releases/sanroai.apk` → `/downloads/sanroai.apk` (78,065,410 bytes) |
+| SHA-256 | `5ABE5D750A46E35530620054F92E605CD361BF8AEAF0924B866FDD33CA2D7CB5` |
+| Package | `com.sanro.ai` (versionCode 2, versionName 1.1.0) |
 | Label | Sanro AI |
 | minSdk / targetSdk | 24 / 34 |
 | ABIs | arm64-v8a, armeabi-v7a, x86, x86_64 |
@@ -201,3 +204,5 @@ pnpm --filter @sanro/api db:seed        # local only, idempotent
   `ar.service.spec.ts` (45/45 API tests green).
 - 2026-09-17: APK published in place to `apps/web/public/downloads/sanroai.apk` (78,061,514 bytes) via
   `scripts/publish-apk.mjs`; served at `https://sanroai.com/downloads/sanroai.apk`.
+- 2026-09-17: APK rebuilt as **1.1.0** (versionCode 2, EAS `455f6fb2`) with local app-version source;
+  replaced the published file in place (78,065,410 bytes) and shipped via Vercel.

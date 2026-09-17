@@ -3,7 +3,7 @@
     "name": "Sanro AI",
     "slug": "sanro-ai",
     "owner": "sanroai",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "scheme": "sanro-ai",
     "userInterfaceStyle": "automatic",
@@ -19,6 +19,7 @@
       "bundleIdentifier": "com.sanro.ai"
     },
     "android": {
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#7c3aed",
         "foregroundImage": "./assets/adaptive-icon.png"
