@@ -2,6 +2,20 @@
 
 Format: date — phase — change.
 
+## 2026-09-17 — Production deploy completed
+- **Web LIVE on `sanroai.com` + `app.sanroai.com`** (Vercel `--prod`, aliased
+  sanroai.com): new build includes the `/api/contact` proxy, fixed parents page,
+  full dashboard. Verified: proxy marker route returns 400 (new build), homepage 200.
+- **Contact flow verified end-to-end on prod**: web proxy → `api.sanroai.com/site/
+  contact` → DB row → `GET /admin/leads`. One smoke-test lead created (row
+  `d6aca534-…`, "Smoke Test / smoke@sanroai.test`) — delete from admin dashboard
+  when convenient.
+- **Android APK rebuilt + published**: EAS preview build `751b46a1` FINISHED.
+  Bundle audited: contains `https://api.sanroai.com/api/v1`, **no localhost**.
+  New `sanroai.apk` (78,061,486 B) served at `https://sanroai.com/downloads/sanroai.apk`
+  (HEAD verified). Commits `0bbf1fd` (+ `.railwayignore`).
+- Removed stray empty root `app.json` created during EAS CLI work.
+
 ## 2026-09-17 — Deployment
 - Commit `34c3523` pushed to origin/master.
 - **API live**: Railway deploy `23b7042f` Online. Verified prod: health + DB ok,

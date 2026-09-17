@@ -35,8 +35,8 @@ Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
 | 21 | Website | ⬜ TODO | Contact flow fixed |
 | 22 | Security + performance | ✅ DONE | Helmet + compression added; sweep complete (see below) |
 | 23 | QA | ⏳ PARTIAL | CI/CD done; QA phase pending |
-| 24 | Deployment | ⏳ PARTIAL | API live + verified; web/APK blocked on credentials (see below) |
-| 25 | Android APK | ⬜ TODO | |
+| 24 | Deployment | ✅ DONE | API + web live & verified; APK published (see below) |
+| 25 | Android APK | ✅ DONE | EAS preview APK rebuilt, bundle audited, served at /downloads |
 | — | Final audit + report | ⬜ TODO | |
 
 ---
@@ -236,25 +236,19 @@ of the Railway upload. Deployment `23b7042f` is Online. Verified against
 - Railway preDeploy runs `prisma migrate deploy` + idempotent seed on every build
   (prod DB confirmed on baseline, no drift).
 
-**WEB — BLOCKED.** `app.sanroai.com` (Vercel behind Cloudflare, `x-vercel-id`)
-still serves the pre-rebuild build: the new `/api/contact` route returns 404 and
-the old marketing HTML is cached (`Age≈2400s`). Vercel git auto-deploy did **not**
-trigger from the push (repo default branch is `master` and no webhook action is
-visible). Vercel CLI on this machine has **no credentials** (`~/.vercel/auth.json`
-and `com.vercel.cli` absent) and no `VERCEL_TOKEN` env.
-**Required to unblock:** run `vercel login` (interactive) in `apps/web`, or set
-`VERCEL_TOKEN` (scope: deployment) and re-run `vercel --prod`.
-**Required to diagnose:** GitHub repo `admin:repo_hook` scope (webhook 404 was
-silent, not a real 404 response).
+**WEB — LIVE + VERIFIED.** Deployed via `vercel --prod` with the account token
+(project `sanroai-web`, root dir `apps/web`, aliased `sanroai.com`; Cloudflare in
+front also serves `app.sanroai.com`). New build includes `/api/contact` proxy +
+fixed parents page. Both domains verified: `/api/contact` → 400 (new build),
+homepage 200. Contact flow smoke-tested end-to-end (proxy → API → DB →
+`admin/leads`; one lead row `d6aca534` to delete from dashboard).
 
-**APK — BLOCKED.** `apps/mobile` has a live Expo session, but it belongs to
-`harishpanditkar`, which has **no access** to the EAS project
-`eb098800-6294-4a77-ae94-fe34128a8364` (`Entity not authorized`). 
-**Required to unblock:** `eas login` with the `sanroai` (owner) Expo account or
-set `EXPO_TOKEN` with access to that project; then
-`eas build --platform android --profile preview --non-interactive` (APK) +
-`production` (AAB). `eas.json` already injects
-`EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1` on every profile.
+**APK — LIVE.** EAS build `751b46a1` (preview/APK) FINISHED with the `sanroai`
+owner account token. Android bundle audited: contains `https://api.sanroai.com/api/v1`,
+**zero** `localhost:4000` refs. New APK (78,061,486 B, SHA256
+`C8750B7F…FCF6E`) pushed in commit `0bbf1fd` and served at
+`https://sanroai.com/downloads/sanroai.apk` (HEAD verified). `.railwayignore`
+committed so Railway never re-uploads the APK.
 
 ### Follow-ups (non-blocking)
 - Railway warns `railway.json` Config-as-Code deprecation → migrate to
