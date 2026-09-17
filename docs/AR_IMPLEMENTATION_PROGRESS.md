@@ -194,3 +194,10 @@ pnpm --filter @sanro/api db:seed        # local only, idempotent
 - 2026-09-17: Mobile AR hooks, capability detection, WebView 3D viewer, concept AR tab.
 - 2026-09-17: AR validation tests added (41/41 API tests green); all packages typecheck clean; `pnpm build` 6/6.
 - 2026-09-17: EAS project recreated under the `sanroai` account; Android APK built and verified (see table above).
+- 2026-09-17: Deployed to production — API (Railway) + web (Vercel). Additive AR migration applied, AR seed
+  re-validated in prod (6 PUBLISHED/VALID, 2 DRAFT/PENDING with real polygon counts).
+- 2026-09-17: Fixed institution-admin scoping — `adminScope` now includes global content (`institutionId: null`)
+  alongside the admin's own, matching `canManage`; usage activity stats scoped per institution. Added
+  `ar.service.spec.ts` (45/45 API tests green).
+- 2026-09-17: APK published in place to `apps/web/public/downloads/sanroai.apk` (78,061,514 bytes) via
+  `scripts/publish-apk.mjs`; served at `https://sanroai.com/downloads/sanroai.apk`.
