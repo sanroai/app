@@ -29,6 +29,8 @@ import { AdminModule } from './admin/admin.module';
 import { LearningModule } from './learning/learning.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
 import { ArModule } from './ar/ar.module';
+import { SiteModule } from './site/site.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -74,6 +76,8 @@ import { ArModule } from './ar/ar.module';
     LearningModule,
     KnowledgeBaseModule,
     ArModule,
+    SiteModule,
+    ReportsModule,
   ],
   controllers: [HealthController],
   providers: [

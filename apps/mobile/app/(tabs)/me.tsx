@@ -2,6 +2,7 @@ import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl, A
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useAuthStore } from '../../lib/auth-store';
 import { useGamificationProfile, useAchievements, useLearningProgress, useUserDisplayRole } from '../../lib/hooks';
 import { Card } from '../../components/Card';
@@ -120,7 +121,7 @@ export default function MeScreen() {
         <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
       </TouchableOpacity>
 
-      <Text style={styles.footer}>Sanro AI v1.0.0</Text>
+      <Text style={styles.footer}>Sanro AI v{Constants.expoConfig?.version ?? '1.1.0'}</Text>
     </ScrollView>
   );
 }

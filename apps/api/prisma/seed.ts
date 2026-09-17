@@ -969,7 +969,113 @@ async function seedUsers(institutionId: string, academicYearId: string) {
     create: { groupId: group.id, studentId: student.id, academicYearId },
   });
 
-  return { superAdmin, principal, teacherUser, teacher, studentUser, student, parent };
+  return { superAdmin, principal, teacherUser, teacher, studentUser, student, parent, group };
+}
+
+async function seedDemoAcademics(args: {
+  institutionId: string;
+  academicYearId: string;
+  teacherId: string;
+  studentId: string;
+  groupId: string;
+}) {
+  const { institutionId, academicYearId, teacherId, studentId, groupId } = args;
+
+  await prisma.teacherGroup.upsert({
+    where: { teacherId_groupId_academicYearId: { teacherId, groupId, academicYearId } },
+    update: {},
+    create: { teacherId, groupId, academicYearId },
+  });
+
+  const weakMastery = await prisma.conceptMastery.findMany({
+    where: { studentId, score: { lt: 50 } },
+    include: { concept: { select: { id: true, name: true } } },
+    orderBy: { score: 'asc' },
+    take: 2,
+  });
+
+  if (weakMastery.length > 0) {
+    const teacherUser = await prisma.user.findUnique({ where: { email: 'teacher@sanroai.com' } });
+
+    async function seedPlan(conceptId: string, conceptName: string, status: 'ACTIVE' | 'COMPLETED', completedAt?: Date) {
+      const existing = await prisma.remediationPlan.findFirst({ where: { studentId, conceptId } });
+      if (existing) return;
+      await prisma.remediationPlan.create({
+        data: {
+          studentId,
+          conceptId,
+          status,
+          completedAt,
+          createdById: teacherUser?.id ?? undefined,
+          items: {
+            create: [
+              { order: 1, contentType: 'VIDEO', title: `Watch video: ${conceptName}`, status: 'COMPLETED', completedAt },
+              status === 'COMPLETED'
+                ? { order: 2, contentType: 'QUIZ', title: `Practice quiz: ${conceptName}`, status: 'COMPLETED' as const, completedAt }
+                : { order: 2, contentType: 'QUIZ', title: `Practice quiz: ${conceptName}`, status: 'PENDING' as const },
+            ],
+          },
+        },
+      });
+    }
+
+    const [interventionConcept, weakConcept] = weakMastery;
+    await seedPlan(
+      interventionConcept.concept.id,
+      interventionConcept.concept.name,
+      'ACTIVE',
+      new Date(Date.now() - 86400000),
+    );
+    if (weakConcept) {
+      await seedPlan(
+        weakConcept.concept.id,
+        weakConcept.concept.name,
+        'COMPLETED',
+        new Date(Date.now() - 172800000),
+      );
+    }
+  }
+
+  const scienceSubject = await prisma.subject.findFirst({ where: { boardId: BOARD.id, name: SCIENCE } });
+  const teacherUser = await prisma.user.findUnique({ where: { email: 'teacher@sanroai.com' } });
+  if (scienceSubject && teacherUser) {
+    const existing = await prisma.assessment.findFirst({
+      where: { institutionId, title: 'Matter in Our Surroundings — Class Test' },
+    });
+    const assessment = existing ?? (await prisma.assessment.create({
+      data: {
+        institutionId,
+        title: 'Matter in Our Surroundings — Class Test',
+        subjectId: scienceSubject.id,
+        totalMarks: 20,
+        durationMinutes: 30,
+        status: 'PUBLISHED',
+        mode: 'DIGITAL',
+        attemptsAllowed: 1,
+        createdById: teacherUser.id,
+        dueAt: new Date(Date.now() + 3 * 86400000),
+        assignments: { create: [{ groupId, studentId }] },
+      },
+    }));
+
+    await prisma.assessmentAttempt.upsert({
+      where: { assessmentId_studentId_attemptIndex: { assessmentId: assessment.id, studentId, attemptIndex: 1 } },
+      update: {},
+      create: {
+        assessmentId: assessment.id,
+        studentId,
+        attemptIndex: 1,
+        status: 'SUBMITTED',
+        submittedAt: new Date(Date.now() - 2 * 86400000),
+        score: 14,
+        maxScore: 20,
+        correctCount: 7,
+        wrongCount: 3,
+        accuracy: 70.0,
+        timeSpentSeconds: 900,
+      },
+    });
+  }
 }
 
 async function seedQuestions() {
@@ -2165,9 +2271,16 @@ async function seedAchievements() {
 async function main() {
   await seedCurriculum();
   const { academicYear, institution } = await seedPlansAndInstitution();
-  await seedUsers(institution.id, academicYear.id);
+  const demoUsers = await seedUsers(institution.id, academicYear.id);
   await seedQuestions();
   await seedAchievements();
+  await seedDemoAcademics({
+    institutionId: institution.id,
+    academicYearId: academicYear.id,
+    teacherId: demoUsers.teacher.id,
+    studentId: demoUsers.student.id,
+    groupId: demoUsers.group.id,
+  });
   await seedArContent(prisma);
   console.log('Seed complete: 1 board (CBSE), 10 grades, subjects, chapters, topics, concepts, demo users, question bank, content, AR/3D demo set & achievements.');
 }

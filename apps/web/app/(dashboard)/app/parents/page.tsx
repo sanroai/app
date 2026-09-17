@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useParents } from '@/lib/people-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,6 @@ export default function ParentsPage() {
 }
 
 function ParentsList() {
-  const router = useRouter();
   const [search, setSearch] = useState('');
   const { data: parents, isLoading, error } = useParents();
 
@@ -77,11 +75,7 @@ function ParentsList() {
       ) : (
         <div className="space-y-3">
           {list.map((parent) => (
-            <Card
-              key={parent.id}
-              className="cursor-pointer"
-              onClick={() => router.push(`/app/parents/${parent.id}`)}
-            >
+            <Card key={parent.id} className="cursor-default">
               <CardContent className="flex items-center gap-4 p-5">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 text-white font-semibold text-sm">
                   {parent.name

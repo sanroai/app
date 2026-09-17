@@ -223,4 +223,14 @@ export class AdminService {
       },
     });
   }
+
+  async contactLeads(user: RequestUser, limit: number) {
+    this.requireSuperAdmin(user);
+    const total = await this.prisma.contactLead.count();
+    const rows = await this.prisma.contactLead.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: Math.min(limit, 500),
+    });
+    return { total, rows };
+  }
 }

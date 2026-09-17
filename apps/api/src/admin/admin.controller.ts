@@ -87,4 +87,9 @@ export class AdminController {
   subscriptions(@CurrentUser() user: RequestUser) {
     return this.service.subscriptions(user);
   }
+
+  @Get('leads')
+  contactLeads(@CurrentUser() user: RequestUser, @Query('limit') limit?: string) {
+    return this.service.contactLeads(user, Number(limit) || 100);
+  }
 }

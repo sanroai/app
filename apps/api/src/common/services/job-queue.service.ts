@@ -33,7 +33,48 @@ export class JobQueueService {
   private processingInterval: NodeJS.Timeout | null = null;
 
   constructor(private readonly prisma: PrismaService) {
+    void this.restorePendingJobs();
     this.startProcessor();
+  }
+
+  private async restorePendingJobs() {
+    try {
+      const rows = await this.prisma.processingJob.findMany({
+        where: { status: { in: ['PENDING', 'PROCESSING'] } },
+      });
+
+      for (const row of rows) {
+        const metadata = (row.metadata ?? {}) as Partial<JobPayload>;
+        const job: Job = {
+          id: row.id,
+          type: row.inputType as JobType,
+          status: 'PENDING',
+          payload: {
+            knowledgeBaseId: row.knowledgeBaseId,
+            institutionId: metadata.institutionId ?? '',
+            userId: metadata.userId ?? '',
+            options: metadata.options,
+          },
+          attempts: 0,
+          maxAttempts: 3,
+          createdAt: row.createdAt,
+        };
+        this.queue.push(job);
+
+        if (row.status === 'PROCESSING') {
+          await this.prisma.processingJob.update({
+            where: { id: row.id },
+            data: { status: 'PENDING', startedAt: null },
+          });
+        }
+      }
+
+      if (rows.length > 0) {
+        this.logger.log(`Restored ${rows.length} job(s) from database after restart`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to restore jobs from database: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   private startProcessor() {

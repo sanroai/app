@@ -46,3 +46,6 @@ Thumbs.db
 # deployment artifacts (local only)
 .railway/
 releases/
+
+# TypeScript build info
+*.tsbuildinfo

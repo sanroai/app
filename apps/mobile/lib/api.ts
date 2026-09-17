@@ -1,7 +1,7 @@
 import { useAuthStore } from './auth-store';
 import { useOfflineStore, isNetworkError } from './offline';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
 
 export class OfflineError extends Error {
   constructor() {

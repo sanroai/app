@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as Sentry from '@sentry/nestjs';
+import helmet from 'helmet';
+import compression from 'compression';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { APP_CONFIG_TOKEN } from './common/common.constants';
 import { AppConfig } from './config/app.config';
@@ -26,6 +28,8 @@ async function bootstrap(): Promise<void> {
   }
 
   app.setGlobalPrefix('api/v1');
+  app.use(helmet());
+  app.use(compression());
 
   const corsOrigins =
     config.CORS_ORIGINS.length > 0

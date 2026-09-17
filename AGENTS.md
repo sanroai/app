@@ -26,7 +26,7 @@ Always build shared packages first: `@sanro/types` → `@sanro/validation` → `
 - **Multi-role tabs**: student (Learn/Practice/Tests), teacher/admin (Classes/Assessments), parent (Children)
 - Stack: TypeScript strict, Zod, Zustand, TanStack Query 5, expo-secure-store
 - Runtime is Expo (no native build step in turbo; `@sanro/mobile#build` is a stub)
-- Tokens in SecureStore keys `sanro-token` / `sanro-refresh` / `sanro-user`; API base `http://localhost:4000/api/v1`
+- Tokens in SecureStore keys `sanro-token` / `sanro-refresh` / `sanro-user`; API base default `https://api.sanroai.com/api/v1` (read `EXPO_PUBLIC_API_URL`; use `EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1` for local dev)
 - SafeAreaProvider for notch/Dynamic Island
 - Memberships persisted to SecureStore
 - ErrorBoundary wrapping app root
@@ -93,7 +93,7 @@ JWT-based. Zustand persist store in localStorage key `sanro-auth`. Hydration tra
 - `apps/mobile/lib/api.ts` + `lib/auth-store.ts` — Mobile API client + SecureStore auth
 - `apps/mobile/lib/offline.ts` — Offline mutation queue (Zustand + AsyncStorage), `flushOfflineQueue()`
 - `apps/mobile/lib/offline-auth.ts` + `lib/sha256.ts` — Offline login credential vault (SecureStore + SHA-256)
-- `apps/mobile/lib/api.ts` — API client; base reads `EXPO_PUBLIC_API_URL` (default `http://localhost:4000/api/v1`)
+- `apps/mobile/lib/api.ts` — API client; base reads `EXPO_PUBLIC_API_URL` (default `https://api.sanroai.com/api/v1`)
 - `apps/mobile/components/OfflineBanner.tsx` — Shared offline status banner
 - `apps/mobile/app/` — Expo Router screens (5-tab shell, learn flow, concept 6 modes, attempts)
 

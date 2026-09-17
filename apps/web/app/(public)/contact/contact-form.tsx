@@ -24,11 +24,15 @@ export function ContactForm() {
   async function onSubmit(data: ContactForm) {
     setError(null);
     try {
-      await fetch('/api/contact', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+      if (!res.ok) {
+        setError('Something went wrong. Please try again.');
+        return;
+      }
       setSubmitted(true);
     } catch {
       setError('Something went wrong. Please try again.');

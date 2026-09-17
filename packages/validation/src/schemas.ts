@@ -259,6 +259,15 @@ export const IdsQuerySchema = z.object({
   academicYearId: z.string().uuid().optional(),
 });
 
+export const ContactLeadSchema = z.object({
+  name: z.string().trim().min(2, 'Name is required').max(120),
+  email: emailSchema,
+  role: z.string().trim().min(1, 'Select your role').max(60),
+  message: z.string().trim().min(10, 'Message must be at least 10 characters').max(5000),
+  source: z.string().trim().max(40).optional(),
+  website: z.string().trim().max(0).optional(),
+});
+
 export type RegisterInstitution = z.infer<typeof RegisterInstitutionSchema>;
 export type Login = z.infer<typeof LoginSchema>;
 export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;

@@ -1538,3 +1538,21 @@ model ContentVersion {
   @@index([contentId, version])
   @@unique([contentId, version])
 }
+
+// ============================================================================
+// WEBSITE / MARKETING LEADS
+// ============================================================================
+
+model ContactLead {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String
+  role      String
+  message   String
+  source    String   @default("website")
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
