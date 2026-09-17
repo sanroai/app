@@ -1,0 +1,5 @@
+# API service on Railway only needs apps/api; skip heavy web assets
+apps/web/public/downloads/
+*.apk
+apps/web/.next/
+apps/mobile/node_modules/
