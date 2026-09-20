@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
+import { useAuthStore } from './auth-store';
+import { isCachedEntitlementExpiredSync } from './offline-auth';
 
 const QUEUE_KEY = 'sanro-offline-queue';
 
@@ -54,6 +56,7 @@ export const useOfflineStore = create<OfflineState>((set, get) => ({
   setOffline: (value) => set({ offline: value }),
   setFlushing: (value) => set({ flushing: value }),
   enqueue: (req) => {
+    if (useAuthStore.getState().blocked || isCachedEntitlementExpiredSync()) return;
     const { queue } = get();
     const key = bodyKey(req.body);
     const deduped = queue.filter(

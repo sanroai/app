@@ -80,6 +80,11 @@ export class AuthController {
     return this.authService.switchContext(user.sub, body.institutionId, body.role);
   }
 
+  @Get('account-state')
+  async accountState(@CurrentUser() user: RequestUser) {
+    return this.authService.accountState(user.sub, user.role, user.institutionId);
+  }
+
   @HttpCode(HttpStatus.OK)
   @Post('change-password')
   changePassword(

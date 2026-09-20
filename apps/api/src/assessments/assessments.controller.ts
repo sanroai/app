@@ -2,12 +2,14 @@ import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AssessmentsService } from './assessments.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AssignAssessmentSchema, CreateAssessmentSchema, SubmitAnswerBatchSchema } from '@sanro/validation';
 
 @ApiTags('assessments')
 @Controller('assessments')
+@SubscriptionRequired()
 export class AssessmentsController {
   constructor(private readonly service: AssessmentsService) {}
 

@@ -14,6 +14,18 @@ idempotent `db:seed`. `prisma migrate reset` is forbidden on production.
 - Teacher, Student, Parent (link to User + institution)
 - Group (class/batch), StudentGroup membership, StudentTeacher assignment
 
+### Subscriptions & billing
+- Plan (`key` unique: STUDENT_MONTHLY / STUDENT_YEARLY / INSTITUTION; perSeat,
+  priceMonthly, priceYearly) — billing-ready, no payments gateway.
+- Subscription (per institution; status ACTIVE/TRIAL/EXPIRED/CANCELLED/PAST_DUE/
+  SUSPENDED; startedAt/endsAt; seatLimit overrides institution default).
+- SubscriptionHistory (audit trail of subscription changes; action enum CREATED/
+  UPDATED/RENEWED/PLAN_CHANGED/LIMIT_CHANGED/CANCELLED/EXPIRED/ACTIVATED/SUSPENDED;
+  old/new plan/status/seatLimit/dates, reason, changedById → User).
+- Institution subscription fields: `seatLimit`, `gracePeriodDays`,
+  `expiredAt`, `suspendedAt`, `archivedAt`, `deletedAt`, `lastActivityAt`,
+  `createdById`.
+
 ### Curriculum
 - Board → Grade → Subject → Chapter → Topic → Concept
 - (Subject has no grade field; Chapter carries code + grade)
@@ -62,8 +74,22 @@ idempotent `db:seed`. `prisma migrate reset` is forbidden on production.
 - Foreign keys on joins (concept → chapter → topic; question → concept).
 - Pagination + `select`-projection to avoid N+1.
 - Full-text search on titles/names (pg_trgm) for search.
+- Subscription lookups use `@@index([institutionId, status])` (current-subscription
+  findFirst) and `@@index([endsAt])` (expiry/expiring-soon scans).
+- Institution lists use `@@index([status])`, `@@index([type])`, `@@index([deletedAt])`.
+- Error-body `{code, message, requestId, statusCode}`; subscription errors use
+  `code` (e.g. `SEAT_LIMIT_REACHED` on student create; block states as 403 codes).
 
 ## 5. Migrations
 
 Migrations live in `apps/api/prisma/migrations/`. Seed is idempotent —
 re-runnable without duplicates.
+
+Notable migration: `20260920102146_institution_subscription_system` — adds
+`SubscriptionHistory` table + `SubscriptionHistoryAction` enum, extends
+`AuditAction` (15 institution/subscription/admin values), adds
+`InstitutionStatusEnum.EXPIRED`, 6 new `InstitutionType` values, the new
+`Institution` columns (`gracePeriodDays`, `expiredAt`, `suspendedAt`, `deletedAt`,
+`lastActivityAt`, `description`, `country`, `website`, `contactPerson`), and the
+Institution/Subscription indexes above. Reviewer note: the Subscription `endsAt`
+default in `AdminService.setSubscriptionPlan` is `now + 30 days` for all statuses.

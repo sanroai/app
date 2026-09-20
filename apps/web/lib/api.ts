@@ -1,3 +1,10 @@
+import {
+  isBlockedCode,
+  isBlockedResponseBody,
+  toBlockedState,
+  type BlockedStateCode,
+} from '@/lib/blocked-state';
+
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
 
@@ -41,6 +48,12 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
   const { method = 'GET', body, token, signal } = options;
   const headers: Record<string, string> = {};
 
+  const { useAuthStore } = await import('@/lib/auth-store');
+  const blocked = useAuthStore.getState().blocked;
+  if (blocked) {
+    throw new ApiError(blocked.message, 403, blocked.state, undefined, undefined);
+  }
+
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   if (!isFormData && body !== undefined) headers['Content-Type'] = 'application/json';
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -66,8 +79,32 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
     payload = null;
   }
 
+  if (isBlockedResponseBody(payload)) {
+    const bs = toBlockedState(payload);
+    const { useAuthStore: blockedStore } = await import('@/lib/auth-store');
+    blockedStore.getState().setBlocked(bs);
+    throw new ApiError(bs.message, res.status, bs.state);
+  }
+
   if (!res.ok) {
     const p = payload as Record<string, unknown> | null;
+    if (p && isBlockedCode(typeof p.code === 'string' ? p.code : undefined)) {
+      const state = p.code as BlockedStateCode;
+      const bs = toBlockedState({
+        state,
+        message: typeof p.message === 'string' ? p.message : state,
+        institution: null,
+      });
+      const { useAuthStore: blockedStore } = await import('@/lib/auth-store');
+      blockedStore.getState().setBlocked(bs);
+      throw new ApiError(
+        bs.message,
+        res.status,
+        state,
+        Array.isArray(p.details) ? (p.details as unknown[]) : undefined,
+        typeof p.requestId === 'string' ? p.requestId : undefined,
+      );
+    }
     const message =
       typeof p?.message === 'string' ? p.message : `Request failed with status ${res.status}`;
     throw new ApiError(
@@ -87,13 +124,15 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     return await apiRequest<T>(path, options);
   } catch (err) {
     if (err instanceof ApiError && err.status === 401 && options.token) {
+      const { useAuthStore } = await import('@/lib/auth-store');
+      const store = useAuthStore.getState();
+      if (store.blocked) throw err;
       const refreshed = await tryRefreshToken();
       if (refreshed) {
-        const { useAuthStore } = await import('@/lib/auth-store');
         const newToken = useAuthStore.getState().token;
         return await apiRequest<T>(path, { ...options, token: newToken });
       }
-      const { useAuthStore } = await import('@/lib/auth-store');
+      if (useAuthStore.getState().blocked) throw err;
       useAuthStore.getState().clearSession();
       if (typeof window !== 'undefined') {
         window.location.href = '/login';

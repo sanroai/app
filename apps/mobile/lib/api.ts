@@ -1,7 +1,18 @@
 import { useAuthStore } from './auth-store';
 import { useOfflineStore, isNetworkError } from './offline';
+import { blockedFromBody, blockedFromError, BlockedState, BlockState } from './blocked';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
+
+export class BlockedAuthError extends Error {
+  readonly state: BlockState;
+
+  constructor(state: BlockState, message: string) {
+    super(message);
+    this.name = 'BlockedAuthError';
+    this.state = state;
+  }
+}
 
 export class OfflineError extends Error {
   constructor() {
@@ -47,11 +58,23 @@ export async function api<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
+    const blocked = blockedFromError(err);
+    if (blocked) {
+      const store = useAuthStore.getState();
+      if (store.blocked?.state !== blocked.state) store.setBlocked(blocked);
+      throw new BlockedAuthError(blocked.state, blocked.message);
+    }
     throw { code: err.code || 'UNKNOWN', message: err.message || res.statusText, statusCode: res.status } as ApiError;
   }
 
   if (res.status === 204) return undefined as T;
-  return res.json();
+  const data = await res.json();
+  const blocked = blockedFromBody(data);
+  if (blocked) {
+    const store = useAuthStore.getState();
+    if (store.blocked?.state !== blocked.state) store.setBlocked(blocked);
+  }
+  return data;
 }
 
 let refreshPromise: Promise<string> | null = null;
@@ -66,12 +89,25 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
       });
-      if (!res.ok) throw new Error('Refresh failed');
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      const blockedPayload = blockedFromBody(data);
+      if (blockedPayload) {
+        useAuthStore.getState().setBlocked(blockedPayload);
+        throw new BlockedAuthError(blockedPayload.state, blockedPayload.message);
+      }
+      if (!res.ok) {
+        const blockedError = blockedFromError(data);
+        if (blockedError) {
+          useAuthStore.getState().setBlocked(blockedError);
+          throw new BlockedAuthError(blockedError.state, blockedError.message);
+        }
+        throw new Error('Refresh failed');
+      }
       const store = useAuthStore.getState();
       store.setAuth({ ...data, refreshToken: data.refreshToken ?? refreshToken });
       return data.accessToken as string;
     } catch (err: unknown) {
+      if (err instanceof BlockedAuthError) throw err;
       if (isNetworkError(err)) throw err;
       useAuthStore.getState().logout();
       throw new Error('Session expired');
@@ -81,6 +117,26 @@ export async function refreshAccessToken(refreshToken: string): Promise<string> 
   })();
 
   return refreshPromise;
+}
+
+export async function checkAccountState(): Promise<boolean> {
+  const store = useAuthStore.getState();
+  if (!store.token) return false;
+  try {
+    const res = await api<unknown>('/auth/account-state', { token: store.token });
+    const blocked = blockedFromBody(res);
+    if (blocked) {
+      const s = useAuthStore.getState();
+      if (s.blocked?.state !== blocked.state) s.setBlocked(blocked);
+      return false;
+    }
+    const s = useAuthStore.getState();
+    if (s.blocked) s.setBlocked(null);
+    return true;
+  } catch (err: unknown) {
+    if (err instanceof BlockedAuthError) return false;
+    return false;
+  }
 }
 
 export async function apiAuthed<T>(

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useAuthStore } from '@/lib/auth-store';
+import { useEffect, useRef, useState } from 'react';
+import { useAuthStore, accountState } from '@/lib/auth-store';
+import { blockedRoute } from '@/lib/blocked-state';
 import { useRoleTheme, useRole } from '@/lib/role-theme';
 import {
   LogOut,
@@ -26,6 +27,7 @@ import {
   Layers,
   Database,
   Boxes,
+  ShieldX,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -275,18 +277,42 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user, token, clearSession } = useAuthStore();
+  const pathname = usePathname();
+  const { user, token, blocked, clearSession } = useAuthStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showBlockedBanner, setShowBlockedBanner] = useState(true);
   const theme = useRoleTheme();
   const role = useRole();
 
   const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const accountCheckDone = useRef(false);
+
+  const isBlockedRoute = pathname?.startsWith('/app/account-blocked') ?? false;
 
   useEffect(() => {
-    if (hasHydrated && !token) router.replace('/login');
-  }, [hasHydrated, token, router]);
+    if (!hasHydrated) return;
+    if (blocked) {
+      if (!isBlockedRoute) router.replace(blockedRoute(blocked));
+      return;
+    }
+    if (!token) {
+      if (!isBlockedRoute) router.replace('/login');
+      return;
+    }
+    if (isBlockedRoute || accountCheckDone.current) return;
+    accountCheckDone.current = true;
+    void accountState().then((r) => {
+      if (r.access === false && r.blocked) router.replace(blockedRoute(r.blocked));
+    });
+  }, [hasHydrated, token, blocked, isBlockedRoute, router]);
 
-  if (!hasHydrated || !user || !token) return null;
+  if (!hasHydrated) return null;
+
+  if (isBlockedRoute) {
+    return <>{children}</>;
+  }
+
+  if (!user || !token) return null;
 
   function handleLogout() {
     clearSession();
@@ -302,6 +328,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-surface-50 to-white dark:from-surface-900 dark:to-surface-950">
+      {/* Blocked account banner */}
+      {blocked && showBlockedBanner && (
+        <div className="sticky top-0 z-50 border-b border-amber-200 bg-amber-50 dark:bg-amber-950/80 dark:border-amber-800">
+          <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5 sm:px-6 lg:px-8">
+            <ShieldX className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="min-w-0 flex-1 truncate text-sm font-medium text-amber-900 dark:text-amber-100">
+              Access restricted &mdash; your account is blocked.
+            </p>
+            <Link
+              href="/app/account-blocked"
+              className="shrink-0 text-sm font-semibold text-amber-700 hover:text-amber-800 dark:text-amber-300"
+            >
+              View details
+            </Link>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setShowBlockedBanner(false)}
+              className="shrink-0 rounded-lg p-1 text-amber-600 hover:bg-amber-100 dark:text-amber-300 dark:hover:bg-amber-900"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-surface-200 dark:border-surface-800 bg-white/80 dark:bg-surface-950/80 backdrop-blur-lg">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">

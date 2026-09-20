@@ -8,6 +8,13 @@ import { useState } from 'react';
 import { LoginSchema, type Login } from '@sanro/validation';
 import { useAuthStore, type LoginResponse } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
+import {
+  isBlockedCode,
+  isBlockedResponseBody,
+  toBlockedState,
+  blockedRoute,
+} from '@/lib/blocked-state';
+import type { BlockedAccountResponse } from '@sanro/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +38,7 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const setSession = useAuthStore((s) => s.setSession);
+  const setBlocked = useAuthStore((s) => s.setBlocked);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const {
@@ -42,13 +50,24 @@ export default function LoginPage() {
   async function onSubmit(values: Login) {
     setServerError(null);
     try {
-      const payload = await api<LoginResponse>('/auth/login', {
+      const payload = await api<LoginResponse | BlockedAccountResponse>('/auth/login', {
         method: 'POST',
         body: values,
       });
-      setSession(payload);
+      if (isBlockedResponseBody(payload)) {
+        const bs = toBlockedState(payload);
+        setBlocked(bs);
+        router.replace(blockedRoute(bs));
+        return;
+      }
+      setSession(payload as LoginResponse);
       router.push('/app');
     } catch (e) {
+      if (e instanceof ApiError && isBlockedCode(e.code)) {
+        const state = useAuthStore.getState().blocked;
+        router.replace(state ? blockedRoute(state) : `/app/account-blocked?state=${encodeURIComponent(e.code)}`);
+        return;
+      }
       setServerError(e instanceof Error ? e.message : 'Login failed');
     }
   }

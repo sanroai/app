@@ -8,6 +8,7 @@ import {
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
@@ -32,6 +33,7 @@ export class StudentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly subscription: SubscriptionAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
   ) {}
@@ -149,7 +151,7 @@ export class StudentsService {
     const institutionId = this.tenant.requireInstitution(user);
     if (user.role === 'TEACHER') throw new ForbiddenException('Teachers cannot create students');
 
-    await this.enforceSeatLimit(institutionId, 1);
+    await this.subscription.assertSeatAvailable(institutionId, 1);
 
     if (data.email && data.email.trim()) {
       const existing = await this.prisma.student.findFirst({
@@ -392,21 +394,5 @@ export class StudentsService {
     });
     if (!student) throw new NotFoundException('Student not found');
     return student;
-  }
-
-  async enforceSeatLimit(institutionId: string, additional: number): Promise<void> {
-    const subscription = await this.prisma.subscription.findFirst({
-      where: { institutionId, status: { in: ['ACTIVE', 'TRIAL'] } },
-      orderBy: { createdAt: 'desc' },
-    });
-    const limit = subscription?.seatLimit ?? (await this.prisma.institution.findUnique({ where: { id: institutionId } }))?.seatLimit;
-    if (limit == null) return;
-    const count = await this.prisma.student.count({ where: { institutionId, status: 'ACTIVE' } });
-    if (count + additional > limit) {
-      throw new BadRequestException({
-        code: 'SEAT_LIMIT_REACHED',
-        message: 'Student seat limit reached. Please upgrade your subscription.',
-      });
-    }
   }
 }

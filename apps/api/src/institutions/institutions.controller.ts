@@ -3,13 +3,14 @@ import { ApiTags } from '@nestjs/swagger';
 import { Role } from '@sanro/types';
 import { InstitutionsService } from './institutions.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { UpdateInstitutionSchema } from '@sanro/validation';
 
 @ApiTags('institutions')
 @Controller('institutions')
+@SubscriptionRequired()
 export class InstitutionsController {
   constructor(private readonly service: InstitutionsService) {}
 

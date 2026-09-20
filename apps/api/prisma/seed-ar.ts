@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { readFileSync } from 'node:fs';
+import { readFileSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ArModelFormat } from '@prisma/client';
 import type { PrismaClient } from '@prisma/client';
@@ -7,6 +7,22 @@ import { ArValidationService } from '../src/ar/ar-validation.service';
 
 const validator = new ArValidationService();
 const DEMO_MODEL_DIR = join(__dirname, 'ar-demo');
+const STORAGE_MODEL_DIR = join(process.cwd(), 'storage', 'ar', 'models');
+
+function ensureStorageDir() {
+  mkdirSync(STORAGE_MODEL_DIR, { recursive: true });
+}
+
+function copyModelToStorage(file: string): string | null {
+  try {
+    const src = join(DEMO_MODEL_DIR, file);
+    const dest = join(STORAGE_MODEL_DIR, file);
+    copyFileSync(src, dest);
+    return `ar/models/${file}`;
+  } catch {
+    return null;
+  }
+}
 
 function validateDemoModel(file: string | undefined) {
   if (!file) return null;
@@ -212,6 +228,8 @@ export async function seedArContent(prisma: PrismaClient): Promise<void> {
   let updated = 0;
   let skipped = 0;
 
+  ensureStorageDir();
+
   for (const def of AR_SEED) {
     const chapter = await prisma.chapter.findFirst({
       where: { name: def.chapterName, grade: def.grade, subject: { name: def.subject } },
@@ -239,6 +257,8 @@ export async function seedArContent(prisma: PrismaClient): Promise<void> {
       console.log(`  AR seed warning: "${def.title}" demo model missing from ar-demo/ - kept as DRAFT`);
     }
 
+    const modelKey = def.modelFile ? copyModelToStorage(def.modelFile) : null;
+
     const data = {
       title: def.title,
       description: def.description,
@@ -247,8 +267,9 @@ export async function seedArContent(prisma: PrismaClient): Promise<void> {
       difficulty: def.difficulty,
       visibility: 'PUBLIC' as const,
       modelFormat: validation ? ('GLB' as const) : null,
-      modelUrl: def.modelFile ? `/models/${def.modelFile}` : null,
-      thumbnailUrl: def.thumbnailFile ? `/models/${def.thumbnailFile}` : null,
+      modelKey,
+      modelUrl: modelKey ? `/api/v1/files/${modelKey}` : null,
+      thumbnailUrl: null,
       hotspots: def.hotspots ?? undefined,
       validationStatus: validation ? validation.status : ('PENDING' as const),
       validationReport: validation

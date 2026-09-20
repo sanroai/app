@@ -25,11 +25,18 @@ enum Role {
 enum InstitutionType {
   SCHOOL
   COACHING_CENTRE
+  COACHING
+  ACADEMY
+  TUITION_CENTRE
+  EDUCATIONAL_INSTITUTE
+  TRAINING_CENTRE
+  OTHER
 }
 
 enum InstitutionStatusEnum {
   ACTIVE
   SUSPENDED
+  EXPIRED
   ARCHIVED
   PENDING
 }
@@ -246,6 +253,25 @@ enum AuditAction {
   ASSESSMENT_PUBLISHED
   RESULT_MODIFIED
   REMEDIATION_ASSIGNED
+  INSTITUTION_CREATED
+  INSTITUTION_UPDATED
+  INSTITUTION_ACTIVATED
+  INSTITUTION_SUSPENDED
+  INSTITUTION_EXPIRED
+  INSTITUTION_ARCHIVED
+  INSTITUTION_RESTORED
+  INSTITUTION_DELETED
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_UPDATED
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_PLAN_CHANGED
+  SUBSCRIPTION_EXPIRED
+  PLAN_CHANGED
+  USER_LIMIT_CHANGED
+  ADMIN_CHANGED
+  INSTITUTION_ADMIN_CHANGED
+  USER_DISABLED
+  USER_ENABLED
 }
 
 enum SupportTicketStatus {
@@ -313,6 +339,7 @@ model User {
   createdImports     ImportJob[]
   createdPlans       RemediationPlan[] @relation("PlanCreatedBy")
   createdKnowledgeBases KnowledgeBase[] @relation("KnowledgeBaseCreator")
+  subscriptionHistoryChanges SubscriptionHistory[] @relation("SubscriptionHistoryChangedBy")
 
   @@index([email])
 }
@@ -357,15 +384,24 @@ model Institution {
   status       InstitutionStatusEnum @default(PENDING)
   code         String?  @unique
   logoUrl      String?
+  description  String?
   address      String?
   city         String?
   state        String?
+  country      String?
+  website      String?
+  contactPerson String?
   primaryPhone String?
   primaryEmail String?
   seatLimit    Int?
+  gracePeriodDays Int    @default(0)
   createdById  String?  @db.Uuid
   createdAt    DateTime @default(now())
   archivedAt   DateTime?
+  suspendedAt  DateTime?
+  expiredAt    DateTime?
+  deletedAt    DateTime?
+  lastActivityAt DateTime @default(now())
 
   createdBy      User?               @relation("InstitutionCreatedBy", fields: [createdById], references: [id])
   members        InstitutionMember[]
@@ -380,13 +416,16 @@ model Institution {
   imports        ImportJob[]
   content        ContentItem[]
   subscriptions  Subscription[]
+  subscriptionHistory SubscriptionHistory[]
   supportTickets SupportTicket[]
   reports        Report[]
   auditLogs      AuditLog[]
   knowledgeBases KnowledgeBase[]
 
   @@index([status])
+  @@index([type])
   @@index([createdById])
+  @@index([deletedAt])
 }
 
 model InstitutionMember {
@@ -1365,9 +1404,52 @@ model Subscription {
 
   institution  Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   plan         Plan        @relation(fields: [planId], references: [id])
+  history      SubscriptionHistory[]
 
   @@index([institutionId])
+  @@index([institutionId, status])
   @@index([status])
+  @@index([endsAt])
+}
+
+enum SubscriptionHistoryAction {
+  CREATED
+  UPDATED
+  RENEWED
+  PLAN_CHANGED
+  LIMIT_CHANGED
+  CANCELLED
+  EXPIRED
+  ACTIVATED
+  SUSPENDED
+}
+
+model SubscriptionHistory {
+  id             String               @id @default(uuid()) @db.Uuid
+  institutionId  String               @db.Uuid
+  subscriptionId String?              @db.Uuid
+  action         SubscriptionHistoryAction
+  changedById    String               @db.Uuid
+  oldPlanId      String?              @db.Uuid
+  newPlanId      String?              @db.Uuid
+  oldStatus      SubscriptionStatus?
+  newStatus      SubscriptionStatus?
+  oldSeatLimit   Int?
+  newSeatLimit   Int?
+  oldStartsAt    DateTime?
+  oldEndsAt      DateTime?
+  newStartsAt    DateTime?
+  newEndsAt      DateTime?
+  reason         String?
+  createdAt      DateTime             @default(now())
+
+  institution  Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  changedBy    User         @relation("SubscriptionHistoryChangedBy", fields: [changedById], references: [id])
+
+  @@index([institutionId, createdAt])
+  @@index([subscriptionId])
+  @@index([action])
 }
 
 // ============================================================================

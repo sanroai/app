@@ -2,6 +2,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards, SetMetadata } 
 import { ApiTags } from '@nestjs/swagger';
 import { AiService } from './ai.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ChatSchema } from '@sanro/validation';
@@ -12,6 +13,7 @@ import { ParentContentGuard, PARENT_RESTRICTED_KEY } from '../common/guards/pare
 @ApiTags('ai')
 @Controller('ai')
 @UseGuards(ParentContentGuard)
+@SubscriptionRequired()
 export class AiController {
   constructor(
     private readonly ai: AiService,

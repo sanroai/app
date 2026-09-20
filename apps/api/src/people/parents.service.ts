@@ -3,6 +3,7 @@ import { Role } from '@sanro/types';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { hash } from 'bcryptjs';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class ParentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly subscription: SubscriptionAccessService,
   ) {}
 
   async createParent(user: RequestUser, data: { name: string; email: string; phone?: string }) {
@@ -21,6 +23,7 @@ export class ParentsService {
     const password = await hash('sanro123', 10);
 
     const parent = await this.prisma.$transaction(async (tx) => {
+      await this.subscription.assertSeatAvailable(institutionId, 1, tx);
       const u = await tx.user.create({
         data: {
           name: data.name,

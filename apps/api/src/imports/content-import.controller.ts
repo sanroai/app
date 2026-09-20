@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Query, UploadedFile, UploadedFiles, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes } from '@nestjs/swagger';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequestUser } from '../common/types/auth-context';
 import { Role } from '@prisma/client';
@@ -13,6 +13,7 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024;
 @ApiTags('content-import')
 @ApiBearerAuth()
 @Controller('content-import')
+@SubscriptionRequired()
 export class ContentImportController {
   constructor(private readonly service: ContentImportService) {}
 

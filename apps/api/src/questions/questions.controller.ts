@@ -4,7 +4,7 @@ import { QuestionSource, QuestionType, Role } from '@sanro/types';
 import { QuestionsService } from './questions.service';
 import { AiService } from '../ai/ai.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { PrismaService } from '../prisma/prisma.service';
@@ -12,6 +12,7 @@ import { CreateQuestionSchema, UpdateQuestionSchema, ReviewQuestionSchema } from
 
 @ApiTags('questions')
 @Controller('questions')
+@SubscriptionRequired()
 export class QuestionsController {
   constructor(
     private readonly service: QuestionsService,

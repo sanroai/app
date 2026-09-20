@@ -7,6 +7,7 @@ import { APP_CONFIG_TOKEN } from './common/common.constants';
 import { AppConfig } from './config/app.config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
+import { SubscriptionGuard } from './common/guards/subscription.guard';
 import { HealthController } from './health/health.controller';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -84,6 +85,7 @@ import { ReportsModule } from './reports/reports.module';
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: SubscriptionGuard },
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

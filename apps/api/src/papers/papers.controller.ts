@@ -5,7 +5,7 @@ import { PapersService } from './papers.service';
 import { paperHTML } from './paper.template';
 import { PdfService } from '../pdf/pdf.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { CreatePaperSchema, RegeneratePaperQuestionsSchema } from '@sanro/validation';
@@ -13,6 +13,7 @@ import { Response } from 'express';
 
 @ApiTags('papers')
 @Controller('papers')
+@SubscriptionRequired()
 export class PapersController {
   private readonly logger = new Logger(PapersController.name);
   constructor(

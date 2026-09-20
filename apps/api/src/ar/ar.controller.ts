@@ -18,7 +18,7 @@ import { Role } from '@prisma/client';
 import { memoryStorage } from 'multer';
 import { AR_MODEL_MAX_BYTES, AR_IMAGE_MAX_BYTES } from './ar-validation.service';
 import { ArService } from './ar.service';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequestUser } from '../common/types/auth-context';
 import { ParentContentGuard, PARENT_RESTRICTED_KEY } from '../common/guards/parent-content.guard';
@@ -29,6 +29,7 @@ const STAFF = [Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER] as const;
 @ApiBearerAuth()
 @UseGuards(ParentContentGuard)
 @Controller('ar')
+@SubscriptionRequired()
 export class ArController {
   constructor(private readonly service: ArService) {}
 

@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { api } from '../../lib/api';
+import { api, BlockedAuthError } from '../../lib/api';
 import { useAuthStore, AuthUser, AuthMembership } from '../../lib/auth-store';
 import { useOfflineStore, isNetworkError } from '../../lib/offline';
-import { cacheSuccessfulLogin, verifyOfflineLogin } from '../../lib/offline-auth';
+import { cacheSuccessfulLogin, verifyOfflineLogin, setCachedEntitlement, OfflineEntitlementError } from '../../lib/offline-auth';
+import { blockedFromBody, routeForBlocked } from '../../lib/blocked';
 import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../constants/theme';
 
 interface AuthPayload {
@@ -30,24 +31,55 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      const data = await api<AuthPayload>('/auth/login', {
+      const data = await api<AuthPayload | { state?: string }>('/auth/login', {
         method: 'POST',
         body: { email: email.trim().toLowerCase(), password },
       });
-      setAuth(data);
-      void cacheSuccessfulLogin(email, password, data);
+      const blocked = blockedFromBody(data);
+      if (blocked) {
+        useAuthStore.getState().setBlocked(blocked);
+        void setCachedEntitlement({
+          state: 'expired',
+          expiresAt: blocked.institution?.expiresAt ?? null,
+          message: blocked.message,
+          blockState: blocked.state,
+        });
+        router.replace(routeForBlocked(blocked.state));
+        return;
+      }
+      const session = data as AuthPayload;
+      setAuth(session);
+      void cacheSuccessfulLogin(email, password, session, { state: 'ok', expiresAt: null });
       setOfflineMode(false);
       router.replace('/(tabs)');
     } catch (err: unknown) {
+      if (err instanceof BlockedAuthError) {
+        router.replace(routeForBlocked(err.state));
+        return;
+      }
+      if (err instanceof OfflineEntitlementError) {
+        useAuthStore.getState().setBlocked({ state: err.blockState, message: err.message, institution: null });
+        router.replace(routeForBlocked(err.blockState));
+        return;
+      }
       const e = err as { message?: string };
       if (isNetworkError(err)) {
-        const cached = await verifyOfflineLogin(email, password);
-        if (cached) {
-          setAuth(cached);
-          useOfflineStore.getState().setOffline(true);
-          setOfflineMode(true);
-          router.replace('/(tabs)');
-          return;
+        try {
+          const cached = await verifyOfflineLogin(email, password);
+          if (cached) {
+            setAuth(cached);
+            useOfflineStore.getState().setOffline(true);
+            setOfflineMode(true);
+            router.replace('/(tabs)');
+            return;
+          }
+        } catch (offlineErr: unknown) {
+          if (offlineErr instanceof OfflineEntitlementError) {
+            useAuthStore.getState().setBlocked({ state: offlineErr.blockState, message: offlineErr.message, institution: null });
+            router.replace(routeForBlocked(offlineErr.blockState));
+            return;
+          }
+          throw offlineErr;
         }
         Alert.alert('You are offline', 'Could not reach the server and no saved login was found for this account. Sign in once online to enable offline access.');
         return;

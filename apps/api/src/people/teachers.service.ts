@@ -7,6 +7,7 @@ import {
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import * as bcrypt from 'bcryptjs';
 
@@ -15,6 +16,7 @@ export class TeachersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly subscription: SubscriptionAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
   ) {}
@@ -87,6 +89,7 @@ export class TeachersService {
     email: string,
   ) {
     const institutionId = this.tenant.requireInstitution(actor);
+    await this.subscription.assertSeatAvailable(institutionId, 1);
     const groupMap = new Map<string, string>();
     if (data.groupIds?.length) {
       const groups = await this.prisma.group.findMany({

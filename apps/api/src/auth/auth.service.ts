@@ -7,13 +7,14 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Inject } from '@nestjs/common';
-import { InstitutionType, LoginResponse, Role } from '@sanro/types';
+import { InstitutionType, LoginResponse, Role, BlockedAccountResponse } from '@sanro/types';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { StringValue } from 'ms';
 import { AppConfig } from '../config/app.config';
 import { APP_CONFIG_TOKEN } from '../common/common.constants';
 import { NotificationsService } from '../common/services/audit-notifications.service';
+import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface LoginResult {
@@ -37,6 +38,8 @@ export interface LoginResult {
   } | null;
 }
 
+export type LoginOutcome = LoginResult | BlockedAccountResponse;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -46,6 +49,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
     private readonly notifications: NotificationsService,
+    private readonly subscriptionAccess: SubscriptionAccessService,
   ) {}
 
   async registerInstitution(body: {
@@ -55,7 +59,7 @@ export class AuthService {
     adminEmail: string;
     adminPhone?: string;
     adminPassword: string;
-  }): Promise<LoginResult> {
+  }): Promise<LoginOutcome> {
     const email = body.adminEmail.toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -111,7 +115,7 @@ export class AuthService {
     });
   }
 
-  async login(email: string, password: string): Promise<LoginResult> {
+  async login(email: string, password: string): Promise<LoginOutcome> {
     const normalized = email.toLowerCase();
     const user = await this.prisma.user.findUnique({ where: { email: normalized } });
     if (!user || !user.passwordHash) {
@@ -122,13 +126,16 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
     if (!user.isActive) {
-      throw new ForbiddenException('This account has been deactivated');
+      throw new ForbiddenException({
+        code: 'USER_DISABLED',
+        message: 'This account has been deactivated by your administrator.',
+      });
     }
 
     return this.issueLogin(user.id, null);
   }
 
-  async switchContext(userId: string, institutionId: string, role: Role) {
+  async switchContext(userId: string, institutionId: string, role: Role): Promise<LoginOutcome> {
     const membership = await this.prisma.institutionMember.findUnique({
       where: { institutionId_userId: { institutionId, userId } },
     });
@@ -144,7 +151,7 @@ export class AuthService {
   private async issueLogin(
     userId: string,
     context: { role: Role; institutionId: string } | null,
-  ): Promise<LoginResult> {
+  ): Promise<LoginOutcome> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('User not found');
 
@@ -168,6 +175,13 @@ export class AuthService {
       const primary = memberships[0];
       role = primary.role;
       institutionId = primary.institutionId;
+    }
+
+    if (role !== Role.SUPER_ADMIN && institutionId) {
+      const state = await this.subscriptionAccess.getAccountState(user.id, role, institutionId);
+      if (!state.access) {
+        return this.toBlockedResponse(user, state);
+      }
     }
 
     const accessToken = await this.signAccessToken(user, role, institutionId);
@@ -214,6 +228,31 @@ export class AuthService {
     };
   }
 
+  private toBlockedResponse(
+    user: { email: string },
+    state: Awaited<ReturnType<SubscriptionAccessService['getAccountState']>>,
+  ): BlockedAccountResponse {
+    const institution = state.institution as Record<string, unknown> | null;
+    return {
+      state: state.state ?? ('SUBSCRIPTION_EXPIRED' as const),
+      message: state.message ?? 'Access blocked',
+      institution: institution
+        ? {
+            id: institution.id as string,
+            name: institution.name as string,
+            type: institution.type as InstitutionType,
+            status: institution.status as 'ACTIVE' | 'SUSPENDED' | 'EXPIRED' | 'ARCHIVED' | 'PENDING',
+            expiresAt: (institution.expiresAt as string | null) ?? null,
+            supportContact: (institution.supportContact as string | null) ?? null,
+          }
+        : null,
+    };
+  }
+
+  async accountState(userId: string, role: Role, institutionId?: string) {
+    return this.subscriptionAccess.getAccountState(userId, role, institutionId);
+  }
+
   private async signAccessToken(
     user: { id: string; email: string; name: string },
     role: Role,
@@ -252,7 +291,7 @@ export class AuthService {
     return { refreshToken };
   }
 
-  async refresh(refreshToken: string): Promise<LoginResponse> {
+  async refresh(refreshToken: string): Promise<LoginResponse | BlockedAccountResponse> {
     let payload: { sub: string; jti: string; type: string };
     try {
       payload = await this.jwtService.verifyAsync<{ sub: string; jti: string; type: string }>(
@@ -270,12 +309,19 @@ export class AuthService {
     if (!session || session.revokedAt || session.expiresAt < new Date()) {
       throw new UnauthorizedException('Session expired; please sign in again');
     }
+
+    const result = await this.issueLogin(payload.sub, null);
+    if ('state' in result) {
+      await this.prisma.session.update({
+        where: { id: session.id },
+        data: { revokedAt: new Date() },
+      });
+      return result;
+    }
     await this.prisma.session.update({
       where: { id: session.id },
       data: { revokedAt: new Date() },
     });
-
-    const result = await this.issueLogin(payload.sub, null);
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,

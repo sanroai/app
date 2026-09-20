@@ -405,9 +405,8 @@ export class LearningService {
     };
   }
 
-  async getConceptDetail(user: RequestUser, conceptId: string) {
+async getConceptDetail(user: RequestUser, conceptId: string) {
     this.tenant.requireInstitution(user);
-
     const concept = await this.prisma.concept.findUnique({
       where: { id: conceptId },
       include: {

@@ -9,3 +9,6 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 
 export const TENANT_OPTIONAL_KEY = 'sanro:tenantOptional';
 export const TenantOptional = () => SetMetadata(TENANT_OPTIONAL_KEY, true);
+
+export const SUBSCRIPTION_REQUIRED_KEY = 'sanro:subscriptionRequired';
+export const SubscriptionRequired = () => SetMetadata(SUBSCRIPTION_REQUIRED_KEY, true);

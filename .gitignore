@@ -47,5 +47,11 @@ Thumbs.db
 .railway/
 releases/
 
+# runtime storage (uploads, AR models)
+storage/
+
+# captured screenshots (regenerate via scripts/screenshots-*.mts)
+screenshots/
+
 # TypeScript build info
 *.tsbuildinfo

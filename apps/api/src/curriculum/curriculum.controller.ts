@@ -4,12 +4,13 @@ import { Role } from '@sanro/types';
 import { CurriculumService } from './curriculum.service';
 import { ContentService } from './content.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 
 @ApiTags('curriculum')
 @Controller('curriculum')
+@SubscriptionRequired()
 export class CurriculumController {
   constructor(private readonly service: CurriculumService) {}
 
@@ -81,6 +82,7 @@ export class CurriculumController {
 
 @ApiTags('content')
 @Controller('content')
+@SubscriptionRequired()
 export class ContentController {
   constructor(private readonly service: ContentService) {}
 

@@ -26,6 +26,8 @@ import {
   NotificationEvent,
   SubscriptionPlan,
   SubscriptionStatus,
+  SubscriptionHistoryAction,
+  AccountBlockState,
   ReportType,
   SupportTicketStatus,
   Language,
@@ -61,6 +63,24 @@ export interface LoginResponse {
   user: AuthUser;
 }
 
+/**
+ * Returned by /auth/login, /auth/refresh and /auth/switch-context when the
+ * authenticated account is blocked (expired / suspended / archived / disabled).
+ * No tokens are issued in this state, so the client renders a dedicated screen.
+ */
+export interface BlockedAccountResponse {
+  state: AccountBlockState;
+  message: string;
+  institution?: {
+    id: UUID;
+    name: string;
+    type: InstitutionType;
+    status: InstitutionStatus;
+    expiresAt?: ISODate | null;
+    supportContact?: string | null;
+  } | null;
+}
+
 export interface AuthProfile extends AuthUser {
   avatarUrl?: string | null;
   language: Language;
@@ -80,13 +100,22 @@ export interface Institution {
   status: InstitutionStatus;
   code: string;
   logoUrl?: string | null;
+  description?: string | null;
   address?: string | null;
   city?: string | null;
   state?: string | null;
+  country?: string | null;
+  website?: string | null;
+  contactPerson?: string | null;
   primaryPhone?: string | null;
   primaryEmail?: string | null;
   createdAt: ISODate;
   seatLimit?: number | null;
+  gracePeriodDays?: number;
+  archivedAt?: ISODate | null;
+  suspendedAt?: ISODate | null;
+  expiredAt?: ISODate | null;
+  lastActivityAt?: ISODate;
   subscription: SubscriptionStatus;
   subscriptionPlan?: SubscriptionPlan | null;
 }
@@ -624,6 +653,172 @@ export interface Subscription {
   startedAt: ISODate;
   endsAt?: ISODate | null;
   seatLimit?: number | null;
+}
+
+export interface SubscriptionView extends Subscription {
+  plan: Plan;
+  daysRemaining?: number | null;
+  expiringSoon: boolean;
+  expired: boolean;
+}
+
+export interface SubscriptionHistoryEntry {
+  id: UUID;
+  action: SubscriptionHistoryAction;
+  institutionId: UUID;
+  subscriptionId?: UUID | null;
+  changedById: UUID;
+  changedBy?: { name: string; email: string } | null;
+  oldPlan?: Plan | null;
+  newPlan?: Plan | null;
+  oldStatus?: SubscriptionStatus | null;
+  newStatus?: SubscriptionStatus | null;
+  oldSeatLimit?: number | null;
+  newSeatLimit?: number | null;
+  oldStartsAt?: ISODate | null;
+  oldEndsAt?: ISODate | null;
+  newStartsAt?: ISODate | null;
+  newEndsAt?: ISODate | null;
+  reason?: string | null;
+  createdAt: ISODate;
+}
+
+// ---- Super admin institution management ------------------------------------
+
+export interface InstitutionListItem {
+  id: UUID;
+  name: string;
+  type: InstitutionType;
+  status: InstitutionStatus;
+  code?: string | null;
+  city?: string | null;
+  state?: string | null;
+  primaryPhone?: string | null;
+  primaryEmail?: string | null;
+  seatLimit?: number | null;
+  billableUsers: number;
+  usagePct: number;
+  limitExceeded: boolean;
+  createdAt: ISODate;
+  lastActivityAt?: ISODate;
+  archivedAt?: ISODate | null;
+  suspendedAt?: ISODate | null;
+  expiredAt?: ISODate | null;
+  primaryAdmin?: { id: UUID; name: string; email: string } | null;
+  subscription?: SubscriptionView | null;
+}
+
+export interface InstitutionListResponse {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: InstitutionListItem[];
+}
+
+export interface InstitutionDetail extends InstitutionListItem {
+  description?: string | null;
+  country?: string | null;
+  website?: string | null;
+  contactPerson?: string | null;
+  gracePeriodDays: number;
+  address?: string | null;
+  counts: {
+    students: number;
+    teachers: number;
+    parents: number;
+    groups: number;
+    assessments: number;
+    papers: number;
+    questions: number;
+    members: number;
+    admins: number;
+  };
+  admins: Array<{
+    id: UUID;
+    userId: UUID;
+    name: string;
+    email: string;
+    phone?: string | null;
+    status: MembershipStatus;
+    lastLoginAt?: ISODate | null;
+  }>;
+  subscriptionHistory: SubscriptionHistoryEntry[];
+  recentAudit: Array<{
+    id: UUID;
+    action: string;
+    entityType?: string | null;
+    metadata: Record<string, unknown>;
+    createdAt: ISODate;
+    user?: { name: string; email: string } | null;
+  }>;
+}
+
+export interface InstitutionQuery {
+  search?: string;
+  type?: InstitutionType;
+  status?: InstitutionStatus;
+  subscriptionStatus?: SubscriptionStatus;
+  plan?: string;
+  limitExceeded?: boolean;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+}
+
+export interface UserLimitStatus {
+  limit?: number | null;
+  current: number;
+  available: number | null;
+  exceeded: boolean;
+}
+
+export interface SuperAdminDashboard {
+  institutions: {
+    total: number;
+    active: number;
+    pending: number;
+    expiringSoon: number;
+    expired: number;
+    suspended: number;
+    archived: number;
+    limitExceeded: number;
+  };
+  users: { total: number; students: number; teachers: number; parents: number };
+}
+
+// ---- Account state (auth + entitlements) ------------------------------------
+
+export interface SubscriptionInfo {
+  id: UUID;
+  planKey: SubscriptionPlan;
+  planName: string;
+  status: SubscriptionStatus;
+  startedAt?: ISODate | null;
+  endsAt?: ISODate | null;
+  seatLimit?: number | null;
+  daysRemaining?: number | null;
+  expiringSoon: boolean;
+  expired: boolean;
+}
+
+export interface AccountStateResponse {
+  access: boolean;
+  state?: AccountBlockState | null;
+  message?: string | null;
+  institution?: {
+    id: UUID;
+    name: string;
+    type: InstitutionType;
+    status: InstitutionStatus;
+    subscription?: SubscriptionInfo | null;
+    expiresAt?: ISODate | null;
+    seatLimit?: number | null;
+    billableUsers?: number | null;
+    limitExceeded: boolean;
+  } | null;
 }
 
 // ---- Support ----------------------------------------------------------------

@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 
 type ExportBody = { fileName: string; content: string } | undefined;
@@ -22,6 +22,7 @@ function sendExport(res: Response, exportBody: ExportBody) {
 
 @ApiTags('reports')
 @Controller('reports')
+@SubscriptionRequired()
 export class ReportsController {
   constructor(private readonly service: ReportsService) {}
 

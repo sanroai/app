@@ -13,8 +13,8 @@ Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
 |-------|------|--------|-------|
 | 0 | Audit + documentation | ✅ DONE | Audit complete; 29 docs created |
 | 1 | Architecture + monorepo + design system | ✅ DONE | Cleanups + defect fixes verified (see below) |
-| 2 | Database + curriculum + tenancy | ⏳ PARTIAL | Schema rebased to clean migration baseline; contact_leads added |
-| 3 | Authentication + RBAC | ⬜ TODO | Regression-verified (retained) |
+| 2 | Database + curriculum + tenancy | ⏳ PARTIAL | Schema rebased to clean migration baseline; `institution_subscription_system` migration added |
+| 3 | Authentication + RBAC | ⏳ PARTIAL | Retained; blocked-state login contract + `GET /auth/account-state` added (2026-09-20) |
 | 4 | Content architecture + ingestion | ✅ DONE | Durable job queue proven end-to-end (see below) |
 | 5 | LEARN library | ⬜ TODO | |
 | 6 | Question bank | ⬜ TODO | |
@@ -25,7 +25,7 @@ Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
 | 11 | Teacher experience | ⬜ TODO | |
 | 12 | Parent experience | ⬜ TODO | |
 | 13 | Principal/Admin experience | ⬜ TODO | |
-| 14 | Super Admin | ⬜ TODO | |
+| 14 | Super Admin | ⏳ PARTIAL | Institution management (create/status/subscription/set-limit groundwork) + entitlement engine done; restore/expire/users/export + dashboard remaining |
 | 15 | AI | ⬜ TODO | |
 | 16 | AR/3D | ⬜ TODO | |
 | 17 | Gamification | ⬜ TODO | |
@@ -259,6 +259,44 @@ committed so Railway never re-uploads the APK.
 ### Build health at this point
 
 ---
+
+## 2026-09-20 — Super-admin institution management + subscription/validity/access-control system
+
+New subsystem (migration `20260920102146_institution_subscription_system`), documented in
+depth in docs/INSTITUTION_MANAGEMENT.md:
+
+- **Entitlement engine** (`apps/api/src/common/security/subscription-access.service.ts`):
+  single source of truth for institution access — subscription validity, seat limits,
+  user/membership state. 15 s in-process cache per institution (`ENTITLEMENT_CACHE_TTL_MS`),
+  `invalidate()`/`clearCache()` hooks.
+- **Route gate** (`common/guards/subscription.guard.ts` + `@SubscriptionRequired()`):
+  global guard enforcing entitlement on gated modules (learning, assessments, people,
+  questions, papers, academics, imports, curriculum, diagnosis, remediation, reports,
+  AR, AI, chat, dashboard). SUPER_ADMIN exempt.
+- **Lazy expiry**: ACTIVE/TRIAL subscription whose `endsAt` passed flips to EXPIRED
+  at next `evaluate()`; ACTIVE institution → EXPIRED (+`expiredAt`). No batch job,
+  no data deletion.
+- **Blocked-account flow**: login/refresh/switch-context return `BlockedAccountResponse`
+  (no tokens); `GET /auth/account-state` added; 6 block states
+  (`AccountBlockState`). Web `/app/account-blocked` and mobile `/expired` screens
+  are pending (contract ready).
+- **Seat limits**: billable seats = ACTIVE students + ACTIVE teachers + all parents +
+  ACTIVE institution-admin memberships; student create enforces `SEAT_LIMIT_REACHED`;
+  `assertSeatAvailable` (`USER_LIMIT_REACHED`) defined but not yet wired to routes.
+- **Admin surfaces**: `POST /admin/institutions`, `PATCH …/status`,
+  `PATCH …/subscription` (replaces ACTIVE/TRIAL, ~30-day end), curriculum CRUD,
+  `GET /admin/audit`, `GET /admin/subscriptions`, `GET /admin/leads`.
+- **Contracts ahead of wiring** (schema/types/validation defined): SubscriptionHistory
+  rows, new AuditActions, renew/expire/plan-change/limit-change/change-admin/restrict-user,
+  institution list pagination/export, `SuperAdminDashboard` — not yet implemented
+  (see "Documented gaps" in docs/INSTITUTION_MANAGEMENT.md).
+
+### Verified
+- `pnpm -r typecheck` covers the new engine/guard/decorators/dto changes.
+- Existing API suites (authorization e2e incl. role matrix, role-access unit) still
+  pass; dedicated subscription-access / admin-institutions / validation-constraint
+  specs are a follow-up.
+- Full `pnpm build` (6 tasks) green.
 
 ## How to Update
 

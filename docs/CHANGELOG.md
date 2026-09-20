@@ -2,6 +2,27 @@
 
 Format: date — phase — change.
 
+## 2026-09-20 — Super-admin institution management + subscription/validity/access-control
+- Entitlement engine `SubscriptionAccessService` (cached 15 s) + global
+  `SubscriptionGuard` with `@SubscriptionRequired()` coverage across learning,
+  assessments, people, questions, papers, academics, imports, curriculum, diagnosis,
+  remediation, reports, AR, AI, chat, dashboard. SUPER_ADMIN exempt.
+- Lazy expiry (no batch job): ended ACTIVE/TRIAL subscription → EXPIRED;
+  ACTIVE institution → EXPIRED on next evaluation. Data never deleted.
+- Blocked-account contract: login/refresh/switch-context return `BlockedAccountResponse`
+  (no tokens); `GET /auth/account-state` added; six `AccountBlockState`s.
+- Seat limits: billable-seat definition + `SEAT_LIMIT_REACHED` on student create;
+  `USER_LIMIT_REACHED` helper defined. `gracePeriodDays` surfaced but not yet applied.
+- Super-admin institutions: create, status patch (ACTIVE/SUSPENDED/ARCHIVED),
+  subscription set (cancel prior ACTIVE/TRIAL + new ~30-day), curriculum CRUD,
+  global audit/subscriptions/leads.
+- Schema: migration `20260920102146_institution_subscription_system`
+  (SubscriptionHistory + enums + Institution columns + indexes).
+- Full reference: docs/INSTITUTION_MANAGEMENT.md; spec sections
+  `docs/MASTER_PRODUCT_SPEC.md` §38–45. Known gaps (not-yet-wired renew/expire/
+  restore/users/export, SubscriptionHistory writers, cache invalidation from admin,
+  dedicated specs) listed in the reference doc §"Documented gaps".
+
 ## 2026-09-17 — Production deploy completed
 - **Web LIVE on `sanroai.com` + `app.sanroai.com`** (Vercel `--prod`, aliased
   sanroai.com): new build includes the `/api/contact` proxy, fixed parents page,

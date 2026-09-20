@@ -25,6 +25,37 @@ export const IMPORT_LIMITS = {
   SYNC_PROCESS_MAX_ROWS: 500,
 } as const;
 
+export const SUBSCRIPTION = {
+  EXPIRING_SOON_DAYS: 30,
+  DEFAULT_GRACE_PERIOD_DAYS: 0,
+  TRIAL_SEAT_LIMIT: 100,
+  RENEW_DURATION_DAYS: 365,
+  ENTITLEMENT_CACHE_TTL_MS: 15000,
+} as const;
+
+export const BLOCKED_ACCOUNT_MESSAGES: Record<
+  'SUBSCRIPTION_EXPIRED' | 'INSTITUTION_SUSPENDED' | 'INSTITUTION_ARCHIVED' | 'INSTITUTION_PENDING' | 'USER_DISABLED' | 'MEMBERSHIP_DEACTIVATED',
+  string
+> = {
+  SUBSCRIPTION_EXPIRED:
+    'Your institution\u2019s SANRO validity has expired. Please contact your administrator to renew your access.',
+  INSTITUTION_SUSPENDED: 'Institution access has been suspended. Please contact SANRO support.',
+  INSTITUTION_ARCHIVED: 'This institution has been archived.',
+  INSTITUTION_PENDING: 'This institution has not been activated yet. Please contact SANRO support.',
+  USER_DISABLED: 'This account has been deactivated by your institution administrator.',
+  MEMBERSHIP_DEACTIVATED: 'Your membership in this institution has been deactivated.',
+} as const;
+
+export const INSTITUTION_TYPES = [
+  'SCHOOL',
+  'COACHING',
+  'ACADEMY',
+  'TUITION_CENTRE',
+  'EDUCATIONAL_INSTITUTE',
+  'TRAINING_CENTRE',
+  'OTHER',
+] as const;
+
 export const SUPPORTED_IMPORT_EXTENSIONS = ['.csv', '.xlsx', '.xls'] as const;
 
 export const DEFAULT_PAPER_DISTRIBUTION = {

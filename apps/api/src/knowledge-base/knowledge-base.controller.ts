@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RequestUser } from '../common/types/auth-context';
 import { Role } from '@prisma/client';
@@ -12,6 +12,7 @@ import { JobQueueService } from '../common/services/job-queue.service';
 @ApiTags('knowledge-base')
 @ApiBearerAuth()
 @Controller('knowledge-base')
+@SubscriptionRequired()
 export class KnowledgeBaseController {
   constructor(
     private readonly service: KnowledgeBaseService,

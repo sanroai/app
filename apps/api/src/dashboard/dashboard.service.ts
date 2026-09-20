@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 
 @Injectable()
@@ -9,6 +10,7 @@ export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly subscription: SubscriptionAccessService,
     private readonly identity: StudentIdentityService,
   ) {}
 
@@ -288,6 +290,9 @@ export class DashboardService {
         }),
       ]);
 
+    const billable = await this.subscription.countBillableUsers(institutionId);
+    const seatLimit = activePlan?.seatLimit ?? institution?.seatLimit ?? 0;
+
     return {
       institution,
       usage: {
@@ -295,14 +300,12 @@ export class DashboardService {
         activeTeachers: teacherCount,
         groups: groupCount,
         assessments: assessmentCount,
-        seatLimit: institution?.seatLimit ?? activePlan?.seatLimit ?? 0,
-        seatUtilizationPct: institution?.seatLimit
-          ? Math.round((studentCount / institution.seatLimit) * 100)
-          : null,
+        seatLimit,
+        seatUtilizationPct: seatLimit ? Math.round((billable / seatLimit) * 100) : null,
       },
       subscription: activePlan,
       recentImports,
-      seatAlert: institution?.seatLimit ? studentCount >= institution.seatLimit : false,
+      seatAlert: seatLimit ? billable > seatLimit : false,
     };
   }
 

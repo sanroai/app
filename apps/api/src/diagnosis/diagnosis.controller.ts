@@ -2,10 +2,12 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { DiagnosisService } from './diagnosis.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 
 @ApiTags('diagnosis')
 @Controller('diagnosis')
+@SubscriptionRequired()
 export class DiagnosisController {
   constructor(private readonly service: DiagnosisService) {}
 

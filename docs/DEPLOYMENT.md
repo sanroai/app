@@ -20,6 +20,12 @@ API key envs: DATABASE_URL, AUTH_SECRET (≥32, no `dev-` in prod), NODE_ENV,
 CORS_ORIGINS, STORAGE_R2_*, AI_PROVIDER/AI_MODEL/OPENAI_API_KEY, PDF engine,
 SMTP, rate limit tunables.
 
+Subscription/validity system (see docs/INSTITUTION_MANAGEMENT.md) requires **no
+extra env vars** — entitlement timings come from `SUBSCRIPTION.*` constants in
+`@sanro/config` (cache TTL 15 s, expiring-soon 30 d, grace default 0, renew 365 d).
+Pricing is data-driven from the `Plan` table (idempotent seed). Deploy runs the
+`institution_subscription_system` migration via `prisma migrate deploy`.
+
 Web env: NEXT_PUBLIC_API_URL=https://api.sanroai.com/api/v1.
 Mobile env: EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1 (all EAS profiles).
 

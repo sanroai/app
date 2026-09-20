@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AiService } from '../ai/ai.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ChatSchema } from '@sanro/validation';
@@ -9,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('chat')
 @Controller('chat')
+@SubscriptionRequired()
 export class ChatController {
   constructor(private readonly ai: AiService, private readonly prisma: PrismaService) {}
 

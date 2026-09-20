@@ -38,7 +38,33 @@
 - Mobile: SecureStore tokens; offline vault uses salted SHA-256 (salt
   `sanro-offline`)
 
-## 4. Operational
+## 4. Subscription / Entitlement Security
+
+Subsystem reference: `docs/INSTITUTION_MANAGEMENT.md`.
+
+- **Server-side only**: validity is decided by `SubscriptionAccessService` in UTC;
+  client clocks/devices never decide access. Time never trusts the client.
+- **No client-side gating**: entitlement runs in `SubscriptionGuard` + the auth flow;
+  hiding UI is a UX nicety, never a control.
+- **Logins never issue tokens to blocked accounts**: expired/suspended/archived/
+  pending/disabled/membership-deactivated accounts get a `BlockedAccountResponse`
+  (no access/refresh token); refresh revokes the old session.
+- **Seat-limit resource guard**: student create enforces
+  `SEAT_LIMIT_REACHED` (effective limit = subscription.seatLimit else
+  institution.seatLimit); no silent oversubscription. Bulk-import seat checks are
+  pending (see INSTITUTION_MANAGEMENT.md gaps).
+- **Cache invalidation path**: entitlement cached 15 s; `invalidate(institutionId)`
+  is the explicit invalidation hook for admin mutations (not yet called there).
+- **SUPER_ADMIN exemption is structural**: super admins skip entitlement and tenant
+  binding; their routes are `@Roles('SUPER_ADMIN')` + `requireSuperAdmin`. RolesGuard
+  has no blind SUPER_ADMIN passthrough — roles are explicit per route.
+- **Anti-bypass notes**: no wildcard-CORS change (still locked to sanroai.com /
+  app.sanroai.com / www.sanroai.com); blocked states are re-checked on every
+  entitlement-gated request (TTL ≤15 s), so unblocking a tenant self-heals within
+  the TTL; the admin module writes no cache invalidation yet so a subscription change
+  takes effect within 15 s.
+
+## 5. Operational
 
 - No secrets committed; `.env*` gitignored
 - Swagger gated behind `NODE_ENV !== 'production'`

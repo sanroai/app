@@ -5,16 +5,18 @@ import { StudentsService } from './students.service';
 import { TeachersService } from './teachers.service';
 import { ParentsService } from './parents.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { CreateStudentSchema, UpdateStudentSchema, MoveStudentSchema, CreateTeacherSchema, CreateParentSchema } from '@sanro/validation';
 
 @ApiTags('students')
 @Controller('students')
+@SubscriptionRequired()
 export class StudentsController {
   constructor(private readonly service: StudentsService) {}
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Get()
   list(@CurrentUser() user: RequestUser, @Query() query: Record<string, string | undefined>) {
     return this.service.listStudents(user, {
@@ -33,6 +35,7 @@ export class StudentsController {
     return this.service.createStudent(user, body as Parameters<typeof this.service.createStudent>[1]);
   }
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Get(':id')
   detail(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.studentDetail(user, id);
@@ -76,9 +79,11 @@ export class StudentsController {
 
 @ApiTags('teachers')
 @Controller('teachers')
+@SubscriptionRequired()
 export class TeachersController {
   constructor(private readonly service: TeachersService) {}
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Get()
   list(@CurrentUser() user: RequestUser) {
     return this.service.listTeachers(user);
@@ -115,9 +120,11 @@ export class TeachersController {
 
 @ApiTags('parents')
 @Controller('parents')
+@SubscriptionRequired()
 export class ParentsController {
   constructor(private readonly service: ParentsService) {}
 
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Get()
   list(@CurrentUser() user: RequestUser) {
     return this.service.listParents(user);

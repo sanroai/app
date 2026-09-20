@@ -3,13 +3,14 @@ import { ApiTags } from '@nestjs/swagger';
 import { Role } from '@sanro/types';
 import { RemediationService } from './remediation.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { UpdateRemediationItemSchema } from '@sanro/validation';
 
 @ApiTags('remediation')
 @Controller('remediation')
+@SubscriptionRequired()
 export class RemediationController {
   constructor(private readonly service: RemediationService) {}
 

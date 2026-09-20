@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
+import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { AuditService } from '../common/services/audit-notifications.service';
 
 interface ParsedRow {
@@ -80,6 +81,7 @@ export class ImportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
+    private readonly subscription: SubscriptionAccessService,
     private readonly audit: AuditService,
   ) {}
 
@@ -157,6 +159,22 @@ export class ImportsService {
     let duplicates = 0;
 
     const results = await this.prisma.$transaction(async (tx) => {
+      if (job.entityType === 'STUDENTS' || job.entityType === 'TEACHERS') {
+        const seats = await this.subscription.seatAvailability(institutionId, job.rows.length, tx);
+        if (!seats.allowed) {
+          throw new BadRequestException({
+            code: 'USER_LIMIT_REACHED',
+            message:
+              'User limit reached. Please contact your SANRO administrator to increase your subscription limit.',
+            details: {
+              current: seats.current,
+              requested: job.rows.length,
+              available: seats.available,
+              limit: seats.limit,
+            },
+          });
+        }
+      }
       for (const row of job.rows) {
         const data = row.data as Record<string, unknown>;
         const value = validateRow(data, row.rowNumber).value;

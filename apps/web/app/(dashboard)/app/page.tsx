@@ -38,8 +38,13 @@ import {
   Eye,
   Calendar,
   ChevronRight,
+  Building2,
+  Ban,
+  Archive,
+  Settings2,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useSuperAdminDashboard } from '@/lib/institution-hooks';
 
 /* ─── Types ─── */
 
@@ -150,6 +155,7 @@ export default function DashboardPage() {
   const isStudent = user.role === 'STUDENT';
   const isTeacher = user.role === 'TEACHER';
   const isParent = user.role === 'PARENT';
+  const isSuperAdmin = user.role === 'SUPER_ADMIN';
 
   const greeting = getGreeting();
 
@@ -194,6 +200,8 @@ export default function DashboardPage() {
           {error}
         </div>
       )}
+
+      {isSuperAdmin && <SuperAdminCards />}
 
       {loading && <DashboardSkeleton />}
 
@@ -1085,6 +1093,132 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
         </Card>
       )}
     </>
+  );
+}
+
+/* ─── Super Admin Cards ─── */
+
+function SuperAdminCards() {
+  const { data, isLoading } = useSuperAdminDashboard();
+  const institutions = data?.institutions;
+  const users = data?.users;
+
+  const statCards = [
+    {
+      label: 'Total Institutions',
+      value: institutions?.total ?? 0,
+      icon: Building2,
+      gradient: 'from-slate-500 to-indigo-600',
+      href: '/app/institutions',
+    },
+    {
+      label: 'Active',
+      value: institutions?.active ?? 0,
+      icon: CheckCircle2,
+      gradient: 'from-emerald-500 to-teal-600',
+      href: '/app/institutions?status=ACTIVE',
+    },
+    {
+      label: 'Expiring Soon',
+      value: institutions?.expiringSoon ?? 0,
+      icon: Clock,
+      gradient: 'from-amber-500 to-orange-600',
+      href: '/app/institutions?subscriptionStatus=EXPIRING_SOON',
+    },
+    {
+      label: 'Expired',
+      value: institutions?.expired ?? 0,
+      icon: AlertTriangle,
+      gradient: 'from-red-500 to-rose-600',
+      href: '/app/institutions?subscriptionStatus=EXPIRED',
+    },
+    {
+      label: 'Suspended',
+      value: institutions?.suspended ?? 0,
+      icon: Ban,
+      gradient: 'from-purple-500 to-violet-600',
+      href: '/app/institutions?status=SUSPENDED',
+    },
+    {
+      label: 'Archived',
+      value: institutions?.archived ?? 0,
+      icon: Archive,
+      gradient: 'from-slate-400 to-slate-600',
+      href: '/app/institutions?status=ARCHIVED',
+    },
+    {
+      label: 'Seat Limit Exceeded',
+      value: institutions?.limitExceeded ?? 0,
+      icon: Users,
+      gradient: 'from-orange-500 to-red-600',
+      href: '/app/institutions?limitExceeded=true',
+    },
+  ];
+
+  const userStrips = [
+    { label: 'Students', value: users?.students ?? 0, icon: GraduationCap, gradient: 'from-brand-500 to-purple-600' },
+    { label: 'Teachers', value: users?.teachers ?? 0, icon: BookOpen, gradient: 'from-blue-500 to-indigo-600' },
+    { label: 'Parents', value: users?.parents ?? 0, icon: Users, gradient: 'from-teal-500 to-emerald-600' },
+    { label: 'Total Users', value: users?.total ?? 0, icon: Users, gradient: 'from-slate-500 to-slate-700' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-surface-900">Platform Overview</h2>
+          <p className="text-sm text-surface-500">Institutions and users across SANRO</p>
+        </div>
+        <Link href="/app/institutions">
+          <Button variant="outline" className="shrink-0">
+            <Settings2 className="mr-2 h-4 w-4" />
+            Manage Institutions
+          </Button>
+        </Link>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+        {statCards.map((stat) => (
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className={cn(isLoading && 'animate-pulse', 'block')}
+          >
+            <Card className={`bg-gradient-to-br ${stat.gradient} text-white border-0 hover:shadow-xl hover:-translate-y-0.5 transition-all`}>
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <p className="text-white/80 text-xs font-medium truncate">{stat.label}</p>
+                    <p className="text-2xl font-bold mt-1">{stat.value}</p>
+                  </div>
+                  <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                    <stat.icon className="h-5 w-5" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {userStrips.map((stat) => (
+          <Card key={stat.label} className={`bg-gradient-to-br ${stat.gradient} text-white border-0`}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/80 text-sm font-medium">{stat.label}</p>
+                  <p className="text-2xl font-bold mt-1">{stat.value}</p>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                  <stat.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
 

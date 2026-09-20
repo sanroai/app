@@ -1,8 +1,8 @@
-import { Controller, Get, Param, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { LearningService } from './learning.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ParentContentGuard, PARENT_RESTRICTED_KEY } from '../common/guards/parent-content.guard';
 import { SetMetadata } from '@nestjs/common';
@@ -10,8 +10,15 @@ import { SetMetadata } from '@nestjs/common';
 @ApiTags('learning')
 @Controller('learning')
 @UseGuards(ParentContentGuard)
+@SubscriptionRequired()
 export class LearningController {
   constructor(private readonly service: LearningService) {}
+
+  private uuidOrBadRequest(value: string): void {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
+      throw new NotFoundException('Resource not found');
+    }
+  }
 
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('home')
@@ -33,12 +40,14 @@ export class LearningController {
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('chapters/:chapterId')
   chapterDetail(@CurrentUser() user: RequestUser, @Param('chapterId') chapterId: string) {
+    this.uuidOrBadRequest(chapterId);
     return this.service.getChapterDetail(user, chapterId);
   }
 
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('concepts/:conceptId')
   conceptDetail(@CurrentUser() user: RequestUser, @Param('conceptId') conceptId: string) {
+    this.uuidOrBadRequest(conceptId);
     return this.service.getConceptDetail(user, conceptId);
   }
 

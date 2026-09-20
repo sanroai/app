@@ -3,6 +3,9 @@
 Version: 1.0
 Date: 2026-09-17
 Status: RATIFIED — this is the single master source of truth.
+Feature status: sections 38–45 ratified as IMPLEMENTED on 2026-09-20 (super-admin
+institution management + subscription/validity/access-control/limits/expiry); the
+remaining contract surfaces listed in those sections are marked accordingly.
 
 Morale rule: whenever architecture, features, workflows, roles, data models,
 UX rules or important decisions change, UPDATE THIS DOCUMENT first, then update
@@ -300,3 +303,59 @@ audit. Report exactly per §78 of the rebuild spec.
 - Historical assessment results are immutable.
 - No hardcoded/fake questions, mastery, stats, users, or AI responses.
 - APK must actually build and be validated before completion is claimed.
+
+## 38. Institution Management (Super Admin) — IMPLEMENTED
+
+Tenant CRUD for SUPER_ADMIN: create (with admin assignment), status patch
+(ACTIVE / SUSPENDED / ARCHIVED), list + detail, curriculum maintenance, global
+audit/subscriptions/leads. Duplicate-institution detection and the full
+create/update/restore/expire/user-management/export surface are contract-ready but
+not yet wired. Reference: docs/INSTITUTION_MANAGEMENT.md §6–7.
+
+## 39. Subscription & Validity — IMPLEMENTED
+
+Per-institution subscription (Plan key month/year; no payments gateway — billing-
+ready, data-driven pricing). ACTIVE/TRIAL subscriptions with a passed `endsAt`
+report effective EXPIRED; `endsAt = null` never expires. Lazy expiry flips state at
+next evaluation — no batch job, no data deletion. Reference: docs/INSTITUTION_MANAGEMENT.md §4–5.
+
+## 40. Access Control & Blocked Account States — IMPLEMENTED
+
+Six `AccountBlockState`s; login/refresh/switch-context return `BlockedAccountResponse`
+(no tokens); `GET /auth/account-state` exposes the decision; web/mobile blocked
+screens pending. Severed states re-checked per gated request; SUPER_ADMIN exempt.
+Reference: docs/INSTITUTION_MANAGEMENT.md §2.
+
+## 41. Seat Limits — IMPLEMENTED
+
+Billable seats = ACTIVE students + ACTIVE teachers + all parents + ACTIVE
+institution-admin memberships. Effective limit = subscription.seatLimit else
+institution.seatLimit. Student create enforced (`SEAT_LIMIT_REACHED`);
+`USER_LIMIT_REACHED` helper defined; imports not yet seat-checked. Reference:
+docs/INSTITUTION_MANAGEMENT.md §3.
+
+## 42. Subscription Life-cycle Ops — IMPLEMENTED (partial)
+
+Set/replace shipped (cancels prior ACTIVE/TRIAL, new subscription). Renew / force-
+expire / plan-change / seat-limit-change and SubscriptionHistory + AuditAction
+writers are contract-ready, not yet implemented. Reference:
+docs/INSTITUTION_MANAGEMENT.md §5.
+
+## 43. Enforcement Architecture — IMPLEMENTED
+
+Guard chain JwtAuthGuard → RolesGuard → ThrottlerGuard → SubscriptionGuard →
+handler; cached entitlement engine (15 s, invalidatable) distinct from the sync
+tenant-access chokepoint. Reference: docs/INSTITUTION_MANAGEMENT.md §8.
+
+## 44. Audit Trail (Institution & Subscription) — IMPLEMENTED (schema/enums)
+
+`SubscriptionHistory` model + `SubscriptionHistoryAction`, 15 new `AuditAction`
+values, `Institution` lifecycle timestamps, indexes — migrated
+(`20260920102146_institution_subscription_system`) but not yet written by the admin
+mutations themselves. Reference: docs/INSTITUTION_MANAGEMENT.md §9.
+
+## 45. Grace Period & Expiring-Soon — IMPLEMENTED (storage/surface)
+
+`gracePeriodDays` stored + surfaced in account-state (default 0), not yet applied
+to expiry math; `expiringSoon` (≤30 days) exposed on entitlement. Reference:
+docs/INSTITUTION_MANAGEMENT.md §4.

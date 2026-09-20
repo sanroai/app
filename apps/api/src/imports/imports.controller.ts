@@ -4,7 +4,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Role } from '@sanro/types';
 import { ImportsService } from './imports.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ImportEntityType } from '@sanro/types';
 import { memoryStorage } from 'multer';
@@ -13,6 +13,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 @ApiTags('imports')
 @Controller('imports')
+@SubscriptionRequired()
 export class ImportsController {
   constructor(private readonly service: ImportsService) {}
 

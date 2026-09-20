@@ -2,12 +2,13 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { Roles } from '../common/decorators/auth.decorators';
+import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 
 @ApiTags('dashboard')
 @Controller('dashboard')
+@SubscriptionRequired()
 export class DashboardController {
   constructor(private readonly service: DashboardService, private readonly prisma: PrismaService) {}
 

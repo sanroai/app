@@ -79,6 +79,101 @@ export const CreateInstitutionSchema = z.object({
 
 export const UpdateInstitutionSchema = CreateInstitutionSchema.partial();
 
+export const InstitutionStatusPatchSchema = z.object({
+  status: z.enum(['ACTIVE', 'SUSPENDED', 'EXPIRED', 'ARCHIVED', 'PENDING']),
+  reason: z.string().trim().max(500).optional(),
+});
+
+export const SetSubscriptionSchema = z.object({
+  planKey: z.enum(['STUDENT_MONTHLY', 'STUDENT_YEARLY', 'INSTITUTION']),
+  status: z.enum(['ACTIVE', 'TRIAL', 'EXPIRED', 'CANCELLED', 'PAST_DUE', 'SUSPENDED']).default('ACTIVE'),
+  startsAt: z.string().optional(),
+  endsAt: z.string().optional(),
+  seatLimit: z.coerce.number().int().positive().optional(),
+  reason: z.string().trim().max(500).optional(),
+}).superRefine((v, ctx) => {
+  if (v.startsAt && v.endsAt && new Date(v.endsAt) < new Date(v.startsAt)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endsAt'], message: 'end date cannot be before start date' });
+  }
+});
+
+export const RenewSubscriptionSchema = z.object({
+  endDate: z.string().min(1, 'End date is required'),
+  planKey: z.enum(['STUDENT_MONTHLY', 'STUDENT_YEARLY', 'INSTITUTION']).optional(),
+  seatLimit: z.coerce.number().int().positive().optional(),
+  startsAt: z.string().optional(),
+  reason: z.string().trim().max(500).optional(),
+}).superRefine((v, ctx) => {
+  if (v.startsAt && new Date(v.endDate) < new Date(v.startsAt)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endDate'], message: 'end date cannot be before start date' });
+  }
+});
+
+export const ChangeUserLimitSchema = z.object({
+  seatLimit: z.coerce.number().int().positive('Limit must be at least 1').max(1000000),
+  reason: z.string().trim().max(500).optional(),
+});
+
+export const ChangeAdminSchema = z.object({
+  assignUserId: z.string().uuid().optional(),
+  adminEmail: emailSchema.optional(),
+  adminName: z.string().trim().min(2).optional(),
+  reason: z.string().trim().max(500).optional(),
+}).refine((v) => v.assignUserId || (v.adminEmail && v.adminName), {
+  message: 'Provide assignUserId or both adminEmail + adminName',
+});
+
+export const RestrictUserSchema = z.object({
+  userId: z.string().uuid(),
+  action: z.enum(['DISABLE', 'ENABLE']),
+  reason: z.string().trim().max(500).optional(),
+});
+
+export const AdminCreateInstitutionSchema = z.object({
+  name: z.string().trim().min(2, 'Name is required'),
+  type: z.enum(Object.values(InstitutionType) as [string, ...string[]]),
+  code: z.string().trim().min(2).max(20).optional(),
+  description: z.string().trim().max(1000).optional(),
+  address: z.string().trim().max(300).optional(),
+  city: z.string().trim().max(120).optional(),
+  state: z.string().trim().max(120).optional(),
+  country: z.string().trim().max(120).optional(),
+  website: z.string().trim().url('Invalid website').optional(),
+  contactPerson: z.string().trim().max(200).optional(),
+  primaryPhone: phoneSchema,
+  primaryEmail: optionalEmailSchema,
+  seatLimit: z.coerce.number().int().positive().optional(),
+  gracePeriodDays: z.coerce.number().int().min(0).max(3650).default(0),
+  adminName: z.string().trim().min(2).optional(),
+  adminEmail: emailSchema.optional(),
+  adminPhone: phoneSchema,
+  adminPassword: z.string().min(8).optional(),
+  assignUserId: z.string().uuid().optional(),
+  status: z.enum(['ACTIVE', 'TRIAL', 'EXPIRED', 'CANCELLED', 'PAST_DUE', 'SUSPENDED']).optional(),
+  planKey: z.enum(['STUDENT_MONTHLY', 'STUDENT_YEARLY', 'INSTITUTION']).optional(),
+  startsAt: z.string().optional(),
+  endsAt: z.string().optional(),
+}).superRefine((v, ctx) => {
+  if (v.startsAt && v.endsAt && new Date(v.endsAt) < new Date(v.startsAt)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['endsAt'], message: 'end date cannot be before start date' });
+  }
+});
+
+export const InstitutionsQuerySchema = z.object({
+  search: z.string().trim().max(200).optional(),
+  type: z.enum(Object.values(InstitutionType) as [string, ...string[]]).optional(),
+  status: z.enum(['ACTIVE', 'SUSPENDED', 'EXPIRED', 'ARCHIVED', 'PENDING']).optional(),
+  subscriptionStatus: z.enum(['ACTIVE', 'TRIAL', 'EXPIRED', 'CANCELLED', 'PAST_DUE', 'SUSPENDED', 'EXPIRING_SOON']).optional(),
+  plan: z.enum(['STUDENT_MONTHLY', 'STUDENT_YEARLY', 'INSTITUTION']).optional(),
+  limitExceeded: z.enum(['true', 'false']).optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(200).default(10),
+  sortBy: z.enum(['name', 'createdAt', 'expiry', 'users', 'limit', 'activity', 'type', 'status']).default('createdAt'),
+  sortDir: z.enum(['asc', 'desc']).default('desc'),
+});
+
 export const CreateAcademicYearSchema = z.object({
   name: z.string().trim().min(4, 'Academic year name required, e.g. 2026-27'),
   startDate: z.string().min(1),
@@ -272,6 +367,14 @@ export type RegisterInstitution = z.infer<typeof RegisterInstitutionSchema>;
 export type Login = z.infer<typeof LoginSchema>;
 export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;
 export type CreateInstitution = z.infer<typeof CreateInstitutionSchema>;
+export type AdminCreateInstitution = z.infer<typeof AdminCreateInstitutionSchema>;
+export type SetSubscription = z.infer<typeof SetSubscriptionSchema>;
+export type RenewSubscription = z.infer<typeof RenewSubscriptionSchema>;
+export type ChangeUserLimit = z.infer<typeof ChangeUserLimitSchema>;
+export type ChangeAdmin = z.infer<typeof ChangeAdminSchema>;
+export type RestrictUser = z.infer<typeof RestrictUserSchema>;
+export type InstitutionStatusPatch = z.infer<typeof InstitutionStatusPatchSchema>;
+export type InstitutionsQuery = z.infer<typeof InstitutionsQuerySchema>;
 export type CreateGroup = z.infer<typeof CreateGroupSchema>;
 export type CreateStudent = z.infer<typeof CreateStudentSchema>;
 export type CreateQuestion = z.infer<typeof CreateQuestionSchema>;
