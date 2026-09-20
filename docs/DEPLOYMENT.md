@@ -34,8 +34,10 @@ Mobile env: EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1 (all EAS profiles
 ## 3. Deploy Procedure
 
 1. Run CI: typecheck → test → build → E2E.
-2. Push API: Railway deploys from GitHub; preDeploy runs Prisma migrations +
-   idempotent seed. Health check `GET /api/v1/health`.
+2. Push API: Railway deploys from GitHub. The project is configured at the
+   repo root (`railway.json`, auto-detected; run `railway up` from the repo
+   root, not `apps/api`); preDeploy runs Prisma migrations + idempotent seed.
+   Health check `GET /api/v1/health`.
 3. Push web: Vercel production deploy.
 4. Verify domains, HTTPS, CORS, auth login, critical workflows, PDF, uploads,
    AI.
