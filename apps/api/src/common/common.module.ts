@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { EntitlementService } from '../common/security/entitlement.service';
+import { SystemInstitutionService } from '../common/security/system-institution.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 import { StorageService } from '../common/services/storage.service';
@@ -28,6 +29,7 @@ import { APP_CONFIG_TOKEN } from './common.constants';
     StorageService,
     JobQueueService,
     ContentScopeService,
+    SystemInstitutionService,
   ],
   exports: [
     APP_CONFIG_TOKEN,
@@ -41,6 +43,7 @@ import { APP_CONFIG_TOKEN } from './common.constants';
     StorageService,
     JobQueueService,
     ContentScopeService,
+    SystemInstitutionService,
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class

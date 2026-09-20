@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { AuditAction, Role } from '@sanro/types';
 import { Prisma } from '@prisma/client';
@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../common/services/audit-notifications.service';
 import { EntitlementService } from '../common/security/entitlement.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
+import { SystemInstitutionService } from '../common/security/system-institution.service';
 
 export interface PeopleListQuery {
   institutionId?: string;
@@ -31,12 +32,20 @@ const EXPIRING_SOON_DAYS = 30;
 
 @Injectable()
 export class AdminPeopleService {
+  private _systemId: string | null = null;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly entitlement: EntitlementService,
     private readonly subscriptionAccess: SubscriptionAccessService,
+    private readonly systemInstitution: SystemInstitutionService,
   ) {}
+
+  private async systemId(): Promise<string> {
+    if (!this._systemId) this._systemId = await this.systemInstitution.systemInstitutionId();
+    return this._systemId;
+  }
 
   private assertSuperAdmin(user: RequestUser): void {
     if (user.role !== Role.SUPER_ADMIN) throw new ForbiddenException('Super admin required');
@@ -62,10 +71,6 @@ export class AdminPeopleService {
     const page = Math.max(1, q.page ?? 1);
     const pageSize = Math.min(Math.max(1, q.pageSize ?? 20), 100);
     return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };
-  }
-
-  private deriveSource(institutionId: string | null | undefined): 'INSTITUTION' | 'DIRECT_SANRO' {
-    return institutionId ? 'INSTITUTION' : 'DIRECT_SANRO';
   }
 
   private mapDirectSubscription(sub: any): any {
@@ -103,10 +108,12 @@ export class AdminPeopleService {
     }));
   }
 
-  private mapStudentListItem(row: any): any {
+  private async mapStudentListItem(row: any): Promise<any> {
     const user: any = row.user ?? null;
     const directSubs: any[] = user?.subscriptions ?? [];
     const directSub = directSubs[0] ?? null;
+    const sId = await this.systemId();
+    const isDirect = !row.institutionId || row.institutionId === sId;
     return {
       id: row.id,
       userId: user?.id ?? null,
@@ -119,9 +126,9 @@ export class AdminPeopleService {
       dateOfBirth: row.dateOfBirth ?? null,
       status: row.status ?? null,
       isActive: user?.isActive ?? null,
-      source: this.deriveSource(row.institutionId),
-      institutionId: row.institutionId ?? null,
-      institutionName: row.institution?.name ?? null,
+      source: isDirect ? 'DIRECT_SANRO' : 'INSTITUTION',
+      institutionId: row.institutionId ?? sId,
+      institutionName: isDirect ? 'SANRO AI' : (row.institution?.name ?? null),
       academicYearId: row.academicYearId ?? null,
       subscriptionStatus: this.deriveSubscriptionStatus(directSub),
       subscription: this.mapDirectSubscription(directSub),
@@ -148,22 +155,26 @@ export class AdminPeopleService {
     };
   }
 
-  private mapLinkedChild(student: any): any {
+  private async mapLinkedChild(student: any): Promise<any> {
+    const sId = await this.systemId();
+    const isDirect = !student.institutionId || student.institutionId === sId;
     return {
       studentId: student.id,
       studentName: student.name,
       grade: student.grade ?? null,
-      institutionId: student.institutionId ?? null,
-      institutionName: student.institution?.name ?? null,
-      source: this.deriveSource(student.institutionId),
+      institutionId: student.institutionId ?? sId,
+      institutionName: isDirect ? 'SANRO AI' : (student.institution?.name ?? null),
+      source: isDirect ? 'DIRECT_SANRO' : 'INSTITUTION',
       status: student.status ?? null,
     };
   }
 
-  private mapParentListItem(row: any): any {
+  private async mapParentListItem(row: any): Promise<any> {
     const user: any = row.user ?? null;
     const isActive = user?.isActive !== false;
-    const children = (row.studentLinks ?? []).map((link: any) => this.mapLinkedChild(link.student));
+    const children = await Promise.all((row.studentLinks ?? []).map((link: any) => this.mapLinkedChild(link.student)));
+    const sId = await this.systemId();
+    const isDirect = !row.institutionId || row.institutionId === sId;
     return {
       id: row.id,
       userId: user?.id ?? null,
@@ -172,9 +183,9 @@ export class AdminPeopleService {
       phone: row.phone ?? null,
       status: isActive ? 'ACTIVE' : 'DEACTIVATED',
       isActive,
-      source: this.deriveSource(row.institutionId),
-      institutionId: row.institutionId ?? null,
-      institutionName: row.institution?.name ?? null,
+      source: isDirect ? 'DIRECT_SANRO' : 'INSTITUTION',
+      institutionId: row.institutionId ?? sId,
+      institutionName: isDirect ? 'SANRO AI' : (row.institution?.name ?? null),
       childrenCount: children.length,
       children,
       createdAt: row.createdAt,
@@ -187,34 +198,35 @@ export class AdminPeopleService {
     this.assertSuperAdmin(user);
     const { page, pageSize, skip, take } = this.paginate(q);
     const where: Prisma.StudentWhereInput = {};
+    const and: Prisma.StudentWhereInput[] = [];
     if (q.institutionId) {
       where.institutionId = q.institutionId;
     } else if (q.source === 'DIRECT_SANRO') {
-      where.institutionId = null;
+      const sId = await this.systemId();
+      and.push({ OR: [{ institutionId: sId }, { institutionId: null }] });
     } else if (q.source === 'INSTITUTION') {
-      where.institutionId = { not: null };
+      const sId = await this.systemId();
+      where.institutionId = { notIn: [sId] };
     }
     if (q.grade) where.grade = q.grade;
     if (q.status) where.status = q.status as 'ACTIVE' | 'DEACTIVATED';
     if (q.search) {
       const term = q.search.trim();
       if (term) {
-        where.OR = [
-          { name: { contains: term, mode: 'insensitive' } },
-          { email: { contains: term, mode: 'insensitive' } },
-          { phone: { contains: term, mode: 'insensitive' } },
-          { user: { name: { contains: term, mode: 'insensitive' } } },
-        ];
+        and.push({
+          OR: [
+            { name: { contains: term, mode: 'insensitive' } },
+            { email: { contains: term, mode: 'insensitive' } },
+            { phone: { contains: term, mode: 'insensitive' } },
+            { user: { name: { contains: term, mode: 'insensitive' } } },
+          ],
+        });
       }
     }
     if (q.subscriptionStatus) {
       const ss = q.subscriptionStatus;
       if (ss === 'NONE') {
-        const noneOr: Prisma.StudentWhereInput[] = [
-          { userId: null },
-          { user: { subscriptions: { none: {} } } },
-        ];
-        where.OR = where.OR ? [...(where.OR as Prisma.StudentWhereInput[]), ...noneOr] : noneOr;
+        and.push({ OR: [{ userId: null }, { user: { subscriptions: { none: {} } } }] });
       } else if (ss === 'EXPIRING_SOON') {
         const from = new Date();
         const to = new Date(from.getTime() + EXPIRING_SOON_DAYS * 24 * 60 * 60 * 1000);
@@ -229,6 +241,7 @@ export class AdminPeopleService {
         };
       }
     }
+    if (and.length) where.AND = and;
     const [items, total] = await this.prisma.$transaction([
       this.prisma.student.findMany({
         where,
@@ -253,7 +266,7 @@ export class AdminPeopleService {
       }),
       this.prisma.student.count({ where }),
     ]);
-    return { items: items.map((row) => this.mapStudentListItem(row)), total, page, pageSize };
+    return { items: await Promise.all(items.map((row) => this.mapStudentListItem(row))), total, page, pageSize };
   }
 async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omit<PeopleListQuery, 'institutionId'>): Promise<ListResult<any>> {
     this.assertSuperAdmin(user);
@@ -304,29 +317,34 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
     ]);
     const relatedUser: any = student.user ?? null;
     const directSubs: any[] = relatedUser?.subscriptions ?? [];
-    return {
-      ...this.mapStudentListItem(student),
-      user: relatedUser ? { id: relatedUser.id, name: relatedUser.name, email: relatedUser.email, phone: relatedUser.phone ?? null, isActive: relatedUser.isActive, createdAt: relatedUser.createdAt } : null,
-      institution: student.institution ? { ...student.institution } : null,
-      academicYear: student.academicYear ? { id: student.academicYear.id, name: student.academicYear.name } : null,
-      groups: (student.groupMemberships ?? []).map((gm: any) => gm.group),
-      parents: (student.parentLinks ?? []).map((pl: any) => {
+    const parents = await Promise.all(
+      (student.parentLinks ?? []).map(async (pl: any) => {
         const p = pl.parent;
         const pActive = p.user?.isActive !== false;
+        const sId = await this.systemId();
+        const isDirect = !p.institutionId || p.institutionId === sId;
         return {
           id: p.id,
           userId: p.userId ?? null,
           name: p.name,
           email: p.email ?? null,
           phone: p.phone ?? null,
-          source: this.deriveSource(p.institutionId),
-          institutionId: p.institutionId ?? null,
-          institutionName: p.institution?.name ?? null,
+          source: isDirect ? 'DIRECT_SANRO' : 'INSTITUTION',
+          institutionId: p.institutionId ?? sId,
+          institutionName: isDirect ? 'SANRO AI' : (p.institution?.name ?? null),
           childrenCount: p.studentLinks?.length ?? 0,
           status: pActive ? 'ACTIVE' : 'DEACTIVATED',
           isActive: pActive,
         };
       }),
+    );
+    return {
+      ...(await this.mapStudentListItem(student)),
+      user: relatedUser ? { id: relatedUser.id, name: relatedUser.name, email: relatedUser.email, phone: relatedUser.phone ?? null, isActive: relatedUser.isActive, createdAt: relatedUser.createdAt } : null,
+      institution: student.institution ? { ...student.institution } : null,
+      academicYear: student.academicYear ? { id: student.academicYear.id, name: student.academicYear.name } : null,
+      groups: (student.groupMemberships ?? []).map((gm: any) => gm.group),
+      parents,
       directSubscription: this.mapDirectSubscription(directSubs[0] ?? null),
       subscriptions: directSubs.map((s: any) => this.mapDirectSubscription(s)),
       assessmentAttemptsCount: attemptsCount,
@@ -337,9 +355,15 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
   async createStudent(user: RequestUser, data: any): Promise<any> {
     this.assertSuperAdmin(user);
     const email = data.email?.toLowerCase?.() ?? null;
+    const sId = await this.systemId();
+    let instId = sId;
     if (data.institutionId) {
+      if (data.institutionId === sId) {
+        throw new ConflictException('The SANRO AI system institution cannot be used as a tenant institution for a student');
+      }
       const inst = await this.prisma.institution.findUnique({ where: { id: data.institutionId }, select: { id: true } });
       if (!inst) throw new BadRequestException('Institution not found');
+      instId = data.institutionId;
     }
     if (data.academicYearId) {
       const ay = await this.prisma.academicYear.findUnique({ where: { id: data.academicYearId }, select: { id: true } });
@@ -358,7 +382,7 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       });
       const student = await tx.student.create({
         data: {
-          institutionId: data.institutionId ?? null,
+          institutionId: instId,
           academicYearId: data.academicYearId ?? null,
           userId: dbUser.id,
           name: data.name,
@@ -373,7 +397,7 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       await tx.auditLog.create({
         data: {
           userId: user.sub,
-          institutionId: data.institutionId ?? null,
+          institutionId: instId,
           action: AuditAction.STUDENT_CREATED,
           entityType: 'STUDENT',
           entityId: student.id,
@@ -382,8 +406,18 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       });
       return student;
     });
-    await this.clearInstitutionEntitlements(data.institutionId);
-    return { id: created.id, defaultPassword: pwd };
+    await this.clearInstitutionEntitlements(instId);
+    const isDirectCreate = instId === sId;
+    const createdInst = isDirectCreate
+      ? { name: 'SANRO AI' }
+      : await this.prisma.institution.findUnique({ where: { id: instId }, select: { name: true } });
+    return {
+      id: created.id,
+      defaultPassword: pwd,
+      institutionId: instId,
+      institutionName: createdInst?.name ?? null,
+      source: isDirectCreate ? 'DIRECT_SANRO' : 'INSTITUTION',
+    };
   }
 
   async updateStudent(user: RequestUser, id: string, data: any): Promise<any> {
@@ -457,14 +491,20 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       orderBy: { name: 'asc' },
       take: 20,
     });
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      email: r.email,
-      grade: r.grade,
-      institutionId: r.institutionId,
-      source: this.deriveSource(r.institutionId),
-    }));
+    return Promise.all(
+      rows.map(async (r) => {
+        const sId = await this.systemId();
+        const isDirect = !r.institutionId || r.institutionId === sId;
+        return {
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          grade: r.grade,
+          institutionId: r.institutionId ?? sId,
+          source: isDirect ? 'DIRECT_SANRO' : 'INSTITUTION',
+        };
+      }),
+    );
   }
 
   async setDirectSubscription(user: RequestUser, id: string, data: { planKey: string; status: string; startsAt?: string; endsAt?: string; reason?: string }): Promise<any> {
@@ -666,23 +706,29 @@ async createTeacher(user: RequestUser, data: any): Promise<any> {
     this.assertSuperAdmin(user);
     const { page, pageSize, skip, take } = this.paginate(q);
     const where: Prisma.ParentWhereInput = {};
+    const and: Prisma.ParentWhereInput[] = [];
     if (q.institutionId) {
       where.institutionId = q.institutionId;
     } else if (q.source === 'DIRECT_SANRO') {
-      where.institutionId = null;
+      const sId = await this.systemId();
+      and.push({ OR: [{ institutionId: sId }, { institutionId: null }] });
     } else if (q.source === 'INSTITUTION') {
-      where.institutionId = { not: null };
+      const sId = await this.systemId();
+      where.institutionId = { notIn: [sId] };
     }
     if (q.search) {
       const term = q.search.trim();
       if (term) {
-        where.OR = [
-          { name: { contains: term, mode: 'insensitive' } },
-          { email: { contains: term, mode: 'insensitive' } },
-          { phone: { contains: term, mode: 'insensitive' } },
-        ];
+        and.push({
+          OR: [
+            { name: { contains: term, mode: 'insensitive' } },
+            { email: { contains: term, mode: 'insensitive' } },
+            { phone: { contains: term, mode: 'insensitive' } },
+          ],
+        });
       }
     }
+    if (and.length) where.AND = and;
     const [items, total] = await this.prisma.$transaction([
       this.prisma.parent.findMany({
         where,
@@ -705,7 +751,7 @@ async createTeacher(user: RequestUser, data: any): Promise<any> {
       }),
       this.prisma.parent.count({ where }),
     ]);
-    return { items: items.map((row) => this.mapParentListItem(row)), total, page, pageSize };
+    return { items: await Promise.all(items.map((row) => this.mapParentListItem(row))), total, page, pageSize };
   }
 
   async parentDetail(user: RequestUser, id: string): Promise<any> {
@@ -735,7 +781,7 @@ async createTeacher(user: RequestUser, data: any): Promise<any> {
     });
     const relatedUser: any = parent.user ?? null;
     return {
-      ...this.mapParentListItem(parent),
+      ...(await this.mapParentListItem(parent)),
       user: relatedUser ? { id: relatedUser.id, name: relatedUser.name, email: relatedUser.email, phone: relatedUser.phone ?? null, isActive: relatedUser.isActive, createdAt: relatedUser.createdAt } : null,
       institution: parent.institution ? { ...parent.institution } : null,
       recentAudit: this.mapAuditRows(recentAudit),
@@ -746,6 +792,16 @@ async createTeacher(user: RequestUser, data: any): Promise<any> {
     this.assertSuperAdmin(user);
     const email = data.email?.toLowerCase?.();
     const pwd = this.randomPassword();
+    const sId = await this.systemId();
+    let instId = sId;
+    if (data.institutionId) {
+      if (data.institutionId === sId) {
+        throw new ConflictException('The SANRO AI system institution cannot be used as a tenant institution for a parent');
+      }
+      const inst = await this.prisma.institution.findUnique({ where: { id: data.institutionId }, select: { id: true } });
+      if (!inst) throw new BadRequestException('Institution not found');
+      instId = data.institutionId;
+    }
     const created = await this.prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const dbUser = await tx.user.create({
         data: {
@@ -761,13 +817,14 @@ async createTeacher(user: RequestUser, data: any): Promise<any> {
           name: data.name,
           email,
           phone: data.phone ?? null,
+          institutionId: instId,
           userId: dbUser.id,
         },
       });
       await tx.auditLog.create({
         data: {
           userId: user.sub,
-          institutionId: data.institutionId ?? null,
+          institutionId: instId,
           action: AuditAction.PARENT_UPDATED,
           entityType: 'PARENT',
           entityId: parent.id,

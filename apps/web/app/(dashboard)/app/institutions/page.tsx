@@ -59,11 +59,13 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Sparkles,
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 type Row = InstitutionListItem & {
+  isSystemInstitution?: boolean;
   billableUsers?: number;
   usagePct?: number;
   limitExceeded?: boolean;
@@ -82,6 +84,22 @@ type Row = InstitutionListItem & {
     admins: number;
   };
 };
+
+const TYPE_LABELS: Record<string, string> = {
+  SCHOOL: 'School',
+  COACHING_CENTRE: 'Coaching Centre',
+  COACHING: 'Coaching',
+  ACADEMY: 'Academy',
+  TUITION_CENTRE: 'Tuition Centre',
+  EDUCATIONAL_INSTITUTE: 'Educational Institute',
+  TRAINING_CENTRE: 'Training Centre',
+  OTHER: 'Other',
+  SANRO_PLATFORM: 'SANRO AI',
+};
+
+function isSystemRow(row: Row) {
+  return row.isSystemInstitution === true || row.type === InstitutionType.SANRO_PLATFORM;
+}
 
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700 border-green-200',
@@ -689,20 +707,39 @@ export default function InstitutionsPage() {
                 {rows.map((row) => {
                   const sub = row.subscription as { plan?: { key?: string; name?: string }; endsAt?: string } | null;
                   const endsAt = sub?.endsAt ?? null;
+                  const isSystem = isSystemRow(row);
                   return (
                     <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-600">
-                            <GraduationCap className="h-5 w-5 text-white" />
+                          <div
+                            className={cn(
+                              'flex h-10 w-10 flex-none items-center justify-center rounded-xl',
+                              isSystem
+                                ? 'bg-gradient-to-br from-slate-800 to-brand-900'
+                                : 'bg-gradient-to-br from-brand-500 to-purple-600',
+                            )}
+                          >
+                            {isSystem ? (
+                              <Sparkles className="h-5 w-5 text-violet-300" />
+                            ) : (
+                              <GraduationCap className="h-5 w-5 text-white" />
+                            )}
                           </div>
                           <div>
-                            <a
-                              href={`/app/institutions/${row.id}`}
-                              className="font-medium text-surface-900 hover:text-brand-700 hover:underline"
-                            >
-                              {row.name}
-                            </a>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <a
+                                href={`/app/institutions/${row.id}`}
+                                className="font-medium text-surface-900 hover:text-brand-700 hover:underline"
+                              >
+                                {row.name}
+                              </a>
+                              {isSystem ? (
+                                <Badge className="text-[10px] bg-violet-100 text-violet-700 border-violet-200" variant="outline">
+                                  System
+                                </Badge>
+                              ) : null}
+                            </div>
                             <p className="text-xs text-surface-500">
                               {(row as { code?: string }).code}
                               {row.city ? ` · ${row.city}` : ''}
@@ -710,7 +747,18 @@ export default function InstitutionsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-surface-700">{String(row.type).replace(/_/g, ' ')}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className={isSystem ? 'font-medium text-violet-700' : 'text-surface-700'}>
+                            {TYPE_LABELS[row.type] ?? String(row.type).replace(/_/g, ' ')}
+                          </span>
+                          {isSystem ? (
+                            <Badge className="text-[10px] bg-slate-800 text-white" variant="outline">
+                              Platform
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status] ?? 'bg-slate-100 text-slate-600')}>
                           {row.status}
@@ -750,7 +798,7 @@ export default function InstitutionsPage() {
                       <td className="px-4 py-3 text-surface-600">
                         <span className="flex items-center gap-1">
                           <Users className="h-3.5 w-3.5 text-surface-400" />
-                          {row.counts?.students ?? 0} S · {row.counts?.teachers ?? 0} T
+                          {row.counts?.students ?? 0} S · {row.counts?.teachers ?? 0} T · {row.counts?.parents ?? 0} P
                         </span>
                       </td>
                       <td className="px-4 py-3 text-surface-500">
@@ -769,32 +817,38 @@ export default function InstitutionsPage() {
                             <DropdownMenuItem asChild>
                               <a href={`/app/institutions/${row.id}`}>View details</a>
                             </DropdownMenuItem>
-                            {row.status !== 'ACTIVE' && (
-                              <DropdownMenuItem onClick={() => setPending({ kind: 'activate', row })}>
-                                Activate
-                              </DropdownMenuItem>
-                            )}
-                            {(row.status === 'ACTIVE' || row.status === 'PENDING') && (
-                              <DropdownMenuItem onClick={() => setPending({ kind: 'suspend', row })}>
-                                Suspend
-                              </DropdownMenuItem>
-                            )}
-                            {row.status !== 'ARCHIVED' && (
-                              <DropdownMenuItem onClick={() => setPending({ kind: 'archive', row })} className="text-red-600">
-                                Archive
-                              </DropdownMenuItem>
-                            )}
-                            {row.status === 'ARCHIVED' && (
-                              <DropdownMenuItem onClick={() => setPending({ kind: 'restore', row })}>
-                                Restore
-                              </DropdownMenuItem>
-                            )}
-                            {row.status !== 'EXPIRED' && (
+                            {isSystem ? (
+                              <DropdownMenuSeparator />
+                            ) : (
                               <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setPending({ kind: 'expire', row })} className="text-red-600">
-                                  Mark expired
-                                </DropdownMenuItem>
+                                {row.status !== 'ACTIVE' && (
+                                  <DropdownMenuItem onClick={() => setPending({ kind: 'activate', row })}>
+                                    Activate
+                                  </DropdownMenuItem>
+                                )}
+                                {(row.status === 'ACTIVE' || row.status === 'PENDING') && (
+                                  <DropdownMenuItem onClick={() => setPending({ kind: 'suspend', row })}>
+                                    Suspend
+                                  </DropdownMenuItem>
+                                )}
+                                {row.status !== 'ARCHIVED' && (
+                                  <DropdownMenuItem onClick={() => setPending({ kind: 'archive', row })} className="text-red-600">
+                                    Archive
+                                  </DropdownMenuItem>
+                                )}
+                                {row.status === 'ARCHIVED' && (
+                                  <DropdownMenuItem onClick={() => setPending({ kind: 'restore', row })}>
+                                    Restore
+                                  </DropdownMenuItem>
+                                )}
+                                {row.status !== 'EXPIRED' && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => setPending({ kind: 'expire', row })} className="text-red-600">
+                                      Mark expired
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </>
                             )}
                           </DropdownMenuContent>

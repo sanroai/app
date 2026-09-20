@@ -24,6 +24,7 @@ export const InstitutionType = {
   EDUCATIONAL_INSTITUTE: 'EDUCATIONAL_INSTITUTE',
   TRAINING_CENTRE: 'TRAINING_CENTRE',
   OTHER: 'OTHER',
+  SANRO_PLATFORM: 'SANRO_PLATFORM',
 } as const;
 export type InstitutionType = (typeof InstitutionType)[keyof typeof InstitutionType];
 

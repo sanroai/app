@@ -324,8 +324,9 @@ next evaluation — no batch job, no data deletion. Reference: docs/INSTITUTION_
 Six `AccountBlockState`s; login/refresh/switch-context return `BlockedAccountResponse`
 (no tokens); `GET /auth/account-state` exposes the decision; web/mobile blocked
 screens pending. Severed states re-checked per gated request; SUPER_ADMIN exempt.
-Direct SANRO adds institution-less block codes (`DIRECT_SUBSCRIPTION_EXPIRED` /
-`DIRECT_SUBSCRIPTION_SUSPENDED` / `NO_ENTITLEMENT`).
+Direct SANRO adds direct block codes (`DIRECT_SUBSCRIPTION_EXPIRED` /
+`DIRECT_SUBSCRIPTION_SUSPENDED` / `NO_ENTITLEMENT`); direct
+customers belong to the system-owned SANRO AI institution.
 Reference: docs/INSTITUTION_MANAGEMENT.md §2; docs/PEOPLE_MANAGEMENT.md §4.
 
 ## 41. Seat Limits — IMPLEMENTED
@@ -347,10 +348,10 @@ docs/INSTITUTION_MANAGEMENT.md §5.
 
 Guard chain JwtAuthGuard → RolesGuard → ThrottlerGuard → SubscriptionGuard →
 handler; cached entitlement engine (15 s, invalidatable) distinct from the sync
-tenant-access chokepoint. `SubscriptionGuard` branches institution-holders to
-`SubscriptionAccessService` and institution-less users to `EntitlementService`
-(Direct SANRO). Reference: docs/INSTITUTION_MANAGEMENT.md §8;
-docs/PEOPLE_MANAGEMENT.md §4.
+tenant-access chokepoint. `SubscriptionGuard` branches real-institution holders
+(`institutionId` ≠ SANRO AI system id) to `SubscriptionAccessService` and direct
+users (system id or absent) to `EntitlementService` (Direct SANRO). Reference:
+docs/INSTITUTION_MANAGEMENT.md §8; docs/PEOPLE_MANAGEMENT.md §4.
 
 ## 44. Audit Trail (Institution & Subscription) — IMPLEMENTED (schema/enums)
 
@@ -367,13 +368,18 @@ docs/INSTITUTION_MANAGEMENT.md §4.
 
 ## 46. People Management — Direct SANRO + Super-Admin People Admin — IMPLEMENTED
 
-Direct SANRO model (`Subscription.userId` direct owner; nullable
-`Student.institutionId`/`Parent.institutionId`; `ParentStudentLink`;
+Direct SANRO model — direct customers belong to the system-owned **SANRO AI**
+institution (id `00000000-0000-0000-0000-00000000a5a1`,
+`isSystemInstitution=true`, protected + idempotently created by migrations
+`20260921105000`+`20260921110000` and seed `ensureSystemInstitution`; legacy
+NULL rows remain DIRECT_SANRO) — on top of `Subscription.userId` direct owner;
+nullable `Student.institutionId`/`Parent.institutionId`; `ParentStudentLink`;
 `SubscriptionHistory.institutionId` null), `EntitlementService` oracle
 (SUPER_ADMIN passthrough / institution delegate / direct subscription / parent
 child aggregation with ANY-child rule and `expiresAt = max`), super-admin
 `/api/v1/admin/people/*` surface (students/teachers/parents CRUD + transfer +
-status + direct-subscription + link/unlink; one-time `defaultPassword`), web
+status + direct-subscription + link/unlink; one-time `defaultPassword`;
+`institutionId`/`institutionName` on list/detail/create responses), web
 people screens and audit actions per operation. Direct login (membership-less
 JWT) is contract-ready but `AuthService.issueLogin` still rejects zero-membership
 users. Reference: docs/PEOPLE_MANAGEMENT.md (contract:

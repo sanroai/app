@@ -2,6 +2,33 @@
 
 Format: date — phase — change.
 
+## 2026-09-21 — SANRO AI system institution + protected entity + dashboard aggregation
+- **SANRO AI system institution**: direct customers (students/parents) now belong
+  to the single system-owned institution "SANRO AI" (id
+  `00000000-0000-0000-0000-00000000a5a1`, code `SANRO-AI`, type `SANRO_PLATFORM`,
+  `isSystemInstitution=true`, ACTIVE). Their Student/Parent rows carry that
+  `institutionId`; legacy NULL rows still resolve as DIRECT_SANRO (fallback).
+- **Idempotent migration, no prod reset**: created by migrations
+  `20260921105000`+`20260921110000` and seed `ensureSystemInstitution`; a partial
+  unique index WHERE `isSystemInstitution=true` enforces singleness.
+- **Protected-entity guarantees**: the SANRO AI institution is never
+  deleted/archived/suspended/expired/modified (ForbiddenException), cannot be
+  duplicated (ConflictException + partial unique index), and is excluded from
+  tenant list `/admin/institutions`. Entitlement/guards treat
+  `user.institutionId` = system id, or null, as direct.
+- **source + institutionId/institutionName contract**: API keeps
+  `source` (`INSTITUTION` | `DIRECT_SANRO`); `DIRECT_SANRO` maps to students/
+  parents in the SANRO AI system institution or legacy null rows. People
+  list/detail and student create responses add `institutionId`/`institutionName`
+  (`'SANRO AI'`).
+- **Dashboard aggregation API** (SUPER_ADMIN): `GET
+  /admin/super-admin/dashboard/{overview,health,attention,activity}` with
+  `range=today|7d|30d|month`; the system institution is excluded from
+  health/attention by default (`includeSystem=true` includes it).
+- **Super-admin dashboard redesign** built on the aggregation API.
+- Reference: docs/PEOPLE_MANAGEMENT.md, docs/PEOPLE_MANAGEMENT_CONTRACT.md,
+  docs/DATABASE.md §6.
+
 ## 2026-09-20 — People management: Direct SANRO model + super-admin People Admin
 - Direct SANRO model: `Subscription.userId` (unique, nullable direct-owner) +
   nullable `Subscription.institutionId`; `Student.institutionId`/`academicYearId`

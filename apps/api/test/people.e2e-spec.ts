@@ -16,6 +16,8 @@ import {
   randomSuffix,
 } from './helpers';
 
+const SANRO_AI_SYSTEM_INSTITUTION_ID = '00000000-0000-0000-0000-00000000a5a1';
+
 /**
  * Mints a JWT exactly like AuthService.signAccessToken does for a DIRECT user
  * (sub + role, no institutionId claim), using the app's global JwtService
@@ -276,11 +278,11 @@ describe('People Management (e2e)', () => {
   });
 
   describe('Super admin creates DIRECT SANRO students', () => {
-    it('creates a direct student without an institution (STUDENT_CREATED audit)', async () => {
+    it('creates a direct student under the SANRO AI system institution (STUDENT_CREATED audit)', async () => {
       const s1 = directStudents[0];
       const student = await prisma.student.findUnique({ where: { id: s1.id } });
       expect(student).toBeTruthy();
-      expect(student!.institutionId).toBeNull();
+      expect(student!.institutionId).toBe(SANRO_AI_SYSTEM_INSTITUTION_ID);
       expect(student!.userId).toBe(s1.userId);
 
       const user = await prisma.user.findUnique({ where: { email: s1.email.toLowerCase() } });
@@ -296,7 +298,7 @@ describe('People Management (e2e)', () => {
       expect((audit!.metadata as any)?.email).toBe(s1.email.toLowerCase());
     });
 
-    it('lists the direct student under source DIRECT_SANRO with no institutionId', async () => {
+    it('lists the direct student under source DIRECT_SANRO with the SANRO AI system institution', async () => {
       const s1 = directStudents[0];
       const res = await api(
         app,
@@ -309,7 +311,8 @@ describe('People Management (e2e)', () => {
       const found = items.find((i: any) => i.id === s1.id);
       expect(found).toBeTruthy();
       expect(found.source).toBe('DIRECT_SANRO');
-      expect(found.institutionId).toBeNull();
+      expect(found.institutionId).toBe(SANRO_AI_SYSTEM_INSTITUTION_ID);
+      expect(found.institutionName).toBe('SANRO AI');
     });
 
     it('lists the student detail via the super-admin endpoint with a DIRECT_SANRO source', async () => {
@@ -317,7 +320,8 @@ describe('People Management (e2e)', () => {
       const res = await api(app, 'get', `/admin/people/students/${s1.id}`, superAdminToken);
       expect(res.status).toBe(200);
       expect(res.body.source).toBe('DIRECT_SANRO');
-      expect(res.body.institutionId).toBeNull();
+      expect(res.body.institutionId).toBe(SANRO_AI_SYSTEM_INSTITUTION_ID);
+      expect(res.body.institutionName).toBe('SANRO AI');
       expect(res.body.id).toBe(s1.id);
     });
 
@@ -588,7 +592,7 @@ describe('People Management (e2e)', () => {
       });
       expect(rows.length).toBe(3);
       expect(rows.every((r) => r.action === 'STUDENT_CREATED')).toBe(true);
-      expect(rows.every((r) => r.institutionId === null)).toBe(true);
+      expect(rows.every((r) => r.institutionId === SANRO_AI_SYSTEM_INSTITUTION_ID)).toBe(true);
     });
 
     it('records DIRECT_SUBSCRIPTION_CREATED / PARENT_CHILD_LINKED / STUDENT_INSTITUTION_CHANGED', async () => {

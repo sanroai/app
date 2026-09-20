@@ -38,10 +38,12 @@ Role lives on `InstitutionMember`, not `User`.
 5. `SubscriptionAccessService` — shared entitlement engine (institution status,
    subscription validity, seat limits, user/membership state); cached 15 s,
    invalidatable. Used by the guard, auth flow and account-state endpoint.
-6. `EntitlementService` — entitlement oracle for **institution-less** users
-   (Direct SANRO): direct `Subscription.userId` path + parent child aggregation.
-   `SubscriptionGuard` branches to it when the JWT has no `institutionId` claim.
-   SUPER_ADMIN is always allowed. See `docs/PEOPLE_MANAGEMENT.md`.
+6. `EntitlementService` — entitlement oracle for **direct** users (Direct
+   SANRO): `institutionId` equal to the SANRO AI system id
+   (`00000000-0000-0000-0000-00000000a5a1`) or absent (legacy null rows) is
+   treated as direct — `Subscription.userId` path + parent child aggregation.
+   `SubscriptionGuard` branches to it for those users. SUPER_ADMIN is always
+   allowed. See `docs/PEOPLE_MANAGEMENT.md`.
 7. `ParentContentGuard` — route guard that restricts PARENT to safe, read-only,
    non-explicit content.
 8. Data-layer scoping (services compute `where institutionId = …` from token;
@@ -56,9 +58,9 @@ Super-admin People API `/api/v1/admin/people/*` is triple-guarded: `@Roles(
 SUPER_ADMIN)` (+ service re-check) + subscription gate + entitlement passthrough
 (super admin exempt) — only SUPER_ADMIN may manage all people; TEACHER/
 INSTITUTION_ADMIN keep institution-scoped `/students` `/teachers` `/parents`.
-Direct-SANRO people resolve `Role.STUDENT | Role.PARENT` with no institution
-claim; their entitlement block codes include `DIRECT_SUBSCRIPTION_EXPIRED`,
-`DIRECT_SUBSCRIPTION_SUSPENDED`, `NO_ENTITLEMENT`.
+Direct-SANRO people (SANRO AI system institution, or legacy null row) resolve
+`Role.STUDENT | Role.PARENT`; their entitlement block codes include
+`DIRECT_SUBSCRIPTION_EXPIRED`, `DIRECT_SUBSCRIPTION_SUSPENDED`, `NO_ENTITLEMENT`.
 
 ## 4. Decorators
 
@@ -91,9 +93,9 @@ disabled / membership deactivated), no tokens are issued:
   `{ access: true, state: null, institution: null }`.
 - Entitlement precedence: user disabled → membership not ACTIVE → institution
   ARCHIVED → SUSPENDED → PENDING → subscription expired. See the state matrix in
-  `docs/INSTITUTION_MANAGEMENT.md` §1. Direct SANRO precedence (institution-less):
-  user disabled → direct subscription expired/suspended → no entitlement (see
-  `docs/PEOPLE_MANAGEMENT.md` §4).
+  `docs/INSTITUTION_MANAGEMENT.md` §1. Direct SANRO precedence (SANRO AI system
+  institution, or legacy null): user disabled → direct subscription
+  expired/suspended → no entitlement (see `docs/PEOPLE_MANAGEMENT.md` §4).
 
 Messages live in `BLOCKED_ACCOUNT_MESSAGES` (`packages/config`). Clients should treat
 a 200 login/refresh without `accessToken` as blocked and render a blocked-account

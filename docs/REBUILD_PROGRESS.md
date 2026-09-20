@@ -305,3 +305,15 @@ docs/PEOPLE_MANAGEMENT.md, migration `20260920120000_people_direct_sanro`):
 After each phase completes: run build + typecheck + tests, inspect UI, fix
 regressions, update this table, update CHANGELOG, and update any affected
 section of MASTER_PRODUCT_SPEC.md.
+
+---
+
+## 2026-09-21 — SANRO AI system institution (applied)
+
+The system-institution migration (`20260921105000`+`20260921110000` + seed
+`ensureSystemInstitution`) is applied to the local DB and is **idempotent** —
+re-runnable without duplicates, no prod reset required. Direct customers now
+belong to the system-owned "SANRO AI" institution
+(`00000000-0000-0000-0000-00000000a5a1`); Student/Parent direct rows carry that
+`institutionId` (legacy NULL rows remain DIRECT_SANRO).
+See docs/PEOPLE_MANAGEMENT.md and docs/DATABASE.md §6.

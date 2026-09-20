@@ -2,17 +2,27 @@
 
 > **REALITY REBASELINE (2026-09-20) — READ FIRST.** Ground truth on disk differs from the
 > "currently lacks" framing below. The following ALREADY EXIST and are COMPLETE + applied
-> to local DB (migration `20260920120000_people_direct_sanro`, DB schema up to date): 
+> to local DB (migration `20260920120000_people_direct_sanro`, DB schema up to date):
 > - `Subscription.userId` (unique, nullable) + nullable `Subscription.institutionId`;
 >   `Student.institutionId` + `academicYearId` nullable; `Parent.institutionId` nullable;
 >   `SubscriptionHistory.institutionId` nullable; direct-owner `User.subscriptions` relation.
+> - **SANRO AI system institution (since 2026-09-21)**: direct customers belong to the
+>   single system-owned institution "SANRO AI" (id
+>   `00000000-0000-0000-0000-00000000a5a1`, code `SANRO-AI`, type `SANRO_PLATFORM`,
+>   `isSystemInstitution=true`, ACTIVE), created idempotently by migrations
+>   `20260921105000`+`20260921110000` and seed `ensureSystemInstitution`; a partial unique
+>   index WHERE `isSystemInstitution=true` enforces singleness. DIRECT_SANRO now maps to
+>   Student/Parent rows with that `institutionId` (or legacy NULL rows). Protected:
+>   never deleted/archived/suspended/expired/modified (ForbiddenException), never
+>   duplicated (ConflictException + index), excluded from `/admin/institutions` tenant lists.
 > - `apps/api/src/common/security/entitlement.service.ts` — full `UserEntitlement` oracle:
 >   `evaluateUser`/`evaluateEntitlement`, `assertCanAccess`, `assertCanAccessUser`,
 >   SUPER_ADMIN passthrough, INSTITUTION path (delegates to `SubscriptionAccessService`),
 >   DIRECT_SANRO path (user-owned `Subscription`), PARENT path (child aggregation,
 >   `children[]`, allowed-while-any-child, `expiresAt = max`), cache + `invalidate`.
 > - `apps/api/src/common/guards/subscription.guard.ts` already branches: user with
->   `institutionId` → institution path; institution-less → entitlement path.
+>   `institutionId` ≠ system id → institution path; `institutionId` = system id or
+>   absent → entitlement path.
 > - `apps/api/src/common/validators/is-uuid.validator.ts` EXISTS.
 > - `AuditAction` enum variants (STUDENT_/TEACHER_/PARENT_/DIRECT_SUBSCRIPTION_/…) and
 >   `AccountBlockState` variants (DIRECT_*/CHILD_LINKED*) + `EntitlementSource` ARE in
@@ -42,14 +52,22 @@ DO: follow the existing code conventions (guards, decorators, Zod, tenant servic
 ## 1. GLOSSARY / DOMAIN
 
 - **INSTITUTION user** — a Student/Teacher/Parent whose access derives from an institution
-  subscription (membership path). `Student.institutionId` NOT NULL.
+  subscription (membership path). `Student.institutionId` NOT NULL and ≠ SANRO AI system id.
 - **DIRECT SANRO user** (also "direct subscriber") — a Student or Parent (AND a direct
-  Subscription) with `institutionId = NULL`. Represented in the SAME tables
-  (Student/Parent with nullable institutionId) + a `Subscription.userId` (direct owner)
-  row. NEVER use a fake institution named "SANRO"/"Direct"/"Default".
-- **Source** (derived, not stored): a person row is `INSTITUTION` if institutionId set,
-  `DIRECT_SANRO` if institutionId null. UI label: "Direct SANRO Student",
-  "Direct SANRO Parent".
+  Subscription) who belongs to the **SANRO AI system institution** (id
+  `00000000-0000-0000-0000-00000000a5a1`, code `SANRO-AI`, `isSystemInstitution=true`);
+  legacy rows with `institutionId = NULL` also resolve as DIRECT_SANRO (fallback).
+  Represented in the SAME tables (Student/Parent) + a `Subscription.userId` (direct owner)
+  row.
+- **SANRO AI system institution** — the single system-owned institution for direct
+  customers (`SANRO_PLATFORM`, ACTIVE). Created idempotently by migrations
+  `20260921105000`+`20260921110000` and seed `ensureSystemInstitution`; a partial unique
+  index WHERE `isSystemInstitution=true` forces singleness. Protected: never
+  deleted/archived/suspended/expired/modified (ForbiddenException); never duplicated
+  (ConflictException); excluded from tenant list `/admin/institutions`.
+- **Source** (derived, not stored): a person row is `INSTITUTION` if `institutionId` set
+  and ≠ SANRO AI system id, `DIRECT_SANRO` if `institutionId` equals the system id or is
+  null (legacy). UI label: "Direct SANRO Student", "Direct SANRO Parent".
 - **Direct SANRO subscription** — a `Subscription` row where `institutionId IS NULL` and
   `userId` set. Owner = the direct student (or, for a parent, derived via child).
 - **Institution entitlement** — the existing institution+subscription+membership chain.
@@ -60,9 +78,10 @@ DO: follow the existing code conventions (guards, decorators, Zod, tenant servic
 - **Institution Admin / Teacher** keep their existing institution-scoped endpoints
   unchanged. They CANNOT see DIRECT SANRO users in list/detail endpoints
   (their queries are institution-scoped by TenantAccessService).
-- **Direct students/parents** get NO membership row, NO institution context. They must be
-  able to log in and use the app under their own direct entitlement. Their JWT has
-  `role = STUDENT | PARENT`, `institutionId = null/absent`.
+- **Direct students/parents** get NO membership row; they belong to the system-owned
+  SANRO AI institution (`institutionId` = system id, or absent/null on legacy rows).
+  Entitlement treats both as direct. They must be able to log in and use the app under
+  their own direct entitlement. Their JWT has `role = STUDENT | PARENT`.
 
 ## 3. SCHEMA (ALREADY APPLIED — DO NOT TOUCH)
 
@@ -136,9 +155,10 @@ blocked reasons (SUBSCRIPTION_EXPIRED, INSTITUTION_EXPIRED, USER_DISABLED,
 DIRECT_SUBSCRIPTION_EXPIRED, NO_ENTITLEMENT...). This is the entitlement gate.
 
 **Wire it**: update `apps/api/src/common/guards/subscription.guard.ts` (the global guard) so
-that when `SubscriptionRequired()` is set AND the user has no institution context, it calls
-`entitlement.assertCanAccess` (direct/parent path) instead of the institution-only
-`subscriptionAccess.assertCanAccess`. Keep the institution path as-is.
+that when `SubscriptionRequired()` is set AND the user is direct (`institutionId` = SANRO
+AI system id, or absent/legacy null), it calls `entitlement.assertCanAccess`
+(direct/parent path) instead of the institution-only `subscriptionAccess.assertCanAccess`.
+Keep the real-institution path as-is.
 
 **Mobile**: `apps/mobile/lib/auth-store.ts` + `apps/mobile/lib/api.ts` already read
 `AccountBlockState`/`blockState`; the mobile/expired screen should now render BOTH
@@ -168,8 +188,10 @@ Endpoint contract (all prisma-scoped to super admin; use `AuditLog` writes):
 - `POST /api/v1/admin/people/students` — create. If `source=DEFAULT/institution` requires
   `institutionId`, `academicYearId`, creates User(if no userId)→Student→membership
   (INSTITUTION_ADMIN can only see own; super admin can target any). If `source=DIRECT_SANRO`
-  requires `userId` (reuse existing user) OR creates a new User; NO institution, NO
-  academicYear, NO membership. Zod-validated. Audit: STUDENT_CREATED (+DIRECT if direct).
+  requires `userId` (reuse existing user) OR creates a new User; the Student is placed in
+  the SANRO AI system institution; no academicYear, no membership; respond with
+  `institutionId`/`institutionName` (`'SANRO AI'`). Zod-validated. Audit: STUDENT_CREATED
+  (+DIRECT if direct).
 - `PATCH /api/v1/admin/people/students/:id` — update (name/email/phone/grade/status/
   rollNumber/gender/dateOfBirth/userId/academicYearId/groupIds). For DIRECT: do NOT allow
   setting institutionId here (use transfer). Audit STUDENT_UPDATED.
@@ -231,8 +253,9 @@ New API-client hooks in `apps/web/lib/people-hooks.ts` next to `institution-hook
 ## 8. TESTS (API e2e)
 
 `apps/api/test/people.e2e-spec.ts` (against test DB via existing `test/helpers.ts`):
-- Super admin creates a DIRECT student (no institution); student can log in with role
-  STUDENT; has no institution claim; gets direct subscription → can hit app endpoints.
+- Super admin creates a DIRECT student (in the SANRO AI system institution, no membership);
+  student can log in with role STUDENT; has the system institution id (or no institution
+  claim on legacy rows); gets direct subscription → can hit app endpoints.
 - Direct student with EXPIRED direct subscription → blocked with DIRECT_SUBSCRIPTION_EXPIRED.
 - Parent of a direct student: parent created w/ link; direct student entitlement propagates.
 - Parent with 2 children (1 institution, 1 direct): parent allowed while ANY entitled.

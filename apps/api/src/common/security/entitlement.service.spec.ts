@@ -5,9 +5,12 @@ import { EntitlementService } from './entitlement.service';
 
 const DAY = 86400000;
 
+const SYSTEM_INSTITUTION_ID = '00000000-0000-0000-0000-00000000a5a1';
+
 describe('EntitlementService', () => {
   let prisma: any;
   let subAccess: any;
+  let systemInstitution: any;
   let service: EntitlementService;
 
   const makeDirectSubscription = (overrides: Record<string, any> = {}) => ({
@@ -50,7 +53,10 @@ describe('EntitlementService', () => {
       })),
       invalidate: vi.fn(),
     };
-    service = new EntitlementService(prisma, subAccess);
+    systemInstitution = {
+      systemInstitutionId: vi.fn(async () => SYSTEM_INSTITUTION_ID),
+    };
+    service = new EntitlementService(prisma, subAccess, systemInstitution);
   });
 
   describe('evaluateUser — SUPER_ADMIN', () => {
@@ -291,6 +297,60 @@ describe('EntitlementService', () => {
       expect(result.allowed).toBe(false);
       expect(result.blockState).toBe('NO_ENTITLEMENT');
       expect(prisma.subscription.findFirst).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('evaluateUser — SANRO AI system-institution DIRECT user', () => {
+    it('returns access via the DIRECT path for a system-institution user with an ACTIVE subscription', async () => {
+      const endsAt = new Date(Date.now() + 30 * DAY);
+      prisma.subscription.findFirst.mockResolvedValueOnce(
+        makeDirectSubscription({ endsAt }),
+      );
+      const user = {
+        sub: 'u-system',
+        role: Role.STUDENT,
+        institutionId: SYSTEM_INSTITUTION_ID,
+      } as any;
+
+      const result = await service.evaluateUser(user);
+
+      expect(result.allowed).toBe(true);
+      expect(result.source).toBe(EntitlementSource.DIRECT_SANRO);
+      expect(result.directSubscription?.status).toBe('ACTIVE');
+      expect(result.directSubscription?.planKey).toBe('STUDENT_YEARLY');
+      expect(result.expiresAt?.getTime()).toBe(endsAt.getTime());
+      expect(subAccess.evaluate).not.toHaveBeenCalled();
+    });
+
+    it('blocks a system-institution user with no subscription as NO_ENTITLEMENT via the DIRECT path', async () => {
+      prisma.subscription.findFirst.mockResolvedValueOnce(null);
+      const user = {
+        sub: 'u-system',
+        role: Role.STUDENT,
+        institutionId: SYSTEM_INSTITUTION_ID,
+      } as any;
+
+      const result = await service.evaluateUser(user);
+
+      expect(result.allowed).toBe(false);
+      expect(result.source).toBe(EntitlementSource.DIRECT_SANRO);
+      expect(result.blockState).toBe('NO_ENTITLEMENT');
+      expect(result.directSubscription).toBeNull();
+      expect(subAccess.evaluate).not.toHaveBeenCalled();
+
+      const error = await service.assertCanAccess(user).catch((e: any) => e);
+      expect(error).toBeInstanceOf(ForbiddenException);
+      expect((error.getResponse() as any).code).toBe('NO_ENTITLEMENT');
+    });
+
+    it('never routes a NORMAL institution user down the direct path', async () => {
+      const user = { sub: 'u-normal', role: Role.STUDENT, institutionId: 'inst-1' } as any;
+
+      const result = await service.evaluateUser(user);
+
+      expect(result.source).toBe(EntitlementSource.INSTITUTION);
+      expect(prisma.subscription.findFirst).not.toHaveBeenCalled();
+      expect(subAccess.evaluate).toHaveBeenCalledWith('inst-1');
     });
   });
 

@@ -33,6 +33,7 @@ import {
   GitBranch,
   KeyRound,
 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notification-bell';
@@ -66,6 +67,8 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+type NavLink = { href: string; label: string; icon: LucideIcon };
+
 function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const theme = useRoleTheme();
@@ -75,28 +78,38 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const activeClass = `bg-gradient-to-r ${theme.gradient} text-white shadow-md`;
 
-  const superAdminLinks = isSuperAdmin
+  const superAdminLinks: NavLink[] = isSuperAdmin
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
-        { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
-        { href: '/app/questions', label: 'Questions', icon: HelpCircle },
-        { href: '/app/content-processing', label: 'Content', icon: Database },
-        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
-        { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
-        { href: '/app/settings', label: 'Settings', icon: Settings },
       ]
     : [];
 
-  const curriculumAdminLinks = isSuperAdmin
+  const studentLinks: NavLink[] = role === 'STUDENT'
     ? [
-        { href: '/app/curriculum/nodes', label: 'Curriculum Nodes', icon: GitBranch },
-        { href: '/app/curriculum/import', label: 'CSV Import', icon: Upload },
-        { href: '/app/curriculum/access', label: 'Access Grants', icon: KeyRound },
+        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/app/learn', label: 'Learn', icon: BookOpen },
+        { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
       ]
     : [];
 
-  const peopleLinks = isSuperAdmin
+  const parentLinks: NavLink[] = role === 'PARENT'
+    ? [
+        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/app/children', label: 'Children', icon: Users },
+      ]
+    : [];
+
+  const staffLinks: NavLink[] = staff && !isSuperAdmin
+    ? [
+        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/app/learn', label: 'Learn', icon: BookOpen },
+      ]
+    : [];
+
+  const primaryLinks = isSuperAdmin ? superAdminLinks : role === 'STUDENT' ? studentLinks : role === 'PARENT' ? parentLinks : staffLinks;
+
+  const peopleLinks: NavLink[] = isSuperAdmin
     ? [
         { href: '/app/people/students', label: 'Students', icon: Users },
         { href: '/app/people/teachers', label: 'Teachers', icon: UserCheck },
@@ -104,285 +117,158 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
       ]
     : [];
 
-  const studentLinks = role === 'STUDENT'
-    ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/learn', label: 'Learn', icon: BookOpen },
-        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
-        { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
-        { href: '/app/gamification', label: 'Progress', icon: Trophy },
-      ]
-    : [];
-
-  const parentLinks = role === 'PARENT'
-    ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/children', label: 'Children', icon: Users },
-      ]
-    : [];
-
-  const staffLinks = staff && !isSuperAdmin
-    ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/learn', label: 'Learn', icon: BookOpen },
-        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
-        { href: '/app/papers', label: 'Papers', icon: FileText },
-        { href: '/app/remediation', label: 'Remediation', icon: Lightbulb },
-        { href: '/app/reports', label: 'Reports', icon: BarChart2 },
-      ]
-    : [];
-
-  const primaryLinks = isSuperAdmin ? superAdminLinks : role === 'STUDENT' ? studentLinks : role === 'PARENT' ? parentLinks : staffLinks;
-
-  const managementLinks = staff && !isSuperAdmin
+  const managementLinks: NavLink[] = staff && !isSuperAdmin
     ? [
         { href: '/app/students', label: 'Students', icon: Users },
-        { href: '/app/teachers', label: 'Teachers', icon: Users },
-        { href: '/app/parents', label: 'Parents', icon: Users },
+        { href: '/app/teachers', label: 'Teachers', icon: UserCheck },
+        { href: '/app/parents', label: 'Parents', icon: HeartHandshake },
         ...(isAdmin ? [{ href: '/app/import', label: 'Import', icon: Upload }] : []),
       ]
     : [];
 
-  const contentLinks = staff && !isSuperAdmin
+  const peopleDropdownLinks = isSuperAdmin ? peopleLinks : managementLinks;
+
+  const academicLinks: NavLink[] = staff
     ? [
         { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
-        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
-        { href: '/app/papers/new', label: 'New Paper', icon: FileText },
+        ...(isSuperAdmin
+          ? [
+              { href: '/app/curriculum/nodes', label: 'Curriculum Nodes', icon: GitBranch },
+              { href: '/app/curriculum/import', label: 'CSV Import', icon: Upload },
+              { href: '/app/curriculum/access', label: 'Access Grants', icon: KeyRound },
+            ]
+          : []),
         { href: '/app/questions', label: 'Questions', icon: HelpCircle },
+        { href: '/app/papers', label: 'Question Papers', icon: FileText },
+        ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),
+        ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FileText }] : []),
+        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
         { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
       ]
     : [];
 
+  const analyticsLinks: NavLink[] = staff
+    ? [
+        { href: '/app/reports', label: 'Reports', icon: BarChart2 },
+        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
+        ...(isSuperAdmin ? [{ href: '/app/gamification', label: 'Gamification', icon: Trophy }] : []),
+        ...(staff && !isSuperAdmin ? [{ href: '/app/remediation', label: 'Remediation', icon: Lightbulb }] : []),
+      ]
+    : role === 'STUDENT'
+      ? [
+          { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
+          { href: '/app/gamification', label: 'Progress', icon: Trophy },
+        ]
+      : [];
+
+  const settingsLinks: NavLink[] = [
+    { href: '/app/settings', label: 'Settings', icon: Settings },
+    { href: '/app/profile', label: 'Profile', icon: UserCircle2 },
+  ];
+
+  const renderLink = (l: NavLink) => {
+    const active = isActive(pathname, l.href);
+    return (
+      <Link
+        key={l.href}
+        href={l.href}
+        className={cn(
+          'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+          active
+            ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
+            : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
+        )}
+      >
+        <l.icon className="h-4 w-4" />
+        {l.label}
+      </Link>
+    );
+  };
+
+  const renderDropdown = (label: string, Icon: LucideIcon, links: NavLink[]) => {
+    const active = links.some((l) => isActive(pathname, l.href));
+    return (
+      <DropdownMenu key={label}>
+        <DropdownMenuTrigger asChild>
+          <button
+            className={cn(
+              'inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+              active
+                ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
+                : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+            <svg className="h-3 w-3 text-current opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-48">
+          {links.map((l) => (
+            <DropdownMenuItem key={l.href} asChild>
+              <Link href={l.href} className="flex items-center gap-2">
+                <l.icon className="h-4 w-4" />
+                {l.label}
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  const renderMobileLink = (l: NavLink) => {
+    const active = isActive(pathname, l.href);
+    return (
+      <Link
+        key={l.href}
+        href={l.href}
+        onClick={() => onNavigate?.()}
+        className={cn(
+          'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+          active
+            ? activeClass
+            : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-100'
+        )}
+      >
+        <l.icon className="h-5 w-5" />
+        {l.label}
+      </Link>
+    );
+  };
+
   if (mobile) {
+    const sections = [
+      { label: 'People', links: peopleDropdownLinks },
+      { label: 'Academic', links: academicLinks },
+      { label: 'Analytics', links: analyticsLinks },
+      { label: 'Settings', links: settingsLinks },
+    ];
     return (
       <div className="flex flex-col gap-1 p-2">
-        {primaryLinks.map((l) => {
-          const active = isActive(pathname, l.href);
-          return (
-            <Link
-              key={l.href}
-              href={l.href}
-              onClick={() => onNavigate?.()}
-              className={cn(
-                'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
-                active
-                  ? activeClass
-                  : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-100'
-              )}
-            >
-              <l.icon className="h-5 w-5" />
-              {l.label}
-            </Link>
-          );
-        })}
-        {peopleLinks.length > 0 && (
-          <>
-            <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
-            <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">People</p>
-            {peopleLinks.map((l) => {
-              const active = isActive(pathname, l.href);
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => onNavigate?.()}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
-                    active ? activeClass : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
-                  )}
-                >
-                  <l.icon className="h-5 w-5" />
-                  {l.label}
-                </Link>
-              );
-            })}
-          </>
-        )}
-        {managementLinks.length > 0 && (
-          <>
-            <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
-            <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">Management</p>
-            {managementLinks.map((l) => {
-              const active = isActive(pathname, l.href);
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => onNavigate?.()}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
-                    active ? activeClass : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
-                  )}
-                >
-                  <l.icon className="h-5 w-5" />
-                  {l.label}
-                </Link>
-              );
-            })}
-          </>
-        )}
-        {curriculumAdminLinks.length > 0 && (
-          <>
-            <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
-            <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">Curriculum Admin</p>
-            {curriculumAdminLinks.map((l) => {
-              const active = isActive(pathname, l.href);
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => onNavigate?.()}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
-                    active ? activeClass : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
-                  )}
-                >
-                  <l.icon className="h-5 w-5" />
-                  {l.label}
-                </Link>
-              );
-            })}
-          </>
-        )}
-        {contentLinks.length > 0 && (
-          <>
-            <div className="mx-4 my-2 border-t border-surface-100" />
-            <p className="mx-4 text-xs font-semibold text-surface-400 uppercase">Content</p>
-            {contentLinks.map((l) => {
-              const active = isActive(pathname, l.href);
-              return (
-                <Link
-                  key={l.href}
-                  href={l.href}
-                  onClick={() => onNavigate?.()}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
-                    active ? activeClass : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
-                  )}
-                >
-                  <l.icon className="h-5 w-5" />
-                  {l.label}
-                </Link>
-              );
-            })}
-          </>
-        )}
+        {primaryLinks.map(renderMobileLink)}
+        {sections
+          .filter((s) => s.links.length > 0)
+          .map((s) => (
+            <div key={s.label}>
+              <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
+              <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">{s.label}</p>
+              {s.links.map(renderMobileLink)}
+            </div>
+          ))}
       </div>
     );
   }
 
   return (
     <nav className="flex items-center gap-1">
-      {primaryLinks.map((l) => {
-        const active = isActive(pathname, l.href);
-        return (
-          <Link
-            key={l.href}
-            href={l.href}
-            className={cn(
-              'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
-              active
-                ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
-                : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
-            )}
-          >
-            <l.icon className="h-4 w-4" />
-            {l.label}
-          </Link>
-        );
-      })}
-
-      {/* People Dropdown (super admin) */}
-      {peopleLinks.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
-              <Users className="h-4 w-4" />
-              People
-              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {peopleLinks.map((l) => (
-              <DropdownMenuItem key={l.href} asChild>
-                <Link href={l.href} className="flex items-center gap-2">
-                  <l.icon className="h-4 w-4" />
-                  {l.label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      {/* Curriculum Admin Dropdown (super admin) */}
-      {curriculumAdminLinks.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
-              <GitBranch className="h-4 w-4" />
-              Curriculum Admin
-              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {curriculumAdminLinks.map((l) => (
-              <DropdownMenuItem key={l.href} asChild>
-                <Link href={l.href} className="flex items-center gap-2">
-                  <l.icon className="h-4 w-4" />
-                  {l.label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      {/* Management Dropdown */}
-      {managementLinks.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
-              <Users className="h-4 w-4" />
-              People
-              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {managementLinks.map((l) => (
-              <DropdownMenuItem key={l.href} asChild>
-                <Link href={l.href} className="flex items-center gap-2">
-                  <l.icon className="h-4 w-4" />
-                  {l.label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
-
-      {/* Content Dropdown */}
-      {contentLinks.length > 0 && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
-              <FileText className="h-4 w-4" />
-              Content
-              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {contentLinks.map((l) => (
-              <DropdownMenuItem key={l.href} asChild>
-                <Link href={l.href} className="flex items-center gap-2">
-                  <l.icon className="h-4 w-4" />
-                  {l.label}
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )}
+      {primaryLinks.map(renderLink)}
+      {peopleDropdownLinks.length > 0 && renderDropdown('People', Users, peopleDropdownLinks)}
+      {academicLinks.length > 0 && renderDropdown('Academic', Layers, academicLinks)}
+      {analyticsLinks.length > 0 && renderDropdown('Analytics', BarChart2, analyticsLinks)}
+      {settingsLinks.length > 0 && renderDropdown('Settings', Settings, settingsLinks)}
     </nav>
   );
 }
@@ -475,6 +361,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
               <span className="text-lg font-bold text-surface-900 dark:text-surface-100 hidden sm:block">Sanro AI</span>
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-purple-600 to-violet-600 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-white">
+                <GraduationCap className="h-3 w-3" />
+                SANRO AI
+              </span>
             </Link>
             
             <div className="hidden md:flex items-center gap-2 rounded-xl bg-surface-100 dark:bg-surface-800 px-4 py-2">

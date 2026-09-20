@@ -795,6 +795,23 @@ async function seedCurriculum() {
   }
 }
 
+async function ensureSystemInstitution() {
+  const existing = await prisma.institution.findFirst({
+    where: { isSystemInstitution: true },
+  });
+  if (existing) return existing;
+  return prisma.institution.create({
+    data: {
+      id: '00000000-0000-0000-0000-00000000a5a1',
+      name: 'SANRO AI',
+      type: 'SANRO_PLATFORM',
+      isSystemInstitution: true,
+      status: 'ACTIVE',
+      code: 'SANRO-AI',
+    },
+  });
+}
+
 async function seedPlansAndInstitution() {
   const institutionPlan = await prisma.plan.upsert({
     where: { key: 'INSTITUTION' },
@@ -2270,6 +2287,7 @@ async function seedAchievements() {
 
 async function main() {
   await seedCurriculum();
+  await ensureSystemInstitution();
   const { academicYear, institution } = await seedPlansAndInstitution();
   const demoUsers = await seedUsers(institution.id, academicYear.id);
   await seedQuestions();

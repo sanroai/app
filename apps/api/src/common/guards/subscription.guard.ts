@@ -12,10 +12,10 @@ import { RequestUser } from '../types/auth-context';
  * globally in app.module.ts for every non-public route; public routes are
  * always allowed.
  *
- * Users WITH an institution context (institutionId claim) are validated via
- * the institution subscription path (SubscriptionAccessService). Users WITHOUT
- * one (direct SANRO students/parents, SUPER_ADMIN) are validated via the
- * entitlement service (direct subscription + parent child aggregation).
+ * Users WITHOUT an institution context — or whose institution IS the SANRO AI
+ * system institution (direct SANRO customers, SUPER_ADMIN) — are validated via
+ * the entitlement service (direct subscription + parent child aggregation).
+ * Everyone else is validated via the institution subscription path.
  */
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
@@ -42,10 +42,10 @@ export class SubscriptionGuard implements CanActivate {
     const user = request.user as RequestUser | undefined;
     if (!user) return true;
 
-    if (user.institutionId) {
-      await this.subscription.assertCanAccess(user);
-    } else {
+    if (await this.entitlement.isDirectUser(user)) {
       await this.entitlement.assertCanAccess(user);
+    } else {
+      await this.subscription.assertCanAccess(user);
     }
     return true;
   }

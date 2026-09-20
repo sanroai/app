@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { SUBSCRIPTION } from '@sanro/config';
 import {
   InstitutionStatus,
+  InstitutionType,
   SubscriptionStatus,
   type InstitutionDetail,
   type SubscriptionHistoryEntry,
@@ -34,6 +35,13 @@ import {
   useEnableInstitutionUser,
   type InstitutionUser,
 } from '@/lib/institution-hooks';
+import { useBoardNodes, useGradeNodes, useCurriculumAccess } from '@/lib/admin-curriculum-hooks';
+import { useContentIngests, type IngestListItem } from '@/lib/content-ingest-hooks';
+import {
+  useAdminStudents,
+  useAdminTeachers,
+  useAdminParents,
+} from '@/lib/people-hooks';
 import { ApiError } from '@/lib/api';
 import { InstitutionProfileFormDialog } from '@/components/institution/institution-profile-form-dialog';
 import { Button } from '@/components/ui/button';
@@ -75,6 +83,7 @@ import {
   ChevronRight,
   ClipboardList,
   CreditCard,
+  ExternalLink,
   FileText,
   Globe,
   GraduationCap,
@@ -89,6 +98,7 @@ import {
   RotateCcw,
   Search,
   Shield,
+  Sparkles,
   User,
   UserCheck,
   UserPlus,
@@ -141,6 +151,18 @@ function metadataSummary(meta: Record<string, unknown>) {
   const json = JSON.stringify(meta) ?? '';
   return json.length > 140 ? `${json.slice(0, 140)}...` : json;
 }
+
+const TYPE_LABELS: Record<string, string> = {
+  SCHOOL: 'School',
+  COACHING_CENTRE: 'Coaching Centre',
+  COACHING: 'Coaching',
+  ACADEMY: 'Academy',
+  TUITION_CENTRE: 'Tuition Centre',
+  EDUCATIONAL_INSTITUTE: 'Educational Institute',
+  TRAINING_CENTRE: 'Training Centre',
+  OTHER: 'Other',
+  SANRO_PLATFORM: 'SANRO AI',
+};
 
 const INSTITUTION_STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
@@ -195,6 +217,320 @@ const ROLE_STYLES: Record<string, string> = {
   PARENT: 'bg-teal-100 text-teal-700',
   INSTITUTION_ADMIN: 'bg-blue-100 text-blue-700',
 };
+
+const CONTENT_STATUS_STYLES: Record<string, string> = {
+  DRAFT: 'bg-slate-100 text-slate-600',
+  REVIEW: 'bg-amber-100 text-amber-700',
+  APPROVED: 'bg-blue-100 text-blue-700',
+  PUBLISHED: 'bg-green-100 text-green-700',
+  ARCHIVED: 'bg-slate-100 text-slate-500',
+  PROCESSING: 'bg-violet-100 text-violet-700',
+  FAILED: 'bg-red-100 text-red-700',
+};
+
+type TabId = 'overview' | 'customers' | 'subscription' | 'content' | 'curriculum' | 'users' | 'audit';
+
+const TABS: Array<{ id: TabId; label: string; icon: typeof Users }> = [
+  { id: 'overview', label: 'Overview', icon: Building2 },
+  { id: 'customers', label: 'Direct Customers', icon: Users },
+  { id: 'subscription', label: 'Subscription', icon: CreditCard },
+  { id: 'content', label: 'Content', icon: FileText },
+  { id: 'curriculum', label: 'Curriculum', icon: GraduationCap },
+  { id: 'users', label: 'Users', icon: UserCheck },
+  { id: 'audit', label: 'Audit', icon: ClipboardList },
+];
+
+function TabBar({
+  tabs,
+  active,
+  onTab,
+}: {
+  tabs: Array<{ id: TabId; label: string; icon: typeof Users }>;
+  active: TabId;
+  onTab: (id: TabId) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1 rounded-2xl border border-surface-200 bg-surface-50 p-1.5">
+      {tabs.map((t) => {
+        const Icon = t.icon;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onTab(t.id)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors',
+              active === t.id
+                ? 'bg-brand-600 text-white shadow-sm'
+                : 'text-surface-600 hover:bg-surface-100 hover:text-surface-900',
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DirectCustomersTab({ id }: { id: string }) {
+  const students = useAdminStudents({ source: 'DIRECT_SANRO', institutionId: id, page: 1, pageSize: 1 });
+  const teachers = useAdminTeachers({ institutionId: id, page: 1, pageSize: 1 });
+  const parents = useAdminParents({ source: 'DIRECT_SANRO', institutionId: id, page: 1, pageSize: 1 });
+
+  const countCards: Array<{
+    label: string;
+    total?: number;
+    loading: boolean;
+    href: string;
+    icon: typeof Users;
+  }> = [
+    { label: 'Students', total: students.data?.total, loading: students.isFetching, href: '/app/people/students?source=DIRECT_SANRO', icon: GraduationCap },
+    { label: 'Teachers', total: teachers.data?.total, loading: teachers.isFetching, href: '/app/people/teachers', icon: UserCheck },
+    { label: 'Parents', total: parents.data?.total, loading: parents.isFetching, href: '/app/people/parents?source=DIRECT_SANRO', icon: Users },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Users className="h-5 w-5 text-brand-500" />
+          Direct SANRO Customers
+        </CardTitle>
+        <CardDescription className="mt-1">
+          Customers who subscribed directly through SANRO (no school tenant). These people appear under
+          source <span className="font-medium">DIRECT_SANRO</span> and are hosted by the SANRO AI platform.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {countCards.map((c) => {
+            const Icon = c.icon;
+            return (
+              <Link
+                key={c.label}
+                href={c.href}
+                className="group rounded-2xl border border-surface-200 bg-surface-50 p-4 transition-colors hover:border-brand-300 hover:bg-brand-50"
+              >
+                <div className="flex items-center justify-between">
+                  <Icon className="h-5 w-5 text-brand-500" />
+                  <ExternalLink className="h-4 w-4 text-surface-300 transition-colors group-hover:text-brand-500" />
+                </div>
+                <p className="mt-3 text-2xl font-bold text-surface-900">
+                  {c.loading ? <Loader2 className="h-5 w-5 animate-spin text-surface-400" /> : (c.total ?? 0)}
+                </p>
+                <p className="text-sm text-surface-500">{c.label}</p>
+              </Link>
+            );
+          })}
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-100 bg-surface-50 p-4">
+          <p className="text-sm text-surface-600">
+            Manage subscriptions, accounts and profiles for direct SANRO customers.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/people/students?source=DIRECT_SANRO">
+                <GraduationCap className="h-4 w-4" />
+                Students
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/people/teachers">
+                <UserCheck className="h-4 w-4" />
+                Teachers
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/app/people/parents?source=DIRECT_SANRO">
+                <Users className="h-4 w-4" />
+                Parents
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const CONTENT_INGEST_BY_INSTITUTION = (rows: IngestListItem[], id: string, isSystem: boolean) =>
+  rows.filter((r) =>
+    isSystem
+      ? r.ownerType === 'PLATFORM' || (r.ownerType === 'INSTITUTION' && r.institutionId === id)
+      : r.ownerType === 'INSTITUTION' && r.institutionId === id,
+  );
+
+function ContentTab({ id, isSystem }: { id: string; isSystem: boolean }) {
+  const { data: ingests, isLoading, isError, refetch } = useContentIngests();
+  const rows = CONTENT_INGEST_BY_INSTITUTION(ingests ?? [], id, isSystem);
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-brand-500" />
+              {isSystem ? 'Platform Content' : 'Content'}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {isSystem
+                ? 'Content owned by the SANRO AI platform or hosted on it.'
+                : `Content owned by this institution (${rows.length} items).`}
+            </CardDescription>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/app/content/ingest">
+              <ExternalLink className="h-4 w-4" />
+              Content pipeline
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="py-6 text-center text-sm text-surface-400">Loading content...</p>
+          ) : isError ? (
+            <div className="py-10 text-center">
+              <p className="text-sm font-medium text-surface-700">Could not load content</p>
+              <Button className="mt-3" variant="outline" size="sm" onClick={() => void refetch()}>
+                <RefreshCcw className="h-3.5 w-3.5" />
+                Retry
+              </Button>
+            </div>
+          ) : rows.length === 0 ? (
+            <p className="py-10 text-center text-sm text-surface-500">No content items yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-surface-100 text-xs uppercase tracking-wide text-surface-400">
+                    <th className="px-3 py-2 font-semibold">Item</th>
+                    <th className="px-3 py-2 font-semibold">Source</th>
+                    <th className="px-3 py-2 font-semibold">Status</th>
+                    <th className="px-3 py-2 font-semibold">Stage</th>
+                    <th className="px-3 py-2 font-semibold">Updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.id} className="border-b border-surface-50 align-top">
+                      <td className="px-3 py-3">
+                        <p className="font-medium text-surface-900">{r.name}</p>
+                        {r.sourceUrl ? (
+                          <p className="max-w-xs truncate text-xs text-surface-400">{r.sourceUrl}</p>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-3 text-xs text-surface-600">
+                        {r.sourceType}
+                        {r.ownerType === 'PLATFORM' ? ' · Platform' : ''}
+                      </td>
+                      <td className="px-3 py-3">
+                        <Badge className={cn('text-[10px]', CONTENT_STATUS_STYLES[r.status] ?? 'bg-surface-100 text-surface-600')}>
+                          {r.status}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-3 text-xs text-surface-600">{r.stage}</td>
+                      <td className="px-3 py-3 text-xs text-surface-500">{formatDate(r.updatedAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function CurriculumTab({ id }: { id: string }) {
+  const boards = useBoardNodes();
+  const grades = useGradeNodes();
+  const access = useCurriculumAccess(id);
+  const gradeRows = grades.data ?? [];
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-brand-500" />
+              Curriculum
+            </CardTitle>
+            <CardDescription className="mt-1">Available boards and access grants for this institution.</CardDescription>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/app/curriculum/access">
+              <ExternalLink className="h-4 w-4" />
+              Manage access
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          {boards.isLoading ? (
+            <p className="py-4 text-sm text-surface-400">Loading boards...</p>
+          ) : (boards.data ?? []).length === 0 ? (
+            <p className="py-4 text-sm text-surface-500">No curriculum boards available.</p>
+          ) : (
+            <div>
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-surface-400">Available boards</p>
+              <div className="flex flex-wrap gap-2">
+                {(boards.data ?? []).map((b) => {
+                  const gradeCount = gradeRows.filter((g) => g.boardId === b.id).length;
+                  return (
+                    <div key={b.id} className="rounded-xl border border-surface-200 bg-surface-50 px-4 py-2.5">
+                      <p className="text-sm font-semibold text-surface-800">{b.name}</p>
+                      <p className="text-xs text-surface-500">
+                        {b.code} · {gradeCount} grade{gradeCount === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-surface-400">Access grants</p>
+            {access.isLoading ? (
+              <p className="py-4 text-sm text-surface-400">Loading grants...</p>
+            ) : (access.data ?? []).length === 0 ? (
+              <p className="py-4 text-sm text-surface-500">No explicit access grants. Global curriculum access may apply.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-surface-100 text-xs uppercase tracking-wide text-surface-400">
+                      <th className="px-3 py-2 font-semibold">Board</th>
+                      <th className="px-3 py-2 font-semibold">Grade</th>
+                      <th className="px-3 py-2 font-semibold">Subject</th>
+                      <th className="px-3 py-2 font-semibold">Granted</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(access.data ?? []).map((g) => (
+                      <tr key={g.id} className="border-b border-surface-50">
+                        <td className="px-3 py-3">
+                          <p className="font-medium text-surface-900">{g.board.name}</p>
+                        </td>
+                        <td className="px-3 py-3 text-xs text-surface-600">{g.grade ?? 'All grades'}</td>
+                        <td className="px-3 py-3 text-xs text-surface-600">{g.subject?.name ?? 'All subjects'}</td>
+                        <td className="px-3 py-3 text-xs text-surface-500">{formatDate(g.createdAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 type StatusAction = 'ACTIVATE' | 'SUSPEND' | 'ARCHIVE' | 'RESTORE' | 'EXPIRE';
 
@@ -892,6 +1228,7 @@ export default function InstitutionDetailPage() {
   const params = useParams();
   const id = (params.id as string) || '';
   const [profileOpen, setProfileOpen] = useState(false);
+  const [tab, setTab] = useState<TabId>('overview');
   const [action, setAction] = useState<StatusAction | null>(null);
   const [renewOpen, setRenewOpen] = useState(false);
   const [setSubOpen, setSetSubOpen] = useState(false);
@@ -956,6 +1293,12 @@ export default function InstitutionDetailPage() {
       </Card>
     );
   }
+
+  const detailMeta = detail as InstitutionDetail & { isSystemInstitution?: boolean };
+  const isSystemInstitution = detailMeta.isSystemInstitution === true || detailMeta.type === InstitutionType.SANRO_PLATFORM;
+  const typeLabel = TYPE_LABELS[detail.type as string] ?? String(detail.type).replace(/_/g, ' ');
+  const visibleTabs = isSystemInstitution ? TABS : TABS.filter((t) => t.id !== 'customers');
+  const activeTab = !isSystemInstitution && tab === 'customers' ? 'overview' : tab;
 
   const status = detail.status as InstitutionStatus;
   const isActive = status === 'ACTIVE';
@@ -1057,8 +1400,19 @@ export default function InstitutionDetailPage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold text-surface-900">{detail.name}</h1>
+              {isSystemInstitution ? (
+                <Badge className="text-xs bg-violet-100 text-violet-700 border-violet-200" variant="outline">
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  System
+                </Badge>
+              ) : null}
               <Badge variant="secondary" className="text-xs">{detail.code ?? '—'}</Badge>
-              <Badge variant="outline" className="text-xs">{detail.type.replace(/_/g, ' ')}</Badge>
+              <Badge
+                variant="outline"
+                className={cn('text-xs', isSystemInstitution ? 'bg-slate-800 text-white' : undefined)}
+              >
+                {typeLabel}
+              </Badge>
               <Badge className={cn('text-xs', INSTITUTION_STATUS_STYLES[status] ?? 'bg-surface-100 text-surface-600')}>
                 {status}
               </Badge>
@@ -1067,121 +1421,239 @@ export default function InstitutionDetailPage() {
               Created {formatDate(detail.createdAt)} · Last activity {formatDate(detail.lastActivityAt)}
             </p>
           </div>
-          <Button variant="outline" onClick={() => setProfileOpen(true)}>
-            <Pencil className="h-4 w-4" />
-            Edit Profile
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {!isActive ? (
-            <Button variant="success" onClick={() => setAction('ACTIVATE')}>
-              <PlayCircle className="h-4 w-4" />
-              Activate
-            </Button>
-          ) : null}
-          {isActive || isPending ? (
-            <Button variant="warning" onClick={() => setAction('SUSPEND')}>
-              <Shield className="h-4 w-4" />
-              Suspend
-            </Button>
-          ) : null}
-          {!isArchived ? (
-            <Button variant="destructive" onClick={() => setAction('ARCHIVE')}>
-              <Archive className="h-4 w-4" />
-              Archive
-            </Button>
+          {isSystemInstitution ? (
+            <Badge className="rounded-xl bg-gradient-to-r from-brand-600 to-purple-600 px-3 py-1.5 text-xs text-white">
+              SANRO AI Platform
+            </Badge>
           ) : (
-            <Button variant="success" onClick={() => setAction('RESTORE')}>
-              <RotateCcw className="h-4 w-4" />
-              Restore
+            <Button variant="outline" onClick={() => setProfileOpen(true)}>
+              <Pencil className="h-4 w-4" />
+              Edit Profile
             </Button>
           )}
-          {!isExpiredStatus ? (
-            <Button variant="destructive" onClick={() => setAction('EXPIRE')}>
-              <CalendarClock className="h-4 w-4" />
-              Expire
-            </Button>
-          ) : null}
         </div>
+
+        {isSystemInstitution ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-200 bg-violet-50/60 px-4 py-3 text-sm text-violet-800">
+            <Shield className="h-4 w-4" />
+            This is the SANRO AI system institution. It hosts all direct SANRO customers and cannot be
+            suspended, archived or deleted. Platform actions are locked.
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {!isActive ? (
+              <Button variant="success" onClick={() => setAction('ACTIVATE')}>
+                <PlayCircle className="h-4 w-4" />
+                Activate
+              </Button>
+            ) : null}
+            {isActive || isPending ? (
+              <Button variant="warning" onClick={() => setAction('SUSPEND')}>
+                <Shield className="h-4 w-4" />
+                Suspend
+              </Button>
+            ) : null}
+            {!isArchived ? (
+              <Button variant="destructive" onClick={() => setAction('ARCHIVE')}>
+                <Archive className="h-4 w-4" />
+                Archive
+              </Button>
+            ) : (
+              <Button variant="success" onClick={() => setAction('RESTORE')}>
+                <RotateCcw className="h-4 w-4" />
+                Restore
+              </Button>
+            )}
+            {!isExpiredStatus ? (
+              <Button variant="destructive" onClick={() => setAction('EXPIRE')}>
+                <CalendarClock className="h-4 w-4" />
+                Expire
+              </Button>
+            ) : null}
+          </div>
+        )}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {detail.description ? (
-              <p className="text-sm text-surface-600">{detail.description}</p>
-            ) : null}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="text-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Address</p>
-                <p className="mt-1 text-surface-700">
-                  {[detail.address, detail.city, detail.state, detail.country].filter(Boolean).join(', ') || '—'}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Website</p>
-                {detail.website ? (
-                  <a
-                    href={detail.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 inline-flex items-center gap-1 text-brand-600 hover:underline"
-                  >
-                    <Globe className="h-3.5 w-3.5" />
-                    {detail.website.replace(/^https?:\/\//, '')}
-                  </a>
-                ) : (
-                  <p className="mt-1 text-surface-500">—</p>
-                )}
-              </div>
-              <div className="text-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Contact Person</p>
-                <p className="mt-1 flex items-center gap-1 text-surface-700">
-                  <User className="h-3.5 w-3.5 text-surface-400" />
-                  {detail.contactPerson ?? '—'}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Primary Phone</p>
-                <p className="mt-1 flex items-center gap-1 text-surface-700">
-                  <Phone className="h-3.5 w-3.5 text-surface-400" />
-                  {detail.primaryPhone ?? '—'}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Primary Email</p>
-                <p className="mt-1 flex items-center gap-1 text-surface-700">
-                  <Mail className="h-3.5 w-3.5 text-surface-400" />
-                  {detail.primaryEmail ?? '—'}
-                </p>
-              </div>
-              <div className="text-sm">
-                <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Grace Period</p>
-                <p className="mt-1 text-surface-700">
-                  {detail.gracePeriodDays} day{detail.gracePeriodDays === 1 ? '' : 's'}
-                </p>
-              </div>
-            </div>
+      <TabBar tabs={visibleTabs} active={activeTab} onTab={setTab} />
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {COUNT_ITEMS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.key} className="rounded-xl bg-surface-50 p-3 text-center">
-                    <Icon className="mx-auto h-4 w-4 text-brand-500" />
-                    <p className="mt-1 text-lg font-bold text-surface-900">{detail.counts[item.key]}</p>
-                    <p className="text-[11px] text-surface-400">{item.label}</p>
+      {activeTab === 'overview' ? (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-brand-500" />
+                {isSystemInstitution ? 'Platform Overview' : 'Overview'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isSystemInstitution ? (
+                <div className="flex flex-wrap items-center gap-2 rounded-xl bg-gradient-to-br from-brand-50 via-white to-violet-50 p-4">
+                  <Sparkles className="h-5 w-5 text-brand-600" />
+                  <p className="text-sm text-surface-700">
+                    System institution hosting all direct SANRO customers ({detail.counts.students} students,
+                    {detail.counts.teachers} teachers, {detail.counts.parents} parents).
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {detail.description ? <p className="text-sm text-surface-600">{detail.description}</p> : null}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="text-sm">
+                      <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Address</p>
+                      <p className="mt-1 text-surface-700">
+                        {[detail.address, detail.city, detail.state, detail.country].filter(Boolean).join(', ') || '—'}
+                      </p>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Website</p>
+                      {detail.website ? (
+                        <a
+                          href={detail.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 inline-flex items-center gap-1 text-brand-600 hover:underline"
+                        >
+                          <Globe className="h-3.5 w-3.5" />
+                          {detail.website.replace(/^https?:\/\//, '')}
+                        </a>
+                      ) : (
+                        <p className="mt-1 text-surface-500">—</p>
+                      )}
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Contact Person</p>
+                      <p className="mt-1 flex items-center gap-1 text-surface-700">
+                        <User className="h-3.5 w-3.5 text-surface-400" />
+                        {detail.contactPerson ?? '—'}
+                      </p>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Primary Phone</p>
+                      <p className="mt-1 flex items-center gap-1 text-surface-700">
+                        <Phone className="h-3.5 w-3.5 text-surface-400" />
+                        {detail.primaryPhone ?? '—'}
+                      </p>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Primary Email</p>
+                      <p className="mt-1 flex items-center gap-1 text-surface-700">
+                        <Mail className="h-3.5 w-3.5 text-surface-400" />
+                        {detail.primaryEmail ?? '—'}
+                      </p>
+                    </div>
+                    <div className="text-sm">
+                      <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Grace Period</p>
+                      <p className="mt-1 text-surface-700">
+                        {detail.gracePeriodDays} day{detail.gracePeriodDays === 1 ? '' : 's'}
+                      </p>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                </>
+              )}
 
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {COUNT_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <div key={item.key} className="rounded-xl bg-surface-50 p-3 text-center">
+                      <Icon className="mx-auto h-4 w-4 text-brand-500" />
+                      <p className="mt-1 text-lg font-bold text-surface-900">{detail.counts[item.key]}</p>
+                      <p className="text-[11px] text-surface-400">{item.label}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {!isSystemInstitution ? (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Admins</CardTitle>
+                  <CardDescription className="mt-1">
+                    {detail.admins.length} administrator{detail.admins.length === 1 ? '' : 's'}
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setAdminOpen(true)}>
+                  <UserPlus className="h-4 w-4" />
+                  Change Primary Admin
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {detail.admins.length === 0 ? (
+                  <p className="text-sm text-surface-500">No admins assigned yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {detail.admins.map((admin) => {
+                      const isPrimary =
+                        detail.primaryAdmin?.id === admin.userId || detail.primaryAdmin?.id === admin.id;
+                      return (
+                        <div key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-100 p-4">
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-2 font-semibold text-surface-900">
+                              {admin.name}
+                              {isPrimary ? <Badge className="text-[10px]">Primary</Badge> : null}
+                            </p>
+                            <p className="text-sm text-surface-500">{admin.email}</p>
+                            <p className="text-xs text-surface-400">
+                              {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-brand-500" />
+                  Platform Admins
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {detail.admins.length} administrator{detail.admins.length === 1 ? '' : 's'} of the SANRO AI platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {detail.admins.length === 0 ? (
+                  <p className="text-sm text-surface-500">No platform admins assigned yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {detail.admins.map((admin) => {
+                      const isPrimary =
+                        detail.primaryAdmin?.id === admin.userId || detail.primaryAdmin?.id === admin.id;
+                      return (
+                        <div key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-100 p-4">
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-2 font-semibold text-surface-900">
+                              {admin.name}
+                              {isPrimary ? <Badge className="text-[10px]">Primary</Badge> : null}
+                            </p>
+                            <p className="text-sm text-surface-500">{admin.email}</p>
+                            <p className="text-xs text-surface-400">
+                              {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      ) : null}
+
+      {isSystemInstitution && activeTab === 'customers' ? <DirectCustomersTab id={id} /> : null}
+
+      {activeTab === 'subscription' ? (
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
@@ -1244,24 +1716,31 @@ export default function InstitutionDetailPage() {
               <p className="text-sm text-surface-500">No subscription configured yet.</p>
             )}
 
-            <div className="flex flex-wrap gap-2 border-t border-surface-100 pt-4">
-              <Button className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700" onClick={() => setRenewOpen(true)}>
-                <RefreshCcw className="h-4 w-4" />
-                Renew Now
-              </Button>
-              <Button variant="outline" onClick={() => setSetSubOpen(true)}>
-                <Pencil className="h-4 w-4" />
-                Change Plan / Set Subscription
-              </Button>
-              <Button variant="outline" onClick={() => setSeatLimitOpen(true)}>
-                <Users className="h-4 w-4" />
-                Adjust Seat Limit
-              </Button>
-              <Button variant="destructive" onClick={() => setAction('EXPIRE')}>
-                <CalendarClock className="h-4 w-4" />
-                Expire Subscription
-              </Button>
-            </div>
+            {isSystemInstitution ? (
+              <div className="flex flex-wrap items-center gap-2 rounded-xl border border-surface-100 bg-surface-50 px-4 py-3 text-xs text-surface-500">
+                <Shield className="h-3.5 w-3.5" />
+                The system platform is not billed. Subscription management is available for tenant institutions only.
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2 border-t border-surface-100 pt-4">
+                <Button className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700" onClick={() => setRenewOpen(true)}>
+                  <RefreshCcw className="h-4 w-4" />
+                  Renew Now
+                </Button>
+                <Button variant="outline" onClick={() => setSetSubOpen(true)}>
+                  <Pencil className="h-4 w-4" />
+                  Change Plan / Set Subscription
+                </Button>
+                <Button variant="outline" onClick={() => setSeatLimitOpen(true)}>
+                  <Users className="h-4 w-4" />
+                  Adjust Seat Limit
+                </Button>
+                <Button variant="destructive" onClick={() => setAction('EXPIRE')}>
+                  <CalendarClock className="h-4 w-4" />
+                  Expire Subscription
+                </Button>
+              </div>
+            )}
 
             {historyRows.length > 0 ? (
               <div className="space-y-3 border-t border-surface-100 pt-4">
@@ -1286,254 +1765,307 @@ export default function InstitutionDetailPage() {
             ) : null}
           </CardContent>
         </Card>
-      </div>
+      ) : null}
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between gap-4">
-          <div>
-            <CardTitle>Admins</CardTitle>
-            <CardDescription className="mt-1">{detail.admins.length} administrator{detail.admins.length === 1 ? '' : 's'}</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" onClick={() => setAdminOpen(true)}>
-            <UserPlus className="h-4 w-4" />
-            Change Primary Admin
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {detail.admins.length === 0 ? (
-            <p className="text-sm text-surface-500">No admins assigned yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {detail.admins.map((admin) => {
-                const isPrimary =
-                  detail.primaryAdmin?.id === admin.userId || detail.primaryAdmin?.id === admin.id;
-                return (
-                  <div key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-100 p-4">
-                    <div className="min-w-0">
-                      <p className="flex items-center gap-2 font-semibold text-surface-900">
-                        {admin.name}
-                        {isPrimary ? <Badge className="text-[10px]">Primary</Badge> : null}
-                      </p>
-                      <p className="text-sm text-surface-500">{admin.email}</p>
-                      <p className="text-xs text-surface-400">
-                        {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+      {activeTab === 'content' ? <ContentTab id={id} isSystem={isSystemInstitution} /> : null}
+
+      {activeTab === 'curriculum' ? <CurriculumTab id={id} /> : null}
+
+      {activeTab === 'users' ? (
+        <>
+          {isSystemInstitution ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheck className="h-5 w-5 text-brand-500" />
+                  Platform Admins
+                </CardTitle>
+                <CardDescription className="mt-1">
+                  {detail.admins.length} administrator{detail.admins.length === 1 ? '' : 's'} of the SANRO AI platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {detail.admins.length === 0 ? (
+                  <p className="text-sm text-surface-500">No platform admins assigned yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {detail.admins.map((admin) => {
+                      const isPrimary =
+                        detail.primaryAdmin?.id === admin.userId || detail.primaryAdmin?.id === admin.id;
+                      return (
+                        <div key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-100 p-4">
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-2 font-semibold text-surface-900">
+                              {admin.name}
+                              {isPrimary ? <Badge className="text-[10px]">Primary</Badge> : null}
+                            </p>
+                            <p className="text-sm text-surface-500">{admin.email}</p>
+                            <p className="text-xs text-surface-400">
+                              {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Users</CardTitle>
-          <CardDescription className="mt-1">
-            {nonAdminUsers.length} non-admin user{nonAdminUsers.length === 1 ? '' : 's'} in this institution
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
-              <Input
-                className="pl-9"
-                placeholder="Search users..."
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-              />
-            </div>
-            <div className="w-full sm:w-48">
-              <Select value={roleFilter} onValueChange={setRoleFilter}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All roles</SelectItem>
-                  <SelectItem value="STUDENT">Students</SelectItem>
-                  <SelectItem value="TEACHER">Teachers</SelectItem>
-                  <SelectItem value="PARENT">Parents</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {usersQuery.isLoading ? (
-            <p className="py-6 text-center text-sm text-surface-400">Loading users...</p>
-          ) : filteredUsers.length === 0 ? (
-            <div className="py-10 text-center">
-              <Users className="mx-auto h-10 w-10 text-surface-300" />
-              <p className="mt-3 text-sm font-medium text-surface-500">No users yet</p>
-            </div>
+                )}
+              </CardContent>
+            </Card>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-surface-100 text-xs uppercase tracking-wide text-surface-400">
-                    <th className="px-3 py-2 font-semibold">User</th>
-                    <th className="px-3 py-2 font-semibold">Role</th>
-                    <th className="px-3 py-2 font-semibold">Status</th>
-                    <th className="px-3 py-2 font-semibold">Joined</th>
-                    <th className="px-3 py-2 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((u) => (
-                    <tr key={u.userId} className="border-b border-surface-50">
-                      <td className="px-3 py-3">
-                        <p className="font-medium text-surface-900">{u.name}</p>
-                        <p className="text-xs text-surface-500">{u.email}</p>
-                      </td>
-                      <td className="px-3 py-3">
-                        <Badge className={cn('text-[10px]', ROLE_STYLES[u.role] ?? 'bg-surface-100 text-surface-600')}>
-                          {u.role}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className="text-xs text-surface-600">{u.status}</span>
-                        {u.isActive ? null : (
-                          <span className="ml-2 text-xs font-medium text-red-600">Disabled</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-xs text-surface-500">{formatDate(u.joinedAt)}</td>
-                      <td className="px-3 py-3 text-right">
-                        {u.isActive ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setRestrictUser({ user: u, target: 'DISABLE' })}
-                          >
-                            <Lock className="h-3.5 w-3.5" />
-                            Disable
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() => setRestrictUser({ user: u, target: 'ENABLE' })}
-                          >
-                            <PlayCircle className="h-3.5 w-3.5" />
-                            Enable
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Audit History</CardTitle>
-          <CardDescription className="mt-1">
-            {auditQuery.data?.total ?? 0} events · showing page {auditPage} of {auditTotalPages}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {auditQuery.isLoading ? (
-            <p className="py-6 text-center text-sm text-surface-400">Loading audit events...</p>
-          ) : auditQuery.data && auditQuery.data.rows.length === 0 ? (
-            <p className="py-6 text-center text-sm text-surface-500">No audit events yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-surface-100 text-xs uppercase tracking-wide text-surface-400">
-                    <th className="px-3 py-2 font-semibold">Timestamp</th>
-                    <th className="px-3 py-2 font-semibold">Action</th>
-                    <th className="px-3 py-2 font-semibold">Entity</th>
-                    <th className="px-3 py-2 font-semibold">Metadata</th>
-                    <th className="px-3 py-2 font-semibold">Actor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(auditQuery.data?.rows ?? []).map((row) => (
-                    <tr key={row.id} className="border-b border-surface-50 align-top">
-                      <td className="whitespace-nowrap px-3 py-3 text-xs text-surface-500">
-                        {formatDateTime(row.createdAt)}
-                      </td>
-                      <td className="px-3 py-3">
-                        <Badge className={cn('text-[10px]', AUDIT_ACTION_STYLES[row.action] ?? 'bg-surface-100 text-surface-600')}>
-                          {row.action}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-3 text-xs text-surface-600">
-                        {row.entityType ? (
-                          <span className="block">{row.entityType}</span>
-                        ) : null}
-                        {row.entityId ? (
-                          <span className="block font-mono text-[10px] text-surface-400">{row.entityId}</span>
-                        ) : null}
-                      </td>
-                      <td className="max-w-[240px] px-3 py-3">
-                        <TooltipProvider delayDuration={200}>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="block cursor-default truncate text-xs text-surface-600">
-                                {metadataSummary(row.metadata)}
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-sm break-all">
-                              <pre className="whitespace-pre-wrap text-[11px]">
-                                {JSON.stringify(row.metadata, null, 2)}
-                              </pre>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </td>
-                      <td className="px-3 py-3 text-xs text-surface-600">
-                        {row.user ? (
-                          <>
-                            <span className="block font-medium text-surface-800">{row.user.name}</span>
-                            <span className="block text-surface-400">{row.user.email}</span>
-                          </>
-                        ) : (
-                          'System'
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-4">
+                <div>
+                  <CardTitle>Admins</CardTitle>
+                  <CardDescription className="mt-1">
+                    {detail.admins.length} administrator{detail.admins.length === 1 ? '' : 's'}
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setAdminOpen(true)}>
+                  <UserPlus className="h-4 w-4" />
+                  Change Primary Admin
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {detail.admins.length === 0 ? (
+                  <p className="text-sm text-surface-500">No admins assigned yet.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {detail.admins.map((admin) => {
+                      const isPrimary =
+                        detail.primaryAdmin?.id === admin.userId || detail.primaryAdmin?.id === admin.id;
+                      return (
+                        <div key={admin.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-surface-100 p-4">
+                          <div className="min-w-0">
+                            <p className="flex items-center gap-2 font-semibold text-surface-900">
+                              {admin.name}
+                              {isPrimary ? <Badge className="text-[10px]">Primary</Badge> : null}
+                            </p>
+                            <p className="text-sm text-surface-500">{admin.email}</p>
+                            <p className="text-xs text-surface-400">
+                              {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
+                            </p>
+                          </div>
+                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           )}
 
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-surface-400">
-              {auditQuery.data ? `${(auditPage - 1) * 5 + 1}-${Math.min(auditPage * 5, auditQuery.data.total)} of ${auditQuery.data.total}` : ''}
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={auditPage <= 1 || auditQuery.isFetching}
-                onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={auditPage >= auditTotalPages || auditQuery.isFetching}
-                onClick={() => setAuditPage((p) => p + 1)}
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Users</CardTitle>
+              <CardDescription className="mt-1">
+                {nonAdminUsers.length} non-admin user{nonAdminUsers.length === 1 ? '' : 's'} in this institution
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
+                  <Input
+                    className="pl-9"
+                    placeholder="Search users..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                  />
+                </div>
+                <div className="w-full sm:w-48">
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All roles</SelectItem>
+                      <SelectItem value="STUDENT">Students</SelectItem>
+                      <SelectItem value="TEACHER">Teachers</SelectItem>
+                      <SelectItem value="PARENT">Parents</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-      {isArchived || isExpiredStatus ? (
+              {usersQuery.isLoading ? (
+                <p className="py-6 text-center text-sm text-surface-400">Loading users...</p>
+              ) : filteredUsers.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Users className="mx-auto h-10 w-10 text-surface-300" />
+                  <p className="mt-3 text-sm font-medium text-surface-500">No users yet</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-surface-100 text-xs uppercase tracking-wide text-surface-400">
+                        <th className="px-3 py-2 font-semibold">User</th>
+                        <th className="px-3 py-2 font-semibold">Role</th>
+                        <th className="px-3 py-2 font-semibold">Status</th>
+                        <th className="px-3 py-2 font-semibold">Joined</th>
+                        <th className="px-3 py-2 text-right font-semibold">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((u) => (
+                        <tr key={u.userId} className="border-b border-surface-50">
+                          <td className="px-3 py-3">
+                            <p className="font-medium text-surface-900">{u.name}</p>
+                            <p className="text-xs text-surface-500">{u.email}</p>
+                          </td>
+                          <td className="px-3 py-3">
+                            <Badge className={cn('text-[10px]', ROLE_STYLES[u.role] ?? 'bg-surface-100 text-surface-600')}>
+                              {u.role}
+                            </Badge>
+                          </td>
+                          <td className="px-3 py-3">
+                            <span className="text-xs text-surface-600">{u.status}</span>
+                            {u.isActive ? null : (
+                              <span className="ml-2 text-xs font-medium text-red-600">Disabled</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 text-xs text-surface-500">{formatDate(u.joinedAt)}</td>
+                          <td className="px-3 py-3 text-right">
+                            {u.isActive ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setRestrictUser({ user: u, target: 'DISABLE' })}
+                              >
+                                <Lock className="h-3.5 w-3.5" />
+                                Disable
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() => setRestrictUser({ user: u, target: 'ENABLE' })}
+                              >
+                                <PlayCircle className="h-3.5 w-3.5" />
+                                Enable
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
+      ) : null}
+
+      {activeTab === 'audit' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Audit History</CardTitle>
+            <CardDescription className="mt-1">
+              {auditQuery.data?.total ?? 0} events · showing page {auditPage} of {auditTotalPages}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {auditQuery.isLoading ? (
+              <p className="py-6 text-center text-sm text-surface-400">Loading audit events...</p>
+            ) : auditQuery.data && auditQuery.data.rows.length === 0 ? (
+              <p className="py-6 text-center text-sm text-surface-500">No audit events yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-surface-100 text-xs uppercase tracking-wide text-surface-400">
+                      <th className="px-3 py-2 font-semibold">Timestamp</th>
+                      <th className="px-3 py-2 font-semibold">Action</th>
+                      <th className="px-3 py-2 font-semibold">Entity</th>
+                      <th className="px-3 py-2 font-semibold">Metadata</th>
+                      <th className="px-3 py-2 font-semibold">Actor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(auditQuery.data?.rows ?? []).map((row) => (
+                      <tr key={row.id} className="border-b border-surface-50 align-top">
+                        <td className="whitespace-nowrap px-3 py-3 text-xs text-surface-500">
+                          {formatDateTime(row.createdAt)}
+                        </td>
+                        <td className="px-3 py-3">
+                          <Badge className={cn('text-[10px]', AUDIT_ACTION_STYLES[row.action] ?? 'bg-surface-100 text-surface-600')}>
+                            {row.action}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-3 text-xs text-surface-600">
+                          {row.entityType ? (
+                            <span className="block">{row.entityType}</span>
+                          ) : null}
+                          {row.entityId ? (
+                            <span className="block font-mono text-[10px] text-surface-400">{row.entityId}</span>
+                          ) : null}
+                        </td>
+                        <td className="max-w-[240px] px-3 py-3">
+                          <TooltipProvider delayDuration={200}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="block cursor-default truncate text-xs text-surface-600">
+                                  {metadataSummary(row.metadata)}
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-sm break-all">
+                                <pre className="whitespace-pre-wrap text-[11px]">
+                                  {JSON.stringify(row.metadata, null, 2)}
+                                </pre>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </td>
+                        <td className="px-3 py-3 text-xs text-surface-600">
+                          {row.user ? (
+                            <>
+                              <span className="block font-medium text-surface-800">{row.user.name}</span>
+                              <span className="block text-surface-400">{row.user.email}</span>
+                            </>
+                          ) : (
+                            'System'
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-surface-400">
+                {auditQuery.data ? `${(auditPage - 1) * 5 + 1}-${Math.min(auditPage * 5, auditQuery.data.total)} of ${auditQuery.data.total}` : ''}
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={auditPage <= 1 || auditQuery.isFetching}
+                  onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={auditPage >= auditTotalPages || auditQuery.isFetching}
+                  onClick={() => setAuditPage((p) => p + 1)}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!isSystemInstitution && (isArchived || isExpiredStatus) ? (
         <Card className="border-red-200 bg-red-50/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

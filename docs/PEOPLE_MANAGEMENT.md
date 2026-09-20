@@ -1,11 +1,13 @@
 # SANRO AI — People Management, Direct SANRO & Super-Admin People Admin
 
 Full product + technical reference for managing the platform's people surface:
-Students, Teachers and Parents, the **Direct SANRO** subscription model
-(institution-less customers), the super-admin people admin API, and the
-entitlement rules that decide who is allowed to act right now.
+Students, Teachers and Parents, the **Direct SANRO** subscription model (direct
+customers belong to the system-owned "SANRO AI" institution — id
+`00000000-0000-0000-0000-00000000a5a1`), the super-admin people admin API, and
+the entitlement rules that decide who is allowed to act right now.
 
-Status: ratified 2026-09-20. Describes the implementation as it exists in code
+Status: ratified 2026-09-20 (updated 2026-09-21 for the SANRO AI system
+institution model). Describes the implementation as it exists in code
 (`apps/api/src/admin/admin-people.controller.ts`,
 `apps/api/src/admin/admin-people.service.ts`,
 `apps/api/src/common/security/entitlement.service.ts`,
@@ -28,39 +30,53 @@ belongs to exactly one of two source types:
 
 | Source | Row condition | Access derives from |
 |---|---|---|
-| `INSTITUTION` | `institutionId` set (NOT NULL) | the institution's subscription (membership path) |
-| `DIRECT_SANRO` | `institutionId` NULL (`= null`) | a user-owned direct `Subscription` row |
+| `INSTITUTION` | `institutionId` set and ≠ SANRO AI system id | the institution's subscription (membership path) |
+| `DIRECT_SANRO` | `institutionId` = SANRO AI system id (`00000000-0000-0000-0000-00000000a5a1`) OR NULL (legacy fallback) | a user-owned direct `Subscription` row |
 
 **The source is DERIVED, not stored.** There is no `source` column; code computes
 it from the row's `institutionId` each time:
 
 - `AdminPeopleService.deriveSource(institutionId)` returns
-  `'INSTITUTION'` when `institutionId` is truthy and `'DIRECT_SANRO'` otherwise
+  `'DIRECT_SANRO'` when `institutionId` is the SANRO AI system id or null
+  (legacy fallback) and `'INSTITUTION'` otherwise
   (`apps/api/src/admin/admin-people.service.ts:67`).
 - The contract defines the same rule: "a person row is `INSTITUTION` if
-  institutionId set, `DIRECT_SANRO` if institutionId null"
-  (`docs/PEOPLE_MANAGEMENT_CONTRACT.md` §1). UI labels: **"Direct SANRO
-  Student"**, **"Direct SANRO Parent"**; the web `SourceBadge` renders the short
-  labels *Institution* / *Direct SANRO* (`apps/web/components/people/source-badge.tsx`).
+  institutionId set and not the system id, `DIRECT_SANRO` if it is the SANRO AI
+  system institution or null" (`docs/PEOPLE_MANAGEMENT_CONTRACT.md` §1).
+  UI labels: **"Direct SANRO Student"**, **"Direct SANRO Parent"**; the web
+  `SourceBadge` renders the short labels *Institution* / *Direct SANRO*
+  (`apps/web/components/people/source-badge.tsx`).
 
 A **direct SANRO subscription** is a `Subscription` row where `institutionId IS
 NULL` and `userId` is set. The owner is the direct student (or, for a parent,
-derived via linked children). Teachers have no DIRECT_SANRO form: `Teacher`
-requires a non-null `institutionId` (`apps/api/prisma/schema.prisma:517`), i.e.
-teachers are always institution-bound.
+derived via linked children). Direct students/parents carry
+`institutionId = 00000000-0000-0000-0000-00000000a5a1` (the system-owned
+"SANRO AI" institution), so their person rows are no longer institution-less
+(legacy NULL rows remain supported). Teachers have no DIRECT_SANRO form:
+`Teacher` requires a non-null `institutionId`
+(`apps/api/prisma/schema.prisma:517`), i.e. teachers are always institution-bound.
 
 Governing principles:
 
-1. **Same tables, no fake tenants.** Direct students/parents live in the same
-   `Student` / `Parent` tables with a nullable `institutionId`. A fake
-   institution named "SANRO"/"Direct"/"Default" is explicitly forbidden.
+1. **Same tables, one system institution.** Direct students/parents live in the
+   same `Student` / `Parent` tables, assigned to the system-owned "SANRO AI"
+   institution (`00000000-0000-0000-0000-00000000a5a1`, code `SANRO-AI`, type
+   `SANRO_PLATFORM`, `isSystemInstitution=true`, ACTIVE). It is created
+   idempotently by migrations `20260921105000`+`20260921110000` and by seed
+   `ensureSystemInstitution`; a partial unique index (WHERE
+   `isSystemInstitution=true`) enforces singleness. The SANRO AI institution is
+   protected: never deleted/archived/suspended/expired/modified
+   (ForbiddenException), cannot be duplicated (ConflictException), and is
+   excluded from tenant lists (`/admin/institutions`). Legacy rows with NULL
+   `institutionId` still resolve as DIRECT_SANRO (legacy fallback).
 2. **Server-side enforcement only.** Entitlement is decided by
    `EntitlementService` (direct path) or `SubscriptionAccessService`
    (institution path) in UTC; a client never decides validity.
-3. **One entitlement oracle.** For institution-less users the
-   `EntitlementService.evaluateUser()` is THE decision point (the guard, the
-   auth flow and admin invalidation all route through it). It never re-implements
-   the institution chain — it delegates to `SubscriptionAccessService` (contract §4).
+3. **One entitlement oracle.** For direct users (system-institution or legacy
+   null) the `EntitlementService.evaluateUser()` is THE decision point (the
+   guard, the auth flow and admin invalidation all route through it). It never
+   re-implements the institution chain — it delegates to `SubscriptionAccessService`
+   (contract §4).
 4. **Never delete people by expiry/transfer.** Transfers move the
    `institutionId` reference; disabling flips lifecycle flags only. Data is
    preserved.
@@ -87,8 +103,9 @@ The people admin surface is guarded on three layers (contract §7):
    403.
 2. **Subscription / entitlement gate** — every route runs through the global
    `SubscriptionGuard` (`app.module.ts` registers it as an `APP_GUARD`). For
-   users WITH `institutionId` it calls `subscriptionAccess.assertCanAccess`;
-   for institution-less users it calls `entitlement.assertCanAccess`
+   users with `institutionId` ≠ SANRO AI system id it calls
+   `subscriptionAccess.assertCanAccess`; for direct users (`institutionId` =
+   system id, or absent/legacy null) it calls `entitlement.assertCanAccess`
    (`apps/api/src/common/guards/subscription.guard.ts:45`).
 3. **Entitlement passthrough** — a SUPER_ADMIN is always allowed:
    `EntitlementService.evaluateUser` returns `{ allowed: true, source:
@@ -135,11 +152,11 @@ return `{ items, total, page, pageSize }` with `pageSize` capped at 100
 
 | Method + route | Service method | Behaviour |
 |---|---|---|
-| `GET /students` | `listStudents` | Filters (Zod `PeopleListQuerySchema`, controller:11): `institutionId`, `search` (name/email/phone/user.name, case-insensitive), `grade`, `status`, `source` (`INSTITUTION`/`DIRECT_SANRO`), `subscriptionStatus` (`ACTIVE/TRIAL/EXPIRING_SOON/EXPIRED/NONE/CANCELLED/...`), `page`, `pageSize≤100`. `DIRECT_SANRO` ⇔ `institutionId = null`; `INSTITUTION` ⇔ `{ not: null }`. Ordered `createdAt desc`. |
+| `GET /students` | `listStudents` | Filters (Zod `PeopleListQuerySchema`, controller:11): `institutionId`, `search` (name/email/phone/user.name, case-insensitive), `grade`, `status`, `source` (`INSTITUTION`/`DIRECT_SANRO`), `subscriptionStatus` (`ACTIVE/TRIAL/EXPIRING_SOON/EXPIRED/NONE/CANCELLED/...`), `page`, `pageSize≤100`. `DIRECT_SANRO` ⇔ `institutionId` = SANRO AI system id OR null (legacy); `INSTITUTION` ⇔ `institutionId` set and ≠ system id. Ordered `createdAt desc`. |
 | `GET /students/institution/:institutionId` | `listStudentsByInstitution` | Same list scoped to one institution. |
 | `GET /students/search` | `searchStudents` | Global autocomplete `?search=` on name/email/phone/rollNumber/user.name; returns `[{ id, name, email, grade, institutionId, source }]`, `take: 20`, ordered by name. Empty query → `[]`. |
 | `GET /students/:id` | `studentDetail` | Detail — see response conventions below. |
-| `POST /students` | `createStudent` | Creates `User` (email required — Student.email is schema-required; email lives on User), then `Student` with nullable `institutionId`/`academicYearId`. Validates institution/academic year exist when provided. Returns `{ id, defaultPassword }`. Audit `STUDENT_CREATED`; invalidates target institution + entitlement cache. |
+| `POST /students` | `createStudent` | Creates `User` (email required — Student.email is schema-required; email lives on User), then `Student` with nullable `institutionId`/`academicYearId`. A DIRECT_SANRO student is placed in the SANRO AI system institution (`institutionId` = `00000000-0000-0000-0000-00000000a5a1`). Validates institution/academic year exist when provided. Returns `{ id, defaultPassword }` plus `institutionId`/`institutionName` (`'SANRO AI'` for direct). Audit `STUDENT_CREATED`; invalidates target institution + entitlement cache. |
 | `PATCH /students/:id` | `updateStudent` | Updates name/phone/gender/rollNumber/grade only (not institutionId — use transfer). Audit `STUDENT_UPDATED`. |
 | `POST /students/:id/transfer` | `transferStudent` | Body `{ targetInstitutionId }` (Zod `TransferBodySchema`, controller:25). Validates target institution; reassigns `student.institutionId`. Audit `STUDENT_INSTITUTION_CHANGED` (institutionId = target). |
 | `POST /students/:id/status` | `setStudentStatus` | Body `{ status: 'ACTIVE'|'DEACTIVATED' }`. Mirrors `disable`/`enable` (below). |
@@ -180,6 +197,10 @@ return `{ items, total, page, pageSize }` with `pageSize` capped at 100
 
 The services project a fixed shape per persona (never raw Prisma rows):
 
+- **Direct rows carry the system institution.** Every student/parent list/detail
+  payload exposes `institutionId`/`institutionName`. For DIRECT_SANRO rows these
+  are the SANRO AI system id and `'SANRO AI'` respectively; legacy NULL rows keep
+  `institutionId: null`.
 - **Student list item** (`mapStudentListItem`, admin-people.service.ts:106):
   `id, userId, name, email, phone, rollNumber, grade, gender, dateOfBirth,
   status, isActive, source, institutionId, institutionName, academicYearId,
@@ -217,13 +238,26 @@ local `PeopleListQuerySchema`/`TransferBodySchema`/`StatusBodySchema`/
 ## 4. Direct SANRO model & subscriptions
 
 Applied by migration `20260920120000_people_direct_sanro`
-(documented in `docs/PEOPLE_MANAGEMENT_CONTRACT.md`):
+(documented in `docs/PEOPLE_MANAGEMENT_CONTRACT.md`), and since 2026-09-21
+anchored to the **system-owned SANRO AI institution**.
+
+Direct customers no longer represent as institution-less rows: migrations
+`20260921105000`+`20260921110000` (and seed `ensureSystemInstitution`) create
+idempotently the single SANRO_PLATFORM institution
+`00000000-0000-0000-0000-00000000a5a1` (`isSystemInstitution=true`, ACTIVE,
+code `SANRO-AI`), and Student/Parent rows for direct customers carry that
+`institutionId` (legacy NULL rows remain as the DIRECT_SANRO fallback). The
+SANRO AI institution is protected — never deleted/archived/suspended/expired/
+modified (ForbiddenException), cannot be duplicated (ConflictException + partial
+unique index WHERE `isSystemInstitution=true`), and is excluded from
+`/admin/institutions` tenant lists.
 
 - `Student.institutionId String?` and `Student.academicYearId String?` are
   nullable; `Student.userId String? @unique`
-  (`apps/api/prisma/schema.prisma:561-564`).
+  (`apps/api/prisma/schema.prisma:561-564`). Direct students set
+  `institutionId` = SANRO AI system id.
 - `Parent.institutionId String?` and `Parent.userId String? @unique`
-  (`schema.prisma:599-601`).
+  (`schema.prisma:599-601`). Direct parents set `institutionId` = system id.
 - `Teacher.institutionId String` stays REQUIRED (`schema.prisma:517`).
 - `Subscription` gains nullable `institutionId` + nullable `userId` with
   `@relation("DirectSubscriptionOwner")`, `@@unique([userId])`
@@ -237,7 +271,7 @@ Applied by migration `20260920120000_people_direct_sanro`
 - `ParentStudentLink` is the parent↔student join
   (`schema.prisma:615-625`, `@@unique([parentId, studentId])`).
 
-### Entitlement path for institution-less users
+### Entitlement path for direct users
 
 `EntitlementService.evaluateUser(user)` (`apps/api/src/common/security/entitlement.service.ts:96`)
 decides, with a per-user short-TTL cache (`invalidate(userId)` on admin
@@ -245,10 +279,11 @@ mutations, TTL `SUBSCRIPTION.ENTITLEMENT_CACHE_TTL_MS` = 15000 ms
 from `packages/config/src/index.ts:33`):
 
 1. `role === SUPER_ADMIN` → allowed always.
-2. user has `institutionId` claim → delegate to
+2. user has `institutionId` ≠ SANRO AI system id → delegate to
    `subscriptionAccess.evaluate(institutionId)` (institution path, `source:
    INSTITUTION`).
-3. `role === PARENT` without institution → parent aggregation (section 5).
+3. direct context (`institutionId` = system id or absent) and
+   `role === PARENT` → parent aggregation (section 5).
 4. otherwise (direct student) → look up `Subscription` by `userId`
    (`findDirectSubscription`, most recent `createdAt desc`) and run
    `directSubscriptionOutcome` (:329). None found → `{ allowed: false,
@@ -292,23 +327,27 @@ enum but is not used by the service).
 ### Guard wiring
 
 `SubscriptionGuard.canActivate` branches on the user's institution context:
-`user.institutionId` → `subscriptionAccess.assertCanAccess(user)` (unchanged
-institution behavior); no `institutionId` → `entitlement.assertCanAccess(user)`
+`user.institutionId` set and ≠ SANRO AI system id →
+`subscriptionAccess.assertCanAccess(user)` (institution behavior);
+`user.institutionId` = system id or absent → `entitlement.assertCanAccess(user)`
 (direct/parent path) (`apps/api/src/common/guards/subscription.guard.ts:45-49`).
 
 ---
 
 ## 5. Entitlement inheritance (parents)
 
-A parent with no institution context is entitled **through its linked children**
-(`parentEntitlement`, entitlement.service.ts:204):
+A direct parent (SANRO AI system institution, or legacy null context) is
+entitled **through its linked children** (`parentEntitlement`,
+entitlement.service.ts:204):
 
 - Parent rows looked up by `userId`, `studentLinks` ordered asc, each link's
   Student evaluated independently:
-  - student WITH `institutionId` → `subscriptionAccess.evaluate(student.
-    institutionId)` (`child.entitlement.source = INSTITUTION`);
-  - student without `institutionId`, no `userId` → denied;
-  - direct student → `findDirectSubscription(student.userId)` + 
+  - student with `institutionId` ≠ SANRO AI system id →
+    `subscriptionAccess.evaluate(student.institutionId)`
+    (`child.entitlement.source = INSTITUTION`);
+  - student without `institutionId`, no `userId` → denied (legacy null);
+  - direct student (SANRO AI system institution, or a legacy null row with a
+    user-owned subscription) → `findDirectSubscription(student.userId)` + 
     `directSubscriptionOutcome` (`source = DIRECT_SANRO`).
 - **ANY-child rule**: the parent is allowed when ANY linked child is entitled.
   A blocked child does not block the parent — no child is required to be
@@ -355,8 +394,8 @@ current code — the wired actions are the `*_INSTITUTION_CHANGED` variants
 (verified in `AuditAction`, `packages/types/src/enums.ts:385,392`). Transferring
 a student from one institution to another **flips nothing about source**: both
 ends are institution-bound, so the source stays `INSTITUTION`. A DIRECT_SANRO
-row (null `institutionId`) transferred to an institution becomes `INSTITUTION`
-by the same derived rule.
+row (SANRO AI system id, or legacy null `institutionId`) transferred to a real
+institution becomes `INSTITUTION` by the same derived rule.
 
 ---
 
@@ -485,10 +524,11 @@ audit rows) is **not present in the repository yet** — see Documented gaps.
 1. **Direct login not yet wired.** `AuthService.issueLogin` throws
    `401 'No active institution membership'` when the user has zero ACTIVE
    memberships and no context (`apps/api/src/auth/auth.service.ts:172-174`).
-   A direct student/parent has no membership row, so login via
-   `POST /auth/login` currently fails for them. The contract (§2) requires
-   direct users to log in with `role = STUDENT | PARENT` and no institution
-   claim; the role-derivation path to make that work is not in the code yet.
+   A direct student/parent (SANRO AI system institution, or legacy null row)
+   has no membership row, so login via `POST /auth/login` currently fails for
+   them. The contract (§2) requires direct users to log in with
+   `role = STUDENT | PARENT` (institution claim = SANRO AI system id or
+   absent); the role-derivation path to make that work is not in the code yet.
 2. **No `people.e2e-spec.ts`.** The contract's §8 test list is unimplemented;
    only the entitlement unit spec exists. `authorization.e2e-spec.ts` has no
    `admin/people` RBAC block yet.
@@ -505,8 +545,9 @@ audit rows) is **not present in the repository yet** — see Documented gaps.
 5. **Create parent never sets `institutionId`.** `createParent`
    (`admin-people.service.ts:745`) creates the `Parent` row without an
    institution, i.e. every parent created via `/admin/people/parents` is a
-   DIRECT_SANRO parent in the current code; institution-binding a parent is
-   only reachable through the existing institution-scoped `/parents` create.
+   DIRECT_SANRO parent in the current code (legacy null → DIRECT_SANRO);
+   institution-binding a parent is only reachable through the existing
+   institution-scoped `/parents` create.
 6. **List filters narrower than contract.** Implemented query schema supports
    `institutionId, search, grade, status, source, subscriptionStatus, page,
    pageSize`; the contract's additional `groupIds`, `parentId` and

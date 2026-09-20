@@ -31,6 +31,7 @@ enum InstitutionType {
   EDUCATIONAL_INSTITUTE
   TRAINING_CENTRE
   OTHER
+  SANRO_PLATFORM
 }
 
 enum InstitutionStatusEnum {
@@ -431,6 +432,7 @@ model Institution {
   id           String   @id @default(uuid()) @db.Uuid
   name         String
   type         InstitutionType
+  isSystemInstitution Boolean @default(false)
   status       InstitutionStatusEnum @default(PENDING)
   code         String?  @unique
   logoUrl      String?
@@ -474,6 +476,7 @@ model Institution {
   contentAssignments ContentAssignment[]
   curriculumAccess InstitutionCurriculumAccess[]
 
+  @@index([isSystemInstitution])
   @@index([status])
   @@index([type])
   @@index([createdById])

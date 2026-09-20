@@ -12,8 +12,8 @@ idempotent `db:seed`. `prisma migrate reset` is forbidden on production.
 - Institution, AcademicYear, InstitutionMember (role lives here)
 - User (no role field; has credentials + profile; owns `subscriptions` as direct
   subscription owner)
-- Teacher, Student, Parent (link to User + institution; Student/Parent
-  `institutionId` nullable → DIRECT_SANRO people, see §6)
+- Teacher, Student, Parent (link to User + institution; direct customers carry the
+  SANRO AI system institution id `00000000-0000-0000-0000-00000000a5a1`, see §6)
 - Group (class/batch), StudentGroup membership, StudentTeacher assignment
 
 ### Subscriptions & billing
@@ -103,13 +103,25 @@ default in `AdminService.setSubscriptionPlan` is `now + 30 days` for all statuse
 Migration `20260920120000_people_direct_sanro` (see `docs/PEOPLE_MANAGEMENT.md` for
 the full people-management subsystem; contract: `docs/PEOPLE_MANAGEMENT_CONTRACT.md`).
 
-Direct SANRO people are institution-less customers (students/parents) who access
-the platform through a **user-owned** Subscription instead of an institution
-membership. Their "source" is DERIVED (`institutionId` null ⇔ DIRECT_SANRO),
-never stored; no fake "SANRO" tenant exists.
+Direct SANRO people are direct customers (students/parents) who access the platform
+through a **user-owned** Subscription instead of an institution membership. They live
+in the system-owned **SANRO AI institution** (id
+`00000000-0000-0000-0000-00000000a5a1`, code `SANRO-AI`, type `SANRO_PLATFORM`,
+`isSystemInstitution=true`, status ACTIVE), created idempotently by migrations
+`20260921105000`+`20260921110000` and seed `ensureSystemInstitution`; a partial unique
+index WHERE `isSystemInstitution=true` enforces singleness. Direct Student/Parent rows
+carry that `institutionId`; legacy NULL rows remain DIRECT_SANRO (fallback). Their
+"source" is DERIVED (`institutionId` = system id or null ⇔ DIRECT_SANRO), never stored;
+there is no per-user fake tenant.
+
+The SANRO AI institution is protected: never deleted/archived/suspended/expired/modified
+(ForbiddenException), never duplicated (ConflictException + the partial unique index),
+excluded from tenant list `/admin/institutions`. Entitlement/guards treat
+`user.institutionId` = system id, or absent/null, as direct.
 
 - `Student.institutionId String?` / `Student.academicYearId String?` / 
-  `Student.userId String? @unique` — an institution-less student is DIRECT_SANRO.
+  `Student.userId String? @unique` — a DIRECT_SANRO student sets `institutionId`
+  to the SANRO AI system id.
 - `Parent.institutionId String?` / `Parent.userId String? @unique` — same rule.
 - `Teacher.institutionId` stays **required** — teachers are always
   institution-bound, never DIRECT_SANRO.

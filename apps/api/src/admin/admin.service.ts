@@ -12,6 +12,7 @@ import { SUBSCRIPTION } from '@sanro/config';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
+import { SystemInstitutionService } from '../common/security/system-institution.service';
 import { toCsv } from '../reports/csv';
 
 type DbClient = PrismaService | Prisma.TransactionClient;
@@ -25,6 +26,7 @@ export interface InstitutionStats {
   name: string;
   type: InstitutionType;
   status: $Enums.InstitutionStatusEnum;
+  isSystemInstitution: boolean;
   code: string | null;
   city: string | null;
   state: string | null;
@@ -75,10 +77,17 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly subscriptionAccess: SubscriptionAccessService,
+    private readonly systemInstitution: SystemInstitutionService,
   ) {}
 
   private requireSuperAdmin(user: RequestUser): void {
     if (user.role !== 'SUPER_ADMIN') throw new ForbiddenException('Super admin access only');
+  }
+
+  private async ensureNotSystem(id: string): Promise<void> {
+    if (await this.systemInstitution.isSystemInstitution(id)) {
+      throw new ForbiddenException('The SANRO AI system institution is protected and cannot be modified');
+    }
   }
 
   private async writeAudit(
@@ -291,7 +300,7 @@ export class AdminService {
     const pageSize = Math.min(100, Math.max(1, raw.pageSize ?? 20));
     const now = Date.now();
 
-    const where: Prisma.InstitutionWhereInput = {};
+    const where: Prisma.InstitutionWhereInput = { isSystemInstitution: false };
     if (f.search) {
       where.OR = [
         { name: { contains: f.search, mode: 'insensitive' } },
@@ -365,6 +374,7 @@ export class AdminService {
         name: inst.name,
         type: inst.type,
         status: inst.status,
+        isSystemInstitution: inst.isSystemInstitution,
         code: inst.code,
         city: inst.city,
         state: inst.state,
@@ -639,6 +649,10 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const normalizedName = this.normalizeName(data.name);
 
+    if (data.type === 'SANRO_PLATFORM' || (data as { isSystemInstitution?: boolean }).isSystemInstitution === true) {
+      throw new ConflictException('A system institution already exists');
+    }
+
     if (data.code) {
       const existingCode = await this.prisma.institution.findUnique({
         where: { code: data.code },
@@ -796,6 +810,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const existing = await this.prisma.institution.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
 
     if (data.code && data.code !== existing.code) {
       const dup = await this.prisma.institution.findUnique({ where: { code: data.code as string } });
@@ -844,6 +859,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const inst = await this.prisma.institution.findUnique({ where: { id } });
     if (!inst) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
     const now = new Date();
     const reason = data.reason;
 
@@ -894,6 +910,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const inst = await this.prisma.institution.findUnique({ where: { id } });
     if (!inst) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
     await this.prisma.$transaction(async (tx) => {
       await tx.institution.update({
         where: { id },
@@ -914,6 +931,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const inst = await this.prisma.institution.findUnique({ where: { id } });
     if (!inst) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
     await this.prisma.$transaction(async (tx) => {
       await tx.institution.update({
         where: { id },
@@ -934,6 +952,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const inst = await this.prisma.institution.findUnique({ where: { id } });
     if (!inst) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
     const now = new Date();
     await this.prisma.$transaction(async (tx) => {
       await tx.institution.update({
@@ -954,6 +973,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const inst = await this.prisma.institution.findUnique({ where: { id } });
     if (!inst) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
     await this.prisma.$transaction(async (tx) => {
       await tx.institution.update({
         where: { id },
@@ -980,6 +1000,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const inst = await this.prisma.institution.findUnique({ where: { id } });
     if (!inst) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(id);
     await this.prisma.$transaction(async (tx) => {
       await tx.institution.update({
         where: { id },
@@ -1224,6 +1245,7 @@ export class AdminService {
     this.requireSuperAdmin(user);
     const institution = await this.prisma.institution.findUnique({ where: { id: institutionId } });
     if (!institution) throw new NotFoundException('Institution not found');
+    await this.ensureNotSystem(institutionId);
     const result = await this.prisma.$transaction(async (tx) => {
       const current = await tx.subscription.findFirst({
         where: { institutionId, status: { in: ['ACTIVE', 'TRIAL'] } },
@@ -1627,7 +1649,7 @@ export class AdminService {
     const f = this.cleanListFilters(raw);
     const now = Date.now();
 
-    const where: Prisma.InstitutionWhereInput = {};
+    const where: Prisma.InstitutionWhereInput = { isSystemInstitution: false };
     if (f.search) {
       where.OR = [
         { name: { contains: f.search, mode: 'insensitive' } },

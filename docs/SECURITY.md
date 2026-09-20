@@ -64,11 +64,14 @@ Direct SANRO people + super-admin people admin: `docs/PEOPLE_MANAGEMENT.md`.
   re-check) + subscription gate (`SubscriptionGuard` global chain) + entitlement
   passthrough (super admin always allowed by `EntitlementService`). Non-super-admin
   roles get a 403; institution admins cannot list/see DIRECT_SANRO people through
-  their scoped `/students` `/teachers` `/parents` endpoints. Direct SANRO access
-  is enforced by the same guard: institution-less users are evaluated by
+  their scoped `/students` `/teachers` `/parents` endpoints. Direct SANRO (SANRO
+  AI system institution id `00000000-0000-0000-0000-00000000a5a1`, or legacy
+  null) is enforced by the same guard: those users are evaluated by
   `EntitlementService` (direct subscription / parent child aggregation) with block
   codes `DIRECT_SUBSCRIPTION_EXPIRED` / `DIRECT_SUBSCRIPTION_SUSPENDED` /
-  `NO_ENTITLEMENT`. Full detail: `docs/PEOPLE_MANAGEMENT.md`.
+  `NO_ENTITLEMENT`. The system institution is protected (never deleted/archived/
+  suspended/expired/modified) and excluded from tenant lists. Full detail:
+  `docs/PEOPLE_MANAGEMENT.md`.
 - **Anti-bypass notes**: no wildcard-CORS change (still locked to sanroai.com /
   app.sanroai.com / www.sanroai.com); blocked states are re-checked on every
   entitlement-gated request (TTL ≤15 s), so unblocking a tenant self-heals within

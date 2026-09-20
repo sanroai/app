@@ -11,6 +11,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RequestUser } from '../types/auth-context';
 import { SubscriptionAccessService } from './subscription-access.service';
+import { SystemInstitutionService } from './system-institution.service';
 
 export interface DirectSubscriptionSummary {
   planKey: string | null;
@@ -80,7 +81,25 @@ export class EntitlementService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly subscriptionAccess: SubscriptionAccessService,
+    private readonly systemInstitution: SystemInstitutionService,
   ) {}
+
+  /**
+   * Mirrors the guard's direct-vs-institution routing: a user is a direct
+   * SANRO customer when they have no institution or belong to the SANRO AI
+   * system institution (falling back to null-only detection if the system
+   * institution cannot be resolved).
+   */
+  async isDirectUser(user: { institutionId?: string | null }): Promise<boolean> {
+    if (!user.institutionId) return true;
+    try {
+      return (
+        user.institutionId === (await this.systemInstitution.systemInstitutionId())
+      );
+    } catch {
+      return false;
+    }
+  }
 
   /**
    * Contract name (§4). `evaluateUser` is an alias for the same operation.
@@ -144,15 +163,14 @@ export class EntitlementService {
       };
     }
 
-    if (user.institutionId) {
-      return this.institutionEntitlement(user);
+    if (await this.isDirectUser(user)) {
+      if (user.role === Role.PARENT) {
+        return this.parentEntitlement(user);
+      }
+      return this.directStudentEntitlement(user);
     }
 
-    if (user.role === Role.PARENT) {
-      return this.parentEntitlement(user);
-    }
-
-    return this.directStudentEntitlement(user);
+    return this.institutionEntitlement(user);
   }
 
   private async institutionEntitlement(user: RequestUser): Promise<UserEntitlement> {
@@ -283,38 +301,38 @@ export class EntitlementService {
       enrolledGrade: student.grade,
     };
 
-    if (student.institutionId) {
-      const result = await this.subscriptionAccess.evaluate(student.institutionId);
-      return {
-        entitlement: {
-          ...base,
-          source: EntitlementSource.INSTITUTION,
-          expiresAt: result.expiresAt,
-        },
-        allowed: result.access,
-      };
-    }
+    if (await this.isDirectUser(student)) {
+      if (!student.userId) {
+        return {
+          entitlement: {
+            ...base,
+            source: EntitlementSource.DIRECT_SANRO,
+            expiresAt: null,
+          },
+          allowed: false,
+        };
+      }
 
-    if (!student.userId) {
+      const subscription = await this.findDirectSubscription(student.userId);
+      const outcome = this.directSubscriptionOutcome(subscription);
       return {
         entitlement: {
           ...base,
           source: EntitlementSource.DIRECT_SANRO,
-          expiresAt: null,
+          expiresAt: outcome.summary?.endsAt ?? null,
         },
-        allowed: false,
+        allowed: outcome.allowed,
       };
     }
 
-    const subscription = await this.findDirectSubscription(student.userId);
-    const outcome = this.directSubscriptionOutcome(subscription);
+    const result = await this.subscriptionAccess.evaluate(student.institutionId!);
     return {
       entitlement: {
         ...base,
-        source: EntitlementSource.DIRECT_SANRO,
-        expiresAt: outcome.summary?.endsAt ?? null,
+        source: EntitlementSource.INSTITUTION,
+        expiresAt: result.expiresAt,
       },
-      allowed: outcome.allowed,
+      allowed: result.access,
     };
   }
 

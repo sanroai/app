@@ -33,7 +33,7 @@ The schema ALREADY contains substantial foundations that this phase REUSES (spec
 - `ContentAssignment (contentId, institutionId)` = explicit grant of a SPECIFIC content item to an institution (spec §15/§16/§18).
   Platform content is visible to an institution ONLY when assigned (spec: never leak platform content into an unassigned institution).
   Institution-owned content is visible via its own `institutionId` (spec: tenant-private).
-- Direct SANRO availability is an independent flag: `ContentItem.directSanroAvailable Boolean @default(false)` (spec §11, §17). Direct users see platform content ONLY when the flag is true.
+- Direct SANRO availability is an independent flag: `ContentItem.directSanroAvailable Boolean @default(false)` (spec §11, §17). Direct users — students in the SANRO AI system institution (`00000000-0000-0000-0000-00000000a5a1`) or legacy null rows — see platform content ONLY when the flag is true.
 - Parents NEVER receive learning content at the API layer (`ParentContentGuard` already guards learning + AI; parity maintained for the new library read endpoint).
 
 ## 2. Curriculum (spec §19-§35)
@@ -57,7 +57,7 @@ The schema ALREADY contains substantial foundations that this phase REUSES (spec
 | Who | Sees |
 |---|---|
 | Student (institution) | content with status APPROVED/PUBLISHED AND (institution-owned to their institution) OR (platform content assigned to their institution) |
-| Direct SANRO (student) | platform content, status APPROVED/PUBLISHED, `directSanroAvailable=true` |
+| Direct SANRO (student — SANRO AI system institution / legacy null) | platform content, status APPROVED/PUBLISHED, `directSanroAvailable=true` |
 | Teacher/admin | their own INSTITUTION content (DRAFT+), plus PLATFORM content assigned to the institution (incl. drafts for review by institution) |
 | SUPER_ADMIN | everything |
 
