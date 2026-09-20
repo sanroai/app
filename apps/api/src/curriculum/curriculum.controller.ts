@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { Role } from '@sanro/types';
@@ -31,7 +31,8 @@ export class CurriculumController {
   }
 
   @Get('chapters')
-  chapters(@CurrentUser() user: RequestUser, @Query('subjectId') subjectId: string) {
+  chapters(@CurrentUser() user: RequestUser, @Query('subjectId') subjectId?: string) {
+    if (!subjectId) throw new BadRequestException('subjectId is required');
     return this.service.listChapters(user, subjectId);
   }
 
