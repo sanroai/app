@@ -15,6 +15,8 @@ import {
   Trophy,
   BookOpen,
   Users,
+  UserCheck,
+  HeartHandshake,
   Settings,
   Search,
   Menu,
@@ -28,6 +30,8 @@ import {
   Database,
   Boxes,
   ShieldX,
+  GitBranch,
+  KeyRound,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -75,13 +79,28 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
-        { href: '/app/students', label: 'Students', icon: Users },
-        { href: '/app/teachers', label: 'Teachers', icon: Users },
         { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
         { href: '/app/questions', label: 'Questions', icon: HelpCircle },
         { href: '/app/content-processing', label: 'Content', icon: Database },
+        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
         { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
         { href: '/app/settings', label: 'Settings', icon: Settings },
+      ]
+    : [];
+
+  const curriculumAdminLinks = isSuperAdmin
+    ? [
+        { href: '/app/curriculum/nodes', label: 'Curriculum Nodes', icon: GitBranch },
+        { href: '/app/curriculum/import', label: 'CSV Import', icon: Upload },
+        { href: '/app/curriculum/access', label: 'Access Grants', icon: KeyRound },
+      ]
+    : [];
+
+  const peopleLinks = isSuperAdmin
+    ? [
+        { href: '/app/people/students', label: 'Students', icon: Users },
+        { href: '/app/people/teachers', label: 'Teachers', icon: UserCheck },
+        { href: '/app/people/parents', label: 'Parents', icon: HeartHandshake },
       ]
     : [];
 
@@ -127,6 +146,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const contentLinks = staff && !isSuperAdmin
     ? [
         { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
+        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
         { href: '/app/papers/new', label: 'New Paper', icon: FileText },
         { href: '/app/questions', label: 'Questions', icon: HelpCircle },
         { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
@@ -155,11 +175,57 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
             </Link>
           );
         })}
+        {peopleLinks.length > 0 && (
+          <>
+            <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
+            <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">People</p>
+            {peopleLinks.map((l) => {
+              const active = isActive(pathname, l.href);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => onNavigate?.()}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+                    active ? activeClass : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
+                  )}
+                >
+                  <l.icon className="h-5 w-5" />
+                  {l.label}
+                </Link>
+              );
+            })}
+          </>
+        )}
         {managementLinks.length > 0 && (
           <>
             <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
             <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">Management</p>
             {managementLinks.map((l) => {
+              const active = isActive(pathname, l.href);
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => onNavigate?.()}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+                    active ? activeClass : 'text-surface-600 hover:bg-surface-50 hover:text-surface-900'
+                  )}
+                >
+                  <l.icon className="h-5 w-5" />
+                  {l.label}
+                </Link>
+              );
+            })}
+          </>
+        )}
+        {curriculumAdminLinks.length > 0 && (
+          <>
+            <div className="mx-4 my-2 border-t border-surface-100 dark:border-surface-800" />
+            <p className="mx-4 text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase">Curriculum Admin</p>
+            {curriculumAdminLinks.map((l) => {
               const active = isActive(pathname, l.href);
               return (
                 <Link
@@ -225,6 +291,52 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
           </Link>
         );
       })}
+
+      {/* People Dropdown (super admin) */}
+      {peopleLinks.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
+              <Users className="h-4 w-4" />
+              People
+              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {peopleLinks.map((l) => (
+              <DropdownMenuItem key={l.href} asChild>
+                <Link href={l.href} className="flex items-center gap-2">
+                  <l.icon className="h-4 w-4" />
+                  {l.label}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {/* Curriculum Admin Dropdown (super admin) */}
+      {curriculumAdminLinks.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-surface-500 hover:bg-surface-100 hover:text-surface-900 transition-all">
+              <GitBranch className="h-4 w-4" />
+              Curriculum Admin
+              <svg className="h-3 w-3 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            {curriculumAdminLinks.map((l) => (
+              <DropdownMenuItem key={l.href} asChild>
+                <Link href={l.href} className="flex items-center gap-2">
+                  <l.icon className="h-4 w-4" />
+                  {l.label}
+                </Link>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       {/* Management Dropdown */}
       {managementLinks.length > 0 && (

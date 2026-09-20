@@ -92,7 +92,7 @@ function buildService() {
     resolveForUser: async () => db.students[0] ?? null,
     requireForUser: async () => db.students[0] ?? null,
   };
-  const service = new LearningService(prisma, tenant, mastery, identity);
+  const service = new LearningService(prisma, tenant, mastery, identity, { buildContentWhere: () => ({}) });
   return { service, db };
 }
 

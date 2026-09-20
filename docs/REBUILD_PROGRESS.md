@@ -263,7 +263,8 @@ committed so Railway never re-uploads the APK.
 ## 2026-09-20 — Super-admin institution management + subscription/validity/access-control system
 
 New subsystem (migration `20260920102146_institution_subscription_system`), documented in
-depth in docs/INSTITUTION_MANAGEMENT.md:
+depth in docs/INSTITUTION_MANAGEMENT.md (People Management / Direct SANRO:
+docs/PEOPLE_MANAGEMENT.md, migration `20260920120000_people_direct_sanro`):
 
 - **Entitlement engine** (`apps/api/src/common/security/subscription-access.service.ts`):
   single source of truth for institution access — subscription validity, seat limits,
@@ -289,7 +290,8 @@ depth in docs/INSTITUTION_MANAGEMENT.md:
 - **Contracts ahead of wiring** (schema/types/validation defined): SubscriptionHistory
   rows, new AuditActions, renew/expire/plan-change/limit-change/change-admin/restrict-user,
   institution list pagination/export, `SuperAdminDashboard` — not yet implemented
-  (see "Documented gaps" in docs/INSTITUTION_MANAGEMENT.md).
+  (see "Documented gaps" in docs/INSTITUTION_MANAGEMENT.md and
+   docs/PEOPLE_MANAGEMENT.md).
 
 ### Verified
 - `pnpm -r typecheck` covers the new engine/guard/decorators/dto changes.

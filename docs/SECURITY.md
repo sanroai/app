@@ -41,6 +41,7 @@
 ## 4. Subscription / Entitlement Security
 
 Subsystem reference: `docs/INSTITUTION_MANAGEMENT.md`.
+Direct SANRO people + super-admin people admin: `docs/PEOPLE_MANAGEMENT.md`.
 
 - **Server-side only**: validity is decided by `SubscriptionAccessService` in UTC;
   client clocks/devices never decide access. Time never trusts the client.
@@ -58,6 +59,16 @@ Subsystem reference: `docs/INSTITUTION_MANAGEMENT.md`.
 - **SUPER_ADMIN exemption is structural**: super admins skip entitlement and tenant
   binding; their routes are `@Roles('SUPER_ADMIN')` + `requireSuperAdmin`. RolesGuard
   has no blind SUPER_ADMIN passthrough — roles are explicit per route.
+- **Super-admin People API `/api/v1/admin/people/*` (triple-guard)**:
+  `SUPER_ADMIN` role (`@Roles('SUPER_ADMIN')` + per-call `assertSuperAdmin`
+  re-check) + subscription gate (`SubscriptionGuard` global chain) + entitlement
+  passthrough (super admin always allowed by `EntitlementService`). Non-super-admin
+  roles get a 403; institution admins cannot list/see DIRECT_SANRO people through
+  their scoped `/students` `/teachers` `/parents` endpoints. Direct SANRO access
+  is enforced by the same guard: institution-less users are evaluated by
+  `EntitlementService` (direct subscription / parent child aggregation) with block
+  codes `DIRECT_SUBSCRIPTION_EXPIRED` / `DIRECT_SUBSCRIPTION_SUSPENDED` /
+  `NO_ENTITLEMENT`. Full detail: `docs/PEOPLE_MANAGEMENT.md`.
 - **Anti-bypass notes**: no wildcard-CORS change (still locked to sanroai.com /
   app.sanroai.com / www.sanroai.com); blocked states are re-checked on every
   entitlement-gated request (TTL ≤15 s), so unblocking a tenant self-heals within

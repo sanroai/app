@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { MasteryService } from '../diagnosis/mastery.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { ContentScopeService } from '../common/content/content-scope.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class LearningService {
@@ -12,11 +14,19 @@ export class LearningService {
     private readonly tenant: TenantAccessService,
     private readonly mastery: MasteryService,
     private readonly identity: StudentIdentityService,
+    private readonly scope: ContentScopeService,
   ) {}
 
-  async getLearningHome(user: RequestUser) {
-    const institutionId = this.tenant.requireInstitution(user);
+  private consumerWhere(user: RequestUser, extra: Prisma.ContentItemWhereInput = {}): Prisma.ContentItemWhereInput {
+    return { ...extra, ...this.scope.buildContentWhere(user) };
+  }
 
+  private requireBrowseContext(user: RequestUser): string | null {
+    if (!user.institutionId) return null;
+    return this.tenant.requireInstitution(user);
+  }
+
+  async getLearningHome(user: RequestUser) {
     // For students, get their assigned grade for filtering
     let studentGrade: string | null = null;
     if (user.role === 'STUDENT') {
@@ -40,15 +50,10 @@ export class LearningService {
 
     // Count content per subject per grade through chapters
     const allApprovedContent = await this.prisma.contentItem.findMany({
-      where: {
-        status: 'APPROVED',
+      where: this.consumerWhere(user, {
         subjectId: { not: null },
         chapterId: { not: null },
-        OR: [
-          { visibility: 'PUBLIC' },
-          { visibility: 'INSTITUTION_ONLY', institutionId },
-        ],
-      },
+      }),
       select: { id: true, subjectId: true, chapterId: true },
     });
 
@@ -75,14 +80,9 @@ export class LearningService {
       by: ['contentId'],
       where: {
         state: 'COMPLETED',
-        content: {
+        content: this.consumerWhere(user, {
           subjectId: { not: null },
-          status: 'APPROVED',
-          OR: [
-            { visibility: 'PUBLIC' },
-            { visibility: 'INSTITUTION_ONLY', institutionId },
-          ],
-        },
+        }),
       },
       _count: { id: true },
     });
@@ -178,7 +178,7 @@ export class LearningService {
   }
 
   async getChapters(user: RequestUser, boardId: string, grade: string, subjectId: string) {
-    this.tenant.requireInstitution(user);
+    this.requireBrowseContext(user);
 
     // For students, verify they can only access their assigned grade
     if (user.role === 'STUDENT') {
@@ -208,10 +208,9 @@ export class LearningService {
 
     const contentByChapter = await this.prisma.contentItem.groupBy({
       by: ['chapterId'],
-      where: {
+      where: this.consumerWhere(user, {
         chapterId: { in: chapterIds },
-        status: 'APPROVED',
-      },
+      }),
       _count: { id: true },
     });
 
@@ -220,10 +219,9 @@ export class LearningService {
     );
 
     const allChapterContent = await this.prisma.contentItem.findMany({
-      where: {
+      where: this.consumerWhere(user, {
         chapterId: { in: chapterIds },
-        status: 'APPROVED',
-      },
+      }),
       select: { id: true, chapterId: true },
     });
 
@@ -295,7 +293,7 @@ export class LearningService {
   }
 
   async getChapterDetail(user: RequestUser, chapterId: string) {
-    this.tenant.requireInstitution(user);
+    this.requireBrowseContext(user);
 
     const chapter = await this.prisma.chapter.findUnique({
       where: { id: chapterId },
@@ -323,7 +321,7 @@ export class LearningService {
 
     const conceptIds = chapter.topics.flatMap((t) => t.concepts.map((c) => c.id));
     const allContent = await this.prisma.contentItem.findMany({
-      where: { chapterId, status: 'APPROVED' },
+      where: this.consumerWhere(user, { chapterId }),
       select: { id: true, conceptId: true },
     });
 
@@ -406,7 +404,7 @@ export class LearningService {
   }
 
 async getConceptDetail(user: RequestUser, conceptId: string) {
-    this.tenant.requireInstitution(user);
+    this.requireBrowseContext(user);
     const concept = await this.prisma.concept.findUnique({
       where: { id: conceptId },
       include: {
@@ -428,7 +426,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     }
 
     const contentItems = await this.prisma.contentItem.findMany({
-      where: { conceptId, status: 'APPROVED' },
+      where: this.consumerWhere(user, { conceptId }),
       orderBy: { createdAt: 'asc' },
       select: {
         id: true,
@@ -574,7 +572,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     const [totalContent, completedProgress, masterySummary] = await Promise.all([
       this.prisma.contentItem.count({
-        where: { status: 'APPROVED', subjectId: { not: null } },
+        where: this.consumerWhere(user, { subjectId: { not: null } }),
       }),
       this.prisma.contentProgress.findMany({
         where: { studentId: student.id, state: 'COMPLETED' },

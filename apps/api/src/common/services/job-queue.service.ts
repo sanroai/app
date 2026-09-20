@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
-export type JobType = 'CONTENT_PROCESSING' | 'QUESTION_GENERATION' | 'FLASHCARD_GENERATION' | 'NOTES_GENERATION';
+export type JobType = 'CONTENT_PROCESSING' | 'QUESTION_GENERATION' | 'FLASHCARD_GENERATION' | 'NOTES_GENERATION' | 'CONTENT_PIPELINE';
 export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 
 export interface JobPayload {
@@ -25,16 +25,28 @@ export interface Job {
   completedAt?: Date;
 }
 
+export type JobHandler = (job: Job) => Promise<any>;
+
 @Injectable()
 export class JobQueueService {
   private readonly logger = new Logger(JobQueueService.name);
   private queue: Job[] = [];
   private processing = false;
   private processingInterval: NodeJS.Timeout | null = null;
+  private readonly handlers = new Map<JobType, JobHandler>();
 
   constructor(private readonly prisma: PrismaService) {
     void this.restorePendingJobs();
     this.startProcessor();
+  }
+
+  registerHandler(type: JobType, handler: JobHandler): void {
+    this.handlers.set(type, handler);
+    this.logger.log(`Registered handler for job type ${type}`);
+  }
+
+  isKnownType(type: string): boolean {
+    return this.handlers.has(type as JobType) || ['CONTENT_PROCESSING', 'QUESTION_GENERATION', 'FLASHCARD_GENERATION', 'NOTES_GENERATION', 'CONTENT_PIPELINE'].includes(type);
   }
 
   private async restorePendingJobs() {
@@ -44,6 +56,9 @@ export class JobQueueService {
       });
 
       for (const row of rows) {
+        if (!this.isKnownType(row.inputType)) {
+          continue;
+        }
         const metadata = (row.metadata ?? {}) as Partial<JobPayload>;
         const job: Job = {
           id: row.id,
@@ -55,8 +70,8 @@ export class JobQueueService {
             userId: metadata.userId ?? '',
             options: metadata.options,
           },
-          attempts: 0,
-          maxAttempts: 3,
+          attempts: row.attempts ?? 0,
+          maxAttempts: row.maxAttempts ?? 3,
           createdAt: row.createdAt,
         };
         this.queue.push(job);
@@ -89,28 +104,30 @@ export class JobQueueService {
   }
 
   async addJob(type: JobType, payload: JobPayload, maxAttempts = 3): Promise<Job> {
+    const created = await this.prisma.processingJob.create({
+      data: {
+        knowledgeBaseId: payload.knowledgeBaseId,
+        inputType: type,
+        status: 'PENDING',
+        attempts: 0,
+        maxAttempts,
+        stage: (payload.options?.stage as any) ?? null,
+        metadata: payload as any,
+      },
+    });
+
     const job: Job = {
-      id: `job_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      id: created.id,
       type,
       status: 'PENDING',
       payload,
       attempts: 0,
       maxAttempts,
-      createdAt: new Date(),
+      createdAt: created.createdAt,
     };
 
     this.queue.push(job);
     this.logger.log(`Job ${job.id} added to queue (${type})`);
-
-    await this.prisma.processingJob.create({
-      data: {
-        id: job.id,
-        knowledgeBaseId: payload.knowledgeBaseId,
-        inputType: type,
-        status: 'PENDING',
-        metadata: payload as any,
-      },
-    });
 
     return job;
   }
@@ -147,7 +164,7 @@ export class JobQueueService {
     try {
       await this.prisma.processingJob.update({
         where: { id: nextJob.id },
-        data: { status: 'PROCESSING', startedAt: nextJob.startedAt },
+        data: { status: 'PROCESSING', startedAt: nextJob.startedAt, attempts: nextJob.attempts },
       });
 
       const result = await this.executeJob(nextJob);
@@ -191,6 +208,10 @@ export class JobQueueService {
   }
 
   private async executeJob(job: Job): Promise<any> {
+    const handler = this.handlers.get(job.type);
+    if (handler) {
+      return handler(job);
+    }
     switch (job.type) {
       case 'CONTENT_PROCESSING':
         return this.processContent(job);

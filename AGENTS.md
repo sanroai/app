@@ -6,7 +6,7 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 ## Commands
 ```bash
 pnpm -r typecheck              # Typecheck all packages
-pnpm --filter @sanro/api test  # Run Vitest (18/18)
+pnpm --filter @sanro/api test  # Run Vitest (164 tests, 14 files)
 pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 pnpm --filter @sanro/mobile dev     # Expo dev server (mobile)

@@ -31,7 +31,7 @@ export interface CachedSessionPayload {
     name: string;
     phone: string | null;
     role: string;
-    institutionId: string;
+    institutionId: string | null;
     isActive: boolean;
     isSuperAdmin: boolean;
   };

@@ -38,14 +38,27 @@ Role lives on `InstitutionMember`, not `User`.
 5. `SubscriptionAccessService` — shared entitlement engine (institution status,
    subscription validity, seat limits, user/membership state); cached 15 s,
    invalidatable. Used by the guard, auth flow and account-state endpoint.
-6. `ParentContentGuard` — route guard that restricts PARENT to safe, read-only,
+6. `EntitlementService` — entitlement oracle for **institution-less** users
+   (Direct SANRO): direct `Subscription.userId` path + parent child aggregation.
+   `SubscriptionGuard` branches to it when the JWT has no `institutionId` claim.
+   SUPER_ADMIN is always allowed. See `docs/PEOPLE_MANAGEMENT.md`.
+7. `ParentContentGuard` — route guard that restricts PARENT to safe, read-only,
    non-explicit content.
-7. Data-layer scoping (services compute `where institutionId = …` from token;
+8. Data-layer scoping (services compute `where institutionId = …` from token;
    never from client body IDs).
 
 Enforcement order per request: JwtAuthGuard → RolesGuard → ThrottlerGuard →
-SubscriptionGuard → handler → TenantAccessService/SubscriptionAccessService.
+SubscriptionGuard → handler → TenantAccessService/SubscriptionAccessService/
+EntitlementService.
 Seat limits and subscription/access control: see `docs/INSTITUTION_MANAGEMENT.md`.
+People (Direct SANRO + super-admin people admin): `docs/PEOPLE_MANAGEMENT.md`.
+Super-admin People API `/api/v1/admin/people/*` is triple-guarded: `@Roles(
+SUPER_ADMIN)` (+ service re-check) + subscription gate + entitlement passthrough
+(super admin exempt) — only SUPER_ADMIN may manage all people; TEACHER/
+INSTITUTION_ADMIN keep institution-scoped `/students` `/teachers` `/parents`.
+Direct-SANRO people resolve `Role.STUDENT | Role.PARENT` with no institution
+claim; their entitlement block codes include `DIRECT_SUBSCRIPTION_EXPIRED`,
+`DIRECT_SUBSCRIPTION_SUSPENDED`, `NO_ENTITLEMENT`.
 
 ## 4. Decorators
 
@@ -64,9 +77,12 @@ disabled / membership deactivated), no tokens are issued:
 - **login / refresh / switch-context** return HTTP 200 with a `BlockedAccountResponse`
   body: `{ state, message, institution?: { id, name, type, status, expiresAt,
   supportContact } }` — no `accessToken`/`refreshToken` present. `refresh` also
-  revokes the stale session. Six states: `SUBSCRIPTION_EXPIRED`,
+  revokes the stale session. Institution states: `SUBSCRIPTION_EXPIRED`,
   `INSTITUTION_SUSPENDED`, `INSTITUTION_ARCHIVED`, `INSTITUTION_PENDING`,
-  `USER_DISABLED`, `MEMBERSHIP_DEACTIVATED` (`AccountBlockState`).
+  `USER_DISABLED`, `MEMBERSHIP_DEACTIVATED`; Direct SANRO adds
+  `DIRECT_SUBSCRIPTION_EXPIRED`, `DIRECT_SUBSCRIPTION_SUSPENDED`,
+  `NO_ACTIVE_CHILD_RELATIONSHIP`, `NO_ENTITLEMENT` (all `AccountBlockState`
+  values, `packages/types`).
 - A disabled user hitting login directly is thrown `403 { code: 'USER_DISABLED',
   message: 'This account has been deactivated by your administrator.' }`.
 - **`GET /auth/account-state`** (authed, non-throwing) returns
@@ -75,7 +91,9 @@ disabled / membership deactivated), no tokens are issued:
   `{ access: true, state: null, institution: null }`.
 - Entitlement precedence: user disabled → membership not ACTIVE → institution
   ARCHIVED → SUSPENDED → PENDING → subscription expired. See the state matrix in
-  `docs/INSTITUTION_MANAGEMENT.md` §1.
+  `docs/INSTITUTION_MANAGEMENT.md` §1. Direct SANRO precedence (institution-less):
+  user disabled → direct subscription expired/suspended → no entitlement (see
+  `docs/PEOPLE_MANAGEMENT.md` §4).
 
 Messages live in `BLOCKED_ACCOUNT_MESSAGES` (`packages/config`). Clients should treat
 a 200 login/refresh without `accessToken` as blocked and render a blocked-account

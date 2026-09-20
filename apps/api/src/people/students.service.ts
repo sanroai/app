@@ -312,8 +312,8 @@ export class StudentsService {
           });
         }
       }
-      for (const gid of data.groupIds) {
-        await this.addToGroup(institutionId, student.academicYearId, id, gid);
+for (const gid of data.groupIds) {
+        if (student.academicYearId) await this.addToGroup(institutionId, student.academicYearId, id, gid);
       }
     }
 

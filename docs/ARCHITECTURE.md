@@ -2,7 +2,9 @@
 
 Backend architecture overview, module map and guard/entitlement flow. For the
 institution-management + subscription/access-control subsystem in depth, see
-`docs/INSTITUTION_MANAGEMENT.md`. For the domain/data model, see `docs/DATABASE.md`.
+`docs/INSTITUTION_MANAGEMENT.md`. For people management (Direct SANRO +
+super-admin people admin), see `docs/PEOPLE_MANAGEMENT.md`. For the domain/data
+model, see `docs/DATABASE.md`.
 
 ## 1. System shape
 

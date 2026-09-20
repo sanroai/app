@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AuditAction, NotificationEvent } from '@sanro/types';
-import { NotificationEventType } from '@prisma/client';
+import { NotificationEventType, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class AuditService {
       data: {
         userId: params.userId,
         institutionId: params.institutionId ?? null,
-        action: params.action,
+        action: params.action as unknown as Prisma.AuditLogCreateInput['action'],
         entityType: params.entityType ?? null,
         entityId: params.entityId ?? null,
         metadata: (params.metadata ?? {}) as object,

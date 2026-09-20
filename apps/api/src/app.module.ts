@@ -27,8 +27,10 @@ import { ImportsModule } from './imports/imports.module';
 import { ChatModule } from './chat/chat.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AdminModule } from './admin/admin.module';
+import { AdminPeopleModule } from './admin/admin-people.module';
 import { LearningModule } from './learning/learning.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
+import { ContentLibraryModule } from './content-library/content-library.module';
 import { ArModule } from './ar/ar.module';
 import { SiteModule } from './site/site.module';
 import { ReportsModule } from './reports/reports.module';
@@ -74,8 +76,10 @@ import { ReportsModule } from './reports/reports.module';
     ChatModule,
     DashboardModule,
     AdminModule,
+    AdminPeopleModule,
     LearningModule,
     KnowledgeBaseModule,
+    ContentLibraryModule,
     ArModule,
     SiteModule,
     ReportsModule,

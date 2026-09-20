@@ -23,6 +23,8 @@ SMTP, rate limit tunables.
 Subscription/validity system (see docs/INSTITUTION_MANAGEMENT.md) requires **no
 extra env vars** — entitlement timings come from `SUBSCRIPTION.*` constants in
 `@sanro/config` (cache TTL 15 s, expiring-soon 30 d, grace default 0, renew 365 d).
+Direct SANRO subscriptions reuse the same `Subscription` model
+(docs/PEOPLE_MANAGEMENT.md §4) and add no env surface.
 Pricing is data-driven from the `Plan` table (idempotent seed). Deploy runs the
 `institution_subscription_system` migration via `prisma migrate deploy`.
 

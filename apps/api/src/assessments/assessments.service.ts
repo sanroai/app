@@ -297,7 +297,7 @@ export class AssessmentsService {
   async startAttempt(user: RequestUser, assessmentId: string) {
     const student = await this.getStudentAttempt(user);
     const assessment = await this.prisma.assessment.findFirst({
-      where: { id: assessmentId, institutionId: student.institutionId },
+      where: student.institutionId ? { id: assessmentId, institutionId: student.institutionId } : { id: assessmentId },
     });
     if (!assessment) throw new NotFoundException('Assessment not found');
 

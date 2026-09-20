@@ -40,7 +40,7 @@ export function toBlockedState(body: BlockedAccountResponse): BlockedState {
   return {
     ...body,
     title: blockedTitle(body.state),
-    message: BLOCKED_ACCOUNT_MESSAGES[body.state] ?? body.message,
+    message: (BLOCKED_ACCOUNT_MESSAGES as Record<string, string>)[body.state] ?? body.message,
   };
 }
 

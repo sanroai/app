@@ -55,7 +55,7 @@ closing.
   background · app termination · stale token
 
 ## SUBSCRIPTION / VALIDITY / LIMITS
-| Scenario | Expected behaviour (see docs/INSTITUTION_MANAGEMENT.md) |
+| Scenario | Expected behaviour (see docs/INSTITUTION_MANAGEMENT.md; Direct SANRO: docs/PEOPLE_MANAGEMENT.md) |
 |---|---|
 | Subscription ends while a user is mid-session | Lazy expiry flips on next `evaluate()`; in-flight JWT is valid until the guard re-checks (≤15 s cache); next entitlement-gated request → 403 block code; refresh → `BlockedAccountResponse` |
 | Expired tenant tries to log in | login returns 200 `BlockedAccountResponse { state: SUBSCRIPTION_EXPIRED, … }`, no tokens; stale refresh session revoked |

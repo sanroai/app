@@ -2,7 +2,8 @@ import { ForbiddenException, Injectable, NotFoundException, BadRequestException 
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
-import { ContentType, ContentStatus, Visibility } from '@prisma/client';
+import { ContentScopeService, STUDENT_VISIBLE_STATUSES } from '../common/content/content-scope.service';
+import { ContentType, ContentStatus, Visibility, Prisma } from '@prisma/client';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 
 @Injectable()
@@ -11,35 +12,35 @@ export class ContentService {
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
     private readonly identity: StudentIdentityService,
+    private readonly scope: ContentScopeService,
   ) {}
 
+  private visibleWhere(user: RequestUser): Prisma.ContentItemWhereInput {
+    const base = this.scope.buildContentWhere(user);
+    const where: Prisma.ContentItemWhereInput = { ...base };
+    return where;
+  }
+
   async list(user: RequestUser, query: Record<string, string | undefined> = {}) {
-    const institutionId = this.tenant.requireInstitution(user);
-    const where: Record<string, unknown> = {
-      status: 'APPROVED',
-      OR: [
-        { visibility: 'PUBLIC' },
-        { visibility: 'INSTITUTION_ONLY', institutionId },
-      ],
-    };
-    if (query.type) where.type = query.type;
-    if (query.subjectId) where.subjectId = query.subjectId;
-    if (query.chapterId) where.chapterId = query.chapterId;
-    if (query.conceptId) where.conceptId = query.conceptId;
+    const ands: Prisma.ContentItemWhereInput[] = [this.visibleWhere(user)];
+    if (query.type) ands.push({ type: query.type as ContentType });
+    if (query.subjectId) ands.push({ subjectId: query.subjectId });
+    if (query.chapterId) ands.push({ chapterId: query.chapterId });
+    if (query.conceptId) ands.push({ conceptId: query.conceptId });
+    if (query.grade) ands.push({ grade: query.grade });
     if (query.search) {
-      where.OR = [
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ];
-    }
-    if (query.grade) {
-      where.chapter = { grade: query.grade };
+      ands.push({
+        OR: [
+          { title: { contains: query.search, mode: 'insensitive' } },
+          { description: { contains: query.search, mode: 'insensitive' } },
+        ],
+      });
     }
 
     return this.prisma.contentItem.findMany({
-      where: where as object,
-      orderBy: { createdAt: 'desc' },
-      take: 100,
+      where: { AND: ands },
+      orderBy: [{ conceptId: 'asc' }, { order: 'asc' }, { createdAt: 'desc' }],
+      take: Math.min(Number(query.pageSize) || 50, 100),
       select: {
         id: true,
         type: true,
@@ -59,12 +60,10 @@ export class ContentService {
   }
 
   async detail(user: RequestUser, id: string) {
-    const institutionId = this.tenant.requireInstitution(user);
     const item = await this.prisma.contentItem.findFirst({
       where: {
         id,
-        status: 'APPROVED',
-        OR: [{ visibility: Visibility.PUBLIC }, { visibility: Visibility.INSTITUTION_ONLY, institutionId }],
+        ...this.visibleWhere(user),
       },
       include: {
         concept: true,
@@ -78,10 +77,16 @@ export class ContentService {
   }
 
   async getVersionHistory(user: RequestUser, contentId: string) {
-    const institutionId = this.tenant.requireInstitution(user);
-    const item = await this.prisma.contentItem.findFirst({
-      where: { id: contentId, institutionId },
-    });
+    let item: { id: string } | null;
+    if (user.role === 'SUPER_ADMIN') {
+      item = await this.prisma.contentItem.findUnique({ where: { id: contentId }, select: { id: true } });
+    } else {
+      const institutionId = this.tenant.requireInstitution(user);
+      item = await this.prisma.contentItem.findFirst({
+        where: { id: contentId, institutionId },
+        select: { id: true },
+      });
+    }
     if (!item) throw new NotFoundException('Content not found');
 
     const versions = await this.prisma.contentVersion.findMany({
@@ -90,7 +95,8 @@ export class ContentService {
       take: 20,
     });
 
-    return { currentVersion: item.version, versions };
+    const content = await this.prisma.contentItem.findUnique({ where: { id: contentId }, select: { version: true } });
+    return { currentVersion: content?.version ?? 1, versions };
   }
 
   async restoreVersion(user: RequestUser, contentId: string, version: number) {
@@ -99,9 +105,9 @@ export class ContentService {
       throw new ForbiddenException('Only admins can restore versions');
     }
 
-    const item = await this.prisma.contentItem.findFirst({
-      where: { id: contentId, institutionId },
-    });
+    const item = user.role === 'SUPER_ADMIN'
+      ? await this.prisma.contentItem.findUnique({ where: { id: contentId } })
+      : await this.prisma.contentItem.findFirst({ where: { id: contentId, institutionId } });
     if (!item) throw new NotFoundException('Content not found');
 
     const versionRecord = await this.prisma.contentVersion.findFirst({
@@ -150,29 +156,44 @@ export class ContentService {
       topicId?: string;
       conceptId?: string;
       language?: string;
+      grade?: string;
     },
   ) {
-    const institutionId = this.tenant.requireInstitution(user);
-    if (user.role === 'STUDENT' || user.role === 'PARENT') {
-      throw new ForbiddenException('Students and parents cannot create content');
+    const isSuper = user.role === 'SUPER_ADMIN';
+    let institutionId: string | null = null;
+    if (!isSuper) {
+      institutionId = this.tenant.requireInstitution(user);
+      if (user.role === 'STUDENT' || user.role === 'PARENT') {
+        throw new ForbiddenException('Students and parents cannot create content');
+      }
     }
+
+    let grade = data.grade ?? null;
+    if (!grade && data.chapterId) {
+      const chapter = await this.prisma.chapter.findUnique({ where: { id: data.chapterId } });
+      if (chapter) grade = chapter.grade;
+    }
+
     return this.prisma.contentItem.create({
       data: {
         type: data.type,
-        status: user.role === 'SUPER_ADMIN' ? ContentStatus.APPROVED : ContentStatus.DRAFT,
+        status: isSuper ? ContentStatus.APPROVED : ContentStatus.DRAFT,
         visibility:
           data.visibility ??
-          (user.role === 'SUPER_ADMIN' ? Visibility.PUBLIC : Visibility.INSTITUTION_ONLY),
+          (isSuper ? Visibility.PUBLIC : Visibility.INSTITUTION_ONLY),
         title: data.title,
         description: data.description ?? null,
         durationSeconds: data.durationSeconds ?? null,
         thumbnailUrl: data.thumbnailUrl ?? null,
         url: data.url ?? null,
-        institutionId: user.role === 'SUPER_ADMIN' ? null : institutionId,
+        ownerType: isSuper ? 'PLATFORM' : 'INSTITUTION',
+        directSanroAvailable: false,
+        institutionId,
         subjectId: data.subjectId ?? null,
         chapterId: data.chapterId ?? null,
         topicId: data.topicId ?? null,
         conceptId: data.conceptId ?? null,
+        grade,
         language: (data.language as 'EN' | 'MR' | 'HI') ?? 'EN',
         createdById: user.sub,
       },
@@ -199,35 +220,43 @@ export class ContentService {
   }
 
   async updateStatus(user: RequestUser, id: string, status: ContentStatus) {
-    const institutionId = this.tenant.requireInstitution(user);
     if (user.role !== 'INSTITUTION_ADMIN' && user.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only admins can change content status');
     }
-    const item = await this.prisma.contentItem.findFirst({
-      where: { id, institutionId },
-    });
+    const item = await this.prisma.contentItem.findUnique({ where: { id } });
     if (!item) throw new NotFoundException('Content not found');
+    if (user.role === 'INSTITUTION_ADMIN') {
+      const institutionId = this.tenant.requireInstitution(user);
+      if (item.institutionId !== institutionId) throw new ForbiddenException('Not your institution content');
+    }
 
     const allowedTransitions: Record<ContentStatus, ContentStatus[]> = {
       DRAFT: ['REVIEW', 'APPROVED', 'ARCHIVED'],
       REVIEW: ['APPROVED', 'DRAFT', 'ARCHIVED'],
-      APPROVED: ['ARCHIVED', 'DRAFT'],
-      ARCHIVED: ['DRAFT'],
+      APPROVED: ['REVIEW', 'PUBLISHED', 'ARCHIVED', 'DRAFT'],
+      PUBLISHED: ['ARCHIVED', 'DRAFT'],
+      ARCHIVED: ['DRAFT', 'REVIEW'],
     };
     if (!allowedTransitions[item.status]?.includes(status)) {
       throw new BadRequestException(`Cannot transition from ${item.status} to ${status}`);
     }
 
+    const data: Prisma.ContentItemUpdateInput = { status, version: { increment: 1 } };
+    if (status === 'PUBLISHED') data.publishedAt = new Date();
+    if (status === 'ARCHIVED') data.archivedAt = new Date();
+    if (status === 'APPROVED' || status === 'PUBLISHED') data.reviewedById = user.sub;
+
     return this.prisma.contentItem.update({
       where: { id },
-      data: { status },
+      data,
     });
   }
 
   async completenessMatrix(user: RequestUser, boardId?: string, grade?: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const isSuper = user.role === 'SUPER_ADMIN';
+    const institutionId = isSuper ? null : this.tenant.requireInstitution(user);
 
-    const where: any = { institutionId };
+    const where: any = institutionId ? { institutionId } : { ownerType: 'PLATFORM' };
     if (boardId) where.boardId = boardId;
 
     const chapters = await this.prisma.chapter.findMany({
@@ -245,7 +274,7 @@ export class ContentService {
 
     const contentCounts = await this.prisma.contentItem.groupBy({
       by: ['chapterId', 'conceptId', 'type', 'status'],
-      where: { institutionId, status: 'APPROVED' },
+      where: { ...where, status: { in: ['APPROVED', 'PUBLISHED'] } },
       _count: true,
     });
 
@@ -253,14 +282,14 @@ export class ContentService {
       const totalConcepts = ch.topics.reduce((acc, t) => acc + t.concepts.length, 0);
       const conceptsCovered = new Set(
         contentCounts
-          .filter((c) => c.chapterId === ch.id && c.status === 'APPROVED')
+          .filter((c) => c.chapterId === ch.id && c.status !== 'DRAFT' && c.status !== 'ARCHIVED')
           .map((c) => c.conceptId)
           .filter(Boolean)
       ).size;
 
       const contentByType: Record<string, number> = {};
       contentCounts
-        .filter((c) => c.chapterId === ch.id && c.status === 'APPROVED')
+        .filter((c) => c.chapterId === ch.id && c.status !== 'DRAFT' && c.status !== 'ARCHIVED')
         .forEach((c) => {
           contentByType[c.type] = (contentByType[c.type] || 0) + c._count;
         });
@@ -282,7 +311,7 @@ export class ContentService {
             conceptId: c.id,
             conceptName: c.name,
             hasContent: contentCounts.some(
-              (cc) => cc.conceptId === c.id && cc.chapterId === ch.id && cc.status === 'APPROVED'
+              (cc) => cc.conceptId === c.id && cc.chapterId === ch.id && cc.status !== 'DRAFT' && cc.status !== 'ARCHIVED'
             ),
           })),
         })),
@@ -304,21 +333,23 @@ export class ContentService {
   }
 
   async qualityReport(user: RequestUser) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const isSuper = user.role === 'SUPER_ADMIN';
+    const institutionId = isSuper ? null : this.tenant.requireInstitution(user);
+    const scope: Prisma.ContentItemWhereInput = institutionId ? { institutionId } : { ownerType: 'PLATFORM' };
 
     const [total, byStatus, byType, recentlyUpdated, withoutDescription, withoutDuration, withoutThumbnail] = await Promise.all([
-      this.prisma.contentItem.count({ where: { institutionId } }),
-      this.prisma.contentItem.groupBy({ by: ['status'], where: { institutionId }, _count: true }),
-      this.prisma.contentItem.groupBy({ by: ['type'], where: { institutionId, status: 'APPROVED' }, _count: true }),
+      this.prisma.contentItem.count({ where: scope }),
+      this.prisma.contentItem.groupBy({ by: ['status'], where: scope, _count: true }),
+      this.prisma.contentItem.groupBy({ by: ['type'], where: { ...scope, status: { in: ['APPROVED', 'PUBLISHED'] } }, _count: true }),
       this.prisma.contentItem.findMany({
-        where: { institutionId },
+        where: scope,
         orderBy: { updatedAt: 'desc' },
         take: 10,
         select: { id: true, title: true, type: true, status: true, updatedAt: true },
       }),
-      this.prisma.contentItem.count({ where: { institutionId, description: null } }),
-      this.prisma.contentItem.count({ where: { institutionId, durationSeconds: null, type: 'VIDEO' } }),
-      this.prisma.contentItem.count({ where: { institutionId, thumbnailUrl: null } }),
+      this.prisma.contentItem.count({ where: { ...scope, description: null } }),
+      this.prisma.contentItem.count({ where: { ...scope, durationSeconds: null, type: 'VIDEO' } }),
+      this.prisma.contentItem.count({ where: { ...scope, thumbnailUrl: null } }),
     ]);
 
     return {

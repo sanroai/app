@@ -233,10 +233,10 @@ export class AdminService {
       }),
     ]);
     const map = new Map<string, number>();
-    for (const g of students) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
-    for (const g of teachers) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
-    for (const g of parents) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
-    for (const g of admins) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    for (const g of students) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    for (const g of teachers) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    for (const g of parents) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    for (const g of admins) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
     return map;
   }
 
@@ -259,7 +259,7 @@ export class AdminService {
       where: { institutionId: { in: ids } },
       _count: { _all: true },
     });
-    return new Map(rows.map((r) => [r.institutionId, r._count._all]));
+    return new Map(rows.map((r) => [r.institutionId, r._count._all]).filter(([k]) => k !== null) as [string, number][]);
   }
 
   private cleanListFilters(f: ListFilters): ListFilters {

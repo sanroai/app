@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Inject } from '@nestjs/common';
-import { InstitutionType, LoginResponse, Role, BlockedAccountResponse } from '@sanro/types';
+import { InstitutionType, LoginResponse, Role, BlockedAccountResponse, AccountBlockState } from '@sanro/types';
 import * as bcrypt from 'bcryptjs';
 import { randomUUID } from 'node:crypto';
 import { StringValue } from 'ms';
@@ -15,6 +15,7 @@ import { AppConfig } from '../config/app.config';
 import { APP_CONFIG_TOKEN } from '../common/common.constants';
 import { NotificationsService } from '../common/services/audit-notifications.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
+import { EntitlementService, UserEntitlement } from '../common/security/entitlement.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 export interface LoginResult {
@@ -50,6 +51,7 @@ export class AuthService {
     @Inject(APP_CONFIG_TOKEN) private readonly config: AppConfig,
     private readonly notifications: NotificationsService,
     private readonly subscriptionAccess: SubscriptionAccessService,
+    private readonly entitlement: EntitlementService,
   ) {}
 
   async registerInstitution(body: {
@@ -170,17 +172,34 @@ export class AuthService {
         include: { institution: true },
       });
       if (memberships.length === 0) {
-        throw new UnauthorizedException('No active institution membership');
+        const directRole = await this.resolveDirectRole(user.id);
+        if (!directRole) {
+          throw new UnauthorizedException('No active institution membership');
+        }
+        role = directRole;
+        institutionId = null;
+      } else {
+        const primary = memberships[0];
+        role = primary.role;
+        institutionId = primary.institutionId;
       }
-      const primary = memberships[0];
-      role = primary.role;
-      institutionId = primary.institutionId;
     }
 
     if (role !== Role.SUPER_ADMIN && institutionId) {
       const state = await this.subscriptionAccess.getAccountState(user.id, role, institutionId);
       if (!state.access) {
         return this.toBlockedResponse(user, state);
+      }
+    }
+
+    if (role !== Role.SUPER_ADMIN && !institutionId) {
+      const entitlement = await this.entitlement.evaluateUser({
+        sub: user.id,
+        role,
+        jti: '',
+      });
+      if (!entitlement.allowed) {
+        return this.toDirectBlockedResponse(user, entitlement);
       }
     }
 
@@ -249,7 +268,44 @@ export class AuthService {
     };
   }
 
+  private async resolveDirectRole(userId: string): Promise<Role | null> {
+    const student = await this.prisma.student.findUnique({ where: { userId } });
+    if (student) return Role.STUDENT;
+    const parent = await this.prisma.parent.findUnique({ where: { userId } });
+    if (parent) return Role.PARENT;
+    return null;
+  }
+
+  private toDirectBlockedResponse(
+    user: { email: string },
+    entitlement: UserEntitlement,
+  ): BlockedAccountResponse {
+    return {
+      state: (entitlement.blockState ?? entitlement.reason ?? 'NO_ENTITLEMENT') as AccountBlockState,
+      message:
+        entitlement.message ??
+        'No active SANRO entitlement found. Please subscribe to continue using SANRO.',
+      institution: null,
+    };
+  }
+
   async accountState(userId: string, role: Role, institutionId?: string) {
+    if (role !== Role.SUPER_ADMIN && !institutionId) {
+      const entitlement = await this.entitlement.evaluateUser({ sub: userId, role, jti: '' });
+      return {
+        access: entitlement.allowed,
+        state: entitlement.blockState ?? entitlement.reason ?? null,
+        message: entitlement.message ?? null,
+        source: entitlement.source,
+        institution: null,
+        expiresAt: entitlement.expiresAt ? entitlement.expiresAt.toISOString() : null,
+        children: entitlement.children.map((child) => ({
+          studentId: child.studentId,
+          source: child.source,
+          expiresAt: child.expiresAt ? child.expiresAt.toISOString() : null,
+        })),
+      };
+    }
     return this.subscriptionAccess.getAccountState(userId, role, institutionId);
   }
 

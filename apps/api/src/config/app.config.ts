@@ -26,6 +26,8 @@ const envSchema = z.object({
   AI_MODEL: z.string().default('gpt-4o-mini'),
   AI_PROVIDER: z.enum(['mock', 'openai', 'gemini']).default('mock'),
   AI_BASE_URL: z.string().optional().default('https://api.openai.com/v1'),
+  AI_EMBEDDING_PROVIDER: z.enum(['none', 'openai', 'gemini']).default('none'),
+  AI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   STORAGE_TYPE: z.enum(['local', 's3']).default('local'),
   STORAGE_URL: z.string().optional().default(''),
   STORAGE_KEY: z.string().optional().default(''),

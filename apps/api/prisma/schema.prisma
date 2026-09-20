@@ -81,12 +81,20 @@ enum ContentType {
   PRACTICE_SET
   ARTICLE
   IMAGE
+  WORKSHEET
+  REVISION
+  FLASHCARDS
+  INTERACTIVE
+  EXAMPLE
+  READING
+  OTHER
 }
 
 enum ContentStatus {
   DRAFT
   REVIEW
   APPROVED
+  PUBLISHED
   ARCHIVED
 }
 
@@ -272,6 +280,47 @@ enum AuditAction {
   INSTITUTION_ADMIN_CHANGED
   USER_DISABLED
   USER_ENABLED
+  STUDENT_UPDATED
+  STUDENT_DISABLED
+  STUDENT_ENABLED
+  STUDENT_ARCHIVED
+  STUDENT_INSTITUTION_CHANGED
+  STUDENT_PARENT_LINKED
+  STUDENT_PARENT_UNLINKED
+  TEACHER_UPDATED
+  TEACHER_DISABLED
+  TEACHER_ENABLED
+  TEACHER_ARCHIVED
+  TEACHER_INSTITUTION_CHANGED
+  PARENT_UPDATED
+  PARENT_DISABLED
+  PARENT_ENABLED
+  PARENT_ARCHIVED
+  PARENT_CHILD_LINKED
+  PARENT_CHILD_UNLINKED
+  DIRECT_SUBSCRIPTION_CREATED
+  DIRECT_SUBSCRIPTION_UPDATED
+  DIRECT_SUBSCRIPTION_RENEWED
+  CONTENT_CREATED
+  CONTENT_UPDATED
+  CONTENT_STATUS_CHANGED
+  CONTENT_DELETED
+  CONTENT_VERSION_RESTORED
+  CONTENT_ASSIGNED
+  CONTENT_UNASSIGNED
+  CONTENT_REVIEWED
+  CONTENT_PUBLISHED
+  BOOK_UPLOADED
+  BOOK_PROCESSING_FAILED
+  BOOK_COMPLETED
+  CURRICULUM_CREATED
+  CURRICULUM_UPDATED
+  CURRICULUM_IMPORTED
+  CURRICULUM_ASSIGNED
+  CURRICULUM_UNASSIGNED
+  KNOWLEDGE_BASE_CREATED
+  KNOWLEDGE_BASE_DELETED
+  YOUTUBE_ADDED
 }
 
 enum SupportTicketStatus {
@@ -325,6 +374,7 @@ model User {
   updatedAt     DateTime @updatedAt
 
   memberships        InstitutionMember[]
+  subscriptions      Subscription[] @relation("DirectSubscriptionOwner")
   sessions           Session[]
   passwordResetTokens PasswordResetToken[]
   notifications      Notification[]
@@ -421,6 +471,8 @@ model Institution {
   reports        Report[]
   auditLogs      AuditLog[]
   knowledgeBases KnowledgeBase[]
+  contentAssignments ContentAssignment[]
+  curriculumAccess InstitutionCurriculumAccess[]
 
   @@index([status])
   @@index([type])
@@ -558,8 +610,8 @@ model TeacherGroup {
 
 model Student {
   id            String        @id @default(uuid()) @db.Uuid
-  institutionId String        @db.Uuid
-  academicYearId String       @db.Uuid
+  institutionId String?       @db.Uuid
+  academicYearId String?      @db.Uuid
   userId        String?       @unique @db.Uuid
   name          String
   email         String?
@@ -572,9 +624,9 @@ model Student {
   createdAt     DateTime      @default(now())
   deactivatedAt DateTime?
 
-  institution  Institution     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  academicYear AcademicYear    @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
-  user         User?           @relation(fields: [userId], references: [id])
+  institution  Institution?     @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  academicYear AcademicYear?    @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
+  user         User?            @relation(fields: [userId], references: [id])
   groupMemberships GroupMembership[]
   parentLinks ParentStudentLink[]
   attempts     AssessmentAttempt[]
@@ -596,14 +648,14 @@ model Student {
 
 model Parent {
   id            String  @id @default(uuid()) @db.Uuid
-  institutionId String  @db.Uuid
+  institutionId String? @db.Uuid
   userId        String? @unique @db.Uuid
   name          String
   email         String?
   phone         String?
   createdAt     DateTime @default(now())
 
-  institution Institution       @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  institution Institution?      @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   user        User?             @relation(fields: [userId], references: [id])
   studentLinks ParentStudentLink[]
 
@@ -638,6 +690,7 @@ model Board {
   subjects  Subject[]
   questions Question[]
   content   ContentItem[]
+  curriculumAccess InstitutionCurriculumAccess[]
 
   @@index([active])
 }
@@ -671,6 +724,7 @@ model Subject {
   assessments Assessment[]
   content    ContentItem[]
   teacherSubjects TeacherSubject[]
+  curriculumAccess InstitutionCurriculumAccess[]
 
   @@unique([boardId, code])
   @@index([boardId])
@@ -745,15 +799,26 @@ model ContentItem {
   durationSeconds Int?
   thumbnailUrl    String?
   url             String?
+  order           Int           @default(0)
   version         Int           @default(1)
+  ownerType       ContentOwnerType @default(INSTITUTION)
+  directSanroAvailable Boolean  @default(false)
   institutionId   String?       @db.Uuid
   boardId         String?       @db.Uuid
   subjectId       String?       @db.Uuid
   chapterId       String?       @db.Uuid
   topicId         String?       @db.Uuid
   conceptId       String?       @db.Uuid
+  grade           String?
+  videoId         String?
+  storageKey      String?
+  sourceType      ContentSourceType?
   language        Language      @default(EN)
   createdById     String?       @db.Uuid
+  reviewedById    String?       @db.Uuid
+  publishedAt     DateTime?
+  archivedAt      DateTime?
+  reviewNote      String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -765,10 +830,16 @@ model ContentItem {
   progress   ContentProgress[]
   remediationItems RemediationItem[]
   versions   ContentVersion[]
+  assignments ContentAssignment[]
 
   @@index([institutionId])
   @@index([conceptId])
   @@index([type, status])
+  @@index([ownerType, status])
+  @@index([ownerType, status, institutionId])
+  @@index([grade, subjectId, status])
+  @@index([conceptId, order])
+  @@index([directSanroAvailable, status])
 }
 
 model ContentProgress {
@@ -1394,7 +1465,8 @@ model Plan {
 
 model Subscription {
   id            String             @id @default(uuid()) @db.Uuid
-  institutionId String             @db.Uuid
+  institutionId String?            @db.Uuid
+  userId        String?            @db.Uuid
   planId        String             @db.Uuid
   status        SubscriptionStatus @default(TRIAL)
   startedAt     DateTime           @default(now())
@@ -1402,10 +1474,12 @@ model Subscription {
   seatLimit     Int?
   createdAt     DateTime           @default(now())
 
-  institution  Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
-  plan         Plan        @relation(fields: [planId], references: [id])
+  institution  Institution? @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  user         User?        @relation("DirectSubscriptionOwner", fields: [userId], references: [id])
+  plan         Plan         @relation(fields: [planId], references: [id])
   history      SubscriptionHistory[]
 
+  @@unique([userId])
   @@index([institutionId])
   @@index([institutionId, status])
   @@index([status])
@@ -1426,7 +1500,7 @@ enum SubscriptionHistoryAction {
 
 model SubscriptionHistory {
   id             String               @id @default(uuid()) @db.Uuid
-  institutionId  String               @db.Uuid
+  institutionId  String?              @db.Uuid
   subscriptionId String?              @db.Uuid
   action         SubscriptionHistoryAction
   changedById    String               @db.Uuid
@@ -1443,7 +1517,7 @@ model SubscriptionHistory {
   reason         String?
   createdAt      DateTime             @default(now())
 
-  institution  Institution  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  institution  Institution?  @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   subscription Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
   changedBy    User         @relation("SubscriptionHistoryChangedBy", fields: [changedById], references: [id])
 
@@ -1509,6 +1583,27 @@ enum ProcessingJobStatus {
   FAILED
 }
 
+enum ContentOwnerType {
+  PLATFORM
+  INSTITUTION
+}
+
+enum ContentProcessingStage {
+  UPLOADED
+  VALIDATING
+  EXTRACTING
+  OCR
+  PARSING
+  MAPPING
+  CHUNKING
+  EMBEDDING
+  GENERATING
+  REVIEW
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
 model KnowledgeBase {
   id          String    @id @default(uuid()) @db.Uuid
   name        String
@@ -1516,9 +1611,11 @@ model KnowledgeBase {
   sourceType  ContentSourceType
   sourceUrl   String?
   storageKey  String?
+  ownerType   ContentOwnerType @default(INSTITUTION)
   institutionId String? @db.Uuid
   creatorId   String?   @db.Uuid
   status      ContentLifecycleStatus @default(DRAFT)
+  stage       ContentProcessingStage @default(UPLOADED)
   metadata    Json?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -1530,6 +1627,7 @@ model KnowledgeBase {
 
   @@index([institutionId])
   @@index([status])
+  @@index([ownerType, status])
 }
 
 model KnowledgeChunk {
@@ -1543,6 +1641,8 @@ model KnowledgeChunk {
   subject         String?
   board           String?
   tokenCount      Int?
+  sourcePage      Int?
+  embedding       Json?
   metadata        Json?
   createdAt       DateTime @default(now())
 
@@ -1557,10 +1657,14 @@ model ProcessingJob {
   id              String            @id @default(uuid()) @db.Uuid
   knowledgeBaseId String            @db.Uuid
   status          ProcessingJobStatus @default(PENDING)
+  stage           ContentProcessingStage?
   inputType       String
   outputType      String?
   error           String?
+  errorCode       String?
   metadata        Json?
+  attempts        Int               @default(0)
+  maxAttempts     Int               @default(3)
   startedAt       DateTime?
   completedAt     DateTime?
   createdAt       DateTime          @default(now())
@@ -1569,6 +1673,7 @@ model ProcessingJob {
 
   @@index([knowledgeBaseId])
   @@index([status])
+  @@index([stage])
 }
 
 model AuditLog {
@@ -1619,6 +1724,41 @@ model ContentVersion {
 
   @@index([contentId, version])
   @@unique([contentId, version])
+}
+
+model ContentAssignment {
+  id            String   @id @default(uuid()) @db.Uuid
+  contentId     String   @db.Uuid
+  institutionId String   @db.Uuid
+  assignedById  String?  @db.Uuid
+  createdAt     DateTime @default(now())
+
+  content     ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@unique([contentId, institutionId])
+  @@index([contentId])
+  @@index([institutionId])
+  @@index([institutionId, createdAt])
+}
+
+model InstitutionCurriculumAccess {
+  id            String   @id @default(uuid()) @db.Uuid
+  institutionId String   @db.Uuid
+  boardId       String   @db.Uuid
+  grade         String?
+  subjectId     String?  @db.Uuid
+  grantedById   String?  @db.Uuid
+  createdAt     DateTime @default(now())
+
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  board      Board        @relation(fields: [boardId], references: [id])
+  subject    Subject?     @relation(fields: [subjectId], references: [id])
+
+  @@unique([institutionId, boardId, grade, subjectId])
+  @@index([institutionId])
+  @@index([boardId])
+  @@index([subjectId])
 }
 
 // ============================================================================

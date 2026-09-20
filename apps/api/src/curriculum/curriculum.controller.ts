@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { z } from 'zod';
 import { Role } from '@sanro/types';
 import { CurriculumService } from './curriculum.service';
 import { ContentService } from './content.service';
@@ -15,33 +16,33 @@ export class CurriculumController {
   constructor(private readonly service: CurriculumService) {}
 
   @Get('boards')
-  boards() {
-    return this.service.listBoards();
+  boards(@CurrentUser() user: RequestUser) {
+    return this.service.listBoards(user);
   }
 
   @Get('grades')
-  grades(@Query('boardId') boardId?: string) {
-    return this.service.listGrades(boardId);
+  grades(@CurrentUser() user: RequestUser, @Query('boardId') boardId?: string) {
+    return this.service.listGrades(user, boardId);
   }
 
   @Get('subjects')
-  subjects(@Query('boardId') boardId: string, @Query('grade') grade?: string) {
-    return this.service.listSubjects(boardId, grade);
+  subjects(@CurrentUser() user: RequestUser, @Query('boardId') boardId: string, @Query('grade') grade?: string) {
+    return this.service.listSubjects(user, boardId, grade);
   }
 
   @Get('chapters')
-  chapters(@Query('subjectId') subjectId: string) {
-    return this.service.listChapters(subjectId);
+  chapters(@CurrentUser() user: RequestUser, @Query('subjectId') subjectId: string) {
+    return this.service.listChapters(user, subjectId);
   }
 
   @Get('topics')
-  topics(@Query('chapterId') chapterId: string) {
-    return this.service.listTopics(chapterId);
+  topics(@CurrentUser() user: RequestUser, @Query('chapterId') chapterId: string) {
+    return this.service.listTopics(user, chapterId);
   }
 
   @Get('concepts')
-  concepts(@Query('topicId') topicId: string) {
-    return this.service.listConcepts(topicId);
+  concepts(@CurrentUser() user: RequestUser, @Query('topicId') topicId: string) {
+    return this.service.listConcepts(user, topicId);
   }
 
   @Get('tree')
@@ -49,34 +50,40 @@ export class CurriculumController {
     return this.service.tree(user, boardId, grade, subjectId);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @Post('boards')
-  createBoard(@CurrentUser() user: RequestUser, @Body() body: { name: string; code: string }) {
+  createBoard(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(z.object({ name: z.string().trim().min(2).max(200), code: z.string().trim().min(1).max(20) }))) body: { name: string; code: string }) {
     return this.service.createBoard(user, body);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @Post('subjects')
   createSubject(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createSubject(user, body as Parameters<typeof this.service.createSubject>[1]);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @Post('chapters')
   createChapter(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createChapter(user, body as Parameters<typeof this.service.createChapter>[1]);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Roles(Role.SUPER_ADMIN)
   @Post('topics')
   createTopic(@CurrentUser() user: RequestUser, @Body() body: { chapterId: string; name: string; order?: number }) {
     return this.service.createTopic(user, body);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Roles(Role.SUPER_ADMIN)
   @Post('concepts')
   createConcept(@CurrentUser() user: RequestUser, @Body() body: unknown) {
     return this.service.createConcept(user, body as Parameters<typeof this.service.createConcept>[1]);
+  }
+
+  @Roles(Role.SUPER_ADMIN)
+  @Post('grades')
+  createGrade(@CurrentUser() user: RequestUser, @Body() body: { boardId: string; name: string; order?: number }) {
+    return this.service.createGrade(user, body);
   }
 }
 

@@ -2,6 +2,39 @@
 
 Format: date — phase — change.
 
+## 2026-09-20 — People management: Direct SANRO model + super-admin People Admin
+- Direct SANRO model: `Subscription.userId` (unique, nullable direct-owner) +
+  nullable `Subscription.institutionId`; `Student.institutionId`/`academicYearId`
+  nullable; `Parent.institutionId` nullable; `SubscriptionHistory.institutionId`
+  nullable; `User.subscriptions` relation. Migration
+  `20260920120000_people_direct_sanro`. Source is DERIVED (`institutionId` null ⇔
+  DIRECT_SANRO) — no stored column, no fake "SANRO" tenant.
+- Entitlement oracle `EntitlementService` (`evaluateUser`/`evaluateEntitlement`,
+  `assertCanAccess`, per-user 15 s cache + `invalidate`/`clearCache`): SUPER_ADMIN
+  passthrough, institution path delegates to `SubscriptionAccessService`, direct
+  path (user-owned Subscription, `ACTIVE|TRIAL`), parent path (child aggregation,
+  ANY-child rule, `expiresAt = max`). `SubscriptionGuard` now routes
+  institution-less users to the entitlement service.
+- Direct block codes: `DIRECT_SUBSCRIPTION_EXPIRED`, `DIRECT_SUBSCRIPTION_SUSPENDED`,
+  `NO_ENTITLEMENT`, `NO_ACTIVE_CHILD_RELATIONSHIP` (`AccountBlockState` +
+  `EntitlementBlockReason` in `@sanro/types`).
+- Super-admin People API `/api/v1/admin/people/*` (`@Roles(SUPER_ADMIN)`):
+  students/teachers/parents list (filters + pagination ≤100), detail, create
+  (returns one-time `defaultPassword`), update, transfer, status/disable/enable,
+  direct-subscription (student, with `SubscriptionHistory` institutionId null),
+  search, parent link/unlink.
+- Audit actions per operation: STUDENT_CREATED/UPDATED/ENABLED/DISABLED/
+  INSTITUTION_CHANGED, TEACHER_ADDED/UPDATED/ENABLED/DISABLED/
+  INSTITUTION_CHANGED, PARENT_UPDATED/ENABLED/DISABLED/CHILD_LINKED/
+  CHILD_UNLINKED (no PARENT_CREATED), DIRECT_SUBSCRIPTION_CREATED/UPDATED.
+- Web: super-admin PEOPLE nav + `/app/people/{students,teachers,parents}` pages,
+  SourceBadge, source/subscription-status filters, direct-subscription dialog.
+- Tests: `entitlement.service.spec.ts` (unit) covers the direct + parent matrix.
+  `people.e2e-spec.ts` (contract §8) NOT yet in repo — gaps listed in
+  docs/PEOPLE_MANAGEMENT.md. Known gap: direct login still blocked by
+  `issueLogin` 401 'No active institution membership'.
+- Full reference: docs/PEOPLE_MANAGEMENT.md.
+
 ## 2026-09-20 — Super-admin institution management + subscription/validity/access-control
 - Entitlement engine `SubscriptionAccessService` (cached 15 s) + global
   `SubscriptionGuard` with `@SubscriptionRequired()` coverage across learning,

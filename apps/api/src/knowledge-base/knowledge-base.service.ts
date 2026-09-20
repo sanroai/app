@@ -14,6 +14,11 @@ export class KnowledgeBaseService {
     private readonly storage: StorageService,
   ) {}
 
+  private kbScope(user: any): Prisma.KnowledgeBaseWhereInput {
+    if (user.role === 'SUPER_ADMIN') return {};
+    return { institutionId: user.institutionId };
+  }
+
   async create(user: any, data: {
     name: string;
     description?: string;
@@ -22,6 +27,7 @@ export class KnowledgeBaseService {
     storageKey?: string;
     metadata?: any;
   }) {
+    const isSuper = (user.role ?? user.roleId) === 'SUPER_ADMIN';
     return this.prisma.knowledgeBase.create({
       data: {
         name: data.name,
@@ -29,17 +35,16 @@ export class KnowledgeBaseService {
         sourceType: data.sourceType as any,
         sourceUrl: data.sourceUrl,
         storageKey: data.storageKey,
-        institutionId: user.institutionId,
-        creatorId: user.id,
+        ownerType: isSuper ? 'PLATFORM' : 'INSTITUTION',
+        institutionId: isSuper ? null : user.institutionId,
+        creatorId: user.sub ?? user.id,
         metadata: data.metadata,
       },
     });
   }
 
   async findAll(user: any, filters?: { status?: string; sourceType?: string }) {
-    const where: Prisma.KnowledgeBaseWhereInput = {
-      institutionId: user.institutionId,
-    };
+    const where: Prisma.KnowledgeBaseWhereInput = this.kbScope(user);
     if (filters?.status) where.status = filters.status as any;
     if (filters?.sourceType) where.sourceType = filters.sourceType as any;
 
@@ -52,7 +57,7 @@ export class KnowledgeBaseService {
 
   async findOne(id: string, user: any) {
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id, institutionId: user.institutionId },
+      where: { id, ...this.kbScope(user) },
       include: {
         chunks: { orderBy: { createdAt: 'asc' }, take: 50 },
         jobs: { orderBy: { createdAt: 'desc' }, take: 10 },
@@ -74,7 +79,7 @@ export class KnowledgeBaseService {
     metadata?: any;
   }>) {
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id: kbId, institutionId: user.institutionId },
+      where: { id: kbId, ...this.kbScope(user) },
     });
     if (!kb) throw new NotFoundException('Knowledge base not found');
 
@@ -97,8 +102,9 @@ export class KnowledgeBaseService {
   }
 
   async search(user: any, query: string, filters?: { grade?: string; subject?: string; board?: string }) {
+    const kbScope = this.kbScope(user);
     const where: Prisma.KnowledgeChunkWhereInput = {
-      knowledgeBase: { institutionId: user.institutionId },
+      knowledgeBase: kbScope,
     };
     if (filters?.grade) where.grade = filters.grade;
     if (filters?.subject) where.subject = filters.subject;
@@ -116,7 +122,7 @@ export class KnowledgeBaseService {
 
   async updateStatus(id: string, user: any, status: string) {
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id, institutionId: user.institutionId },
+      where: { id, ...this.kbScope(user) },
     });
     if (!kb) throw new NotFoundException('Knowledge base not found');
 
@@ -128,7 +134,7 @@ export class KnowledgeBaseService {
 
   async delete(id: string, user: any) {
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id, institutionId: user.institutionId },
+      where: { id, ...this.kbScope(user) },
     });
     if (!kb) throw new NotFoundException('Knowledge base not found');
 
@@ -142,12 +148,12 @@ export class KnowledgeBaseService {
   }
 
   async getStats(user: any) {
-    const institutionId = user.institutionId;
+    const scope = this.kbScope(user);
     const [totalKB, totalChunks, byStatus, bySourceType] = await Promise.all([
-      this.prisma.knowledgeBase.count({ where: { institutionId } }),
-      this.prisma.knowledgeChunk.count({ where: { knowledgeBase: { institutionId } } }),
-      this.prisma.knowledgeBase.groupBy({ by: ['status'], where: { institutionId }, _count: true }),
-      this.prisma.knowledgeBase.groupBy({ by: ['sourceType'], where: { institutionId }, _count: true }),
+      this.prisma.knowledgeBase.count({ where: scope }),
+      this.prisma.knowledgeChunk.count({ where: { knowledgeBase: scope } }),
+      this.prisma.knowledgeBase.groupBy({ by: ['status'], where: scope, _count: true }),
+      this.prisma.knowledgeBase.groupBy({ by: ['sourceType'], where: scope, _count: true }),
     ]);
 
     return {

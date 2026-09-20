@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { AppConfig } from '../../config/app.config';
 import { APP_CONFIG_TOKEN } from '../common.constants';
@@ -58,6 +58,10 @@ export class StorageService {
     const key = `${category}/${filename}`;
 
     if (this.config.STORAGE_TYPE === 'local' || !this.r2Client) {
+      const parent = dirname(filename);
+      if (parent && parent !== '.') {
+        mkdirSync(join(this.getLocalDir(category), parent), { recursive: true });
+      }
       const dir = this.getLocalDir(category);
       const path = join(dir, filename);
       writeFileSync(path, data);
