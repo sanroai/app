@@ -32,7 +32,7 @@ Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
 | 18 | Reports + analytics | ✅ DONE | New `/reports` API + CSV exports (see below) |
 | 19 | Notifications | ⬜ TODO | |
 | 20 | Mobile | ✅ DONE | Verified: typecheck, 5-tab shell + role tabs, 6 concept modes on real API, prod API default |
-| 21 | Website | ⬜ TODO | Contact flow fixed |
+| 21 | Website | ✅ DONE | Full 64-page UI/UX overhaul (83 files, +1178/-721): dark mode, design tokens, a11y, type safety |
 | 22 | Security + performance | ✅ DONE | Helmet + compression added; sweep complete (see below) |
 | 23 | QA | ⏳ PARTIAL | CI/CD done; QA phase pending |
 | 24 | Deployment | ✅ DONE | API + web live & verified; APK published (see below) |

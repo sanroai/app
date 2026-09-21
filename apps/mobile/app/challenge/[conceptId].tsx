@@ -27,7 +27,7 @@ export default function ChallengeScreen() {
   const [score, setScore] = useState<{ xp: number; correct: number; total: number } | null>(null);
   const finishedRef = useRef(false);
 
-  const { data } = useQuery<ChallengeStartData>({
+  const { data, isLoading, isError, refetch } = useQuery<ChallengeStartData>({
     queryKey: ['learning', 'practice', 'challenge', conceptId],
     queryFn: () => apiAuthed<ChallengeStartData>('/learning/practice/start', { method: 'POST', body: { conceptId, questionCount: 10 } }),
   });
@@ -95,10 +95,21 @@ export default function ChallengeScreen() {
     setScore(null);
   };
 
-  if (isLoading(data)) {
+  if (isLoading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.center}>
+        <Text style={{ fontSize: 15, color: Colors.textSecondary, textAlign: 'center', padding: Spacing.xl }}>Failed to load challenge.</Text>
+        <TouchableOpacity style={{ backgroundColor: Colors.primary, borderRadius: BorderRadius.lg, paddingVertical: 13, paddingHorizontal: 24, marginTop: Spacing.md }} onPress={() => refetch()}>
+          <Text style={{ color: Colors.white, fontSize: 15, fontWeight: '600' }}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -170,10 +181,6 @@ export default function ChallengeScreen() {
       </ScrollView>
     </View>
   );
-}
-
-function isLoading(data: any) {
-  return !data;
 }
 
 const styles = StyleSheet.create({

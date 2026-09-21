@@ -41,7 +41,7 @@ export default function LeaderboardScreen() {
 
       <FlatList
         data={entries}
-        keyExtractor={(_, i) => String(i)}
+        keyExtractor={(item) => String(item.userId)}
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.center}>

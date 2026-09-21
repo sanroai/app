@@ -1,4 +1,4 @@
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Keyboard } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -186,7 +186,7 @@ export default function AttemptScreen() {
             index={i}
             total={questions.length}
             selected={answers[q.id] ?? null}
-            onSelect={(optId) => setAnswers((prev) => ({ ...prev, [q.id]: optId }))}
+            onSelect={(optId) => { Keyboard.dismiss(); setAnswers((prev) => ({ ...prev, [q.id]: optId })); }}
           />
         ))}
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>

@@ -1,4 +1,4 @@
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Keyboard } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -31,6 +31,7 @@ export default function PracticeScreen() {
   const questions = data?.questions ?? [];
 
   const select = (qid: string, optId: string) => {
+    Keyboard.dismiss();
     setAnswers((prev) => ({ ...prev, [qid]: optId }));
     saveAnswer.mutate({ practiceId, questionId: qid, answer: optId });
   };

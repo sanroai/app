@@ -9,15 +9,16 @@ interface CardProps {
   accent?: boolean;
 }
 
-export function Card({ children, onPress, style }: CardProps) {
+export function Card({ children, onPress, style, accent }: CardProps) {
+  const accentStyle = accent ? { borderLeftWidth: 3, borderLeftColor: '#ef4444' } : { borderLeftWidth: 0 };
   if (onPress) {
     return (
-      <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[styles.card, style]}>
+      <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={[styles.card, accentStyle, style]}>
         {children}
       </TouchableOpacity>
     );
   }
-  return <View style={[styles.card, style]}>{children}</View>;
+  return <View style={[styles.card, accentStyle, style]}>{children}</View>;
 }
 
 const styles = {

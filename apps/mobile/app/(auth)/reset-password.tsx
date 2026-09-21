@@ -118,7 +118,7 @@ export default function ResetPasswordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingBottom: 40 },
+  scroll: { paddingBottom: Spacing.xxxl },
   header: { alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingBottom: 30 },
   logoWrap: { width: 72, height: 72, borderRadius: BorderRadius.xl, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', ...Shadow.lg },
   brand: { marginTop: Spacing.md, fontSize: 24, fontWeight: '700', color: Colors.text },

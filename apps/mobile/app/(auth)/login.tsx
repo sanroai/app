@@ -7,7 +7,7 @@ import { useAuthStore, AuthUser, AuthMembership } from '../../lib/auth-store';
 import { useOfflineStore, isNetworkError } from '../../lib/offline';
 import { cacheSuccessfulLogin, verifyOfflineLogin, setCachedEntitlement, OfflineEntitlementError } from '../../lib/offline-auth';
 import { blockedFromBody, routeForBlocked } from '../../lib/blocked';
-import { Colors, Typography, Spacing, BorderRadius, Shadow } from '../../constants/theme';
+import { Colors, Spacing, BorderRadius, Shadow } from '../../constants/theme';
 
 interface AuthPayload {
   accessToken: string;

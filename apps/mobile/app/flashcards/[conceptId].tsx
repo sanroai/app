@@ -7,7 +7,7 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 const RATINGS = [
   { label: 'Again', icon: 'sad-outline', color: '#ef4444' },
-  { label: 'Hard', icon: 'happy-outline', color: '#f59e0b' },
+  { label: 'Hard', icon: 'thumbs-down-outline', color: '#f59e0b' },
   { label: 'Good', icon: 'sunny-outline', color: '#10b981' },
   { label: 'Easy', icon: 'flame', color: '#3b82f6' },
 ];

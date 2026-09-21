@@ -99,7 +99,7 @@ export default function AssessmentsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  content: { paddingBottom: 40 },
+  content: { paddingBottom: Spacing.xxxl },
   header: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.lg,

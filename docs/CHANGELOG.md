@@ -2,6 +2,42 @@
 
 Format: date — phase — change.
 
+## 2026-09-21 — Web UI/UX overhaul + mobile fixes + design token migration
+- **Comprehensive 64-page UI/UX audit** executed via 15+ parallel agents across
+  83 files (+1178/-721 lines). Covers every dashboard, auth, public, and
+  settings page.
+- **Dark mode on all 15 UI components**: Button, Card, Badge, Input, Textarea,
+  Select, Tabs, DropdownMenu, ScrollArea, Tooltip, Label, Progress, Checkbox,
+  Dialog, Toaster — all wired with `dark:` Tailwind classes.
+- **Design token migration**: all `slate-*` tokens replaced with semantic
+  `surface-*` tokens (`text-slate-*` → `text-surface-*`, `bg-slate-*` →
+  `bg-surface-*`, `border-slate-*` → `border-surface-*`) — zero remaining
+  in dashboard pages.
+- **Type safety**: 22+ `any` annotations replaced with typed interfaces
+  across concept, chapter, remediation, gamification, assessments, and
+  question pages.
+- **Navigation**: `window.location.href` / `.reload()` → `router.push()` /
+  `router.replace()` / `router.refresh()` (4 calls fixed); `<a href>` →
+  `<Link>` for SPA navigation in dropdown menus.
+- **UX polish**: `alert()` → `toast.error()`, native `<select>` → Radix
+  Select, native checkboxes → Radix Checkbox, `window.confirm()` → inline
+  confirm buttons, CSS spinner → Loader2, dead buttons disabled.
+- **Accessibility**: skip-to-content links, `aria-label` on all icon buttons,
+  `aria-current="page"` on nav, `aria-expanded` on menus, `role="alert"` on
+  form errors, `role="dialog"` on mobile menus, ARIA tabs pattern with
+  keyboard navigation on concept detail page.
+- **CSS polish**: removed duplicate `@keyframes float/shimmer`, added
+  `::selection` brand tint, consolidated body/heading styles in `@layer base`.
+- **New component**: `components/ui/checkbox.tsx` (Radix UI checkbox).
+- **Mobile fixes**: dark mode set to `light` (was `automatic` with no
+  dark palette), Card `accent` prop implemented, Challenge screen error
+  handling fixed (infinite spinner), keyboard dismissal on answer selection,
+  unused imports removed, inconsistent padding fixed, leaderboard
+  keyExtractor fixed, flashcard icon corrected.
+- **Screenshots**: 70+ fresh screenshots captured for student, teacher, and
+  admin roles across desktop/tablet/mobile/narrow viewports.
+- Live: https://sanroai.com
+
 ## 2026-09-21 — SANRO AI system institution + protected entity + dashboard aggregation
 - **SANRO AI system institution**: direct customers (students/parents) now belong
   to the single system-owned institution "SANRO AI" (id
