@@ -30,8 +30,6 @@ import {
   Database,
   Boxes,
   ShieldX,
-  GitBranch,
-  KeyRound,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -89,7 +87,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/app/learn', label: 'Learn', icon: BookOpen },
-        { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
+        { href: '/app/chat', label: 'Ask SANRO', icon: MessageCircle },
       ]
     : [];
 
@@ -131,15 +129,9 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const academicLinks: NavLink[] = staff
     ? [
         { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
-        ...(isSuperAdmin
-          ? [
-              { href: '/app/curriculum/nodes', label: 'Curriculum Nodes', icon: GitBranch },
-              { href: '/app/curriculum/import', label: 'CSV Import', icon: Upload },
-              { href: '/app/curriculum/access', label: 'Access Grants', icon: KeyRound },
-            ]
-          : []),
-        { href: '/app/questions', label: 'Questions', icon: HelpCircle },
+        { href: '/app/questions', label: 'Question Bank', icon: HelpCircle },
         { href: '/app/papers', label: 'Question Papers', icon: FileText },
+        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
         ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),
         ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FileText }] : []),
         { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
@@ -163,7 +155,6 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const settingsLinks: NavLink[] = [
     { href: '/app/settings', label: 'Settings', icon: Settings },
-    { href: '/app/profile', label: 'Profile', icon: UserCircle2 },
   ];
 
   const renderLink = (l: NavLink) => {

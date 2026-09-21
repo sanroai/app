@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import {
-  ArrowRight,
   BarChart3,
   BookOpen,
   Building2,
@@ -11,7 +10,7 @@ import {
   UserPlus,
   type LucideIcon,
 } from 'lucide-react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 
 type QuickAction = {
   label: string;
@@ -32,22 +31,20 @@ const ACTIONS: QuickAction[] = [
 export function QuickActionsPanel() {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
-        <CardDescription>Common administrative tasks</CardDescription>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm">Quick Actions</CardTitle>
       </CardHeader>
-      <div className="space-y-1 px-3 pb-6 pt-0">
+      <div className="grid grid-cols-3 gap-2 px-4 pb-4 pt-0">
         {ACTIONS.map((action) => (
           <Link
             key={action.label}
             href={action.href}
-            className="group flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-surface-50"
+            className="group flex items-center gap-2 rounded-lg border border-surface-100 px-3 py-2 text-xs font-medium text-surface-700 transition-colors hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700"
           >
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${action.tint}`}>
-              <action.icon className="h-5 w-5" />
+            <div className={`flex h-6 w-6 items-center justify-center rounded-md ${action.tint}`}>
+              <action.icon className="h-3.5 w-3.5" />
             </div>
-            <span className="flex-1 text-sm font-medium text-surface-900">{action.label}</span>
-            <ArrowRight className="h-4 w-4 text-surface-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
+            <span className="truncate">{action.label}</span>
           </Link>
         ))}
       </div>

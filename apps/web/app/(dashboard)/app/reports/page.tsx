@@ -15,16 +15,23 @@ import { Badge } from '@/components/ui/badge';
 import {
   BarChart3,
   TrendingUp,
-  TrendingDown,
   Users,
   Target,
   BookOpen,
   AlertTriangle,
-  CheckCircle2,
-  Clock,
-  FileText,
+  Download,
+  Loader2,
+  Calendar,
 } from 'lucide-react';
-import { cn } from '@/lib/cn';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
 
 type StudentSummary = {
   id: string;
@@ -63,12 +70,17 @@ export default function ReportsPage() {
   const [data, setData] = useState<ReportsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState('this-month');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!token || !user) return;
     const ctrl = new AbortController();
     setLoading(true);
-    api<ReportsData>('/dashboard/teacher', { token, signal: ctrl.signal })
+    const params = new URLSearchParams();
+    if (dateRange && dateRange !== 'all') params.set('range', dateRange);
+    const qs = params.toString();
+    api<ReportsData>(`/dashboard/teacher${qs ? `?${qs}` : ''}`, { token, signal: ctrl.signal })
       .then((res) => setData(res))
       .catch((err) => {
         if (ctrl.signal.aborted) return;
@@ -77,13 +89,51 @@ export default function ReportsPage() {
       })
       .finally(() => setLoading(false));
     return () => ctrl.abort();
-  }, [token, user, router]);
+  }, [token, user, router, dateRange]);
+
+  const exportCsv = async () => {
+    if (!data) return;
+    setExporting(true);
+    try {
+      const rows: string[] = ['Section,Name,Metric,Value'];
+      data.classes.forEach((c) => {
+        rows.push(`Class,${c.name},Students,${c.studentCount}`);
+        rows.push(`Class,${c.name},Avg Mastery,${c.avgMastery}%`);
+        rows.push(`Class,${c.name},Need Help,${c.studentsNeedingHelp}`);
+      });
+      data.subjectStats.forEach((s) => {
+        rows.push(`Subject,${s.subject},Avg Mastery,${s.avgMastery}%`);
+        rows.push(`Subject,${s.subject},Students,${s.totalStudents}`);
+      });
+      data.topStudents.forEach((s) => {
+        rows.push(`Top Performer,${s.name},Mastery,${s.overallMastery}%`);
+        rows.push(`Top Performer,${s.name},Weak Concepts,${s.weakConcepts}`);
+      });
+      data.strugglingStudents.forEach((s) => {
+        rows.push(`Needs Attention,${s.name},Mastery,${s.overallMastery}%`);
+        rows.push(`Needs Attention,${s.name},Weak Concepts,${s.weakConcepts}`);
+      });
+      const csv = rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reports-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Export ready');
+    } catch {
+      toast.error('Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Reports</h1>
+          <h1 className="text-2xl font-bold text-surface-900">Reports & Analytics</h1>
           <p className="text-surface-500 mt-1">Academic performance overview</p>
         </div>
         <div className="flex items-center justify-center py-16">
@@ -97,7 +147,7 @@ export default function ReportsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-surface-900">Reports</h1>
+          <h1 className="text-2xl font-bold text-surface-900">Reports & Analytics</h1>
           <p className="text-surface-500 mt-1">Academic performance overview</p>
         </div>
         <Card>
@@ -125,9 +175,30 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-surface-900">Reports</h1>
-        <p className="text-surface-500 mt-1">Academic performance overview across your classes</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-surface-900">Reports & Analytics</h1>
+          <p className="text-surface-500 mt-1">Academic performance overview across your classes</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Select value={dateRange} onValueChange={setDateRange}>
+            <SelectTrigger className="w-[180px]">
+              <Calendar className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Date range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="this-week">This Week</SelectItem>
+              <SelectItem value="this-month">This Month</SelectItem>
+              <SelectItem value="this-quarter">This Quarter</SelectItem>
+              <SelectItem value="this-year">This Year</SelectItem>
+              <SelectItem value="all">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={() => void exportCsv()} disabled={exporting || loading}>
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Summary stats */}
@@ -303,7 +374,11 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-surface-700 truncate">{s.name}</p>
-                      <p className="text-xs text-amber-600">{s.weakConcepts} weak concept{s.weakConcepts !== 1 ? 's' : ''}</p>
+                      <div className="flex items-center gap-3 mt-0.5">
+                        <p className="text-xs text-amber-600">{s.weakConcepts} weak concept{s.weakConcepts !== 1 ? 's' : ''}</p>
+                        <p className="text-xs text-surface-500">Mastery: {s.overallMastery}%</p>
+                        <p className="text-xs text-surface-500">{s.completedAssessments}/{s.totalAssessments} assessments</p>
+                      </div>
                     </div>
                     <Badge variant="destructive">{s.overallMastery}%</Badge>
                   </div>

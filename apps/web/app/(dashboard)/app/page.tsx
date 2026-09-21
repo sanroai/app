@@ -162,7 +162,7 @@ export default function DashboardPage() {
   const greeting = getGreeting();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Welcome Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
@@ -1107,26 +1107,25 @@ function SuperAdminCards() {
   const [range, setRange] = useState<SuperAdminRange>('7d');
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-surface-900">Executive Overview</h2>
-          <p className="text-sm text-surface-500">Platform health and activity across SANRO</p>
+          <h2 className="text-lg font-bold text-surface-900">Executive Overview</h2>
+          <p className="text-xs text-surface-500">Platform health and activity</p>
         </div>
         <TimeRangeSelect value={range} onChange={setRange} />
       </div>
 
       <KpiCards range={range} />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-6">
-          <InstitutionHealthPanel range={range} />
-          <RecentActivityPanel range={range} />
-        </div>
-        <div className="space-y-6">
-          <AttentionPanel />
-          <QuickActionsPanel />
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <InstitutionHealthPanel range={range} />
+        <QuickActionsPanel />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <RecentActivityPanel range={range} />
+        <AttentionPanel />
       </div>
     </div>
   );

@@ -28,7 +28,7 @@ export default function ChatPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm Sanro AI Tutor. Ask me anything about your studies — concepts, practice problems, or tips to improve.",
+      content: "Hi! I'm SANRO — your AI study assistant. Ask me anything about your studies.",
       timestamp: new Date(),
     },
   ]);

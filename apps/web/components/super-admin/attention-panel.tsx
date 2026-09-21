@@ -65,65 +65,61 @@ export function AttentionPanel() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Attention Required</CardTitle>
-        <CardDescription>
-          {error
-            ? 'Could not load attention list.'
-            : isLoading
-              ? 'Scanning institutions…'
-              : totalIssues === 0
-                ? 'All institutions look healthy'
-                : `${totalIssues} item${totalIssues === 1 ? '' : 's'} need attention`}
-        </CardDescription>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          Attention Required
+          {totalIssues > 0 && (
+            <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-100 px-1.5 text-[10px] font-semibold text-red-700">
+              {totalIssues}
+            </span>
+          )}
+        </CardTitle>
       </CardHeader>
       {isLoading ? (
-        <div className="px-6 pb-6 pt-0 space-y-3" aria-hidden>
+        <div className="px-4 pb-4 pt-0 space-y-2" aria-hidden>
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-100" />
+            <div key={i} className="h-8 animate-pulse rounded-lg bg-surface-100" />
           ))}
         </div>
       ) : error ? (
-        <div className="px-6 pb-6 pt-0">
-          <AttentionEmpty icon={<AlertCircle className="h-8 w-8 text-surface-300" />} message="Unable to load." />
+        <div className="px-4 pb-4 pt-0">
+          <AttentionEmpty icon={<AlertCircle className="h-6 w-6 text-surface-300" />} message="Unable to load." />
         </div>
       ) : groups.length === 0 ? (
-        <div className="px-6 pb-6 pt-0">
+        <div className="px-4 pb-4 pt-0">
           <AttentionEmpty
-            icon={<CheckCircle2 className="h-8 w-8 text-green-300" />}
-            message="Nothing needs your attention right now."
+            icon={<CheckCircle2 className="h-6 w-6 text-green-300" />}
+            message="All healthy."
           />
         </div>
       ) : (
-        <div className="space-y-4 px-6 pb-6 pt-0">
+        <div className="px-4 pb-4 pt-0">
           {groups.map((group) => (
-            <div key={group.key}>
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className={cn('flex h-7 w-7 items-center justify-center rounded-lg', toneClasses(group.tone))}>
-                    <group.icon className="h-4 w-4" />
-                  </div>
-                  <p className="text-sm font-semibold text-surface-900">{group.label}</p>
+            <div key={group.key} className="mb-3 last:mb-0">
+              <div className="mb-1.5 flex items-center gap-1.5">
+                <div className={cn('flex h-5 w-5 items-center justify-center rounded', toneClasses(group.tone))}>
+                  <group.icon className="h-3 w-3" />
                 </div>
-                <Badge variant="outline" className="rounded-full px-2 py-0">
+                <p className="text-[11px] font-semibold text-surface-700">{group.label}</p>
+                <Badge variant="outline" className="rounded-full px-1.5 py-0 text-[9px]">
                   {group.items.length}
                 </Badge>
               </div>
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {group.items.slice(0, 4).map((item) => (
                   <Link
                     key={item.id}
                     href={`/app/institutions/${item.id}`}
-                    className="flex items-center justify-between rounded-xl border border-surface-100 bg-surface-50 px-3 py-2 transition-colors hover:border-brand-200 hover:bg-brand-50"
+                    className="flex items-center justify-between rounded-lg border border-surface-100 bg-surface-50 px-2.5 py-1.5 text-xs transition-colors hover:border-brand-200 hover:bg-brand-50"
                   >
-                    <span className="min-w-0 truncate text-sm font-medium text-surface-900">{item.name}</span>
-                    <Badge variant="outline" className="ml-2 shrink-0 text-[10px] px-2 py-0">
+                    <span className="min-w-0 truncate font-medium text-surface-900">{item.name}</span>
+                    <Badge variant="outline" className="ml-2 shrink-0 text-[9px] px-1.5 py-0">
                       {humanizeCode(item.type)}
                     </Badge>
                   </Link>
                 ))}
                 {group.items.length > 4 && (
-                  <p className="px-1 text-xs text-surface-400">+{group.items.length - 4} more</p>
+                  <p className="px-1 text-[10px] text-surface-400">+{group.items.length - 4} more</p>
                 )}
               </div>
             </div>
@@ -136,9 +132,9 @@ export function AttentionPanel() {
 
 function AttentionEmpty({ icon, message }: { icon: ReactNode; message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl bg-surface-50 px-4 py-8 text-center">
+    <div className="flex flex-col items-center justify-center rounded-xl bg-surface-50 px-4 py-6 text-center">
       {icon}
-      <p className="mt-2 text-sm text-surface-500">{message}</p>
+      <p className="mt-1.5 text-xs text-surface-500">{message}</p>
     </div>
   );
 }
