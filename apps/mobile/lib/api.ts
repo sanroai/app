@@ -45,15 +45,19 @@ export async function api<T>(
     if (qs) url += `?${qs}`;
   }
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
+  const headers: Record<string, string> = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+
+  if (!isFormData) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const res = await fetch(url, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: body ? (isFormData ? body : JSON.stringify(body)) : undefined,
   });
 
   if (!res.ok) {

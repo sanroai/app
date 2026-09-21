@@ -120,7 +120,7 @@ export default function ChallengeScreen() {
     return (
       <View style={styles.resultWrap}>
         <View style={styles.resultIcon}>
-          <Ionicons name="flash" size={44} color="#ef4444" />
+          <Ionicons name="flash" size={44} color={Colors.error} />
         </View>
         <Text style={styles.title}>Time's up!</Text>
         <Text style={styles.estScore}>{score?.xp ?? 0} XP</Text>
@@ -193,18 +193,18 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   qCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.md },
   qTop: { marginBottom: Spacing.sm },
-  qNum: { fontSize: 12, fontWeight: '700', color: '#ef4444' },
+  qNum: { fontSize: 12, fontWeight: '700', color: Colors.error },
   qText: { fontSize: 14, fontWeight: '500', color: Colors.text, lineHeight: 20 },
   opts: { marginTop: Spacing.sm, gap: 6 },
   opt: { borderWidth: 1, borderColor: Colors.border, borderRadius: BorderRadius.md, paddingHorizontal: Spacing.md, paddingVertical: 10 },
-  optSelected: { borderColor: '#ef4444', backgroundColor: '#ef4444' + '10' },
+  optSelected: { borderColor: Colors.error, backgroundColor: Colors.error + '10' },
   optText: { fontSize: 13, color: Colors.text },
-  finishBtn: { flexDirection: 'row', backgroundColor: '#ef4444', borderRadius: BorderRadius.lg, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.md },
+  finishBtn: { flexDirection: 'row', backgroundColor: Colors.error, borderRadius: BorderRadius.lg, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.md },
   finishText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   resultWrap: { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  resultIcon: { width: 84, height: 84, borderRadius: 42, backgroundColor: '#ef4444' + '20', alignItems: 'center', justifyContent: 'center' },
+  resultIcon: { width: 84, height: 84, borderRadius: 42, backgroundColor: Colors.error + '20', alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 22, fontWeight: '700', color: Colors.text, marginTop: Spacing.xl },
-  estScore: { fontSize: 34, fontWeight: '800', color: '#ef4444', marginTop: Spacing.md },
+  estScore: { fontSize: 34, fontWeight: '800', color: Colors.error, marginTop: Spacing.md },
   sub: { fontSize: 14, color: Colors.textSecondary, marginTop: 6, textAlign: 'center' },
   againBtn: { flexDirection: 'row', backgroundColor: Colors.primary, borderRadius: BorderRadius.lg, paddingVertical: 13, paddingHorizontal: Spacing.xxl, marginTop: Spacing.xl, alignItems: 'center', gap: 6 },
   againText: { color: Colors.white, fontSize: 15, fontWeight: '600' },

@@ -10,15 +10,15 @@ import { EmptyState } from '../../components/EmptyState';
 import { ArConceptPanel } from '../../components/ArConceptPanel';
 
 const TABS = [
-  { id: 'learn', label: 'Learn', icon: 'play-circle' as const, color: '#3b82f6' },
-  { id: 'practice', label: 'Practice', icon: 'flash' as const, color: '#8b5cf6' },
-  { id: 'quiz', label: 'Quick Quiz', icon: 'battery-charging' as const, color: '#f59e0b' },
-  { id: 'flashcards', label: 'Flashcards', icon: 'sync' as const, color: '#ec4899' },
-  { id: 'challenge', label: 'Challenge', icon: 'game-controller' as const, color: '#ef4444' },
+  { id: 'learn', label: 'Learn', icon: 'play-circle' as const, color: Colors.info },
+  { id: 'practice', label: 'Practice', icon: 'flash' as const, color: Colors.purple },
+  { id: 'quiz', label: 'Quick Quiz', icon: 'battery-charging' as const, color: Colors.warning },
+  { id: 'flashcards', label: 'Flashcards', icon: 'sync' as const, color: Colors.pink },
+  { id: 'challenge', label: 'Challenge', icon: 'game-controller' as const, color: Colors.error },
   { id: 'ask', label: 'Ask SANRO', icon: 'fitness' as const, color: Colors.primary },
 ];
 
-const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: 'cube' as const, color: '#4f46e5' };
+const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: 'cube' as const, color: Colors.indigo };
 
 export default function ConceptDetailScreen() {
   const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
@@ -94,6 +94,8 @@ export default function ConceptDetailScreen() {
             key={t.id}
             style={[styles.tab, tab === t.id && styles.tabActive]}
             onPress={() => setTab(t.id)}
+            accessibilityLabel={`Switch to ${t.label} mode`}
+            accessibilityRole="button"
           >
             <Ionicons name={t.icon} size={16} color={tab === t.id ? Colors.white : t.color} />
             <Text style={[styles.tabText, tab === t.id && styles.tabTextActive]}>{t.label}</Text>
@@ -124,6 +126,8 @@ export default function ConceptDetailScreen() {
                     <TouchableOpacity
                       style={styles.doneBtn}
                       onPress={() => completeContent.mutate(v.id)}
+                      accessibilityLabel="Mark as complete"
+                      accessibilityRole="button"
                     >
                       <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
                       <Text style={styles.doneBtnText}>Mark as done</Text>
@@ -151,7 +155,7 @@ export default function ConceptDetailScreen() {
                         </TouchableOpacity>
                       ) : null}
                     </View>
-                    <TouchableOpacity style={styles.doneBtn} onPress={() => completeContent.mutate(n.id)}>
+                    <TouchableOpacity style={styles.doneBtn} onPress={() => completeContent.mutate(n.id)} accessibilityLabel="Mark as complete" accessibilityRole="button">
                       <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
                       <Text style={styles.doneBtnText}>Mark as read</Text>
                     </TouchableOpacity>
@@ -163,7 +167,7 @@ export default function ConceptDetailScreen() {
 
             <Card style={styles.revisionCard}>
               <View style={styles.revisionHeader}>
-                <Ionicons name="bulb" size={20} color="#f59e0b" />
+                <Ionicons name="bulb" size={20} color={Colors.warning} />
                 <Text style={styles.revisionTitle}>Quick Revision</Text>
               </View>
               {concept.description ? (
@@ -172,7 +176,7 @@ export default function ConceptDetailScreen() {
               {notes.length > 0 ? (
                 <View style={{ marginTop: Spacing.sm, gap: 4 }}>
                   {notes.slice(0, 4).map((n) => {
-                    const noteUrl = n.url ?? (n as any).body ?? '';
+                    const noteUrl = n.url ?? (n as { body?: string }).body ?? '';
                     return (
                       <TouchableOpacity
                         key={n.id}
@@ -197,8 +201,8 @@ export default function ConceptDetailScreen() {
         {tab === 'practice' && (
           <Card style={styles.modeCard}>
             <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: '#8b5cf6' + '20' }]}>
-                <Ionicons name="flash" size={24} color="#8b5cf6" />
+              <View style={[styles.modeIcon, { backgroundColor: Colors.purple + '20' }]}>
+                <Ionicons name="flash" size={24} color={Colors.purple} />
               </View>
               <View style={styles.modeInfo}>
                 <Text style={styles.modeTitle}>Practice Mode</Text>
@@ -206,16 +210,16 @@ export default function ConceptDetailScreen() {
               </View>
             </View>
             <View style={styles.statsGrid}>
-              <View style={[styles.statBox, { backgroundColor: '#3b82f6' + '15' }]}>
-                <Text style={[styles.statNum, { color: '#3b82f6' }]}>{questions.length}</Text>
+              <View style={[styles.statBox, { backgroundColor: Colors.info + '15' }]}>
+                <Text style={[styles.statNum, { color: Colors.info }]}>{questions.length}</Text>
                 <Text style={styles.statLabel}>Questions</Text>
               </View>
-              <View style={[styles.statBox, { backgroundColor: '#8b5cf6' + '15' }]}>
-                <Text style={[styles.statNum, { color: '#8b5cf6' }]}>5 XP</Text>
+              <View style={[styles.statBox, { backgroundColor: Colors.purple + '15' }]}>
+                <Text style={[styles.statNum, { color: Colors.purple }]}>5 XP</Text>
                 <Text style={styles.statLabel}>Per question</Text>
               </View>
-              <View style={[styles.statBox, { backgroundColor: '#10b981' + '15' }]}>
-                <Text style={[styles.statNum, { color: '#10b981' }]}>80%</Text>
+              <View style={[styles.statBox, { backgroundColor: Colors.success + '15' }]}>
+                <Text style={[styles.statNum, { color: Colors.success }]}>80%</Text>
                 <Text style={styles.statLabel}>To master</Text>
               </View>
             </View>
@@ -239,8 +243,8 @@ export default function ConceptDetailScreen() {
         {tab === 'quiz' && (
           <Card style={styles.modeCard}>
             <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: '#f59e0b' + '20' }]}>
-                <Ionicons name="battery-charging" size={24} color="#f59e0b" />
+              <View style={[styles.modeIcon, { backgroundColor: Colors.warning + '20' }]}>
+                <Ionicons name="battery-charging" size={24} color={Colors.warning} />
               </View>
               <View style={styles.modeInfo}>
                 <Text style={styles.modeTitle}>Quick Quiz</Text>
@@ -248,7 +252,7 @@ export default function ConceptDetailScreen() {
               </View>
             </View>
             <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: '#f59e0b' }]}
+              style={[styles.primaryBtn, { backgroundColor: Colors.warning }]}
               onPress={() => router.push({ pathname: '/quiz/[conceptId]', params: { conceptId } })}
               disabled={questions.length === 0}
             >
@@ -264,8 +268,8 @@ export default function ConceptDetailScreen() {
         {tab === 'flashcards' && (
           <Card style={styles.modeCard}>
             <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: '#ec4899' + '20' }]}>
-                <Ionicons name="sync" size={24} color="#ec4899" />
+              <View style={[styles.modeIcon, { backgroundColor: Colors.pink + '20' }]}>
+                <Ionicons name="sync" size={24} color={Colors.pink} />
               </View>
               <View style={styles.modeInfo}>
                 <Text style={styles.modeTitle}>Flashcards</Text>
@@ -273,7 +277,7 @@ export default function ConceptDetailScreen() {
               </View>
             </View>
             <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: '#ec4899' }]}
+              style={[styles.primaryBtn, { backgroundColor: Colors.pink }]}
               onPress={() => router.push({ pathname: '/flashcards/[conceptId]', params: { conceptId } })}
               disabled={questions.length === 0}
             >
@@ -289,8 +293,8 @@ export default function ConceptDetailScreen() {
         {tab === 'challenge' && (
           <Card style={styles.modeCard}>
             <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: '#ef4444' + '20' }]}>
-                <Ionicons name="game-controller" size={24} color="#ef4444" />
+              <View style={[styles.modeIcon, { backgroundColor: Colors.error + '20' }]}>
+                <Ionicons name="game-controller" size={24} color={Colors.error} />
               </View>
               <View style={styles.modeInfo}>
                 <Text style={styles.modeTitle}>Timed Challenge</Text>
@@ -298,7 +302,7 @@ export default function ConceptDetailScreen() {
               </View>
             </View>
             <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: '#ef4444' }]}
+              style={[styles.primaryBtn, { backgroundColor: Colors.error }]}
               onPress={() => router.push({ pathname: '/challenge/[conceptId]', params: { conceptId } })}
               disabled={questions.length === 0}
             >
@@ -367,7 +371,7 @@ const styles = StyleSheet.create({
   section: { marginBottom: Spacing.lg },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
   itemCard: { marginBottom: Spacing.md, padding: Spacing.md },
-  videoThumb: { height: 160, borderRadius: BorderRadius.lg, backgroundColor: '#3b82f6', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  videoThumb: { height: 160, borderRadius: BorderRadius.lg, backgroundColor: Colors.info, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   playBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
   duration: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', color: Colors.white, fontSize: 12, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
   itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm },
@@ -376,7 +380,7 @@ const styles = StyleSheet.create({
   noteIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.success + '20', alignItems: 'center', justifyContent: 'center' },
   doneBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'flex-start' },
   doneBtnText: { fontSize: 13, fontWeight: '600', color: Colors.success },
-  revisionCard: { backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fde68a', padding: Spacing.lg },
+  revisionCard: { backgroundColor: Colors.amber, borderWidth: 1, borderColor: Colors.amberBorder, padding: Spacing.lg },
   revisionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   revisionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
   revisionBody: { fontSize: 13, color: Colors.textSecondary, marginTop: Spacing.sm, lineHeight: 20 },

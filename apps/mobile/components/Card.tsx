@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { TouchableOpacity, View, ViewStyle, StyleProp } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, ViewStyle, StyleProp } from 'react-native';
 import { Colors, Spacing, BorderRadius, Shadow } from '../constants/theme';
 
 interface CardProps {
@@ -21,11 +21,11 @@ export function Card({ children, onPress, style, accent }: CardProps) {
   return <View style={[styles.card, accentStyle, style]}>{children}</View>;
 }
 
-const styles = {
+const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     ...Shadow.sm,
   },
-};
+});

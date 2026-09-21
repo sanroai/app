@@ -1,4 +1,4 @@
-import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, ScrollView, Text, StyleSheet, TouchableOpacity, Alert, type ViewStyle, type TextStyle } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,8 +52,8 @@ export function QuizQuestionCard({ question, index, total, selected, onSelect, r
       <View style={styles.opts}>
         {options.map((opt) => {
           const isSelected = selected === opt.id;
-          let box: any = [styles.opt];
-          let textStyle: any = styles.optText;
+          let box: ViewStyle[] = [styles.opt];
+          let textStyle: TextStyle | TextStyle[] = styles.optText;
           if (reveal) {
             if (opt.id === reveal.correctId) {
               box = [styles.opt, styles.optCorrect];
@@ -69,7 +69,7 @@ export function QuizQuestionCard({ question, index, total, selected, onSelect, r
             textStyle = [styles.optText, { color: Colors.primary }];
           }
           return (
-            <TouchableOpacity key={opt.id} style={box} onPress={() => onSelect(opt.id)} disabled={!!reveal}>
+            <TouchableOpacity key={opt.id} style={box} onPress={() => onSelect(opt.id)} disabled={!!reveal} accessibilityLabel={`Option ${String.fromCharCode(65 + opt.order)}: ${opt.text}`} accessibilityRole="button">
               <Text style={styles.optLetter}>{String.fromCharCode(65 + opt.order)}.</Text>
               <Text style={textStyle}>{opt.text}</Text>
             </TouchableOpacity>

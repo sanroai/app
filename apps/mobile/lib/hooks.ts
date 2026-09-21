@@ -204,24 +204,49 @@ export function useSubmitPractice() {
 }
 
 // ─── Gamification ────────────────────────────────────────
+export interface GamificationProfile {
+  profile: { userId: string; totalXp: number; currentStreak: number; longestStreak: number; averageMastery: number; level: number; rank: string } | null;
+}
+
 export function useGamificationProfile() {
-  return useQuery({
+  return useQuery<GamificationProfile>({
     queryKey: ['gamification', 'profile'],
-    queryFn: () => apiAuthed<any>('/learning/gamification/profile'),
+    queryFn: () => apiAuthed<GamificationProfile>('/learning/gamification/profile'),
   });
+}
+
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlockedAt?: string;
 }
 
 export function useAchievements() {
-  return useQuery({
+  return useQuery<{ achievements: Achievement[] }>({
     queryKey: ['gamification', 'achievements'],
-    queryFn: () => apiAuthed<any>('/learning/gamification/achievements'),
+    queryFn: () => apiAuthed<{ achievements: Achievement[] }>('/learning/gamification/achievements'),
   });
 }
 
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  xp: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  entries?: LeaderboardEntry[];
+  leaderboard?: LeaderboardEntry[];
+  rows?: LeaderboardEntry[];
+}
+
 export function useLeaderboard(period: string) {
-  return useQuery({
+  return useQuery<LeaderboardResponse>({
     queryKey: ['gamification', 'leaderboard', period],
-    queryFn: () => apiAuthed<any>(`/learning/gamification/leaderboard?period=${period}`),
+    queryFn: () => apiAuthed<LeaderboardResponse>(`/learning/gamification/leaderboard?period=${period}`),
     enabled: !!period,
   });
 }

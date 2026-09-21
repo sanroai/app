@@ -73,6 +73,12 @@ export const Colors = {
   textMuted: '#94a3b8',
   border: '#e2e8f0',
   borderLight: '#f1f5f9',
+  info: '#3b82f6',
+  purple: '#8b5cf6',
+  pink: '#ec4899',
+  indigo: '#4f46e5',
+  amber: '#fffbeb',
+  amberBorder: '#fde68a',
   white: '#ffffff',
   black: '#000000',
 };

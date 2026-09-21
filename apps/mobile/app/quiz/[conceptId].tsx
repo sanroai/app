@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.md },
   infoText: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
-  submitBtn: { flexDirection: 'row', backgroundColor: '#f59e0b', borderRadius: BorderRadius.lg, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.md },
+  submitBtn: { flexDirection: 'row', backgroundColor: Colors.warning, borderRadius: BorderRadius.lg, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.md },
   submitText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   resultWrap: { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
   circle: { width: 140, height: 140, borderRadius: 70, borderWidth: 8, alignItems: 'center', justifyContent: 'center' },

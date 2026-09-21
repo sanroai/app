@@ -2,6 +2,7 @@ import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl, F
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import type { ComponentProps } from 'react';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUserDisplayRole } from '../../lib/hooks';
 import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile } from '../../lib/hooks';
@@ -79,11 +80,11 @@ export default function HomeScreen() {
             <Text style={styles.actionLabel}>My Classes</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
-            <Ionicons name="clipboard" size={24} color="#10b981" />
+                    <Ionicons name="clipboard" size={24} color={Colors.success} />
             <Text style={styles.actionLabel}>Assessments</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/leaderboard')}>
-            <Ionicons name="bar-chart" size={24} color="#f59e0b" />
+            <Ionicons name="bar-chart" size={24} color={Colors.warning} />
             <Text style={styles.actionLabel}>Reports</Text>
           </TouchableOpacity>
         </View>
@@ -133,11 +134,11 @@ export default function HomeScreen() {
             <Text style={styles.actionLabel}>Reports</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
-            <Ionicons name="alert-circle" size={24} color="#ef4444" />
+            <Ionicons name="alert-circle" size={24} color={Colors.error} />
             <Text style={styles.actionLabel}>Weak Areas</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/children')}>
-            <Ionicons name="calendar" size={24} color="#10b981" />
+            <Ionicons name="calendar" size={24} color={Colors.success} />
             <Text style={styles.actionLabel}>Upcoming</Text>
           </TouchableOpacity>
         </View>
@@ -167,9 +168,9 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.statsRow}>
-        <StatChip icon="star" label="XP" value={String(xp)} color="#7c3aed" />
-        <StatChip icon="flame" label="Streak" value={`${streak}d`} color="#f59e0b" />
-        <StatChip icon="fitness" label="Mastery" value={`${Math.round(mastery)}%`} color="#059669" />
+        <StatChip icon="star" label="XP" value={String(xp)} color={Colors.primary} />
+        <StatChip icon="flame" label="Streak" value={`${streak}d`} color={Colors.warning} />
+        <StatChip icon="fitness" label="Mastery" value={`${Math.round(mastery)}%`} color={Colors.success} />
       </View>
 
       {weakConcepts.length > 0 || pendingAssessments.length > 0 ? (
@@ -276,7 +277,7 @@ export default function HomeScreen() {
   );
 }
 
-function StatChip({ icon, label, value, color }: { icon: any; label: string; value: string; color: string }) {
+function StatChip({ icon, label, value, color }: { icon: ComponentProps<typeof Ionicons>['name']; label: string; value: string; color: string }) {
   return (
     <View style={[styles.statChip, { backgroundColor: color + '15', borderColor: color + '30' }]}>
       <Ionicons name={icon} size={14} color={color} />

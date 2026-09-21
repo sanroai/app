@@ -15,7 +15,7 @@ export default function LeaderboardScreen() {
 
   const myUserId = myProfile?.profile?.userId;
 
-  const entries = (data?.entries ?? data?.leaderboard ?? data?.rows ?? []).map((e: any, i: number) => ({
+  const entries = (data?.entries ?? data?.leaderboard ?? data?.rows ?? []).map((e: { rank?: number; name?: string; studentName?: string; totalXp?: number; xp?: number; userId?: string; studentId?: string }, i: number) => ({
     rank: e.rank ?? i + 1,
     name: e.name ?? e.studentName ?? 'Student',
     xp: e.totalXp ?? e.xp ?? 0,
@@ -50,7 +50,7 @@ export default function LeaderboardScreen() {
         }
         renderItem={({ item }) => {
           const top = item.rank <= 3;
-          const medalColor = item.rank === 1 ? '#f59e0b' : item.rank === 2 ? '#94a3b8' : item.rank === 3 ? '#d97706' : Colors.surfaceSecondary;
+          const medalColor = item.rank === 1 ? Colors.warning : item.rank === 2 ? Colors.textMuted : item.rank === 3 ? Colors.accent : Colors.surfaceSecondary;
           return (
             <View style={[styles.row, item.me && styles.rowMe]}>
               <View style={[styles.rankCircle, { backgroundColor: top ? medalColor : Colors.surfaceSecondary }]}>

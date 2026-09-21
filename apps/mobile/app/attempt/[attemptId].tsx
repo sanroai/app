@@ -189,7 +189,7 @@ export default function AttemptScreen() {
             onSelect={(optId) => { Keyboard.dismiss(); setAnswers((prev) => ({ ...prev, [q.id]: optId })); }}
           />
         ))}
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} accessibilityLabel="Submit assessment" accessibilityRole="button">
           <Ionicons name="checkmark-done" size={18} color={Colors.white} />
           <Text style={styles.submitText}>Submit Assessment</Text>
         </TouchableOpacity>

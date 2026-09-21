@@ -115,7 +115,7 @@ export default function MeScreen() {
         <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.menuRow} onPress={handleLogout}>
+      <TouchableOpacity style={styles.menuRow} onPress={handleLogout} accessibilityLabel="Log out" accessibilityRole="button">
         <Ionicons name="log-out" size={20} color={Colors.error} />
         <Text style={[styles.menuLabel, { color: Colors.error }]}>Log out</Text>
         <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />

@@ -20,7 +20,7 @@ export default function PracticeScreen() {
   const submit = useSubmitPractice();
   const saveAnswer = useSavePracticeAnswer();
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<{ score: number; totalQuestions: number; correctAnswers: number; masteryUpdate: any } | null>(null);
+  const [result, setResult] = useState<{ score: number; totalQuestions: number; correctAnswers: number; masteryUpdate: { level: string; score: number } | null } | null>(null);
 
   const { data, isLoading } = useQuery<PracticeData>({
     queryKey: ['learning', 'practice', practiceId],
@@ -51,7 +51,7 @@ export default function PracticeScreen() {
   const doSubmit = () => {
     (async () => {
       try {
-        const res = (await submit.mutateAsync(practiceId)) as { score: number; totalQuestions: number; correctAnswers: number; masteryUpdate: any };
+        const res = (await submit.mutateAsync(practiceId)) as { score: number; totalQuestions: number; correctAnswers: number; masteryUpdate: { level: string; score: number } | null };
         setResult(res);
       } catch (err: unknown) {
         const e = err as { message?: string };

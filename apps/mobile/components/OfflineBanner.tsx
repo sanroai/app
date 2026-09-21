@@ -7,7 +7,7 @@ export function OfflineBanner() {
   const queued = useOfflineStore((s) => s.queue.length);
   if (!offline && queued === 0) return null;
   return (
-    <View style={styles.banner}>
+    <View style={styles.banner} accessibilityRole="alert" accessibilityLabel="Offline">
       <Text style={styles.text}>
         {queued > 0
           ? `Offline — ${queued} change${queued === 1 ? '' : 's'} saved locally, will sync when back online.`

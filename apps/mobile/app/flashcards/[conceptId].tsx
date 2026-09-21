@@ -6,10 +6,10 @@ import { useConceptDetail } from '../../lib/hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 const RATINGS = [
-  { label: 'Again', icon: 'sad-outline', color: '#ef4444' },
-  { label: 'Hard', icon: 'thumbs-down-outline', color: '#f59e0b' },
-  { label: 'Good', icon: 'sunny-outline', color: '#10b981' },
-  { label: 'Easy', icon: 'flame', color: '#3b82f6' },
+  { label: 'Again' as const, icon: 'sad-outline' as const, color: Colors.error },
+  { label: 'Hard' as const, icon: 'thumbs-down-outline' as const, color: Colors.warning },
+  { label: 'Good' as const, icon: 'sunny-outline' as const, color: Colors.success },
+  { label: 'Easy' as const, icon: 'flame' as const, color: Colors.info },
 ];
 
 export default function FlashcardsScreen() {
@@ -37,10 +37,10 @@ export default function FlashcardsScreen() {
     );
   }
 
-  const getAnswer = (card: any): string => {
+  const getAnswer = (card: { type: string; options?: Array<{ isCorrect?: boolean; text: string }> }): string => {
     if (card.type === 'MCQ' || card.type === 'MULTI_SELECT') {
-      const correct = card.options?.filter((o: any) => o.isCorrect);
-      if (correct && correct.length > 0) return correct.map((o: any) => o.text).join(', ');
+      const correct = card.options?.filter((o) => o.isCorrect);
+      if (correct && correct.length > 0) return correct.map((o) => o.text).join(', ');
     }
     if (card.type === 'TRUE_FALSE') {
       return 'True or False — think about the statement carefully.';
@@ -65,7 +65,7 @@ export default function FlashcardsScreen() {
     return (
       <View style={styles.resultWrap}>
         <View style={styles.resultIcon}>
-          <Ionicons name="sync" size={44} color="#ec4899" />
+          <Ionicons name="sync" size={44} color={Colors.pink} />
         </View>
         <Text style={styles.title}>Session complete</Text>
         <Text style={styles.sub}>You rated {ratings.length} cards</Text>
@@ -94,7 +94,7 @@ export default function FlashcardsScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={[styles.flashcard, flipped && styles.flashcardFlipped]} activeOpacity={0.95} onPress={() => setFlipped(!flipped)}>
+      <TouchableOpacity style={[styles.flashcard, flipped && styles.flashcardFlipped]} activeOpacity={0.95} onPress={() => setFlipped(!flipped)} accessibilityLabel={flipped ? 'Answer side. Tap to flip back to question.' : 'Question side. Tap to reveal answer.'} accessibilityRole="button">
         <View style={styles.cardBadge}>
           <Text style={styles.cardBadgeText}>{flipped ? 'ANSWER' : 'QUESTION'}</Text>
         </View>
@@ -112,9 +112,11 @@ export default function FlashcardsScreen() {
             <TouchableOpacity
               key={r.label}
               style={[styles.rateBtn, { backgroundColor: r.color + '18', borderColor: r.color + '55' }]}
-              onPress={() => rate(r.label as any)}
+              onPress={() => rate(r.label)}
+              accessibilityLabel={`Rate as ${r.label}`}
+              accessibilityRole="button"
             >
-              <Ionicons name={r.icon as any} size={18} color={r.color} />
+              <Ionicons name={r.icon} size={18} color={r.color} />
               <Text style={[styles.rateText, { color: r.color }]}>{r.label}</Text>
             </TouchableOpacity>
           ))}
@@ -145,12 +147,12 @@ const styles = StyleSheet.create({
   counter: { fontSize: 14, fontWeight: '600', color: Colors.textSecondary },
   dots: { flexDirection: 'row', gap: 4 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.border },
-  dotDone: { backgroundColor: '#ec4899' },
+  dotDone: { backgroundColor: Colors.pink },
   flashcard: {
     flex: 1,
     backgroundColor: Colors.surface,
     borderWidth: 2,
-    borderColor: '#f9a8d4',
+    borderColor: Colors.pink + '40',
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
     justifyContent: 'center',
@@ -170,11 +172,11 @@ const styles = StyleSheet.create({
   navDisabled: { opacity: 0.4 },
   navText: { fontSize: 14, fontWeight: '600' },
   resultWrap: { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  resultIcon: { width: 84, height: 84, borderRadius: 42, backgroundColor: '#ec4899' + '20', alignItems: 'center', justifyContent: 'center' },
+  resultIcon: { width: 84, height: 84, borderRadius: 42, backgroundColor: Colors.pink + '20', alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 22, fontWeight: '700', color: Colors.text, marginTop: Spacing.xl },
   sub: { fontSize: 14, color: Colors.textSecondary, marginTop: 6 },
-  resultBox: { backgroundColor: '#ec4899' + '15', borderRadius: BorderRadius.lg, padding: Spacing.lg, marginTop: Spacing.xl, alignItems: 'center', minWidth: 160 },
-  resultPct: { fontSize: 28, fontWeight: '800', color: '#ec4899' },
+  resultBox: { backgroundColor: Colors.pink + '15', borderRadius: BorderRadius.lg, padding: Spacing.lg, marginTop: Spacing.xl, alignItems: 'center', minWidth: 160 },
+  resultPct: { fontSize: 28, fontWeight: '800', color: Colors.pink },
   resultLabel: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   againBtn: { flexDirection: 'row', backgroundColor: Colors.primary, borderRadius: BorderRadius.lg, paddingVertical: 13, paddingHorizontal: Spacing.xxl, marginTop: Spacing.xl, alignItems: 'center', gap: 6 },
   againText: { color: Colors.white, fontSize: 15, fontWeight: '600' },
