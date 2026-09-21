@@ -38,11 +38,12 @@ export type ImportJob = {
 export function useImportUpload() {
   const token = useAuthStore((s) => s.token);
   return useMutation({
-    mutationFn: async (data: { file: File; entityType: string; academicYearId: string }) => {
+    mutationFn: async (data: { file: File; entityType: string; academicYearId: string; institutionId: string }) => {
       const formData = new FormData();
       formData.append('file', data.file);
       formData.append('entityType', data.entityType);
       formData.append('academicYearId', data.academicYearId);
+      formData.append('institutionId', data.institutionId);
       return api<UploadResponse>('/imports/upload', { method: 'POST', token, body: formData });
     },
   });

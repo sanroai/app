@@ -57,7 +57,7 @@ const TABS = [
   { id: 'quiz', label: 'Quick Quiz', icon: Zap, color: 'text-amber-600' },
   { id: 'flashcards', label: 'Flashcards', icon: RotateCcw, color: 'text-pink-600' },
   { id: 'challenge', label: 'Challenge', icon: Gamepad2, color: 'text-red-600' },
-  { id: 'ask', label: 'Ask SANRO', icon: Brain, color: 'text-brand-600' },
+  { id: 'ask', label: 'Ask Sanro AI', icon: Brain, color: 'text-brand-600' },
 ];
 
 const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: Boxes, color: 'text-indigo-600' };
@@ -705,7 +705,7 @@ export default function ConceptDetailPage() {
               <div className="flex items-center gap-3 mb-4">
                 <Brain className="h-6 w-6 text-brand-600" />
                 <div>
-                  <h3 className="font-bold text-surface-900">Ask SANRO</h3>
+                  <h3 className="font-bold text-surface-900">Ask Sanro AI</h3>
                   <p className="text-sm text-surface-500">Get instant help with this concept</p>
                 </div>
               </div>

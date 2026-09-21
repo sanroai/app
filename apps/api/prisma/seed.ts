@@ -803,7 +803,7 @@ async function ensureSystemInstitution() {
   return prisma.institution.create({
     data: {
       id: '00000000-0000-0000-0000-00000000a5a1',
-      name: 'SANRO AI',
+      name: 'Sanro AI',
       type: 'SANRO_PLATFORM',
       isSystemInstitution: true,
       status: 'ACTIVE',

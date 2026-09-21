@@ -2,9 +2,18 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { useImportUpload, useImportCommit, useImportHistory } from '@/lib/import-hooks';
+import { useInstitutions } from '@/lib/institution-hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Upload,
   FileSpreadsheet,
@@ -16,6 +25,7 @@ import {
   Users,
   UserPlus,
   GraduationCap,
+  Building2,
 } from 'lucide-react';
 
 const ENTITY_TYPES = [
@@ -55,14 +65,22 @@ type CommitResult = {
 };
 
 export default function ImportPage() {
+  const user = useAuthStore((s) => s.user);
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   const [file, setFile] = useState<File | null>(null);
   const [entityType, setEntityType] = useState<string>('STUDENTS');
+  const [institutionId, setInstitutionId] = useState<string>(user?.institutionId ?? '');
   const [result, setResult] = useState<ImportResult | null>(null);
   const [commitResult, setCommitResult] = useState<CommitResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const institutionsQuery = useInstitutions({ page: 1, pageSize: 100, status: 'ACTIVE' });
+  const institutions = institutionsQuery.data?.items ?? [];
+  const selectedInstitution = institutions.find((i) => i.id === institutionId);
 
   const uploadMutation = useImportUpload();
   const commitMutation = useImportCommit();
@@ -90,10 +108,10 @@ export default function ImportPage() {
   }
 
   function handleUpload() {
-    if (!file) return;
+    if (!file || !institutionId) return;
     setUploadError(null);
     uploadMutation.mutate(
-      { file, entityType, academicYearId: '' },
+      { file, entityType, academicYearId: '', institutionId },
       {
         onSuccess: (data) => setResult(data),
         onError: (err) => setUploadError(err.message),
@@ -135,7 +153,9 @@ export default function ImportPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = sample.filename;
+    a.download = selectedInstitution
+      ? `${selectedInstitution.name.toLowerCase().replace(/\s+/g, '-')}-${sample.filename}`
+      : sample.filename;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -206,6 +226,35 @@ export default function ImportPage() {
             <CardDescription>Select an XLSX or CSV file to import</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Institution selector */}
+            <div>
+              <label className="text-sm font-medium text-surface-700 mb-2 block">
+                Institution <span className="text-red-500">*</span>
+              </label>
+              {isSuperAdmin ? (
+                <Select value={institutionId} onValueChange={setInstitutionId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select institution" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {institutions.map((i) => (
+                      <SelectItem key={i.id} value={i.id}>
+                        {i.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="flex items-center gap-2 rounded-xl border border-surface-200 bg-surface-50 px-3 py-2.5 text-sm">
+                  <Building2 className="h-4 w-4 text-surface-400" />
+                  <span className="text-surface-700 font-medium">
+                    {selectedInstitution?.name ?? user?.institutionId ?? 'No institution'}
+                  </span>
+                  <Badge variant="secondary" className="ml-auto text-xs">locked</Badge>
+                </div>
+              )}
+            </div>
+
             {/* Entity type selector */}
             <div>
               <label className="text-sm font-medium text-surface-700 mb-2 block">Entity Type</label>
@@ -235,6 +284,16 @@ export default function ImportPage() {
                 Download sample {entityType.toLowerCase()} CSV
               </button>
             </div>
+
+            {/* Selected institution indicator */}
+            {institutionId && selectedInstitution && (
+              <div className="flex items-center gap-2 rounded-xl bg-brand-50 border border-brand-200 px-3 py-2 text-sm">
+                <Building2 className="h-4 w-4 text-brand-600" />
+                <span className="text-brand-800">
+                  Importing to: <span className="font-semibold">{selectedInstitution.name}</span>
+                </span>
+              </div>
+            )}
 
             {/* Drop zone */}
             <div
@@ -299,7 +358,7 @@ export default function ImportPage() {
               )}
               <Button
                 onClick={handleUpload}
-                disabled={!file || uploadMutation.isPending}
+                disabled={!file || !institutionId || uploadMutation.isPending}
               >
                 {uploadMutation.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

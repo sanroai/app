@@ -87,7 +87,9 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/app/learn', label: 'Learn', icon: BookOpen },
-        { href: '/app/chat', label: 'Ask SANRO', icon: MessageCircle },
+        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
+        { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
+        { href: '/app/gamification', label: 'Progress', icon: Trophy },
       ]
     : [];
 
@@ -146,12 +148,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         ...(isSuperAdmin ? [{ href: '/app/gamification', label: 'Gamification', icon: Trophy }] : []),
         ...(staff && !isSuperAdmin ? [{ href: '/app/remediation', label: 'Remediation', icon: Lightbulb }] : []),
       ]
-    : role === 'STUDENT'
-      ? [
-          { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
-          { href: '/app/gamification', label: 'Progress', icon: Trophy },
-        ]
-      : [];
+    : [];
 
   const settingsLinks: NavLink[] = [
     { href: '/app/settings', label: 'Settings', icon: Settings },
@@ -236,6 +233,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     const sections = [
       { label: 'People', links: peopleDropdownLinks },
       { label: 'Academic', links: academicLinks },
+      ...(staff ? [{ label: 'Assessments', links: [{ href: '/app/assessments', label: 'Assessments', icon: BarChart2 }] as NavLink[] }] : []),
       { label: 'Analytics', links: analyticsLinks },
       { label: 'Settings', links: settingsLinks },
     ];
@@ -268,6 +266,12 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
           {renderDropdown('Academic', Layers, academicLinks)}
+        </>
+      )}
+      {staff && (
+        <>
+          <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
+          {renderLink({ href: '/app/assessments', label: 'Assessments', icon: BarChart2 })}
         </>
       )}
       {analyticsLinks.length > 0 && (

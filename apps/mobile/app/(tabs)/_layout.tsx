@@ -41,18 +41,26 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="practice"
+        name="tests"
         options={{
-          title: 'Practice',
-          tabBarIcon: ({ color, size }) => <Ionicons name="flash" size={size} color={color} />,
+          title: 'Assessment',
+          tabBarIcon: ({ color, size }) => <Ionicons name="clipboard" size={size} color={color} />,
           href: isStudent ? undefined : null,
         }}
       />
       <Tabs.Screen
-        name="tests"
+        name="ask"
         options={{
-          title: 'Tests',
-          tabBarIcon: ({ color, size }) => <Ionicons name="document-text" size={size} color={color} />,
+          title: 'Ask Sanro AI',
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble" size={size} color={color} />,
+          href: isStudent ? undefined : null,
+        }}
+      />
+      <Tabs.Screen
+        name="practice"
+        options={{
+          title: 'Progress',
+          tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} />,
           href: isStudent ? undefined : null,
         }}
       />

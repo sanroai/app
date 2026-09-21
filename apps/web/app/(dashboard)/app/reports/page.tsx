@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { useRole } from '@/lib/role-theme';
 import {
   Card,
   CardContent,
@@ -63,33 +64,77 @@ type ReportsData = {
   }>;
 };
 
+type InstitutionItem = { id: string; name: string };
+
+type SuperAdminData = {
+  platform: {
+    institutions: number;
+    activeStudents: number;
+    activeTeachers: number;
+    assessments: number;
+    institutionsByType: Array<{ type: string; count: number }>;
+  };
+};
+
 export default function ReportsPage() {
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
+  const role = useRole();
   const router = useRouter();
+  const isSuperAdmin = role === 'SUPER_ADMIN';
   const [data, setData] = useState<ReportsData | null>(null);
+  const [superAdminData, setSuperAdminData] = useState<SuperAdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState('this-month');
   const [exporting, setExporting] = useState(false);
+  const [institutionId, setInstitutionId] = useState<string>('all');
+  const [institutions, setInstitutions] = useState<InstitutionItem[]>([]);
+
+  useEffect(() => {
+    if (!isSuperAdmin || !token) return;
+    const ctrl = new AbortController();
+    api<{ items: InstitutionItem[] }>('/admin/institutions?pageSize=100', { token, signal: ctrl.signal })
+      .then((res) => setInstitutions(res.items ?? []))
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [isSuperAdmin, token]);
 
   useEffect(() => {
     if (!token || !user) return;
     const ctrl = new AbortController();
     setLoading(true);
-    const params = new URLSearchParams();
-    if (dateRange && dateRange !== 'all') params.set('range', dateRange);
-    const qs = params.toString();
-    api<ReportsData>(`/dashboard/teacher${qs ? `?${qs}` : ''}`, { token, signal: ctrl.signal })
-      .then((res) => setData(res))
-      .catch((err) => {
-        if (ctrl.signal.aborted) return;
-        if (err instanceof ApiError && err.status === 401) router.replace('/login');
-        else setError(err instanceof Error ? err.message : 'Failed to load reports');
-      })
-      .finally(() => setLoading(false));
+    setData(null);
+    setSuperAdminData(null);
+
+    if (isSuperAdmin) {
+      const params = new URLSearchParams();
+      if (institutionId && institutionId !== 'all') params.set('institutionId', institutionId);
+      const qs = params.toString();
+      api<SuperAdminData>(`/dashboard/super-admin${qs ? `?${qs}` : ''}`, { token, signal: ctrl.signal })
+        .then((res) => setSuperAdminData(res))
+        .catch((err) => {
+          if (ctrl.signal.aborted) return;
+          if (err instanceof ApiError && err.status === 401) router.replace('/login');
+          else setError(err instanceof Error ? err.message : 'Failed to load reports');
+        })
+        .finally(() => setLoading(false));
+    } else {
+      const params = new URLSearchParams();
+      if (dateRange && dateRange !== 'all') params.set('range', dateRange);
+      const qs = params.toString();
+      api<ReportsData>(`/dashboard/teacher${qs ? `?${qs}` : ''}`, { token, signal: ctrl.signal })
+        .then((res) => setData(res))
+        .catch((err) => {
+          if (ctrl.signal.aborted) return;
+          if (err instanceof ApiError && err.status === 401) router.replace('/login');
+          else setError(err instanceof Error ? err.message : 'Failed to load reports');
+        })
+        .finally(() => setLoading(false));
+    }
+
     return () => ctrl.abort();
-  }, [token, user, router, dateRange]);
+  }, [token, user, router, dateRange, isSuperAdmin, institutionId, role]);
 
   const exportCsv = async () => {
     if (!data) return;
@@ -167,20 +212,42 @@ export default function ReportsPage() {
   const strugglingStudents = data?.strugglingStudents ?? [];
   const subjectStats = data?.subjectStats ?? [];
 
-  const totalStudents = classes.reduce((sum, c) => sum + c.studentCount, 0);
-  const avgMastery = classes.length > 0
-    ? Math.round(classes.reduce((sum, c) => sum + c.avgMastery, 0) / classes.length)
-    : 0;
-  const totalNeedingHelp = classes.reduce((sum, c) => sum + c.studentsNeedingHelp, 0);
+  const totalStudents = isSuperAdmin
+    ? superAdminData?.platform.activeStudents ?? 0
+    : classes.reduce((sum, c) => sum + c.studentCount, 0);
+  const avgMastery = isSuperAdmin
+    ? 0
+    : classes.length > 0
+      ? Math.round(classes.reduce((sum, c) => sum + c.avgMastery, 0) / classes.length)
+      : 0;
+  const totalNeedingHelp = isSuperAdmin
+    ? 0
+    : classes.reduce((sum, c) => sum + c.studentsNeedingHelp, 0);
+  const totalClasses = isSuperAdmin
+    ? superAdminData?.platform.activeTeachers ?? 0
+    : classes.length;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Reports & Analytics</h1>
-          <p className="text-surface-500 mt-1">Academic performance overview across your classes</p>
+          <p className="text-surface-500 mt-1">{isSuperAdmin ? 'Platform-wide academic performance overview' : 'Academic performance overview across your classes'}</p>
         </div>
         <div className="flex items-center gap-2">
+          {isSuperAdmin && (
+            <Select value={institutionId} onValueChange={setInstitutionId}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="All Institutions" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Institutions</SelectItem>
+                {institutions.map((inst) => (
+                  <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={dateRange} onValueChange={setDateRange}>
             <SelectTrigger className="w-[180px]">
               <Calendar className="mr-2 h-4 w-4" />
@@ -207,7 +274,7 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/80 text-sm font-medium">Total Students</p>
+                <p className="text-white/80 text-sm font-medium">{isSuperAdmin ? 'Active Students' : 'Total Students'}</p>
                 <p className="text-3xl font-bold mt-1">{totalStudents}</p>
               </div>
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
@@ -221,8 +288,8 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/80 text-sm font-medium">Avg Mastery</p>
-                <p className="text-3xl font-bold mt-1">{avgMastery}%</p>
+                <p className="text-white/80 text-sm font-medium">{isSuperAdmin ? 'Active Teachers' : 'Avg Mastery'}</p>
+                <p className="text-3xl font-bold mt-1">{isSuperAdmin ? (superAdminData?.platform.activeTeachers ?? 0) : `${avgMastery}%`}</p>
               </div>
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
                 <Target className="h-6 w-6" />
@@ -235,8 +302,8 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/80 text-sm font-medium">Need Help</p>
-                <p className="text-3xl font-bold mt-1">{totalNeedingHelp}</p>
+                <p className="text-white/80 text-sm font-medium">{isSuperAdmin ? 'Institutions' : 'Need Help'}</p>
+                <p className="text-3xl font-bold mt-1">{isSuperAdmin ? (superAdminData?.platform.institutions ?? 0) : totalNeedingHelp}</p>
               </div>
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
                 <AlertTriangle className="h-6 w-6" />
@@ -249,8 +316,8 @@ export default function ReportsPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/80 text-sm font-medium">Classes</p>
-                <p className="text-3xl font-bold mt-1">{classes.length}</p>
+                <p className="text-white/80 text-sm font-medium">{isSuperAdmin ? 'Assessments' : 'Classes'}</p>
+                <p className="text-3xl font-bold mt-1">{isSuperAdmin ? (superAdminData?.platform.assessments ?? 0) : totalClasses}</p>
               </div>
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center">
                 <BookOpen className="h-6 w-6" />

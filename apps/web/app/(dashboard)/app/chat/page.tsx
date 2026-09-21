@@ -28,7 +28,7 @@ export default function ChatPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm SANRO — your AI study assistant. Ask me anything about your studies.",
+      content: "Hi! I'm Sanro AI — your AI study assistant. Ask me anything about your studies.",
       timestamp: new Date(),
     },
   ]);
@@ -102,7 +102,7 @@ export default function ChatPage() {
       <div className="mb-4">
         <h1 className="text-2xl font-bold text-surface-900 flex items-center gap-2">
           <Brain className="h-6 w-6 text-brand-500" />
-          Ask SANRO
+          Ask Sanro AI
         </h1>
         <p className="text-surface-500 text-sm mt-1">
           Get instant help with concepts, practice problems, and study tips

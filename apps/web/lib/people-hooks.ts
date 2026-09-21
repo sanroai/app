@@ -472,6 +472,31 @@ export function useTransferAdminTeacher(id: string) {
   return useAdminTeacherAction(id, '/transfer');
 }
 
+export function useCreateAdminTeacher() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (body: { name: string; email: string; phone?: string; institutionId: string; employeeId?: string }) =>
+      api<{ id: string; defaultPassword: string }>(`/admin/people/teachers`, { method: 'POST', body, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'teachers'] });
+    },
+  });
+}
+
+export function useUpdateAdminTeacher(id: string) {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (body: { employeeId?: string; status?: string }) =>
+      api<AdminTeacherListItem>(`/admin/people/teachers/${id}`, { method: 'PATCH', body, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'teachers'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'teachers', 'detail', id] });
+    },
+  });
+}
+
 // ---- Parents queries/mutations -----------------------------------------------
 
 export function useAdminParents(params: AdminParentQuery) {
@@ -511,4 +536,55 @@ export function useDisableAdminParent(id: string) {
 }
 export function useEnableAdminParent(id: string) {
   return useAdminParentAction(id, '/enable');
+}
+
+export function useCreateAdminParent() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (body: { name: string; email: string; phone?: string; institutionId?: string }) =>
+      api<{ id: string; defaultPassword: string }>(`/admin/people/parents`, { method: 'POST', body, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents'] });
+    },
+  });
+}
+
+export function useUpdateAdminParent(id: string) {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (body: { name?: string; email?: string; phone?: string }) =>
+      api<AdminParentDetail>(`/admin/people/parents/${id}`, { method: 'PATCH', body, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents', 'detail', id] });
+    },
+  });
+}
+
+export function useAdminParentLinkChild(parentId: string) {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (studentId: string) =>
+      api(`/admin/people/parents/${parentId}/link-child`, { method: 'POST', body: { studentId }, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents', 'detail', parentId] });
+    },
+  });
+}
+
+export function useAdminParentUnlinkChild(parentId: string) {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (studentId: string) =>
+      api(`/admin/people/parents/${parentId}/unlink-child`, { method: 'POST', body: { studentId }, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents', 'detail', parentId] });
+    },
+  });
 }

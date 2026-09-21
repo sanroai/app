@@ -39,7 +39,7 @@ export default function PracticeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Practice</Text>
+        <Text style={styles.headerTitle}>Progress</Text>
         <Text style={styles.headerSub}>Sharpen what's weak. Master what's strong.</Text>
       </View>
 
