@@ -14,8 +14,8 @@ export class AssessmentsController {
   constructor(private readonly service: AssessmentsService) {}
 
   @Get()
-  list(@CurrentUser() user: RequestUser) {
-    return this.service.list(user);
+  list(@CurrentUser() user: RequestUser, @Query('institutionId') institutionId?: string) {
+    return this.service.list(user, institutionId);
   }
 
   @Get('my')

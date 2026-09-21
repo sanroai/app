@@ -833,7 +833,7 @@ async function seedPlansAndInstitution() {
     where: { code: 'DEMO01' },
     update: {},
     create: {
-      name: 'Sanro Demo School',
+      name: 'Sanro AI',
       type: 'SCHOOL',
       status: 'ACTIVE',
       code: 'DEMO01',

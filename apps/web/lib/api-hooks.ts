@@ -132,9 +132,10 @@ export function useMyAssessments() {
   return useAuthedQuery<MyAssessments>(['assessments', 'my'], '/assessments/my');
 }
 
-export function useAssessments(role: Role | null | undefined) {
+export function useAssessments(role: Role | null | undefined, institutionId?: string) {
   const isStaff = role === 'TEACHER' || role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
-  return useAuthedQuery<any[]>(['assessments'], '/assessments', !!isStaff);
+  const q = institutionId ? `?institutionId=${institutionId}` : '';
+  return useAuthedQuery<any[]>(['assessments', institutionId ?? 'all'], `/assessments${q}`, !!isStaff);
 }
 
 export function useAssessment(id?: string) {

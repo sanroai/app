@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Spinner, ErrorBanner } from '@/components/ui';
-import { BookOpen, ChevronDown, ChevronRight, Layers, FileText, Plus, Pencil, Trash2 } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, Layers, FileText, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import {
   useCreateCurriculumNode,
@@ -19,6 +19,13 @@ import {
   useDeleteCurriculumNode,
 } from '@/lib/admin-curriculum-hooks';
 import type { NodeKind } from '@/lib/admin-curriculum-hooks';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type Board = {
   id: string;
@@ -62,6 +69,11 @@ export default function CurriculumPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState('');
   const [deletingKind, setDeletingKind] = useState<NodeKind>('subjects');
+
+  const [filterBoard, setFilterBoard] = useState('');
+  const [filterGrade, setFilterGrade] = useState('');
+  const [filterSubject, setFilterSubject] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const createMut = useCreateCurriculumNode(dialogKind);
   const updateMut = useUpdateCurriculumNode(dialogKind);
@@ -139,6 +151,23 @@ export default function CurriculumPage() {
 
   const boards = data ?? [];
 
+  const selectedBoard = filterBoard ? boards.find((b) => b.id === filterBoard) : null;
+  const gradesForBoard = selectedBoard?.grades ?? [];
+  const subjectsForGrade = selectedBoard?.subjects.filter(
+    (s) => !filterGrade || s.chapters.some((c) => c.grade === filterGrade)
+  ) ?? [];
+
+  const filteredBoards = boards
+    .filter((b) => !filterBoard || b.id === filterBoard)
+    .map((board) => ({
+      ...board,
+      subjects: board.subjects
+        .filter((s) => !filterGrade || s.chapters.some((c) => c.grade === filterGrade))
+        .filter((s) => !filterSubject || s.id === filterSubject)
+        .filter((s) => !searchQuery || s.name.toLowerCase().includes(searchQuery.toLowerCase())),
+    }))
+    .filter((b) => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.subjects.length > 0);
+
   function toggle(set: Set<string>, id: string, setter: (s: Set<string>) => void) {
     const next = new Set(set);
     if (next.has(id)) next.delete(id);
@@ -153,14 +182,76 @@ export default function CurriculumPage() {
         <p className="mt-1 text-sm text-surface-500">Manage boards, grades, subjects, chapters and concepts</p>
       </div>
 
+      {boards.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={filterBoard} onValueChange={(v) => { setFilterBoard(v); setFilterGrade(''); setFilterSubject(''); }}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="All Boards" />
+            </SelectTrigger>
+            <SelectContent>
+              {boards.map((b) => (
+                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterGrade} onValueChange={(v) => { setFilterGrade(v); setFilterSubject(''); }} disabled={!filterBoard}>
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="All Grades" />
+            </SelectTrigger>
+            <SelectContent>
+              {gradesForBoard.map((g) => (
+                <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={filterSubject} onValueChange={setFilterSubject} disabled={!filterGrade}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="All Subjects" />
+            </SelectTrigger>
+            <SelectContent>
+              {subjectsForGrade.map((s) => (
+                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="pl-9 w-48"
+            />
+          </div>
+
+          {(filterBoard || filterGrade || filterSubject || searchQuery) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => { setFilterBoard(''); setFilterGrade(''); setFilterSubject(''); setSearchQuery(''); }}
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
+      )}
+
       {boards.length === 0 ? (
         <Card className="py-16 text-center">
           <BookOpen className="mx-auto h-12 w-12 text-surface-300" />
           <p className="mt-4 text-sm font-medium text-surface-500">No curriculum data</p>
         </Card>
+      ) : filteredBoards.length === 0 ? (
+        <Card className="py-16 text-center">
+          <Search className="mx-auto h-12 w-12 text-surface-300" />
+          <p className="mt-4 text-sm font-medium text-surface-500">No matching results</p>
+        </Card>
       ) : (
         <div className="space-y-4">
-          {boards.map((board) => (
+          {filteredBoards.map((board) => (
             <Card key={board.id}>
               <button
                 onClick={() => toggle(expandedBoards, board.id, setExpandedBoards)}

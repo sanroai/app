@@ -133,7 +133,6 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
         { href: '/app/questions', label: 'Question Bank', icon: HelpCircle },
         { href: '/app/papers', label: 'Question Papers', icon: FileText },
-        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
         ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),
         ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FileText }] : []),
         { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
@@ -144,7 +143,6 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const analyticsLinks: NavLink[] = staff
     ? [
         { href: '/app/reports', label: 'Reports', icon: BarChart2 },
-        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
         ...(isSuperAdmin ? [{ href: '/app/gamification', label: 'Gamification', icon: Trophy }] : []),
         ...(staff && !isSuperAdmin ? [{ href: '/app/remediation', label: 'Remediation', icon: Lightbulb }] : []),
       ]

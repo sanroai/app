@@ -15,7 +15,7 @@ const TABS = [
   { id: 'quiz', label: 'Quick Quiz', icon: 'battery-charging' as const, color: Colors.warning },
   { id: 'flashcards', label: 'Flashcards', icon: 'sync' as const, color: Colors.pink },
   { id: 'challenge', label: 'Challenge', icon: 'game-controller' as const, color: Colors.error },
-  { id: 'ask', label: 'Ask SANRO', icon: 'fitness' as const, color: Colors.primary },
+  { id: 'ask', label: 'Ask Sanro AI', icon: 'fitness' as const, color: Colors.primary },
 ];
 
 const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: 'cube' as const, color: Colors.indigo };
@@ -322,7 +322,7 @@ export default function ConceptDetailScreen() {
                 <Ionicons name="fitness" size={24} color={Colors.primary} />
               </View>
               <View style={styles.modeInfo}>
-                <Text style={styles.modeTitle}>Ask SANRO</Text>
+                <Text style={styles.modeTitle}>Ask Sanro AI</Text>
                 <Text style={styles.modeSub}>Context-aware help for {concept.name}</Text>
               </View>
             </View>

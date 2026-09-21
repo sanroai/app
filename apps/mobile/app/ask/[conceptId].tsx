@@ -54,7 +54,7 @@ export default function AskScreen() {
           <Ionicons name="fitness" size={20} color={Colors.white} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Ask SANRO</Text>
+          <Text style={styles.headerTitle}>Ask Sanro AI</Text>
           <Text style={styles.headerSub}>Context-aware tutor</Text>
         </View>
       </View>

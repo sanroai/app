@@ -31,6 +31,7 @@ type AssessmentCreateInput = {
   sourcePaperId?: string;
   questionIds?: string[];
   teacherId?: string;
+  institutionId?: string;
 };
 
 interface SnapshotSource {
@@ -92,11 +93,13 @@ export class AssessmentsService {
     }
   }
 
-  async list(user: RequestUser) {
-    const institutionId = this.tenant.requireInstitution(user);
+  async list(user: RequestUser, institutionId?: string) {
+    const resolvedId = this.tenant.assertInstitutionAccess(user, institutionId);
     await this.requireStaffRole(user);
+    const where: Prisma.AssessmentWhereInput = { status: { not: 'ARCHIVED' } };
+    if (resolvedId) where.institutionId = resolvedId;
     return this.prisma.assessment.findMany({
-      where: { institutionId, status: { not: 'ARCHIVED' } },
+      where,
       orderBy: { createdAt: 'desc' },
       include: {
         subject: { select: { name: true } },
@@ -106,10 +109,12 @@ export class AssessmentsService {
   }
 
   async detail(user: RequestUser, id: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const resolvedId = this.tenant.assertInstitutionAccess(user);
     await this.requireStaffRole(user);
+    const where: Prisma.AssessmentWhereInput = { id };
+    if (resolvedId) where.institutionId = resolvedId;
     const assessment = await this.prisma.assessment.findFirst({
-      where: { id, institutionId },
+      where,
       include: { subject: true, sourcePaper: { select: { title: true } }, teacher: { select: { user: { select: { name: true } } } } },
     });
     if (!assessment) throw new NotFoundException('Assessment not found');
@@ -121,7 +126,8 @@ export class AssessmentsService {
   }
 
   async create(user: RequestUser, data: AssessmentCreateInput) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user, data.institutionId);
+    if (!institutionId) throw new BadRequestException('Institution ID is required');
     await this.requireStaffRole(user);
 
     const questions: SnapshotSource[] = [];
@@ -196,9 +202,11 @@ export class AssessmentsService {
   }
 
   async publish(user: RequestUser, id: string, groupIds: string[], studentIds: string[]) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const resolvedId = this.tenant.assertInstitutionAccess(user);
     await this.requireStaffRole(user);
-    const assessment = await this.prisma.assessment.findFirst({ where: { id, institutionId } });
+    const where: Prisma.AssessmentWhereInput = { id };
+    if (resolvedId) where.institutionId = resolvedId;
+    const assessment = await this.prisma.assessment.findFirst({ where });
     if (!assessment) throw new NotFoundException('Assessment not found');
 
     const targets = new Map<string, { id: string; userId: string | null }>();
@@ -211,7 +219,7 @@ export class AssessmentsService {
     }
     if (studentIds.length > 0) {
       const explicit = await this.prisma.student.findMany({
-        where: { id: { in: studentIds }, institutionId, status: 'ACTIVE' },
+        where: { id: { in: studentIds }, institutionId: assessment.institutionId, status: 'ACTIVE' },
         select: { id: true, userId: true },
       });
       for (const s of explicit) targets.set(s.id, s);
@@ -250,7 +258,7 @@ export class AssessmentsService {
 
     await this.audit.log({
       userId: user.sub,
-      institutionId,
+      institutionId: assessment.institutionId,
       action: 'ASSESSMENT_PUBLISHED',
       entityType: 'Assessment',
       entityId: id,
@@ -527,10 +535,12 @@ export class AssessmentsService {
   }
 
   async attemptsForAssessment(user: RequestUser, assessmentId: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const resolvedId = this.tenant.assertInstitutionAccess(user);
     await this.requireStaffRole(user);
+    const where: Prisma.AssessmentAttemptWhereInput = { assessment: { id: assessmentId } };
+    if (resolvedId) where.assessment = { id: assessmentId, institutionId: resolvedId };
     const attempts = await this.prisma.assessmentAttempt.findMany({
-      where: { assessment: { id: assessmentId, institutionId } },
+      where,
       include: {
         student: { select: { id: true, name: true, rollNumber: true } },
       },
@@ -548,12 +558,15 @@ export class AssessmentsService {
   }
 
   async attemptDetail(user: RequestUser, attemptId: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const resolvedId = this.tenant.assertInstitutionAccess(user);
+    const attemptWhere: Prisma.AssessmentAttemptWhereInput = { id: attemptId };
+    if (resolvedId) {
+      attemptWhere.OR = [{ student: { institutionId: resolvedId } }, { student: { userId: user.sub } }];
+    } else {
+      attemptWhere.student = { userId: user.sub };
+    }
     const attempt = await this.prisma.assessmentAttempt.findFirst({
-      where: {
-        id: attemptId,
-        OR: [{ student: { institutionId } }, { student: { userId: user.sub } }],
-      },
+      where: attemptWhere,
       include: {
         assessment: { include: { subject: true } },
         student: { select: { id: true, name: true, rollNumber: true, userId: true } },
@@ -612,10 +625,12 @@ export class AssessmentsService {
   }
 
   async gradeAnswer(user: RequestUser, attemptId: string, answerId: string, marksAwarded: number) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const resolvedId = this.tenant.assertInstitutionAccess(user);
     await this.requireStaffRole(user);
+    const attemptWhere: Prisma.AssessmentAttemptWhereInput = { id: attemptId };
+    if (resolvedId) attemptWhere.student = { institutionId: resolvedId };
     const attempt = await this.prisma.assessmentAttempt.findFirst({
-      where: { id: attemptId, student: { institutionId } },
+      where: attemptWhere,
       include: { student: true },
     });
     if (!attempt) throw new NotFoundException('Attempt not found');
@@ -666,7 +681,7 @@ export class AssessmentsService {
 
     await this.audit.log({
       userId: user.sub,
-      institutionId,
+      institutionId: attempt.student.institutionId ?? resolvedId,
       action: 'RESULT_MODIFIED',
       entityType: 'StudentAnswer',
       entityId: answerId,

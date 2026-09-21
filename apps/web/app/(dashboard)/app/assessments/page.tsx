@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
 import {
@@ -31,13 +31,24 @@ export default function AssessmentsPage() {
 
 function StaffAssessments() {
   const router = useRouter();
-  const { data, isLoading, error } = useAssessments(useAuthStore((s) => s.user?.role));
+  const user = useAuthStore((s) => s.user);
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+  const [institutionFilter, setInstitutionFilter] = useState('ALL');
+  const { data: institutions } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ['admin-institutions'],
+    queryFn: () => api('/admin/institutions', { token: useAuthStore.getState().token }),
+    enabled: isSuperAdmin,
+  });
+  const { data, isLoading, error } = useAssessments(
+    user?.role,
+    isSuperAdmin && institutionFilter !== 'ALL' ? institutionFilter : undefined,
+  );
 
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [modeFilter, setModeFilter] = useState('ALL');
 
-  const hasFilters = search !== '' || statusFilter !== 'ALL' || modeFilter !== 'ALL';
+  const hasFilters = search !== '' || statusFilter !== 'ALL' || modeFilter !== 'ALL' || institutionFilter !== 'ALL';
 
   const filtered = useMemo(() => {
     const items = data ?? [];
@@ -60,6 +71,20 @@ function StaffAssessments() {
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
+        {isSuperAdmin && institutions && (
+          <Select value={institutionFilter} onValueChange={setInstitutionFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Institution" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Institutions</SelectItem>
+              {institutions.map((inst: { id: string; name: string }) => (
+                <SelectItem key={inst.id} value={inst.id}>{inst.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
           <input
