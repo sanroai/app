@@ -27,7 +27,7 @@ const TransferBodySchema = z.object({
 });
 
 const StatusBodySchema = z.object({
-  status: z.enum(['ACTIVE', 'DEACTIVATED']),
+  status: z.enum(['ACTIVE', 'DEACTIVATED', 'ARCHIVED']),
 });
 
 const LinkChildBodySchema = z.object({
@@ -91,7 +91,7 @@ export class AdminPeopleController {
   }
 
   @Post('students/:id/status')
-  setStudentStatus(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(StatusBodySchema)) body: { status: 'ACTIVE' | 'DEACTIVATED' }): Promise<any> {
+  setStudentStatus(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body(new ZodValidationPipe(StatusBodySchema)) body: { status: 'ACTIVE' | 'DEACTIVATED' | 'ARCHIVED' }): Promise<any> {
     return this.people.setStudentStatus(user, id, body.status);
   }
 

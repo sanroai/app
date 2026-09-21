@@ -68,6 +68,7 @@ export type GroupStatus = (typeof GroupStatus)[keyof typeof GroupStatus];
 export const StudentStatus = {
   ACTIVE: 'ACTIVE',
   DEACTIVATED: 'DEACTIVATED',
+  ARCHIVED: 'ARCHIVED',
 } as const;
 export type StudentStatus = (typeof StudentStatus)[keyof typeof StudentStatus];
 

@@ -2,13 +2,22 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useAdminStudents, type AdminStudentQuery } from '@/lib/people-hooks';
+import { toast } from 'sonner';
+import { useAdminStudents, useArchiveAdminStudent, useRestoreAdminStudent, useDisableAdminStudent, useEnableAdminStudent, type AdminStudentQuery } from '@/lib/people-hooks';
 import { useInstitutions } from '@/lib/institution-hooks';
 import { useBoards, useGrades } from '@/lib/api-hooks';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -20,15 +29,21 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { SourceBadge } from '@/components/people/source-badge';
 import { cn } from '@/lib/cn';
 import {
+  Archive,
+  ArchiveRestore,
   ChevronLeft,
   ChevronRight,
+  Download,
   Loader2,
   MoreVertical,
+  Power,
+  PowerOff,
   RefreshCw,
   Search,
   Users,
@@ -37,6 +52,7 @@ import {
 const STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700 border-green-200',
   DEACTIVATED: 'bg-red-100 text-red-700 border-red-200',
+  ARCHIVED: 'bg-surface-100 text-surface-600 border-surface-200',
 };
 
 const SUB_STATUS_STYLES: Record<string, string> = {
@@ -50,7 +66,7 @@ const SUB_STATUS_STYLES: Record<string, string> = {
 };
 
 const SOURCE_FILTERS = ['INSTITUTION', 'DIRECT_SANRO'];
-const STATUS_FILTERS = ['ACTIVE', 'DEACTIVATED'];
+const STATUS_FILTERS = ['ACTIVE', 'DEACTIVATED', 'ARCHIVED'];
 const SUB_FILTERS = ['ACTIVE', 'TRIAL', 'EXPIRING_SOON', 'EXPIRED', 'NONE', 'CANCELLED'];
 
 export default function PeopleStudentsPage() {
@@ -63,6 +79,10 @@ export default function PeopleStudentsPage() {
   const [subStatus, setSubStatus] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [pendingAction, setPendingAction] = useState<{ kind: string; id: string; name: string } | null>(null);
+  const [pendingBulk, setPendingBulk] = useState<'archive' | 'restore' | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedSearch(search), 400);
@@ -94,7 +114,114 @@ export default function PeopleStudentsPage() {
   const gradesQuery = useGrades(boardId);
   const grades = gradesQuery.data ?? [];
 
+  const actionId = pendingAction?.id ?? '';
+  const archiveMut = useArchiveAdminStudent(actionId);
+  const restoreMut = useRestoreAdminStudent(actionId);
+  const deactivateMut = useDisableAdminStudent(actionId);
+  const enableMut = useEnableAdminStudent(actionId);
+
+  const actionPending =
+    pendingAction?.kind === 'archive'
+      ? archiveMut.isPending
+      : pendingAction?.kind === 'restore'
+        ? restoreMut.isPending
+        : pendingAction?.kind === 'deactivate'
+          ? deactivateMut.isPending
+          : pendingAction?.kind === 'enable'
+            ? enableMut.isPending
+            : false;
+
+  const runAction = async () => {
+    if (!pendingAction) return;
+    const hook =
+      pendingAction.kind === 'archive'
+        ? archiveMut
+        : pendingAction.kind === 'restore'
+          ? restoreMut
+          : pendingAction.kind === 'deactivate'
+            ? deactivateMut
+            : enableMut;
+    try {
+      const body = pendingAction.kind === 'archive'
+        ? { status: 'ARCHIVED' }
+        : pendingAction.kind === 'restore'
+          ? { status: 'ACTIVE' }
+          : undefined;
+      await hook.mutateAsync(body);
+      toast.success(`${pendingAction.kind.charAt(0).toUpperCase() + pendingAction.kind.slice(1)} successful`);
+      setPendingAction(null);
+    } catch (err) {
+      toast.error((err as { message?: string }).message ?? 'Action failed');
+    }
+  };
+
+  const runBulk = async () => {
+    if (!pendingBulk || selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const status = pendingBulk === 'archive' ? 'ARCHIVED' : 'ACTIVE';
+    let ok = 0;
+    for (const id of ids) {
+      try {
+        const mut = pendingBulk === 'archive' ? useArchiveAdminStudent(id) : useRestoreAdminStudent(id);
+        await mut.mutateAsync({ status });
+        ok++;
+      } catch {}
+    }
+    toast.success(`${ok} of ${ids.length} students ${pendingBulk === 'archive' ? 'archived' : 'restored'}`);
+    setSelectedIds(new Set());
+    setPendingBulk(null);
+  };
+
+  const exportCsv = () => {
+    setExporting(true);
+    try {
+      const header = 'Name,Email,Phone,Grade,Status,Source,Institution,Subscription\n';
+      const csvRows = rows.map((r) =>
+        [
+          `"${(r.name ?? '').replace(/"/g, '""')}"`,
+          `"${(r.email ?? '').replace(/"/g, '""')}"`,
+          `"${(r.phone ?? '').replace(/"/g, '""')}"`,
+          `"${r.grade ?? ''}"`,
+          `"${r.status ?? ''}"`,
+          `"${r.source ?? ''}"`,
+          `"${(r.institutionName ?? '').replace(/"/g, '""')}"`,
+          `"${r.subscriptionStatus ?? 'NONE'}"`,
+        ].join(','),
+      );
+      const blob = new Blob([header + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `students-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Export ready');
+    } catch (err) {
+      toast.error((err as { message?: string }).message ?? 'Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const rows = data?.items ?? [];
+  const allSelected = rows.length > 0 && rows.every((r) => selectedIds.has(r.id));
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(rows.map((r) => r.id)));
+    }
+  };
+
+  const toggleOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const resetFilters = () => {
     setSearch('');
@@ -105,6 +232,7 @@ export default function PeopleStudentsPage() {
     setGrade('');
     setSubStatus('');
     setPage(1);
+    setSelectedIds(new Set());
   };
 
   return (
@@ -115,6 +243,12 @@ export default function PeopleStudentsPage() {
           <p className="mt-1 text-sm text-surface-500">
             {isLoading ? 'Loading students...' : `${data?.total ?? 0} students`}
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => exportCsv()} disabled={exporting || isLoading}>
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+            Export CSV
+          </Button>
         </div>
       </div>
 
@@ -242,6 +376,35 @@ export default function PeopleStudentsPage() {
         </CardContent>
       </Card>
 
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 rounded-xl border border-brand-200 bg-brand-50 px-4 py-3">
+          <p className="text-sm font-medium text-brand-800">{selectedIds.size} selected</p>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setPendingBulk('archive')}
+          >
+            <Archive className="mr-1.5 h-3.5 w-3.5" />
+            Archive Selected
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setPendingBulk('restore')}
+          >
+            <ArchiveRestore className="mr-1.5 h-3.5 w-3.5" />
+            Restore Selected
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            Clear
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -266,6 +429,14 @@ export default function PeopleStudentsPage() {
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
                 <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
+                  <th className="px-4 py-3 font-medium w-10">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleAll}
+                      className="h-4 w-4 rounded border-surface-300"
+                    />
+                  </th>
                   <th className="px-4 py-3 font-medium">Student</th>
                   <th className="px-4 py-3 font-medium">Source</th>
                   <th className="px-4 py-3 font-medium">Institution</th>
@@ -279,7 +450,15 @@ export default function PeopleStudentsPage() {
                 {rows.map((row) => {
                   const rowSub = row.subscription;
                   return (
-                    <tr key={row.id} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
+                    <tr key={row.id} className={cn('border-b border-surface-100 last:border-0 hover:bg-surface-50/70', selectedIds.has(row.id) && 'bg-brand-50/50')}>
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(row.id)}
+                          onChange={() => toggleOne(row.id)}
+                          className="h-4 w-4 rounded border-surface-300"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <p className="font-medium text-surface-900">
                           <Link
@@ -327,6 +506,41 @@ export default function PeopleStudentsPage() {
                             <DropdownMenuItem asChild>
                               <Link href={`/app/people/students/${row.id}`}>View details</Link>
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {row.status === 'ACTIVE' && (
+                              <DropdownMenuItem
+                                onClick={() => setPendingAction({ kind: 'archive', id: row.id, name: row.name })}
+                                className="text-red-600"
+                              >
+                                <Archive className="mr-2 h-4 w-4" />
+                                Archive
+                              </DropdownMenuItem>
+                            )}
+                            {row.status === 'ARCHIVED' && (
+                              <DropdownMenuItem
+                                onClick={() => setPendingAction({ kind: 'restore', id: row.id, name: row.name })}
+                              >
+                                <ArchiveRestore className="mr-2 h-4 w-4" />
+                                Restore
+                              </DropdownMenuItem>
+                            )}
+                            {row.status === 'ACTIVE' && (
+                              <DropdownMenuItem
+                                onClick={() => setPendingAction({ kind: 'deactivate', id: row.id, name: row.name })}
+                                className="text-red-600"
+                              >
+                                <PowerOff className="mr-2 h-4 w-4" />
+                                Deactivate
+                              </DropdownMenuItem>
+                            )}
+                            {(row.status === 'DEACTIVATED' || row.status === 'ARCHIVED') && (
+                              <DropdownMenuItem
+                                onClick={() => setPendingAction({ kind: 'enable', id: row.id, name: row.name })}
+                              >
+                                <Power className="mr-2 h-4 w-4" />
+                                Enable
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>
@@ -368,6 +582,68 @@ export default function PeopleStudentsPage() {
             </div>
           </div>
         </Card>
+      )}
+
+      {pendingAction && (
+        <Dialog open onOpenChange={(o) => { if (!o) setPendingAction(null); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {pendingAction.kind.charAt(0).toUpperCase() + pendingAction.kind.slice(1)} student
+              </DialogTitle>
+              <DialogDescription>
+                {pendingAction.kind === 'archive'
+                  ? `Archive "${pendingAction.name}". The student will be removed from active use but all data is preserved.`
+                  : pendingAction.kind === 'restore'
+                    ? `Restore "${pendingAction.name}" and bring them back to the active list.`
+                    : pendingAction.kind === 'deactivate'
+                      ? `Deactivate "${pendingAction.name}". They will no longer have access to SANRO.`
+                      : `Enable "${pendingAction.name}" and restore their access to SANRO.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPendingAction(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant={pendingAction.kind === 'archive' || pendingAction.kind === 'deactivate' ? 'destructive' : 'default'}
+                disabled={actionPending}
+                onClick={() => void runAction()}
+              >
+                {actionPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {pendingAction.kind.charAt(0).toUpperCase() + pendingAction.kind.slice(1)}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {pendingBulk && (
+        <Dialog open onOpenChange={(o) => { if (!o) setPendingBulk(null); }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {pendingBulk === 'archive' ? 'Archive' : 'Restore'} {selectedIds.size} students
+              </DialogTitle>
+              <DialogDescription>
+                {pendingBulk === 'archive'
+                  ? `Archive ${selectedIds.size} selected students. They will be removed from active use but all data is preserved.`
+                  : `Restore ${selectedIds.size} selected students and bring them back to the active list.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPendingBulk(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant={pendingBulk === 'archive' ? 'destructive' : 'default'}
+                onClick={() => void runBulk()}
+              >
+                {pendingBulk === 'archive' ? 'Archive' : 'Restore'} Selected
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

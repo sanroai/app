@@ -404,6 +404,13 @@ export function useTransferAdminStudent(id: string) {
   return useAdminStudentAction(id, '/transfer');
 }
 
+export function useArchiveAdminStudent(id: string) {
+  return useAdminStudentAction(id, '/status');
+}
+export function useRestoreAdminStudent(id: string) {
+  return useAdminStudentAction(id, '/status');
+}
+
 export function useSetDirectSubscription(id: string) {
   const qc = useQueryClient();
   const token = useToken();

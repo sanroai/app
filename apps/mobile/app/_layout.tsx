@@ -86,13 +86,13 @@ export default function RootLayout() {
           <Stack.Screen name="expired" options={{ headerShown: false }} />
           <Stack.Screen name="learn/[boardId]/[grade]/[subjectId]" options={{ headerShown: true, title: 'Chapters', headerTintColor: Colors.primary }} />
             <Stack.Screen name="learn/chapter/[chapterId]" options={{ headerShown: true, title: 'Chapter', headerTintColor: Colors.primary }} />
-            <Stack.Screen name="concept/[conceptId]" options={{ headerShown: true, title: 'Concept', headerTintColor: Colors.primary }} />
+            <Stack.Screen name="concept/[conceptId]" options={{ headerShown: false }} />
             <Stack.Screen name="practice/[practiceId]" options={{ headerShown: true, title: 'Practice', headerTintColor: Colors.primary }} />
             <Stack.Screen name="attempt/[attemptId]" options={{ headerShown: true, title: 'Assessment', headerTintColor: Colors.primary }} />
             <Stack.Screen name="quiz/[conceptId]" options={{ headerShown: true, title: 'Quick Quiz', headerTintColor: Colors.primary }} />
             <Stack.Screen name="flashcards/[conceptId]" options={{ headerShown: true, title: 'Flashcards', headerTintColor: Colors.primary }} />
             <Stack.Screen name="challenge/[conceptId]" options={{ headerShown: true, title: 'Challenge', headerTintColor: Colors.primary }} />
-            <Stack.Screen name="ask/[conceptId]" options={{ headerShown: true, title: 'Ask SANRO', headerTintColor: Colors.primary }} />
+            <Stack.Screen name="ask/[conceptId]" options={{ headerShown: false }} />
             <Stack.Screen name="leaderboard" options={{ headerShown: true, title: 'Leaderboard', headerTintColor: Colors.primary }} />
             <Stack.Screen name="profile-edit" options={{ headerShown: true, title: 'Edit Profile', headerTintColor: Colors.primary }} />
           </Stack>

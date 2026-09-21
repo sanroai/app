@@ -332,13 +332,17 @@ for (const gid of data.groupIds) {
     return updated;
   }
 
-  async setStatus(user: RequestUser, id: string, status: 'ACTIVE' | 'DEACTIVATED') {
+  async setStatus(user: RequestUser, id: string, status: 'ACTIVE' | 'DEACTIVATED' | 'ARCHIVED') {
     const institutionId = this.tenant.requireInstitution(user);
     const student = await this.prisma.student.findFirst({ where: { id, institutionId } });
     if (!student) throw new NotFoundException('Student not found');
     await this.prisma.student.update({
       where: { id },
-      data: { status, deactivatedAt: status === 'DEACTIVATED' ? new Date() : null },
+      data: {
+        status,
+        deactivatedAt: status === 'DEACTIVATED' ? new Date() : null,
+        archivedAt: status === 'ARCHIVED' ? new Date() : null,
+      },
     });
     if (student.userId) {
       await this.prisma.user.update({ where: { id: student.userId }, data: { isActive: status === 'ACTIVE' } });

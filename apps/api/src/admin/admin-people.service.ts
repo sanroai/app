@@ -209,7 +209,7 @@ export class AdminPeopleService {
       where.institutionId = { notIn: [sId] };
     }
     if (q.grade) where.grade = q.grade;
-    if (q.status) where.status = q.status as 'ACTIVE' | 'DEACTIVATED';
+    if (q.status) where.status = q.status as 'ACTIVE' | 'DEACTIVATED' | 'ARCHIVED';
     if (q.search) {
       const term = q.search.trim();
       if (term) {
@@ -454,7 +454,7 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
     return updated;
   }
 
-  async setStudentStatus(user: RequestUser, id: string, status: 'ACTIVE' | 'DEACTIVATED'): Promise<any> {
+  async setStudentStatus(user: RequestUser, id: string, status: 'ACTIVE' | 'DEACTIVATED' | 'ARCHIVED'): Promise<any> {
     this.assertSuperAdmin(user);
     const existing = await this.prisma.student.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Student not found');
@@ -463,13 +463,18 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       data: {
         status,
         deactivatedAt: status === 'DEACTIVATED' ? new Date() : null,
+        archivedAt: status === 'ARCHIVED' ? new Date() : null,
       },
     });
     if (existing.userId) {
       await this.prisma.user.update({ where: { id: existing.userId }, data: { isActive: status === 'ACTIVE' } });
       this.entitlement.invalidate(existing.userId);
     }
-    await this.auditLog(user, status === 'ACTIVE' ? AuditAction.STUDENT_ENABLED : AuditAction.STUDENT_DISABLED, 'STUDENT', id, { studentId: id });
+    if (status === 'ARCHIVED') {
+      await this.auditLog(user, AuditAction.STUDENT_ARCHIVED, 'STUDENT', id, { studentId: id });
+    } else {
+      await this.auditLog(user, status === 'ACTIVE' ? AuditAction.STUDENT_ENABLED : AuditAction.STUDENT_DISABLED, 'STUDENT', id, { studentId: id });
+    }
     return updated;
   }
 
