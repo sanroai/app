@@ -6,9 +6,19 @@ import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Spinner, ErrorBanner } from '@/components/ui';
-import { BookOpen, ChevronDown, ChevronRight, Layers, FileText } from 'lucide-react';
+import { BookOpen, ChevronDown, ChevronRight, Layers, FileText, Plus, Pencil, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import {
+  useCreateCurriculumNode,
+  useUpdateCurriculumNode,
+  useDeleteCurriculumNode,
+} from '@/lib/admin-curriculum-hooks';
+import type { NodeKind } from '@/lib/admin-curriculum-hooks';
 
 type Board = {
   id: string;
@@ -19,6 +29,7 @@ type Board = {
     id: string;
     name: string;
     code: string;
+    grade?: string;
     chapters: {
       id: string;
       name: string;
@@ -38,6 +49,84 @@ export default function CurriculumPage() {
   const [expandedBoards, setExpandedBoards] = useState<Set<string>>(new Set());
   const [expandedSubjects, setExpandedSubjects] = useState<Set<string>>(new Set());
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'create' | 'edit'>('create');
+  const [dialogKind, setDialogKind] = useState<NodeKind>('subjects');
+  const [formName, setFormName] = useState('');
+  const [formCode, setFormCode] = useState('');
+  const [parentId, setParentId] = useState('');
+  const [editingId, setEditingId] = useState('');
+  const [editingGrade, setEditingGrade] = useState('');
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState('');
+  const [deletingKind, setDeletingKind] = useState<NodeKind>('subjects');
+
+  const createMut = useCreateCurriculumNode(dialogKind);
+  const updateMut = useUpdateCurriculumNode(dialogKind);
+  const deleteMut = useDeleteCurriculumNode(deletingKind);
+
+  function openCreate(kind: NodeKind, parentIdValue: string, grade?: string) {
+    setDialogMode('create');
+    setDialogKind(kind);
+    setFormName('');
+    setFormCode('');
+    setParentId(parentIdValue);
+    setEditingGrade(grade ?? '');
+    setEditingId('');
+    setDialogOpen(true);
+  }
+
+  function openEdit(kind: NodeKind, item: { id: string; name: string; code?: string; grade?: string }) {
+    setDialogMode('edit');
+    setDialogKind(kind);
+    setFormName(item.name);
+    setFormCode(item.code ?? '');
+    setEditingId(item.id);
+    setEditingGrade(item.grade ?? '');
+    setDialogOpen(true);
+  }
+
+  function handleDialogSubmit() {
+    if (!formName.trim()) return;
+
+    if (dialogMode === 'create') {
+      const body: Record<string, unknown> = { name: formName.trim() };
+      if (dialogKind === 'subjects') {
+        body.boardId = parentId;
+        body.code = formCode.trim() || formName.trim().slice(0, 4).toUpperCase();
+      } else if (dialogKind === 'chapters') {
+        body.subjectId = parentId;
+        body.code = formCode.trim() || formName.trim().slice(0, 6).toUpperCase();
+        body.grade = editingGrade;
+      } else if (dialogKind === 'topics') {
+        body.chapterId = parentId;
+      } else if (dialogKind === 'concepts') {
+        body.topicId = parentId;
+      }
+      createMut.mutate(body, {
+        onSuccess: () => setDialogOpen(false),
+      });
+    } else {
+      const body: Record<string, unknown> = { name: formName.trim() };
+      if (dialogKind === 'subjects' || dialogKind === 'chapters') {
+        body.code = formCode.trim();
+      }
+      updateMut.mutate({ id: editingId, body }, {
+        onSuccess: () => setDialogOpen(false),
+      });
+    }
+  }
+
+  function handleDelete() {
+    if (!deletingId) return;
+    deleteMut.mutate(deletingId, {
+      onSuccess: () => setDeleteDialogOpen(false),
+    });
+  }
+
+  const isMutLoading = createMut.isPending || updateMut.isPending || deleteMut.isPending;
 
   const { data, isLoading, error } = useQuery<Board[]>({
     queryKey: ['admin', 'curriculum'],
@@ -86,6 +175,14 @@ export default function CurriculumPage() {
                   <p className="text-xs text-surface-500">{board.code} · {board.grades.length} grades · {board.subjects.length} subjects</p>
                 </div>
                 <Badge variant="secondary">{board.subjects.reduce((a, s) => a + s.chapters.length, 0)} chapters</Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="ml-2 h-8 w-8 p-0"
+                  onClick={(e) => { e.stopPropagation(); openCreate('subjects', board.id); }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               </button>
 
               {expandedBoards.has(board.id) && (
@@ -104,6 +201,35 @@ export default function CurriculumPage() {
                           <p className="font-semibold text-surface-900 text-sm">{subject.name}</p>
                           <p className="text-xs text-surface-500">{subject.code} · {subject.chapters.length} chapters</p>
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => { e.stopPropagation(); openCreate('chapters', subject.id, subject.grade); }}
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => { e.stopPropagation(); openEdit('subjects', subject); }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeletingKind('subjects');
+                            setDeletingId(subject.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </button>
 
                       {expandedSubjects.has(subject.id) && (
@@ -117,17 +243,83 @@ export default function CurriculumPage() {
                                 {expandedChapters.has(chapter.id) ? <ChevronDown className="h-3 w-3 text-surface-400" /> : <ChevronRight className="h-3 w-3 text-surface-400" />}
                                 <span className="text-sm font-medium text-surface-700">{chapter.name}</span>
                                 <Badge variant="outline" className="text-xs ml-auto">{chapter.topics.length} topics</Badge>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={(e) => { e.stopPropagation(); openCreate('topics', chapter.id); }}
+                                >
+                                  <Plus className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0"
+                                  onClick={(e) => { e.stopPropagation(); openEdit('chapters', chapter); }}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 w-7 p-0 text-red-500 hover:text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDeletingKind('chapters');
+                                    setDeletingId(chapter.id);
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
                               </button>
 
                               {expandedChapters.has(chapter.id) && (
                                 <div className="px-2 pb-2 ml-6 space-y-1">
                                   {chapter.topics.map((topic) => (
                                     <div key={topic.id} className="rounded bg-surface-50 px-2 py-1">
-                                      <p className="text-xs font-medium text-surface-700">{topic.name}</p>
+                                      <div className="flex items-center gap-1">
+                                        <p className="text-xs font-medium text-surface-700 flex-1">{topic.name}</p>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 w-5 p-0"
+                                          onClick={() => openCreate('concepts', topic.id)}
+                                        >
+                                          <Plus className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 w-5 p-0"
+                                          onClick={() => openEdit('topics', topic)}
+                                        >
+                                          <Pencil className="h-3 w-3" />
+                                        </Button>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-5 w-5 p-0 text-red-500 hover:text-red-600"
+                                          onClick={() => {
+                                            setDeletingKind('topics');
+                                            setDeletingId(topic.id);
+                                            setDeleteDialogOpen(true);
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
                                       {topic.concepts.length > 0 && (
                                         <div className="flex flex-wrap gap-1 mt-1">
                                           {topic.concepts.map((c) => (
-                                            <Badge key={c.id} variant="outline" className="text-xs">{c.name}</Badge>
+                                            <Badge
+                                              key={c.id}
+                                              variant="outline"
+                                              className="text-xs group cursor-pointer hover:bg-surface-100"
+                                              onClick={() => openEdit('concepts', c)}
+                                            >
+                                              {c.name}
+                                            </Badge>
                                           ))}
                                         </div>
                                       )}
@@ -150,6 +342,67 @@ export default function CurriculumPage() {
           ))}
         </div>
       )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {dialogMode === 'create' ? `Add ${dialogKind.charAt(0).toUpperCase() + dialogKind.slice(1, -1)}` : `Edit ${dialogKind.charAt(0).toUpperCase() + dialogKind.slice(1, -1)}`}
+            </DialogTitle>
+            <DialogDescription>
+              {dialogMode === 'create'
+                ? `Create a new ${dialogKind.charAt(0).toUpperCase() + dialogKind.slice(1, -1).toLowerCase()} entry`
+                : `Update the name and details`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="item-name">Name</Label>
+              <Input
+                id="item-name"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
+                placeholder="Enter name"
+                onKeyDown={(e) => { if (e.key === 'Enter') handleDialogSubmit(); }}
+              />
+            </div>
+            {(dialogKind === 'subjects' || dialogKind === 'chapters') && (
+              <div className="space-y-2">
+                <Label htmlFor="item-code">Code</Label>
+                <Input
+                  id="item-code"
+                  value={formCode}
+                  onChange={(e) => setFormCode(e.target.value)}
+                  placeholder="Auto-generated if empty"
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isMutLoading}>Cancel</Button>
+            <Button onClick={handleDialogSubmit} disabled={isMutLoading || !formName.trim()}>
+              {createMut.isPending || updateMut.isPending ? 'Saving...' : dialogMode === 'create' ? 'Create' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {deletingKind.charAt(0).toUpperCase() + deletingKind.slice(1, -1)}</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete this item.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isMutLoading}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isMutLoading}>
+              {deleteMut.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
@@ -12,9 +12,16 @@ import {
   type AttemptSummary,
 } from '@/lib/api-hooks';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatDate, formatScore, titleCase } from '@/lib/format';
 import { toast } from 'sonner';
-import { Play, RotateCw, Eye, ClipboardList, FileText } from 'lucide-react';
+import { Play, RotateCw, Eye, ClipboardList, FileText, Search, X } from 'lucide-react';
 
 export default function AssessmentsPage() {
   const user = useAuthStore((s) => s.user);
@@ -26,6 +33,22 @@ function StaffAssessments() {
   const router = useRouter();
   const { data, isLoading, error } = useAssessments(useAuthStore((s) => s.user?.role));
 
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [modeFilter, setModeFilter] = useState('ALL');
+
+  const hasFilters = search !== '' || statusFilter !== 'ALL' || modeFilter !== 'ALL';
+
+  const filtered = useMemo(() => {
+    const items = data ?? [];
+    return items.filter((a: { title?: string; status?: string; mode?: string }) => {
+      if (search && !a.title?.toLowerCase().includes(search.toLowerCase())) return false;
+      if (statusFilter !== 'ALL' && a.status !== statusFilter) return false;
+      if (modeFilter !== 'ALL' && a.mode !== modeFilter) return false;
+      return true;
+    });
+  }, [data, search, statusFilter, modeFilter]);
+
   if (isLoading) return <Spinner label="Loading assessments…" />;
   if (error) return <ErrorBanner message={(error as Error).message} />;
 
@@ -35,8 +58,61 @@ function StaffAssessments() {
         <h1 className="text-2xl font-bold">Assessments</h1>
         <Button onClick={() => router.push('/app/assessments/new')}>New assessment</Button>
       </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-surface-400" />
+          <input
+            type="text"
+            placeholder="Search assessments…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 w-full rounded-xl border-2 border-surface-200 bg-white pl-10 pr-4 text-sm transition-all placeholder:text-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 dark:bg-surface-900 dark:border-surface-700 dark:text-surface-100"
+          />
+        </div>
+
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Statuses</SelectItem>
+            <SelectItem value="DRAFT">Draft</SelectItem>
+            <SelectItem value="PUBLISHED">Published</SelectItem>
+            <SelectItem value="CLOSED">Closed</SelectItem>
+            <SelectItem value="ARCHIVED">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={modeFilter} onValueChange={setModeFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Mode" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Modes</SelectItem>
+            <SelectItem value="DIGITAL">Digital</SelectItem>
+            <SelectItem value="PRINT">Print</SelectItem>
+            <SelectItem value="BOTH">Both</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {hasFilters && (
+          <Button
+            variant="outline"
+            onClick={() => { setSearch(''); setStatusFilter('ALL'); setModeFilter('ALL'); }}
+          >
+            <X className="mr-1 h-4 w-4" />
+            Clear Filters
+          </Button>
+        )}
+      </div>
+
+      <p className="mb-3 text-sm text-surface-500">
+        Showing {filtered.length} of {(data ?? []).length} assessments
+      </p>
+
       <div className="space-y-3">
-        {(data ?? []).map((a: { id: string; title: string; status?: string; startsAt?: string; dueAt?: string; subject?: { name: string }; totalMarks?: number; durationMinutes?: number; _count?: { assignments?: number; attempts?: number }; group?: { name: string } }) => (
+        {filtered.map((a: { id: string; title: string; status?: string; startsAt?: string; dueAt?: string; subject?: { name: string }; totalMarks?: number; durationMinutes?: number; _count?: { assignments?: number; attempts?: number }; group?: { name: string } }) => (
           <Card key={a.id}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-6">
               <div className="min-w-0">
@@ -63,6 +139,12 @@ function StaffAssessments() {
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
             <FileText className="h-10 w-10 text-surface-300 mb-3" />
             <p className="text-sm text-surface-500 max-w-sm">No assessments yet. Create one to get started.</p>
+          </div>
+        ) : null}
+        {data && data.length > 0 && filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
+            <Search className="h-10 w-10 text-surface-300 mb-3" />
+            <p className="text-sm text-surface-500 max-w-sm">No assessments match your filters. Try adjusting your search.</p>
           </div>
         ) : null}
       </div>

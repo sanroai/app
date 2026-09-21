@@ -210,6 +210,19 @@ export function useUpdateCurriculumNode(kind: NodeKind) {
   });
 }
 
+export function useCreateCurriculumNode(kind: NodeKind) {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (body: Record<string, unknown>) =>
+      api<CurriculumNode>(`/curriculum/${kind}`, { method: 'POST', body, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'curriculum', 'nodes'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'curriculum'] });
+    },
+  });
+}
+
 export function useDeleteCurriculumNode(kind: NodeKind) {
   const qc = useQueryClient();
   const token = useToken();
