@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -97,6 +98,10 @@ const TYPE_LABELS: Record<string, string> = {
   SANRO_PLATFORM: 'SANRO AI',
 };
 
+function humanizeEnum(s: string) {
+  return s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 function isSystemRow(row: Row) {
   return row.isSystemInstitution === true || row.type === InstitutionType.SANRO_PLATFORM;
 }
@@ -105,7 +110,7 @@ const STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700 border-green-200',
   PENDING: 'bg-amber-100 text-amber-700 border-amber-200',
   SUSPENDED: 'bg-red-100 text-red-700 border-red-200',
-  ARCHIVED: 'bg-slate-100 text-slate-600 border-slate-200',
+  ARCHIVED: 'bg-surface-100 text-surface-600 border-surface-200',
   EXPIRED: 'bg-rose-100 text-rose-800 border-rose-200',
 };
 
@@ -114,8 +119,8 @@ const SUB_STATUS_STYLES: Record<string, string> = {
   TRIAL: 'bg-sky-50 text-sky-700 border-sky-200',
   EXPIRING_SOON: 'bg-amber-50 text-amber-700 border-amber-200',
   EXPIRED: 'bg-rose-50 text-rose-700 border-rose-200',
-  NONE: 'bg-slate-50 text-slate-500 border-slate-200',
-  CANCELLED: 'bg-slate-50 text-slate-500 border-slate-200',
+  NONE: 'bg-surface-50 text-surface-500 border-surface-200',
+  CANCELLED: 'bg-surface-50 text-surface-500 border-surface-200',
 };
 
 const STATUS_FILTERS = ['ACTIVE', 'PENDING', 'SUSPENDED', 'EXPIRED', 'ARCHIVED'];
@@ -330,7 +335,7 @@ function CreateInstitutionDialog({
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-xl border border-surface-200 bg-surface-50 p-4">
             <p className="mb-3 text-sm font-medium text-surface-800">Institution admin</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -576,7 +581,7 @@ export default function InstitutionsPage() {
                 <SelectContent>
                   <SelectItem value="ALL">All statuses</SelectItem>
                   {STATUS_FILTERS.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                    <SelectItem key={s} value={s}>{humanizeEnum(s)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -595,7 +600,7 @@ export default function InstitutionsPage() {
                 <SelectContent>
                   <SelectItem value="ALL">All subscriptions</SelectItem>
                   {SUB_FILTERS.map((s) => (
-                    <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
+                    <SelectItem key={s} value={s}>{humanizeEnum(s)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -655,7 +660,7 @@ export default function InstitutionsPage() {
                   setLimitExceeded(e.target.checked);
                   setPage(1);
                 }}
-                className="h-4 w-4 rounded border-slate-300"
+                className="h-4 w-4 rounded border-surface-300"
               />
               Over limit
             </label>
@@ -672,7 +677,7 @@ export default function InstitutionsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-100" />
           ))}
         </div>
       ) : error ? (
@@ -692,7 +697,7 @@ export default function InstitutionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                   <th className="px-4 py-3 font-medium">Institution</th>
                   <th className="px-4 py-3 font-medium">Type</th>
                   <th className="px-4 py-3 font-medium">Status</th>
@@ -709,7 +714,7 @@ export default function InstitutionsPage() {
                   const endsAt = sub?.endsAt ?? null;
                   const isSystem = isSystemRow(row);
                   return (
-                    <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+                    <tr key={row.id} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div
@@ -728,12 +733,12 @@ export default function InstitutionsPage() {
                           </div>
                           <div>
                             <div className="flex flex-wrap items-center gap-2">
-                              <a
+                              <Link
                                 href={`/app/institutions/${row.id}`}
                                 className="font-medium text-surface-900 hover:text-brand-700 hover:underline"
                               >
                                 {row.name}
-                              </a>
+                              </Link>
                               {isSystem ? (
                                 <Badge className="text-[10px] bg-violet-100 text-violet-700 border-violet-200" variant="outline">
                                   System
@@ -753,15 +758,15 @@ export default function InstitutionsPage() {
                             {TYPE_LABELS[row.type] ?? String(row.type).replace(/_/g, ' ')}
                           </span>
                           {isSystem ? (
-                            <Badge className="text-[10px] bg-slate-800 text-white" variant="outline">
+                            <Badge className="text-[10px] bg-surface-800 text-white" variant="outline">
                               Platform
                             </Badge>
                           ) : null}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status] ?? 'bg-slate-100 text-slate-600')}>
-                          {row.status}
+                        <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status] ?? 'bg-surface-100 text-surface-600')}>
+                          {humanizeEnum(row.status)}
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
@@ -769,7 +774,7 @@ export default function InstitutionsPage() {
                           variant="outline"
                           className={cn('text-xs', SUB_STATUS_STYLES[row.subscriptionStatus ?? 'NONE']) as string}
                         >
-                          {row.subscriptionStatus ?? 'NONE'}
+                          {humanizeEnum(row.subscriptionStatus ?? 'NONE')}
                         </Badge>
                         <p className="mt-0.5 text-xs text-surface-500">
                           {sub?.plan?.key ?? '—'}
@@ -815,7 +820,7 @@ export default function InstitutionsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem asChild>
-                              <a href={`/app/institutions/${row.id}`}>View details</a>
+                              <Link href={`/app/institutions/${row.id}`}>View details</Link>
                             </DropdownMenuItem>
                             {isSystem ? (
                               <DropdownMenuSeparator />
@@ -860,7 +865,7 @@ export default function InstitutionsPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
+          <div className="flex items-center justify-between border-t border-surface-200 px-4 py-3">
             <p className="text-xs text-surface-500">
               Showing {(data?.total ?? 0) === 0 ? 0 : (page - 1) * pageSize + 1}–
               {Math.min(page * pageSize, data?.total ?? 0)} of {data?.total ?? 0}

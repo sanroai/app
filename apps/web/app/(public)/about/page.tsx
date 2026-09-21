@@ -23,7 +23,7 @@ export default function AboutPage() {
             <GraduationCap className="h-4 w-4" />
             About Sanro AI
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             Academic Intelligence,{' '}
             <span className="gradient-text">Not Just Content</span>
           </h1>
@@ -36,7 +36,7 @@ export default function AboutPage() {
         {/* Mission */}
         <div className="grid md:grid-cols-2 gap-16 items-center mb-24">
           <div>
-            <h2 className="text-3xl font-bold text-surface-900 mb-4">Our Mission</h2>
+            <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Our Mission</h2>
             <p className="text-surface-600 mb-6 leading-relaxed">
               Indian schools generate assessment data every week. But that data rarely translates
               into specific action. Students don&apos;t know which concepts they haven&apos;t
@@ -70,7 +70,7 @@ export default function AboutPage() {
 
         {/* Philosophy */}
         <div className="mb-24">
-          <h2 className="text-3xl font-bold text-surface-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-8 text-center">
             Product <span className="gradient-text">Philosophy</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
@@ -101,7 +101,7 @@ export default function AboutPage() {
 
         {/* Platform Overview */}
         <div className="mb-24">
-          <h2 className="text-3xl font-bold text-surface-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-8 text-center">
             The <span className="gradient-text">Sanro AI</span> Platform
           </h2>
           <div className="rounded-3xl bg-gradient-to-r from-brand-600 to-purple-600 p-10 text-white text-center">
@@ -125,13 +125,13 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">See Sanro AI in Action</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">See Sanro AI in Action</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             Experience how Sanro AI helps students improve. Sign up for a demo or explore the platform.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/login"
+              href="/register"
               className="rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white hover:from-brand-700 hover:to-purple-700 transition-all shadow-xl flex items-center gap-2"
             >
               Get Started <ArrowRight className="h-5 w-5" />

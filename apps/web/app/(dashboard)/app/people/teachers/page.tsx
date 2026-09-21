@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAdminTeachers, type AdminTeacherQuery } from '@/lib/people-hooks';
 import { useInstitutions } from '@/lib/institution-hooks';
@@ -35,6 +36,12 @@ const STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700 border-green-200',
   DEACTIVATED: 'bg-red-100 text-red-700 border-red-200',
   INVITED: 'bg-amber-100 text-amber-700 border-amber-200',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  DEACTIVATED: 'Deactivated',
+  INVITED: 'Invited',
 };
 
 export default function PeopleTeachersPage() {
@@ -134,8 +141,8 @@ export default function PeopleTeachersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All statuses</SelectItem>
-                  <SelectItem value="ACTIVE">ACTIVE</SelectItem>
-                  <SelectItem value="DEACTIVATED">DEACTIVATED</SelectItem>
+                   <SelectItem value="ACTIVE">Active</SelectItem>
+                   <SelectItem value="DEACTIVATED">Deactivated</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -152,7 +159,7 @@ export default function PeopleTeachersPage() {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-100" />
           ))}
         </div>
       ) : error ? (
@@ -172,7 +179,7 @@ export default function PeopleTeachersPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                  <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                   <th className="px-4 py-3 font-medium">Teacher</th>
                   <th className="px-4 py-3 font-medium">Institution</th>
                   <th className="px-4 py-3 font-medium">Subjects</th>
@@ -182,15 +189,15 @@ export default function PeopleTeachersPage() {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+                  <tr key={row.id} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
                     <td className="px-4 py-3">
                       <p className="font-medium text-surface-900">
-                        <a
+                        <Link
                           href={`/app/people/teachers/${row.id}`}
                           className="hover:text-brand-700 hover:underline"
                         >
                           {row.name}
-                        </a>
+                        </Link>
                       </p>
                       <p className="text-xs text-surface-500">{row.email ?? '—'}</p>
                     </td>
@@ -199,9 +206,9 @@ export default function PeopleTeachersPage() {
                       {(row.subjects ?? []).map((s) => s.name).join(', ') || '—'}
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status ?? ''] ?? 'bg-slate-100 text-slate-600')}>
-                        {row.status ?? '—'}
-                      </Badge>
+                        <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status ?? ''] ?? 'bg-surface-100 text-surface-600')}>
+                          {STATUS_LABELS[row.status ?? ''] ?? row.status ?? '—'}
+                        </Badge>
                     </td>
                     <td className="px-2 py-3 text-right">
                       <DropdownMenu>
@@ -212,7 +219,7 @@ export default function PeopleTeachersPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-44">
                           <DropdownMenuItem asChild>
-                            <a href={`/app/people/teachers/${row.id}`}>View details</a>
+                            <Link href={`/app/people/teachers/${row.id}`}>View details</Link>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -222,7 +229,7 @@ export default function PeopleTeachersPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
+          <div className="flex items-center justify-between border-t border-surface-200 px-4 py-3">
             <p className="text-xs text-surface-500">
               Showing {(data?.total ?? 0) === 0 ? 0 : (page - 1) * pageSize + 1}–
               {Math.min(page * pageSize, data?.total ?? 0)} of {data?.total ?? 0}

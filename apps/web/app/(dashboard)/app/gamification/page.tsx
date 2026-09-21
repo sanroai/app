@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Spinner, ErrorBanner } from '@/components/ui';
-import { Trophy, Flame, Star, Award, ChevronRight, Zap, Target, TrendingUp, Brain, ClipboardList, Rocket, Heart, BookOpen, Target as TargetIcon } from 'lucide-react';
+import { Trophy, Flame, Star, Award, ChevronRight, Zap, Target, TrendingUp, Brain, ClipboardList, Rocket, Heart, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { type LucideIcon } from 'lucide-react';
 
@@ -170,7 +170,7 @@ export default function GamificationPage() {
         <section>
           <h2 className="mb-4 text-lg font-bold text-surface-900">Recent Achievements</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {p.recentAchievements.map((a: any) => (
+            {p.recentAchievements.map((a: { id: string; name: string; icon: string; description?: string; key?: string }) => (
               <Card key={a.id}>
                 <CardContent className="flex items-center gap-3 p-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100">

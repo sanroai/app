@@ -64,7 +64,7 @@ export function NotificationBell() {
   return (
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+        <Button variant="ghost" size="icon" className="relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500" aria-label="Notifications">
           <Bell className="h-5 w-5 text-surface-600" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
@@ -140,7 +140,7 @@ export function NotificationBell() {
                   />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-baseline justify-between gap-2">
-                      <span className="truncate text-sm font-semibold text-surface-900">
+                      <span className="truncate text-sm font-semibold text-surface-900" title={n.title}>
                         {n.title}
                       </span>
                       <span className="shrink-0 text-xs text-surface-400">

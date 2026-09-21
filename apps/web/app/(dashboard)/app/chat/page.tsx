@@ -112,7 +112,7 @@ export default function ChatPage() {
       <Card className="flex-1 flex flex-col overflow-hidden">
         <CardContent className="flex-1 flex flex-col p-0">
           <ScrollArea className="flex-1">
-            <div ref={scrollRef} className="flex flex-col gap-4 p-6 h-full overflow-y-auto">
+            <div ref={scrollRef} role="log" aria-live="polite" className="flex flex-col gap-4 p-6 h-full overflow-y-auto">
               {messages.map((msg) => (
                 <div
                   key={msg.id}
@@ -183,12 +183,14 @@ export default function ChatPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Type your question..."
+                aria-label="Type your question"
                 className="flex-1"
                 disabled={chatMutation.isPending}
               />
               <Button
                 type="submit"
                 size="icon"
+                aria-label="Send message"
                 disabled={!input.trim() || chatMutation.isPending}
               >
                 <Send className="h-4 w-4" />

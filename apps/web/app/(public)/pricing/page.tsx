@@ -22,7 +22,7 @@ export default function PricingPage() {
           <div className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700 mb-6">
             Pricing
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             Plans for Every{' '}
             <span className="gradient-text">School</span>
           </h1>
@@ -34,7 +34,7 @@ export default function PricingPage() {
 
         {/* What's Included */}
         <div className="max-w-4xl mx-auto mb-20">
-          <h2 className="text-2xl font-bold text-surface-900 mb-8 text-center">
+          <h2 className="text-2xl font-bold font-display text-surface-900 mb-8 text-center">
             What&apos;s Included
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
@@ -65,7 +65,7 @@ export default function PricingPage() {
 
         {/* Contact CTA */}
         <div className="rounded-3xl bg-gradient-to-r from-brand-600 to-purple-600 p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Get a Custom Quote</h2>
+          <h2 className="text-3xl font-bold font-display mb-4">Get a Custom Quote</h2>
           <p className="text-white/80 max-w-xl mx-auto mb-8">
             Every school is different. Tell us about your institution and we will create a plan
             that works for you.

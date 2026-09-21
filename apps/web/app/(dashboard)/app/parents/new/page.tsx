@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, UserPlus } from 'lucide-react';
+import { ArrowLeft, Loader2, UserPlus } from 'lucide-react';
 
 const CreateParentSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -50,7 +50,7 @@ export default function NewParentPage() {
   return (
     <div className="max-w-lg mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Go back">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
@@ -81,7 +81,7 @@ export default function NewParentPage() {
             </div>
 
             <div className="rounded-xl bg-blue-50 border border-blue-200 p-3 text-sm text-blue-700">
-              The parent will receive a default password (<code>sanro123</code>). They should change it on first login.
+              The parent will receive a default password (<code className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded text-sm font-mono">sanro123</code>). They should change it on first login.
             </div>
 
             {serverError && (
@@ -93,7 +93,7 @@ export default function NewParentPage() {
             <Button type="submit" className="w-full h-11" disabled={isSubmitting}>
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Creating...
                 </div>
               ) : (

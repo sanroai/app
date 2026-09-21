@@ -15,8 +15,8 @@ export const Button = forwardRef<
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:opacity-60',
         variant === 'primary' && 'bg-brand-600 text-white hover:bg-brand-700',
-        variant === 'outline' && 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
-        variant === 'ghost' && 'text-slate-600 hover:bg-slate-100',
+        variant === 'outline' && 'border border-surface-300 bg-white text-surface-700 hover:bg-surface-50',
+        variant === 'ghost' && 'text-surface-600 hover:bg-surface-100',
         className,
       )}
       {...props}
@@ -33,7 +33,7 @@ export const Input = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTML
       <input
         ref={ref}
         className={cn(
-          'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30',
+          'w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-colors placeholder:text-surface-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30',
           className,
         )}
         {...props}
@@ -48,7 +48,7 @@ export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<H
       <select
         ref={ref}
         className={cn(
-          'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30',
+          'w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition-colors focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30',
           className,
         )}
         {...props}
@@ -59,14 +59,14 @@ export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<H
 
 export const Label = forwardRef<HTMLLabelElement, React.LabelHTMLAttributes<HTMLLabelElement>>(
   function Label({ className, ...props }, ref) {
-    return <label ref={ref} className={cn('mb-1 block text-sm font-medium text-slate-700', className)} {...props} />;
+    return <label ref={ref} className={cn('mb-1 block text-sm font-medium text-surface-700', className)} {...props} />;
   },
 );
 
 export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('rounded-xl border border-slate-200 bg-white p-5 shadow-sm', className)}
+      className={cn('rounded-xl border border-surface-200 bg-white p-5 shadow-sm', className)}
       {...props}
     />
   );
@@ -95,7 +95,7 @@ export function ErrorBanner({ message }: { message?: string | null }) {
 
 export function Spinner({ label = 'Loading…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-500">
+    <div className="flex items-center justify-center gap-2 py-10 text-sm text-surface-500">
       <Loader2 className="h-4 w-4 animate-spin" />
       {label}
     </div>

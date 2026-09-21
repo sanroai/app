@@ -105,11 +105,13 @@ export default function LoginPage() {
                   autoComplete="email"
                   placeholder="you@school.edu"
                   className="pl-10"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                   {...register('email')}
                 />
               </div>
               {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
+                <p id="email-error" className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
 
@@ -128,12 +130,15 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   placeholder="••••••••"
                   className="pl-10 pr-10"
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                   {...register('password')}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 rounded-lg"
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -143,12 +148,12 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p id="password-error" className="text-sm text-red-500">{errors.password.message}</p>
               )}
             </div>
 
             {serverError && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+              <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
                 {serverError}
               </div>
             )}
@@ -161,7 +166,8 @@ export default function LoginPage() {
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <div role="status" className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span className="sr-only">Loading...</span>
                   Signing in...
                 </div>
               ) : (

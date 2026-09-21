@@ -119,7 +119,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-bold text-surface-900 mb-3">11. Contact</h2>
             <p>
               For questions about these Terms, contact us at{' '}
-              <a href="mailto:hello@sanroai.com" className="text-brand-600 hover:underline">
+              <a href="mailto:hello@sanroai.com" className="text-brand-600 hover:underline focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                 hello@sanroai.com
               </a>
               .

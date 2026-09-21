@@ -75,6 +75,11 @@ const STATUS_STYLES: Record<string, string> = {
   DEACTIVATED: 'bg-red-100 text-red-700',
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  DEACTIVATED: 'Deactivated',
+};
+
 const AUDIT_ACTION_STYLES: Record<string, string> = {
   PARENT_CREATED: 'bg-emerald-100 text-emerald-700',
   PARENT_UPDATED: 'bg-blue-100 text-blue-700',
@@ -196,14 +201,14 @@ export default function PeopleParentDetailPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1 text-sm text-surface-500">
-        <Link
-          href="/app/people/parents"
-          className="inline-flex items-center gap-1 transition-colors hover:text-brand-600"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          People / Parents
-        </Link>
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-2 text-sm text-surface-500">
+          <li>
+            <Link href="/app/people/parents" className="hover:text-brand-600">Parents</Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-surface-900 font-medium">{parent.name}</li>
+        </ol>
       </nav>
 
       <div className="space-y-4">
@@ -221,8 +226,8 @@ export default function PeopleParentDetailPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold text-surface-900">{parent.name}</h1>
                 <SourceBadge source={source} />
-                <Badge className={cn('text-xs', STATUS_STYLES[parent.status ?? ''] ?? 'bg-slate-100 text-slate-600')}>
-                  {parent.status ?? '—'}
+                <Badge className={cn('text-xs', STATUS_STYLES[parent.status ?? ''] ?? 'bg-surface-100 text-surface-600')}>
+                  {STATUS_LABELS[parent.status ?? ''] ?? parent.status ?? '—'}
                 </Badge>
                 {parent.isActive === false ? (
                   <Badge variant="secondary" className="text-xs">User disabled</Badge>

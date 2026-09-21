@@ -6,6 +6,7 @@ import { usePaper } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
+import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { ClipboardList, ExternalLink, Download, Printer, FileText } from 'lucide-react';
 
@@ -70,7 +71,7 @@ export default function PaperDetailPage() {
         }
       }
     } catch (e) {
-      alert('Unable to generate PDF. Please try again.');
+      toast.error('Unable to generate PDF. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -88,14 +89,14 @@ export default function PaperDetailPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">{paper.title}</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-surface-500">
             {paper.examName ?? ''} · {paper.subject?.name ?? '—'} · {paper.totalMarks ?? '—'} marks · {paper.durationMinutes ?? '—'} min ·{' '}
             <Badge>{paper.status}</Badge>
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {validate.data ? (
-            <span className="text-sm text-slate-500 mr-2">
+            <span className="text-sm text-surface-500 mr-2">
               {validate.data.valid ? '✓ Valid' : '⚠ Needs attention'} · {validate.data.totalMarks ?? '—'} marks
             </span>
           ) : null}

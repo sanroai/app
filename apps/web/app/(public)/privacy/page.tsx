@@ -126,7 +126,7 @@ export default function PrivacyPage() {
             <h2 className="text-xl font-bold text-surface-900 mb-3">10. Contact Us</h2>
             <p>
               If you have questions about this Privacy Policy, contact us at{' '}
-              <a href="mailto:hello@sanroai.com" className="text-brand-600 hover:underline">
+              <a href="mailto:hello@sanroai.com" className="text-brand-600 hover:underline focus-visible:ring-2 focus-visible:ring-brand-500 rounded">
                 hello@sanroai.com
               </a>
               .

@@ -41,7 +41,7 @@ export default function DownloadPage() {
               <Smartphone className="h-4 w-4" />
               Sanro AI Mobile App
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
               Take Sanro AI{' '}
               <span className="gradient-text">Everywhere</span>
             </h1>
@@ -85,7 +85,7 @@ export default function DownloadPage() {
           </div>
 
           {/* Phone mockup */}
-          <div className="relative mx-auto w-full max-w-[300px]">
+          <div className="relative mx-auto w-full max-w-[300px]" aria-hidden="true">
             <div className="absolute -inset-6 rounded-[3rem] bg-gradient-to-br from-brand-300/40 to-purple-300/40 blur-2xl" aria-hidden />
             <div className="relative rounded-[2.75rem] border-[10px] border-surface-900 bg-white shadow-2xl overflow-hidden">
               <div className="flex items-center justify-center bg-surface-900 py-2">
@@ -121,7 +121,7 @@ export default function DownloadPage() {
 
         {/* Features */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-surface-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-8 text-center">
             What You Get
           </h2>
           <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
@@ -139,7 +139,7 @@ export default function DownloadPage() {
 
         {/* Installation */}
         <div className="mb-20 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-surface-900 mb-8 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-8 text-center">
             Installation <span className="gradient-text">Instructions</span>
           </h2>
           <div className="rounded-3xl bg-white p-8 shadow-card border border-surface-100 space-y-4">
@@ -161,7 +161,7 @@ export default function DownloadPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">Ready to Start?</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Ready to Start?</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             Sign in to your Sanro AI account or create a new one.
           </p>

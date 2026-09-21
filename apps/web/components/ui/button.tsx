@@ -1,6 +1,7 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
+import { Loader2 } from "lucide-react"
 import { cn } from "@/lib/cn"
 
 const buttonVariants = cva(
@@ -8,11 +9,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-600/25 hover:shadow-xl hover:shadow-brand-600/30",
-        destructive: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/25",
-        outline: "border-2 border-surface-200 bg-white hover:bg-surface-50 hover:border-surface-300",
-        secondary: "bg-surface-100 text-surface-900 hover:bg-surface-200",
-        ghost: "hover:bg-surface-100 hover:text-surface-900",
+        default: "bg-brand-600 text-white hover:bg-brand-700 shadow-lg shadow-brand-600/25 hover:shadow-xl hover:shadow-brand-600/30 dark:bg-brand-500 dark:hover:bg-brand-600",
+        destructive: "bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/25 dark:bg-red-600 dark:hover:bg-red-700",
+        outline: "border-2 border-surface-200 bg-white hover:bg-surface-50 hover:border-surface-300 dark:border-surface-700 dark:bg-surface-800 dark:hover:bg-surface-700 dark:text-surface-100",
+        secondary: "bg-surface-100 text-surface-900 hover:bg-surface-200 dark:bg-surface-800 dark:text-surface-100",
+        ghost: "hover:bg-surface-100 hover:text-surface-900 dark:hover:bg-surface-800 dark:text-surface-100",
         link: "text-brand-600 underline-offset-4 hover:underline",
         gradient: "bg-gradient-to-r from-brand-600 to-purple-600 text-white hover:from-brand-700 hover:to-purple-700 shadow-lg shadow-brand-600/25",
         success: "bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/25",
@@ -37,17 +38,24 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  loading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading, disabled, type = "button", children, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        type={asChild ? undefined : type}
+        disabled={disabled || loading}
+        aria-disabled={disabled || loading || undefined}
         {...props}
-      />
+      >
+        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {children}
+      </Comp>
     )
   }
 )

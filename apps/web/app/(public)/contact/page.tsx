@@ -21,7 +21,7 @@ export default function ContactPage() {
           <div className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700 mb-6">
             Contact
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             Get in <span className="gradient-text">Touch</span>
           </h1>
           <p className="text-lg text-surface-600">
@@ -38,7 +38,7 @@ export default function ContactPage() {
           {/* Contact Info */}
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-surface-900 mb-4">Contact Information</h2>
+              <h2 className="text-2xl font-bold font-display text-surface-900 mb-4">Contact Information</h2>
               <p className="text-surface-600">
                 Reach out to us directly. We typically respond within one business day.
               </p>
@@ -50,7 +50,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-surface-900">Email</div>
-                  <div className="text-sm text-surface-600">hello@sanroai.com</div>
+                  <div className="text-sm text-surface-600"><a href="mailto:hello@sanroai.com" className="hover:underline">hello@sanroai.com</a></div>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -59,7 +59,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-surface-900">Phone</div>
-                  <div className="text-sm text-surface-600">+91 98765 43210</div>
+                  <div className="text-sm text-surface-600"><a href="tel:+919876543210" className="hover:underline">+91 98765 43210</a></div>
                 </div>
               </div>
               <div className="flex items-start gap-4">

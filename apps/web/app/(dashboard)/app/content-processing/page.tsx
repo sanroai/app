@@ -57,6 +57,7 @@ export default function ContentProcessingPage() {
   const [name, setName] = useState('');
   const [sourceType, setSourceType] = useState('PDF_BOOK');
   const [sourceUrl, setSourceUrl] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const stats = useKnowledgeBaseStats();
   const list = useKnowledgeBases();
@@ -70,7 +71,7 @@ export default function ContentProcessingPage() {
       <div className="flex flex-col items-center justify-center py-20">
         <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
         <h2 className="text-xl font-semibold">Access Denied</h2>
-        <p className="text-muted-foreground">This page is restricted to Super Administrators.</p>
+        <p className="text-surface-500">This page is restricted to Super Administrators.</p>
       </div>
     );
   }
@@ -83,7 +84,7 @@ export default function ContentProcessingPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Content Processing</h1>
-        <p className="text-muted-foreground">Manage knowledge bases, process content, and generate curriculum materials.</p>
+        <p className="text-surface-500">Manage knowledge bases, process content, and generate curriculum materials.</p>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -104,7 +105,7 @@ export default function ContentProcessingPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Knowledge Bases</CardTitle>
-                    <Database className="h-4 w-4 text-muted-foreground" />
+                    <Database className="h-4 w-4 text-surface-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{statsData?.totalKnowledgeBases ?? 0}</div>
@@ -113,7 +114,7 @@ export default function ContentProcessingPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Total Chunks</CardTitle>
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <FileText className="h-4 w-4 text-surface-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{statsData?.totalChunks ?? 0}</div>
@@ -122,7 +123,7 @@ export default function ContentProcessingPage() {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium">Processing</CardTitle>
-                    <Loader2 className="h-4 w-4 text-muted-foreground" />
+                    <Loader2 className="h-4 w-4 text-surface-500" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{statsData?.byStatus?.PROCESSING ?? 0}</div>
@@ -158,7 +159,7 @@ export default function ContentProcessingPage() {
                           {type === 'YOUTUBE' && <Video className="h-4 w-4 text-red-600" />}
                           <span className="text-sm font-medium flex-1">{type.replace('_', ' ')}</span>
                           <Progress value={(count / totalForChart) * 100} className="w-24" />
-                          <span className="text-sm text-muted-foreground">{count}</span>
+                          <span className="text-sm text-surface-500">{count}</span>
                         </div>
                       ))}
                     </div>
@@ -261,17 +262,33 @@ export default function ContentProcessingPage() {
                       >
                         Process
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600"
-                        disabled={deleteKb.isPending}
-                        onClick={() => {
-                          if (window.confirm(`Delete "${kb.name}"?`)) deleteKb.mutate(kb.id);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" /> Delete
-                      </Button>
+                      {confirmDeleteId === kb.id ? (
+                        <div className="flex gap-1">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            disabled={deleteKb.isPending}
+                            onClick={() => {
+                              deleteKb.mutate(kb.id, { onSettled: () => setConfirmDeleteId(null) });
+                            }}
+                          >
+                            Confirm
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setConfirmDeleteId(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600"
+                          disabled={deleteKb.isPending}
+                          onClick={() => setConfirmDeleteId(kb.id)}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      )}
                     </div>
                     {expandedId === kb.id && <KnowledgeBaseChunks id={kb.id} />}
                   </CardContent>
@@ -293,7 +310,7 @@ export default function ContentProcessingPage() {
               ) : jobs.error ? (
                 <ErrorBanner message={(jobs.error as Error).message} />
               ) : (jobs.data?.queue?.length ?? 0) === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-surface-500">
                   <Clock className="h-8 w-8 mx-auto mb-2" />
                   <p>No active processing jobs</p>
                 </div>

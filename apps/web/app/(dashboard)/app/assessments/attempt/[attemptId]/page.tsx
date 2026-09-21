@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAttempt } from '@/lib/api-hooks';
@@ -8,16 +8,18 @@ import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { formatScore, titleCase } from '@/lib/format';
-import { Check, Save, Send, X } from 'lucide-react';
+import { ArrowLeft, Check, Save, Send, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export default function AttemptPage() {
   const { attemptId } = useParams<{ attemptId: string }>();
+  const router = useRouter();
   const { data, isLoading, error } = useAttempt(attemptId);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [confirmSubmit, setConfirmSubmit] = useState(false);
   const queryClient = useQueryClient();
 
   if (isLoading) return <Spinner label="Loading attempt…" />;
@@ -52,7 +54,6 @@ export default function AttemptPage() {
   }
 
   async function submit() {
-    if (!window.confirm('Submit this attempt? You cannot change answers after submitting.')) return;
     setSubmitting(true);
     setMsg(null);
     try {
@@ -66,14 +67,19 @@ export default function AttemptPage() {
       setMsg(e instanceof Error ? e.message : 'Submit failed');
     } finally {
       setSubmitting(false);
+      setConfirmSubmit(false);
     }
   }
 
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">{data.assessment.title}</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <button onClick={() => router.push('/app/assessments')} className="mb-3 inline-flex items-center gap-1.5 text-sm text-surface-500 hover:text-surface-800">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Assessments
+        </button>
+        <h1 className="text-2xl font-bold text-surface-900">{data.assessment.title}</h1>
+        <p className="mt-1 text-sm text-surface-500">
           {data.assessment.subject} · {data.assessment.totalMarks} marks
         </p>
         <div className="mt-3">{submitted ? <Badge>Submitted</Badge> : <Badge className="bg-amber-50 text-amber-700">In progress</Badge>}</div>
@@ -83,15 +89,17 @@ export default function AttemptPage() {
 
       {submitted ? <ResultBanner data={data} /> : null}
 
-      <div className="space-y-4">
-        {data.questions.map((q, idx) => (
-          <Card key={q.id}>
+      <div className="space-y-4 mb-24">
+        {data.questions.map((q, idx) => {
+          const isAnswered = !!(answers[q.id] && answers[q.id].length > 0);
+          return (
+          <Card key={q.id} className={cn('border-l-4', isAnswered ? 'border-l-green-500' : 'border-l-slate-300')}>
             <div className="flex items-start justify-between gap-3">
-              <p className="font-medium text-slate-900">
-                <span className="mr-2 text-slate-400">{idx + 1}.</span>
+              <p className="font-medium text-surface-900">
+                <span className="mr-2 text-surface-400">{idx + 1}.</span>
                 {q.text}
               </p>
-              <Badge className="shrink-0 bg-slate-100 text-slate-600">{q.marks} mark{q.marks > 1 ? 's' : ''}</Badge>
+              <Badge className="shrink-0 bg-surface-100 text-surface-600">{q.marks} mark{q.marks > 1 ? 's' : ''}</Badge>
             </div>
 
             {q.type === 'MCQ' ? (
@@ -108,7 +116,7 @@ export default function AttemptPage() {
                       onClick={() => setAnswers((prev) => ({ ...prev, [q.id]: opt.text }))}
                       className={cn(
                         'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors',
-                        selected ? 'border-brand-600 bg-brand-50 text-slate-900' : 'border-slate-200 bg-white hover:bg-slate-50',
+                        selected ? 'border-brand-600 bg-brand-50 text-surface-900' : 'border-surface-200 bg-white hover:bg-surface-50',
                         isAnswer && 'border-green-500 bg-green-50 text-green-800',
                         wrongPick && 'border-red-400 bg-red-50 text-red-700',
                         submitted && 'cursor-default',
@@ -117,7 +125,7 @@ export default function AttemptPage() {
                       <span
                         className={cn(
                           'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs font-medium',
-                          selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 text-slate-500',
+                          selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-surface-300 text-surface-500',
                         )}
                       >
                         {String.fromCharCode(65 + oi)}
@@ -129,7 +137,7 @@ export default function AttemptPage() {
               </div>
             ) : (
               <textarea
-                className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 disabled:bg-slate-50"
+                className="mt-3 w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 disabled:bg-surface-50"
                 rows={3}
                 disabled={submitted}
                 value={answers[q.id] ?? ''}
@@ -141,16 +149,16 @@ export default function AttemptPage() {
             {submitted && (q.yourAnswer || q.correctAnswer) ? (
               <div className="mt-3 space-y-1 text-sm">
                 {q.yourAnswer ? (
-                  <p className="text-slate-600">
+                  <p className="text-surface-600">
                     Your answer: <span className="font-medium">{q.yourAnswer}</span>
                   </p>
                 ) : null}
                 {q.correctAnswer ? (
-                  <p className="text-slate-600">
+                  <p className="text-surface-600">
                     Correct answer: <span className="font-medium text-green-700">{q.correctAnswer}</span>
                   </p>
                 ) : null}
-                <p className={cn('font-medium', q.isCorrect === true ? 'text-green-700' : q.isCorrect === false ? 'text-red-600' : 'text-slate-500')}>
+                <p className={cn('font-medium', q.isCorrect === true ? 'text-green-700' : q.isCorrect === false ? 'text-red-600' : 'text-surface-500')}>
                   {q.isCorrect === true ? 'Correct' : q.isCorrect === false ? 'Incorrect' : q.isCorrect === null ? 'Unmarked' : ''}{' '}
                   {q.marksAwarded !== null ? `· awarded ${q.marksAwarded} mark${q.marksAwarded === 1 ? '' : 's'}` : null}
                 </p>
@@ -158,22 +166,34 @@ export default function AttemptPage() {
             ) : null}
 
             {!submitted && q.type === 'MCQ' ? (
-              <p className="mt-2 text-xs text-slate-400">{q.options?.length ?? 0} options</p>
+              <p className="mt-2 text-xs text-surface-400">{q.options?.length ?? 0} options</p>
             ) : null}
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {!submitted ? (
-        <div className="sticky bottom-4 mt-6 flex justify-end gap-3 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-sm backdrop-blur">
+        <div className="sticky bottom-4 mt-6 flex justify-end gap-3 rounded-xl border border-surface-200 bg-white/95 p-3 shadow-sm backdrop-blur">
           <Button variant="outline" onClick={save} loading={saving}>
             <Save className="h-4 w-4" />
             Save answers
           </Button>
-          <Button onClick={submit} loading={submitting}>
-            <Send className="h-4 w-4" />
-            Submit attempt
-          </Button>
+          {confirmSubmit ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-surface-600">Submit this attempt? You cannot change answers after submitting.</span>
+              <Button variant="outline" onClick={() => setConfirmSubmit(false)}>Cancel</Button>
+              <Button onClick={submit} loading={submitting}>
+                <Send className="h-4 w-4" />
+                Confirm submit
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => setConfirmSubmit(true)}>
+              <Send className="h-4 w-4" />
+              Submit attempt
+            </Button>
+          )}
         </div>
       ) : null}
     </div>
@@ -200,9 +220,9 @@ function ResultStat({ label, value, icon }: { label: string; value: string; icon
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-brand-600">{label}</p>
-      <p className="mt-1 flex items-center gap-1.5 text-2xl font-bold text-slate-900">
+      <p className="mt-1 flex items-center gap-1.5 text-2xl font-bold text-surface-900">
         {icon}
-        {value === '—' ? <span className="text-slate-400">—</span> : value}
+        {value === '—' ? <span className="text-surface-400">—</span> : value}
       </p>
     </div>
   );

@@ -103,7 +103,7 @@ export function ContactForm() {
         {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message.message}</p>}
       </div>
       {error && (
-        <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">{error}</div>
+        <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">{error}</div>
       )}
       <button
         type="submit"

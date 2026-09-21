@@ -60,6 +60,7 @@ export default function QuestionsPage() {
   const [type, setType] = useState('');
   const [difficulty, setDifficulty] = useState('');
   const [page, setPage] = useState(1);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const pageSize = 12;
 
   const { data: boards } = useBoards();
@@ -86,9 +87,18 @@ export default function QuestionsPage() {
   const deleteMutation = useDeleteQuestion();
 
   function handleDelete(id: string) {
-    if (confirm('Delete this question? This cannot be undone.')) {
-      deleteMutation.mutate(id);
+    setConfirmDeleteId(id);
+  }
+
+  function confirmDelete() {
+    if (confirmDeleteId) {
+      deleteMutation.mutate(confirmDeleteId);
+      setConfirmDeleteId(null);
     }
+  }
+
+  function cancelDelete() {
+    setConfirmDeleteId(null);
   }
 
   function resetFilters() {
@@ -243,7 +253,15 @@ export default function QuestionsPage() {
               </p>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {(data?.data ?? []).map((q: Question) => (
-                  <QuestionCard key={q.id} question={q} canManage={canManage} onDelete={handleDelete} />
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    canManage={canManage}
+                    onDelete={handleDelete}
+                    isConfirming={confirmDeleteId === q.id}
+                    onConfirm={confirmDelete}
+                    onCancel={cancelDelete}
+                  />
                 ))}
               </div>
 
@@ -284,10 +302,16 @@ function QuestionCard({
   question: q,
   canManage,
   onDelete,
+  isConfirming,
+  onConfirm,
+  onCancel,
 }: {
   question: Question;
   canManage: boolean;
   onDelete: (id: string) => void;
+  isConfirming: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
 }) {
   const isObjective = ['MCQ', 'TRUE_FALSE', 'MULTI_SELECT'].includes(q.type);
 
@@ -345,14 +369,35 @@ function QuestionCard({
 
         {canManage && (
           <div className="absolute right-3 top-3 opacity-0 transition-opacity group-hover:opacity-100">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-surface-400 hover:text-red-600"
-              onClick={() => onDelete(q.id)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {isConfirming ? (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={onConfirm}
+                >
+                  Confirm
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={onCancel}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-surface-400 hover:text-red-600"
+                onClick={() => onDelete(q.id)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

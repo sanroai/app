@@ -103,7 +103,7 @@ export default function FeaturesPage() {
             <Zap className="h-4 w-4" />
             Product Features
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             Every Feature Serves{' '}
             <span className="gradient-text">One Purpose</span>
           </h1>
@@ -115,7 +115,7 @@ export default function FeaturesPage() {
 
         {/* Core Loop Features */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4 text-center">
             The Core <span className="gradient-text">Loop</span>
           </h2>
           <p className="text-center text-surface-600 mb-12 max-w-2xl mx-auto">
@@ -146,7 +146,7 @@ export default function FeaturesPage() {
 
         {/* Additional Features */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-surface-900 mb-12 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-12 text-center">
             Additional <span className="gradient-text">Capabilities</span>
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -167,12 +167,12 @@ export default function FeaturesPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">Ready to Try Sanro AI?</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Ready to Try Sanro AI?</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             See how Sanro AI can improve learning outcomes at your school.
           </p>
           <Link
-            href="/login"
+            href="/register"
             className="rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white hover:from-brand-700 hover:to-purple-700 transition-all shadow-xl inline-flex items-center gap-2"
           >
             Get Started <ArrowRight className="h-5 w-5" />

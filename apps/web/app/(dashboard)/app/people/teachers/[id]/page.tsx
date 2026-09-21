@@ -90,6 +90,12 @@ const STATUS_STYLES: Record<string, string> = {
   INVITED: 'bg-amber-100 text-amber-700',
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  DEACTIVATED: 'Deactivated',
+  INVITED: 'Invited',
+};
+
 const AUDIT_ACTION_STYLES: Record<string, string> = {
   TEACHER_CREATED: 'bg-emerald-100 text-emerald-700',
   TEACHER_UPDATED: 'bg-blue-100 text-blue-700',
@@ -305,14 +311,14 @@ export default function PeopleTeacherDetailPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1 text-sm text-surface-500">
-        <Link
-          href="/app/people/teachers"
-          className="inline-flex items-center gap-1 transition-colors hover:text-brand-600"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          People / Teachers
-        </Link>
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-2 text-sm text-surface-500">
+          <li>
+            <Link href="/app/people/teachers" className="hover:text-brand-600">Teachers</Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-surface-900 font-medium">{teacher.name}</li>
+        </ol>
       </nav>
 
       <div className="space-y-4">
@@ -329,8 +335,8 @@ export default function PeopleTeacherDetailPage() {
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold text-surface-900">{teacher.name}</h1>
-                <Badge className={cn('text-xs', STATUS_STYLES[teacher.status ?? ''] ?? 'bg-slate-100 text-slate-600')}>
-                  {teacher.status ?? '—'}
+                <Badge className={cn('text-xs', STATUS_STYLES[teacher.status ?? ''] ?? 'bg-surface-100 text-surface-600')}>
+                  {STATUS_LABELS[teacher.status ?? ''] ?? teacher.status ?? '—'}
                 </Badge>
                 {teacher.isActive === false ? (
                   <Badge variant="secondary" className="text-xs">User disabled</Badge>

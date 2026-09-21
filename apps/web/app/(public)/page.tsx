@@ -184,7 +184,7 @@ export default function HomePage() {
               <GraduationCap className="h-4 w-4" />
               Academic Intelligence Platform
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-surface-900 mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold font-display text-surface-900 mb-6 leading-tight">
               Every test should tell you
               <br />
               <span className="bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
@@ -217,7 +217,7 @@ export default function HomePage() {
       <section className="py-20 bg-surface-50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-6">
+            <h2 className="text-3xl md:text-4xl font-bold font-display text-surface-900 mb-6">
               Marks show the score.
               <br />
               <span className="text-violet-600">But not the gap.</span>
@@ -256,7 +256,7 @@ export default function HomePage() {
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold font-display text-surface-900 mb-4">
               The SANRO Loop
             </h2>
             <p className="mx-auto max-w-2xl text-surface-600 text-lg">
@@ -296,7 +296,7 @@ export default function HomePage() {
                 <BookOpen className="h-3 w-3" />
                 FOR STUDENTS
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-surface-900 mb-4">
                 What should I do today?
               </h2>
               <p className="text-lg text-surface-600 mb-8 leading-relaxed">
@@ -411,7 +411,7 @@ export default function HomePage() {
                 <Lightbulb className="h-3 w-3" />
                 FOR TEACHERS
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-surface-900 mb-4">
                 Which students need my attention?
               </h2>
               <p className="text-lg text-surface-600 mb-8 leading-relaxed">
@@ -443,7 +443,7 @@ export default function HomePage() {
               <Shield className="h-3 w-3" />
               FOR SCHOOLS &amp; INSTITUTIONS
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold font-display text-surface-900 mb-4">
               How is academic performance across your institution?
             </h2>
             <p className="mx-auto max-w-2xl text-surface-600 text-lg">
@@ -473,7 +473,7 @@ export default function HomePage() {
                 <Heart className="h-3 w-3" />
                 FOR PARENTS
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-surface-900 mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold font-display text-surface-900 mb-4">
                 Is my child improving?
               </h2>
               <p className="text-lg text-surface-600 mb-8 leading-relaxed">
@@ -534,7 +534,7 @@ export default function HomePage() {
       {/* CTA */}
       <section className="py-24 bg-gradient-to-br from-violet-600 via-purple-600 to-violet-700">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold font-display text-white mb-4">
             Start improving student outcomes today.
           </h2>
           <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
@@ -567,7 +567,7 @@ export default function HomePage() {
                   <Smartphone className="h-3 w-3" />
                   MOBILE APP
                 </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-surface-900 mb-3">
+                <h2 className="text-2xl md:text-3xl font-bold font-display text-surface-900 mb-3">
                   Take SANRO everywhere.
                 </h2>
                 <p className="text-surface-600 mb-6">
@@ -581,7 +581,7 @@ export default function HomePage() {
                     <Download className="h-5 w-5" />
                     Download for Android
                   </Link>
-                  <span className="inline-flex items-center gap-3 rounded-xl border border-surface-200 bg-white px-6 py-3 text-surface-400 font-semibold cursor-not-allowed">
+                  <span className="inline-flex items-center gap-3 rounded-xl border border-surface-200 bg-white px-6 py-3 text-surface-400 font-semibold cursor-not-allowed" aria-disabled="true" role="button">
                     Coming Soon — iOS
                   </span>
                 </div>
@@ -609,7 +609,7 @@ export default function HomePage() {
       {/* FAQ */}
       <section className="py-20 bg-surface-50">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-surface-900 text-center mb-12">
+          <h2 className="text-3xl font-bold font-display text-surface-900 text-center mb-12">
             Frequently Asked Questions
           </h2>
           <div className="space-y-4">

@@ -86,16 +86,8 @@ export default function ReportsPage() {
           <h1 className="text-2xl font-bold text-surface-900">Reports</h1>
           <p className="text-surface-500 mt-1">Academic performance overview</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-surface-200 rounded w-32 mb-3" />
-                <div className="h-3 bg-surface-200 rounded w-full mb-2" />
-                <div className="h-3 bg-surface-200 rounded w-3/4" />
-              </CardContent>
-            </Card>
-          ))}
+        <div className="flex items-center justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-surface-300 border-t-brand-600" />
         </div>
       </div>
     );

@@ -72,7 +72,7 @@ export default function AchievementsPage() {
         <section>
           <h2 className="mb-3 text-lg font-bold text-surface-900">Earned</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {earned.map((a: any) => (
+            {earned.map((a: { id: string; name: string; icon: string; description?: string; key?: string }) => (
               <Card key={a.id} className="border-amber-200 bg-amber-50/30">
                 <CardContent className="flex items-center gap-3 p-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100">
@@ -97,7 +97,7 @@ export default function AchievementsPage() {
         <section>
           <h2 className="mb-3 text-lg font-bold text-surface-500">Locked</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {locked.map((a: any) => (
+            {locked.map((a: { id: string; name: string; icon: string; description?: string; key?: string }) => (
               <Card key={a.id} className="opacity-60">
                 <CardContent className="flex items-center gap-3 p-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-100 text-surface-400">

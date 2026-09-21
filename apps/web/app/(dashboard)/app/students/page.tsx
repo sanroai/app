@@ -132,7 +132,7 @@ function StudentsList() {
                             : 'bg-red-100 text-red-700'
                         }`}
                       >
-                        {student.status}
+                        {student.status === 'ACTIVE' ? 'Active' : student.status === 'INACTIVE' ? 'Inactive' : student.status}
                       </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-surface-500">

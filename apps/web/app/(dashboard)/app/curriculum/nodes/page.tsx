@@ -453,7 +453,7 @@ export default function CurriculumNodesPage() {
       case 'boards': {
         const row = node as AdminBoardNode;
         return (
-          <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+          <tr key={key} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
             <td className="px-4 py-3">
               <p className="font-medium text-surface-900">{row.name}</p>
             </td>
@@ -471,7 +471,7 @@ export default function CurriculumNodesPage() {
         const row = node as AdminGradeNode;
         const path = [{ id: row.boardId, name: row.boardName }];
         return (
-          <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+          <tr key={key} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
             <td className="px-4 py-3">
               <PathText nodes={path} />
             </td>
@@ -484,7 +484,7 @@ export default function CurriculumNodesPage() {
       case 'subjects': {
         const row = node as AdminSubjectNode;
         return (
-          <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+          <tr key={key} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
             <td className="px-4 py-3">
               <PathText nodes={parentPath()} />
             </td>
@@ -503,7 +503,7 @@ export default function CurriculumNodesPage() {
       case 'chapters': {
         const row = node as AdminChapterNode;
         return (
-          <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+          <tr key={key} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
             <td className="px-4 py-3">
               <PathText nodes={parentPath()} />
             </td>
@@ -520,7 +520,7 @@ export default function CurriculumNodesPage() {
       case 'topics': {
         const row = node as AdminTopicNode;
         return (
-          <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+          <tr key={key} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
             <td className="px-4 py-3">
               <PathText nodes={parentPath()} />
             </td>
@@ -538,7 +538,7 @@ export default function CurriculumNodesPage() {
       case 'concepts': {
         const row = node as AdminConceptNode;
         return (
-          <tr key={key} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+          <tr key={key} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
             <td className="px-4 py-3">
               <PathText nodes={parentPath()} />
             </td>
@@ -644,7 +644,7 @@ export default function CurriculumNodesPage() {
       ) : activeQ.isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-100" />
           ))}
         </div>
       ) : activeQ.error ? (
@@ -663,7 +663,7 @@ export default function CurriculumNodesPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                   {HEADERS[kind].map((h) => (
                     <th key={h || 'actions'} className={cn('px-4 py-3 font-medium', h === '' && 'text-right')}>
                       {h}
@@ -676,7 +676,7 @@ export default function CurriculumNodesPage() {
               </tbody>
             </table>
           </div>
-          <div className="border-t border-slate-200 px-4 py-3">
+          <div className="border-t border-surface-200 px-4 py-3">
             <p className="text-xs text-surface-500">
               {rows.length} {labels.plural.toLowerCase()} — {kind === 'grades' ? 'loaded from the super-admin curriculum tree for management' : 'from the scoped curriculum endpoints'}
             </p>

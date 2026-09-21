@@ -27,6 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -79,7 +80,7 @@ type PipelineStage = (typeof STAGES)[number];
 const STATUS_FILTERS = ['PROCESSING', 'PROCESSED', 'DRAFT', 'PUBLISHED'];
 
 const STAGE_STYLES: Record<string, string> = {
-  UPLOADED: 'bg-slate-100 text-slate-600 border-slate-200',
+  UPLOADED: 'bg-surface-100 text-surface-600 border-surface-200',
   VALIDATING: 'bg-sky-100 text-sky-700 border-sky-200',
   EXTRACTING: 'bg-indigo-100 text-indigo-700 border-indigo-200',
   PARSING: 'bg-blue-100 text-blue-700 border-blue-200',
@@ -96,14 +97,14 @@ const STAGE_STYLES: Record<string, string> = {
 const STATUS_STYLES: Record<string, string> = {
   PROCESSING: 'bg-sky-100 text-sky-700 border-sky-200',
   PROCESSED: 'bg-blue-100 text-blue-700 border-blue-200',
-  DRAFT: 'bg-slate-100 text-slate-600 border-slate-200',
+  DRAFT: 'bg-surface-100 text-surface-600 border-surface-200',
   REVIEW: 'bg-orange-100 text-orange-700 border-orange-200',
   APPROVED: 'bg-green-100 text-green-700 border-green-200',
   PUBLISHED: 'bg-green-100 text-green-700 border-green-200',
 };
 
 const JOB_STATUS_STYLES: Record<string, string> = {
-  PENDING: 'bg-slate-100 text-slate-600 border-slate-200',
+  PENDING: 'bg-surface-100 text-surface-600 border-surface-200',
   PROCESSING: 'bg-sky-100 text-sky-700 border-sky-200',
   COMPLETED: 'bg-green-100 text-green-700 border-green-200',
   FAILED: 'bg-red-100 text-red-700 border-red-200',
@@ -385,7 +386,7 @@ function IngestFormCard({
             {source === 'FILE' ? (
               <div className="space-y-2 sm:col-span-2">
                 <Label>File *</Label>
-                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-surface-200 bg-surface-50/50 px-6 py-8 text-center transition-colors hover:border-brand-300 hover:bg-brand-50/40">
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-surface-200 bg-surface-50/50 px-6 py-8 text-center transition-colors hover:border-brand-300 hover:bg-brand-50/40 dark:border-surface-700 dark:bg-surface-900/50">
                   <Upload className="h-8 w-8 text-surface-300" />
                   {selectedFile ? (
                     <>
@@ -519,18 +520,16 @@ function IngestFormCard({
 
             <div className="flex flex-wrap items-center gap-6 sm:col-span-2">
               <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-surface-700">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
-                  {...register('directSanroAvailable')}
+                <Checkbox
+                  checked={watch('directSanroAvailable')}
+                  onCheckedChange={(checked) => setValue('directSanroAvailable', checked === true)}
                 />
                 Direct SANRO available
               </label>
               <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-surface-700">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500"
-                  {...register('autoApprove')}
+                <Checkbox
+                  checked={watch('autoApprove')}
+                  onCheckedChange={(checked) => setValue('autoApprove', checked === true)}
                 />
                 Auto-approve (skip review)
               </label>
@@ -987,7 +986,7 @@ export default function ContentIngestPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[820px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                  <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                     <th className="px-4 py-3 font-medium">Title</th>
                     <th className="px-4 py-3 font-medium">Source</th>
                     <th className="px-4 py-3 font-medium">Stage</th>
@@ -1004,7 +1003,7 @@ export default function ContentIngestPage() {
                       <Fragment key={row.id}>
                         <tr
                           onClick={() => setDetailId(expanded ? null : row.id)}
-                          className="cursor-pointer border-b border-slate-100 last:border-0 hover:bg-slate-50/70"
+                          className="cursor-pointer border-b border-surface-100 last:border-0 hover:bg-surface-50/70"
                         >
                           <td className="px-4 py-3">
                             <p className="font-medium text-surface-900">{row.name}</p>
@@ -1053,7 +1052,7 @@ export default function ContentIngestPage() {
                           </td>
                         </tr>
                         {expanded ? (
-                          <tr className="border-b border-slate-100 bg-surface-50/50 last:border-0">
+                          <tr className="border-b border-surface-100 bg-surface-50/50 last:border-0">
                             <td colSpan={7} className="px-4 py-4">
                               <IngestDetailPanel id={row.id} />
                             </td>

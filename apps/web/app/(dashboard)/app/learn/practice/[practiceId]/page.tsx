@@ -17,6 +17,7 @@ import {
   Trophy,
   ArrowLeft,
   RotateCcw,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { api } from '@/lib/api';
@@ -249,7 +250,7 @@ export default function PracticePage() {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Concept
               </Button>
-              <Button onClick={() => window.location.reload()}>
+              <Button onClick={() => router.push(`/app/learn/practice/${practiceId}`)}>
                 <RotateCcw className="h-4 w-4" />
                 Practice Again
               </Button>
@@ -282,7 +283,7 @@ export default function PracticePage() {
         <span className="text-surface-400">Practice</span>
       </nav>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Practice Mode</h1>
           <p className="mt-1 text-sm text-surface-500">
@@ -295,7 +296,7 @@ export default function PracticePage() {
         </div>
       </div>
 
-      <Progress value={progressPercent} className="h-2.5" />
+      <Progress value={progressPercent} className="h-2" />
 
       <Card>
         <CardContent className="p-6">
@@ -392,7 +393,7 @@ export default function PracticePage() {
                 onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
                 placeholder="Type your answer here..."
                 rows={4}
-                className="w-full rounded-xl border-2 border-surface-200 bg-white p-4 text-sm text-surface-800 placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all resize-none"
+                className="w-full rounded-xl border-2 border-surface-200 bg-white p-4 text-sm text-surface-800 placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all resize-y"
               />
             )}
           </div>
@@ -413,9 +414,10 @@ export default function PracticePage() {
           {practiceData.questions.map((_, i) => (
             <button
               key={i}
+              aria-label={`Go to question ${i + 1}`}
               onClick={() => setCurrentIndex(i)}
               className={cn(
-                'h-2.5 w-2.5 rounded-full transition-all',
+                'h-2 w-2 rounded-full transition-all',
                 i === currentIndex
                   ? 'bg-brand-600 w-6'
                   : answers[practiceData.questions[i].id]
@@ -434,7 +436,7 @@ export default function PracticePage() {
           >
             {submitting ? (
               <span className="flex items-center gap-2">
-                <Clock className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Submitting...
               </span>
             ) : (

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Lock, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 
 const ResetPasswordSchema = z
   .object({
@@ -38,6 +38,8 @@ function ResetPasswordForm() {
   const token = searchParams.get('token') ?? '';
   const [serverError, setServerError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const {
     register,
     handleSubmit,
@@ -63,7 +65,7 @@ function ResetPasswordForm() {
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
           <AlertCircle className="h-8 w-8 text-red-600" />
         </div>
-        <h1 className="text-2xl font-bold text-surface-900">Invalid reset link</h1>
+        <h1 className="text-3xl font-bold text-surface-900">Invalid reset link</h1>
         <p className="text-surface-600">
           This password reset link is missing its token. Please request a new one.
         </p>
@@ -81,7 +83,7 @@ function ResetPasswordForm() {
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
-        <h1 className="text-2xl font-bold text-surface-900">Password updated</h1>
+        <h1 className="text-3xl font-bold text-surface-900">Password updated</h1>
         <p className="text-surface-600">
           Your password has been reset. You can now sign in with your new password.
         </p>
@@ -93,7 +95,7 @@ function ResetPasswordForm() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-surface-900">Set a new password</h1>
+        <h1 className="text-3xl font-bold text-surface-900">Set a new password</h1>
         <p className="mt-2 text-surface-600">Choose a strong password with at least 8 characters</p>
       </div>
 
@@ -106,12 +108,21 @@ function ResetPasswordForm() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-surface-400" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="Min. 8 characters"
-                  className="pl-10"
+                  className="pl-10 pr-10"
+                  aria-invalid={!!errors.password}
                   {...register('password')}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 rounded-lg"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
               {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
@@ -122,12 +133,21 @@ function ResetPasswordForm() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-surface-400" />
                 <Input
                   id="confirmPassword"
-                  type="password"
+                  type={showConfirm ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="Re-enter password"
-                  className="pl-10"
+                  className="pl-10 pr-10"
+                  aria-invalid={!!errors.confirmPassword}
                   {...register('confirmPassword')}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 rounded-lg"
+                >
+                  {showConfirm ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
               {errors.confirmPassword && (
                 <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
@@ -135,7 +155,7 @@ function ResetPasswordForm() {
             </div>
 
             {serverError && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+              <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
                 {serverError}
               </div>
             )}

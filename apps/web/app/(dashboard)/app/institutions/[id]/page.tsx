@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import { SUBSCRIPTION } from '@sanro/config';
 import {
@@ -152,6 +152,10 @@ function metadataSummary(meta: Record<string, unknown>) {
   return json.length > 140 ? `${json.slice(0, 140)}...` : json;
 }
 
+function humanizeEnum(s: string) {
+  return s.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 const TYPE_LABELS: Record<string, string> = {
   SCHOOL: 'School',
   COACHING_CENTRE: 'Coaching Centre',
@@ -168,7 +172,7 @@ const INSTITUTION_STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
   PENDING: 'bg-amber-100 text-amber-700',
   SUSPENDED: 'bg-red-100 text-red-700',
-  ARCHIVED: 'bg-slate-100 text-slate-600',
+  ARCHIVED: 'bg-surface-100 text-surface-600',
   EXPIRED: 'bg-red-200 text-red-800',
 };
 
@@ -176,7 +180,7 @@ const SUBSCRIPTION_STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
   TRIAL: 'bg-blue-100 text-blue-700',
   EXPIRED: 'bg-red-100 text-red-700',
-  CANCELLED: 'bg-slate-100 text-slate-600',
+  CANCELLED: 'bg-surface-100 text-surface-600',
   PAST_DUE: 'bg-amber-100 text-amber-700',
   SUSPENDED: 'bg-red-100 text-red-700',
 };
@@ -187,7 +191,7 @@ const SUBSCRIPTION_ACTION_STYLES: Record<string, string> = {
   RENEWED: 'bg-green-100 text-green-700',
   PLAN_CHANGED: 'bg-purple-100 text-purple-700',
   LIMIT_CHANGED: 'bg-amber-100 text-amber-700',
-  CANCELLED: 'bg-slate-100 text-slate-600',
+  CANCELLED: 'bg-surface-100 text-surface-600',
   EXPIRED: 'bg-red-100 text-red-700',
   ACTIVATED: 'bg-green-100 text-green-700',
   SUSPENDED: 'bg-orange-100 text-orange-700',
@@ -199,7 +203,7 @@ const AUDIT_ACTION_STYLES: Record<string, string> = {
   INSTITUTION_ACTIVATED: 'bg-green-100 text-green-700',
   INSTITUTION_SUSPENDED: 'bg-orange-100 text-orange-700',
   INSTITUTION_EXPIRED: 'bg-red-100 text-red-700',
-  INSTITUTION_ARCHIVED: 'bg-slate-100 text-slate-600',
+  INSTITUTION_ARCHIVED: 'bg-surface-100 text-surface-600',
   INSTITUTION_RESTORED: 'bg-green-100 text-green-700',
   SUBSCRIPTION_CREATED: 'bg-emerald-100 text-emerald-700',
   SUBSCRIPTION_UPDATED: 'bg-blue-100 text-blue-700',
@@ -219,11 +223,11 @@ const ROLE_STYLES: Record<string, string> = {
 };
 
 const CONTENT_STATUS_STYLES: Record<string, string> = {
-  DRAFT: 'bg-slate-100 text-slate-600',
+  DRAFT: 'bg-surface-100 text-surface-600',
   REVIEW: 'bg-amber-100 text-amber-700',
   APPROVED: 'bg-blue-100 text-blue-700',
   PUBLISHED: 'bg-green-100 text-green-700',
-  ARCHIVED: 'bg-slate-100 text-slate-500',
+  ARCHIVED: 'bg-surface-100 text-surface-500',
   PROCESSING: 'bg-violet-100 text-violet-700',
   FAILED: 'bg-red-100 text-red-700',
 };
@@ -1383,16 +1387,14 @@ export default function InstitutionDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Toaster position="top-right" richColors />
-
-      <nav className="flex items-center gap-1 text-sm text-surface-500">
-        <Link
-          href="/app/institutions"
-          className="inline-flex items-center gap-1 transition-colors hover:text-brand-600"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Institutions
-        </Link>
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-2 text-sm text-surface-500">
+          <li>
+            <Link href="/app/institutions" className="hover:text-brand-600">Institutions</Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-surface-900 font-medium">{detail.name}</li>
+        </ol>
       </nav>
 
       <div className="space-y-4">
@@ -1409,12 +1411,12 @@ export default function InstitutionDetailPage() {
               <Badge variant="secondary" className="text-xs">{detail.code ?? '—'}</Badge>
               <Badge
                 variant="outline"
-                className={cn('text-xs', isSystemInstitution ? 'bg-slate-800 text-white' : undefined)}
+                className={cn('text-xs', isSystemInstitution ? 'bg-surface-800 text-white' : undefined)}
               >
                 {typeLabel}
               </Badge>
               <Badge className={cn('text-xs', INSTITUTION_STATUS_STYLES[status] ?? 'bg-surface-100 text-surface-600')}>
-                {status}
+                {humanizeEnum(status)}
               </Badge>
             </div>
             <p className="mt-1 text-sm text-surface-500">
@@ -1600,7 +1602,7 @@ export default function InstitutionDetailPage() {
                               {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
                             </p>
                           </div>
-                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{humanizeEnum(admin.status)}</Badge>
                         </div>
                       );
                     })}
@@ -1639,7 +1641,7 @@ export default function InstitutionDetailPage() {
                               {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
                             </p>
                           </div>
-                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{humanizeEnum(admin.status)}</Badge>
                         </div>
                       );
                     })}
@@ -1678,7 +1680,7 @@ export default function InstitutionDetailPage() {
                     {sub.plan.perSeat} per seat
                   </Badge>
                   <Badge className={cn('text-xs', SUBSCRIPTION_STATUS_STYLES[sub.status] ?? 'bg-surface-100 text-surface-600')}>
-                    {sub.status}
+                    {humanizeEnum(sub.status)}
                   </Badge>
                 </div>
 
@@ -1748,7 +1750,7 @@ export default function InstitutionDetailPage() {
                 {historyRows.map((row) => (
                   <div key={row.id} className="flex gap-3">
                     <Badge className={cn('shrink-0 text-[10px]', SUBSCRIPTION_ACTION_STYLES[row.action] ?? 'bg-surface-100 text-surface-600')}>
-                      {row.action}
+                      {humanizeEnum(row.action)}
                     </Badge>
                     <div className="min-w-0">
                       <p className="text-sm text-surface-700">{historySummary(row)}</p>
@@ -1804,7 +1806,7 @@ export default function InstitutionDetailPage() {
                               {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
                             </p>
                           </div>
-                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{humanizeEnum(admin.status)}</Badge>
                         </div>
                       );
                     })}
@@ -1846,7 +1848,7 @@ export default function InstitutionDetailPage() {
                               {admin.phone ?? 'No phone'} · Last login {formatDateTime(admin.lastLoginAt)}
                             </p>
                           </div>
-                          <Badge variant="secondary" className="text-[10px]">{admin.status}</Badge>
+                          <Badge variant="secondary" className="text-[10px]">{humanizeEnum(admin.status)}</Badge>
                         </div>
                       );
                     })}
@@ -1921,7 +1923,7 @@ export default function InstitutionDetailPage() {
                             </Badge>
                           </td>
                           <td className="px-3 py-3">
-                            <span className="text-xs text-surface-600">{u.status}</span>
+                            <span className="text-xs text-surface-600">{humanizeEnum(u.status)}</span>
                             {u.isActive ? null : (
                               <span className="ml-2 text-xs font-medium text-red-600">Disabled</span>
                             )}
@@ -1992,7 +1994,7 @@ export default function InstitutionDetailPage() {
                         </td>
                         <td className="px-3 py-3">
                           <Badge className={cn('text-[10px]', AUDIT_ACTION_STYLES[row.action] ?? 'bg-surface-100 text-surface-600')}>
-                            {row.action}
+                            {humanizeEnum(row.action)}
                           </Badge>
                         </td>
                         <td className="px-3 py-3 text-xs text-surface-600">

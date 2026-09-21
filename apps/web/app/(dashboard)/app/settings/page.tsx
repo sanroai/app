@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +31,7 @@ import { useEffect, useState } from 'react';
 type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
 
 export default function SettingsPage() {
+  const router = useRouter();
   const clearSession = useAuthStore((s) => s.clearSession);
   const markAllRead = useMarkAllNotificationsRead();
   const unread = useUnreadCount();
@@ -183,7 +185,7 @@ export default function SettingsPage() {
             className="text-red-600 hover:text-red-700"
             onClick={() => {
               clearSession();
-              window.location.href = '/login';
+              router.replace('/login');
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />

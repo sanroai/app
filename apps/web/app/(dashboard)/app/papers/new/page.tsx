@@ -2,10 +2,17 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useBoards, useGrades, useSubjects } from '@/lib/api-hooks';
+import { useBoards, useGrades, useSubjects, type Board, type Subject } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
-import { Button, Card, ErrorBanner, Input, Label, Select } from '@/components/ui';
+import { Button, Card, ErrorBanner, Input, Label } from '@/components/ui';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Wand2 } from 'lucide-react';
 
 const TYPE_LABELS = ['MCQ', 'SHORT', 'LONG'] as const;
@@ -81,30 +88,45 @@ export default function NewPaperPage() {
             <Input id="duration" type="number" value={durationMinutes} onChange={(e) => setDurationMinutes(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="board">Board</Label>
-            <Select id="board" value={boardId} onChange={(e) => { setBoardId(e.target.value); setGrade(''); setSubjectId(''); }}>
-              <option value="">Select board…</option>
-              {(boards ?? []).map((b: any) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
+            <Label>Board</Label>
+            <Select value={boardId || 'NONE'} onValueChange={(v) => { const val = v === 'NONE' ? '' : v; setBoardId(val); setGrade(''); setSubjectId(''); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select board…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">Select board…</SelectItem>
+                {(boards ?? []).map((b: Board) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="grade">Grade</Label>
-            <Select id="grade" value={grade} onChange={(e) => { setGrade(e.target.value); setSubjectId(''); }} disabled={!boardId}>
-              <option value="">Select grade…</option>
-              {(grades ?? []).map((g) => (
-                <option key={g} value={g}>Class {g}</option>
-              ))}
+            <Label>Grade</Label>
+            <Select value={grade || 'NONE'} onValueChange={(v) => { const val = v === 'NONE' ? '' : v; setGrade(val); setSubjectId(''); }} disabled={!boardId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select grade…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">Select grade…</SelectItem>
+                {(grades ?? []).map((g) => (
+                  <SelectItem key={g} value={g}>Class {g}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="sm:col-span-2">
-            <Label htmlFor="subject">Subject</Label>
-            <Select id="subject" value={subjectId} onChange={(e) => setSubjectId(e.target.value)} disabled={!grade}>
-              <option value="">Select subject…</option>
-              {(subjects ?? []).map((s: any) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
+            <Label>Subject</Label>
+            <Select value={subjectId || 'NONE'} onValueChange={(v) => setSubjectId(v === 'NONE' ? '' : v)} disabled={!grade}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select subject…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">Select subject…</SelectItem>
+                {(subjects ?? []).map((s: Subject) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
         </div>
@@ -114,7 +136,7 @@ export default function NewPaperPage() {
           <div className="mt-1 space-y-2">
             {dist.map((d, i) => (
               <div key={d.type} className="flex items-center gap-3">
-                <span className="w-24 text-sm font-medium text-slate-700">{d.type}</span>
+                <span className="w-24 text-sm font-medium text-surface-700">{d.type}</span>
                 <Input
                   type="number"
                   aria-label={`${d.type} count`}
@@ -125,7 +147,7 @@ export default function NewPaperPage() {
                     setDist(next);
                   }}
                 />
-                <span className="text-sm text-slate-500">marks</span>
+                <span className="text-sm text-surface-500">marks</span>
                 <Input
                   type="number"
                   aria-label={`${d.type} marks`}
@@ -139,7 +161,7 @@ export default function NewPaperPage() {
               </div>
             ))}
           </div>
-          <p className="mt-2 text-sm text-slate-500">Total marks: <span className="font-semibold text-slate-800">{totalMarks}</span></p>
+          <p className="mt-2 text-sm text-surface-500">Total marks: <span className="font-semibold text-surface-800">{totalMarks}</span></p>
         </div>
 
         <ErrorBanner message={error} />

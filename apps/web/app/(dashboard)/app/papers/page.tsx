@@ -23,15 +23,15 @@ export default function PapersPage() {
         </Button>
       </div>
       <div className="space-y-3">
-        {(data ?? []).map((p: any) => (
-          <Card key={p.id} className="flex items-center justify-between gap-4">
+        {(data ?? []).map((p: { id: string; title: string; status: string; subject?: { name: string } | null; examName?: string; totalMarks?: number; durationMinutes?: number; date?: string | null }) => (
+          <Card key={p.id} className="flex items-center justify-between gap-4 hover:shadow-md transition-all">
             <div>
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-brand-600" />
-                <h2 className="font-semibold text-slate-900">{p.title}</h2>
+                <h2 className="font-semibold text-surface-900">{p.title}</h2>
                 <Badge>{p.status}</Badge>
               </div>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-surface-500">
                 {p.subject?.name ?? '—'} · {p.examName ?? ''} · {p.totalMarks ?? '—'} marks · {p.durationMinutes ?? '—'} min ·{' '}
                 {formatDate(p.date)}
               </p>
@@ -42,7 +42,7 @@ export default function PapersPage() {
             </Button>
           </Card>
         ))}
-        {data && data.length === 0 ? <p className="text-sm text-slate-400">No papers yet — generate your first one.</p> : null}
+        {data && data.length === 0 ? <p className="text-sm text-surface-400">No papers yet — generate your first one.</p> : null}
       </div>
     </div>
   );

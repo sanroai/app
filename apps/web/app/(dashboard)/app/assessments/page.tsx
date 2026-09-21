@@ -13,7 +13,8 @@ import {
 } from '@/lib/api-hooks';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { formatDate, formatScore, titleCase } from '@/lib/format';
-import { Play, RotateCw, Eye, ClipboardList } from 'lucide-react';
+import { toast } from 'sonner';
+import { Play, RotateCw, Eye, ClipboardList, FileText } from 'lucide-react';
 
 export default function AssessmentsPage() {
   const user = useAuthStore((s) => s.user);
@@ -35,28 +36,35 @@ function StaffAssessments() {
         <Button onClick={() => router.push('/app/assessments/new')}>New assessment</Button>
       </div>
       <div className="space-y-3">
-        {(data ?? []).map((a: any) => (
-          <Card key={a.id} className="flex items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="font-semibold text-slate-900">{a.title}</h2>
-                <Badge>{a.status}</Badge>
+        {(data ?? []).map((a: { id: string; title: string; status?: string; startsAt?: string; dueAt?: string; subject?: { name: string }; totalMarks?: number; durationMinutes?: number; _count?: { assignments?: number; attempts?: number }; group?: { name: string } }) => (
+          <Card key={a.id}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-6">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-surface-900">{a.title}</h2>
+                  <Badge>{a.status}</Badge>
+                </div>
+                <p className="mt-1 text-sm text-surface-500">
+                  {a.subject?.name ?? '—'} · {a.totalMarks} marks · {a.durationMinutes} min
+                </p>
               </div>
-              <p className="mt-1 text-sm text-slate-500">
-                {a.subject?.name ?? '—'} · {a.totalMarks} marks · {a.durationMinutes} min
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <span>{a._count?.assignments ?? 0} assigned</span>
-              <span aria-hidden>·</span>
-              <span>{a._count?.attempts ?? 0} attempts</span>
-              <Button variant="outline" onClick={() => router.push(`/app/assessments/${a.id}/manage`)}>
-                Manage
-              </Button>
+              <div className="flex items-center gap-2 text-sm text-surface-500 shrink-0">
+                <span>{a._count?.assignments ?? 0} assigned</span>
+                <span aria-hidden>·</span>
+                <span>{a._count?.attempts ?? 0} attempts</span>
+                <Button variant="outline" onClick={() => router.push(`/app/assessments/${a.id}/manage`)}>
+                  Manage
+                </Button>
+              </div>
             </div>
           </Card>
         ))}
-        {data && data.length === 0 ? <p className="text-sm text-slate-400">No assessments yet.</p> : null}
+        {data && data.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
+            <FileText className="h-10 w-10 text-surface-300 mb-3" />
+            <p className="text-sm text-surface-500 max-w-sm">No assessments yet. Create one to get started.</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -79,7 +87,7 @@ function StudentAssessments() {
       await queryClient.invalidateQueries({ queryKey: ['assessments', 'my'] });
       router.push(`/app/assessments/attempt/${res.attemptId}`);
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Could not start the assessment');
+      toast.error(e instanceof Error ? e.message : 'Could not start the assessment');
     }
   }
 
@@ -94,8 +102,8 @@ function StudentAssessments() {
             <Card key={row.id}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h2 className="font-semibold text-slate-900">{row.assessment.title}</h2>
-                  <p className="mt-1 text-sm text-slate-500">
+                  <h2 className="font-semibold text-surface-900">{row.assessment.title}</h2>
+                  <p className="mt-1 text-sm text-surface-500">
                     {row.assessment.subject?.name ?? '—'} · {row.assessment.totalMarks} marks ·{' '}
                     {formatDate(row.dueAt)}
                   </p>
@@ -118,11 +126,11 @@ function StudentAssessments() {
                 <ul className="mt-4 divide-y divide-slate-100">
                   {submitted.map((a: AttemptSummary) => (
                     <li key={a.id} className="flex items-center justify-between py-2 text-sm">
-                      <span className="text-slate-600">
+                      <span className="text-surface-600">
                         Attempt {a.attemptIndex} · {a.status === 'SUBMITTED' ? 'Submitted' : titleCase(a.status)} ·{' '}
                         {formatDate(a.submittedAt)}
                       </span>
-                      <span className="flex items-center gap-2 font-medium text-slate-800">
+                      <span className="flex items-center gap-2 font-medium text-surface-800">
                         {formatScore(a.score, a.maxScore)}
                         <Button variant="ghost" onClick={() => router.push(`/app/assessments/attempt/${a.id}`)}>
                           <Eye className="h-4 w-4" />
@@ -137,9 +145,9 @@ function StudentAssessments() {
           );
         })}
         {data?.assignments?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-            <ClipboardList className="h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-sm text-slate-500 max-w-sm">No assessments assigned yet — check back soon or ask your teacher.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
+            <ClipboardList className="h-10 w-10 text-surface-300 mb-3" />
+            <p className="text-sm text-surface-500 max-w-sm">No assessments assigned yet — check back soon or ask your teacher.</p>
           </div>
         ) : null}
       </div>

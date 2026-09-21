@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useBoards, useGrades, useSubjects } from '@/lib/api-hooks';
+import { useBoards, useGrades, useSubjects, type Board, type Subject } from '@/lib/api-hooks';
 import { useCreateQuestion } from '@/lib/question-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
@@ -178,7 +178,7 @@ export default function NewQuestionPage() {
               <Label htmlFor="board">Board</Label>
               <Select id="board" value={boardId} onChange={(e) => { setBoardId(e.target.value); setGrade(''); setSubjectId(''); setChapterId(''); setConceptId(''); }}>
                 <option value="">Select board...</option>
-                {(boards ?? []).map((b: any) => (
+                {(boards ?? []).map((b: Board) => (
                   <option key={b.id} value={b.id}>{b.name}</option>
                 ))}
               </Select>
@@ -196,7 +196,7 @@ export default function NewQuestionPage() {
               <Label htmlFor="subject">Subject</Label>
               <Select id="subject" value={subjectId} onChange={(e) => { setSubjectId(e.target.value); setChapterId(''); setConceptId(''); }} disabled={!grade}>
                 <option value="">Select subject...</option>
-                {(subjects ?? []).map((s: any) => (
+                {(subjects ?? []).map((s: Subject) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </Select>
@@ -205,7 +205,7 @@ export default function NewQuestionPage() {
               <Label htmlFor="chapter">Chapter</Label>
               <Select id="chapter" value={chapterId} onChange={(e) => { setChapterId(e.target.value); setConceptId(''); }} disabled={!subjectId}>
                 <option value="">Select chapter...</option>
-                {(chapters ?? []).map((c: any) => (
+                {(chapters ?? []).map((c: { id: string; name: string }) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </Select>
@@ -215,7 +215,7 @@ export default function NewQuestionPage() {
                 <Label htmlFor="concept">Concept (optional)</Label>
                 <Select id="concept" value={conceptId} onChange={(e) => setConceptId(e.target.value)} disabled={!chapterId}>
                   <option value="">Select concept...</option>
-                  {topics.flatMap((t) => t.concepts).map((c: any) => (
+                  {topics.flatMap((t) => t.concepts).map((c: { id: string; name: string }) => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </Select>

@@ -73,6 +73,7 @@ export default function LearnPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
+            aria-label="Search subjects"
           />
         </div>
       </div>
@@ -88,91 +89,116 @@ export default function LearnPage() {
           </p>
         </Card>
       ) : (
-        boards.map((board) => (
-          <section key={board.id}>
-            <div className="mb-4 flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-brand-600" />
-              <h2 className="text-lg font-bold text-surface-900">{board.name}</h2>
-              <Badge variant="secondary">{board.code}</Badge>
-            </div>
+        <>
+          {boards.map((board) => {
+            const hasMatchingSubjects = search
+              ? board.grades.some((grade) =>
+                  grade.subjects.some((s) => s.name.toLowerCase().includes(search.toLowerCase())),
+                )
+              : true;
+            if (search && !hasMatchingSubjects) return null;
+            return (
+            <section key={board.id}>
+              <div className="mb-4 flex items-center gap-2">
+                <GraduationCap className="h-5 w-5 text-brand-600" />
+                <h2 className="text-lg font-bold text-surface-900">{board.name}</h2>
+                <Badge variant="secondary">{board.code}</Badge>
+              </div>
 
-            {board.grades.filter((grade) => grade.subjects.length > 0).map((grade) => {
-              const filteredSubjects = search
-                ? grade.subjects.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
-                : grade.subjects;
-              if (filteredSubjects.length === 0) return null;
-              return (
-              <div key={grade.id} className="mb-8">
-                <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-surface-800">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-sm font-bold text-brand-700">
-                    {grade.grade}
-                  </span>
-                  Class {grade.grade}
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredSubjects.map((subject) => {
-                    const pct =
-                      subject.totalContent > 0
-                        ? Math.round((subject.completedContent / subject.totalContent) * 100)
-                        : 0;
+              {board.grades.filter((grade) => grade.subjects.length > 0).map((grade) => {
+                const filteredSubjects = search
+                  ? grade.subjects.filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
+                  : grade.subjects;
+                if (filteredSubjects.length === 0) return null;
+                return (
+                <div key={grade.id} className="mb-8">
+                  <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-surface-800">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 text-sm font-bold text-brand-700">
+                      {grade.grade}
+                    </span>
+                    Class {grade.grade}
+                  </h3>
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredSubjects.map((subject) => {
+                      const pct =
+                        subject.totalContent > 0
+                          ? Math.round((subject.completedContent / subject.totalContent) * 100)
+                          : 0;
 
-                    return (
-                      <Link
-                        key={subject.id}
-                        href={`/app/learn/${board.id}/${grade.grade}/${subject.id}/chapters`}
-                      >
-                      <Card className="group cursor-pointer border-surface-200 hover:border-brand-300 hover:shadow-md transition-all">
-                        <CardContent className="p-0">
-                          <div className="flex items-start justify-between gap-3 p-6 pb-3">
-                            <div className="min-w-0">
-                              <h4 className="font-bold text-surface-900 group-hover:text-brand-700 transition-colors">
-                                {subject.name}
-                              </h4>
-                              <p className="mt-0.5 text-xs text-surface-400">{subject.code}</p>
-                            </div>
-                            <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-surface-300 group-hover:text-brand-600 transition-colors" />
-                          </div>
-
-                          <div className="px-6 pb-6">
-                            <Progress value={pct} className="h-2" />
-                            <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
-                              <span>
-                                {subject.completedContent}/{subject.totalContent} lessons
-                              </span>
-                              <span className="font-medium text-surface-700">{pct}%</span>
-                            </div>
-                          </div>
-
-                          {subject.averageMastery > 0 && (
-                            <div className="border-t border-surface-100 bg-surface-50 px-6 py-3">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-surface-500">Mastery</span>
-                                  <span
-                                    className={cn(
-                                      'font-semibold',
-                                      subject.averageMastery >= 80
-                                        ? 'text-green-600'
-                                        : subject.averageMastery >= 50
-                                          ? 'text-amber-600'
-                                          : 'text-red-600',
-                                    )}
-                                  >
-                                    {subject.averageMastery}%
-                                  </span>
-                                </div>
+                      return (
+                        <Link
+                          key={subject.id}
+                          href={`/app/learn/${board.id}/${grade.grade}/${subject.id}/chapters`}
+                        >
+                        <Card className="group cursor-pointer border-surface-200 hover:border-brand-300 hover:shadow-md transition-all">
+                          <CardContent className="p-0">
+                            <div className="flex items-start justify-between gap-3 p-6 pb-3">
+                              <div className="min-w-0">
+                                <h4 className="font-bold text-surface-900 group-hover:text-brand-700 transition-colors">
+                                  {subject.name}
+                                </h4>
+                                <p className="mt-0.5 text-xs text-surface-400">{subject.code}</p>
                               </div>
-                            )}
+                              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-surface-300 group-hover:text-brand-600 transition-colors" />
+                            </div>
+
+                            <div className="px-6 pb-6">
+                              <Progress value={pct} className="h-2" />
+                              <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
+                                <span>
+                                  {subject.completedContent}/{subject.totalContent} lessons
+                                </span>
+                                <span className="font-medium text-surface-700">{pct}%</span>
+                              </div>
+                            </div>
+
+                            {subject.averageMastery > 0 && (
+                              <div className="border-t border-surface-100 bg-surface-50 px-6 py-3">
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="text-surface-500">Mastery</span>
+                                    <span
+                                      className={cn(
+                                        'font-semibold',
+                                        subject.averageMastery >= 80
+                                          ? 'text-green-600'
+                                          : subject.averageMastery >= 50
+                                            ? 'text-amber-600'
+                                            : 'text-red-600',
+                                      )}
+                                    >
+                                      {subject.averageMastery}%
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                           </CardContent>
                         </Card>
                       </Link>
                     );
                   })}
                 </div>
-              </div>
-              );
-            })}
-          </section>
-        ))
+                </div>
+                );
+              })}
+            </section>
+            );
+          })}
+          {search && boards.every((board) =>
+            !board.grades.some((grade) =>
+              grade.subjects.some((s) => s.name.toLowerCase().includes(search.toLowerCase())),
+            ),
+          ) && (
+            <Card className="py-16 text-center">
+              <Search className="mx-auto h-12 w-12 text-surface-300" />
+              <p className="mt-4 text-sm font-medium text-surface-500">
+                No subjects match &ldquo;{search}&rdquo;
+              </p>
+              <p className="mt-1 text-xs text-surface-400">
+                Try a different search term
+              </p>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );

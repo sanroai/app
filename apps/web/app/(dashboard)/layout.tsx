@@ -172,6 +172,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
       <Link
         key={l.href}
         href={l.href}
+        aria-current={active ? 'page' : undefined}
         className={cn(
           'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
           active
@@ -200,7 +201,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
           >
             <Icon className="h-4 w-4" />
             {label}
-            <svg className="h-3 w-3 text-current opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-3 w-3 text-current opacity-70" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -225,6 +226,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
       <Link
         key={l.href}
         href={l.href}
+        aria-current={active ? 'page' : undefined}
         onClick={() => onNavigate?.()}
         className={cn(
           'flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
@@ -263,7 +265,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   }
 
   return (
-    <nav className="flex items-center gap-1">
+    <nav className="flex items-center gap-1" aria-label="Main navigation">
       {primaryLinks.map(renderLink)}
       {peopleDropdownLinks.length > 0 && renderDropdown('People', Users, peopleDropdownLinks)}
       {academicLinks.length > 0 && renderDropdown('Academic', Layers, academicLinks)}
@@ -317,15 +319,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.replace('/login');
   }
 
-  const initials = user.name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const initials = (user.name?.trim() || '').split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-surface-50 to-white dark:from-surface-900 dark:to-surface-950">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-brand-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">Skip to content</a>
       {/* Blocked account banner */}
       {blocked && showBlockedBanner && (
         <div className="sticky top-0 z-50 border-b border-amber-200 bg-amber-50 dark:bg-amber-950/80 dark:border-amber-800">
@@ -361,10 +359,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <GraduationCap className="h-5 w-5 text-white" />
               </div>
               <span className="text-lg font-bold text-surface-900 dark:text-surface-100 hidden sm:block">Sanro AI</span>
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-purple-600 to-violet-600 px-2 py-0.5 text-[10px] font-semibold tracking-widest text-white">
-                <GraduationCap className="h-3 w-3" />
-                SANRO AI
-              </span>
             </Link>
             
             <div className="hidden md:flex items-center gap-2 rounded-xl bg-surface-100 dark:bg-surface-800 px-4 py-2">
@@ -372,6 +366,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <input
                 type="text"
                 placeholder="Search students, concepts..."
+                aria-label="Search students, concepts"
                 className="bg-transparent text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none w-48"
               />
             </div>
@@ -382,7 +377,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-xl p-2 hover:bg-surface-50 dark:hover:bg-surface-800 transition-all">
+                <button className="flex items-center gap-3 rounded-xl p-2 hover:bg-surface-50 dark:hover:bg-surface-800 transition-all" aria-label="User menu">
                   <Avatar className="h-9 w-9">
                     <AvatarFallback className={cn("bg-gradient-to-br text-white text-sm font-semibold", ROLE_COLORS[user.role])}>
                       {initials}
@@ -419,6 +414,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               variant="ghost"
               size="icon"
               className="md:hidden"
+              aria-label="Toggle navigation menu"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
@@ -444,16 +440,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div
             className="md:hidden fixed inset-0 z-30 bg-black/40"
             onClick={() => setMobileMenuOpen(false)}
-            aria-hidden
+            aria-hidden="true"
           />
-          <div className="md:hidden fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto overscroll-contain bg-white dark:bg-surface-950 border-b border-surface-200 dark:border-surface-800 shadow-lg">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Navigation menu"
+            className="md:hidden fixed inset-x-0 top-16 bottom-0 z-40 overflow-y-auto overscroll-contain bg-white dark:bg-surface-950 border-b border-surface-200 dark:border-surface-800 shadow-lg"
+          >
             <NavLinks role={user.role} mobile onNavigate={() => setMobileMenuOpen(false)} />
           </div>
         </>
       )}
 
       {/* Main Content */}
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-8 sm:pt-8">
+      <main id="main-content" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-6 pb-8 sm:pt-8">
         {children}
       </main>
     </div>

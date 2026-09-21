@@ -117,12 +117,25 @@ const STATUS_STYLES: Record<string, string> = {
   DEACTIVATED: 'bg-red-100 text-red-700',
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  DEACTIVATED: 'Deactivated',
+};
+
 const SUB_STATUS_STYLES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
   TRIAL: 'bg-sky-100 text-sky-700',
   EXPIRED: 'bg-red-100 text-red-700',
-  CANCELLED: 'bg-slate-100 text-slate-600',
+  CANCELLED: 'bg-surface-100 text-surface-600',
   SUSPENDED: 'bg-red-100 text-red-700',
+};
+
+const SUB_STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  TRIAL: 'Trial',
+  EXPIRED: 'Expired',
+  CANCELLED: 'Cancelled',
+  SUSPENDED: 'Suspended',
 };
 
 const AUDIT_ACTION_STYLES: Record<string, string> = {
@@ -529,14 +542,14 @@ export default function PeopleStudentDetailPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1 text-sm text-surface-500">
-        <Link
-          href="/app/people/students"
-          className="inline-flex items-center gap-1 transition-colors hover:text-brand-600"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          People / Students
-        </Link>
+      <nav aria-label="Breadcrumb" className="mb-4">
+        <ol className="flex items-center gap-2 text-sm text-surface-500">
+          <li>
+            <Link href="/app/people/students" className="hover:text-brand-600">Students</Link>
+          </li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" className="text-surface-900 font-medium">{student.name}</li>
+        </ol>
       </nav>
 
       <div className="space-y-4">
@@ -554,8 +567,8 @@ export default function PeopleStudentDetailPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold text-surface-900">{student.name}</h1>
                 <SourceBadge source={source} />
-                <Badge className={cn('text-xs', STATUS_STYLES[student.status ?? ''] ?? 'bg-slate-100 text-slate-600')}>
-                  {student.status ?? '—'}
+                <Badge className={cn('text-xs', STATUS_STYLES[student.status ?? ''] ?? 'bg-surface-100 text-surface-600')}>
+                  {STATUS_LABELS[student.status ?? ''] ?? student.status ?? '—'}
                 </Badge>
                 {student.isActive === false ? (
                   <Badge variant="secondary" className="text-xs">User disabled</Badge>
@@ -696,8 +709,8 @@ export default function PeopleStudentDetailPage() {
                     <p className="text-xs font-medium uppercase tracking-wide text-surface-400">Direct Subscription (if any)</p>
                     <p className="text-surface-700">
                       {directSub.planKey ?? '—'}
-                      <Badge className={cn('ml-2 text-[10px]', SUB_STATUS_STYLES[directSub.status ?? ''] ?? 'bg-slate-100 text-slate-600')}>
-                        {directSub.status}
+                      <Badge className={cn('ml-2 text-[10px]', SUB_STATUS_STYLES[directSub.status ?? ''] ?? 'bg-surface-100 text-surface-600')}>
+                        {SUB_STATUS_LABELS[directSub.status ?? ''] ?? directSub.status}
                       </Badge>
                     </p>
                     <p className="text-xs text-surface-500">
@@ -714,8 +727,8 @@ export default function PeopleStudentDetailPage() {
                   <p className="text-lg font-bold text-surface-900">{directSub?.planName ?? directSub?.planKey ?? '—'}</p>
                   {directSub?.planKey ? <Badge className="text-xs">{directSub.planKey}</Badge> : null}
                   {directSub?.status ? (
-                    <Badge className={cn('text-xs', SUB_STATUS_STYLES[directSub.status] ?? 'bg-slate-100 text-slate-600')}>
-                      {directSub.status}
+                    <Badge className={cn('text-xs', SUB_STATUS_STYLES[directSub.status] ?? 'bg-surface-100 text-surface-600')}>
+                      {SUB_STATUS_LABELS[directSub.status] ?? directSub.status}
                     </Badge>
                   ) : null}
                 </div>

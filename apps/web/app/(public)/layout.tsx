@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GraduationCap, Menu, X } from 'lucide-react';
 
 const navLinks = [
@@ -50,8 +50,18 @@ const footerSections = [
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [mobileOpen]);
+
   return (
     <div className="min-h-screen flex flex-col">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-brand-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg">Skip to content</a>
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-surface-200/50">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -89,6 +99,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <button
               className="md:hidden p-2 rounded-lg hover:bg-surface-100 transition-colors"
               onClick={() => setMobileOpen(!mobileOpen)}
+              aria-expanded={mobileOpen}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -97,7 +108,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </div>
 
         {mobileOpen && (
-          <div className="md:hidden border-t border-surface-200/50 bg-white">
+          <div role="dialog" aria-modal="true" aria-label="Navigation menu" className="md:hidden border-t border-surface-200/50 bg-white">
             <nav className="px-4 py-4 space-y-1">
               {navLinks.map((link) => (
                 <Link
@@ -130,7 +141,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         )}
       </header>
 
-      <main className="flex-1 pt-16">{children}</main>
+      <main id="main-content" className="flex-1 pt-16">{children}</main>
 
       <footer className="border-t border-surface-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">

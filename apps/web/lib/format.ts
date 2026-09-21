@@ -1,5 +1,6 @@
 export function titleCase(s: string): string {
   return s
+    .replace(/_/g, ' ')
     .replace(/([A-Z])/g, ' $1')
     .replace(/^./, (c) => c.toUpperCase())
     .replace(/\s+/g, ' ')

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useChapterDetail } from '@/lib/learning-hooks';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,14 +27,14 @@ const MASTERY_STYLE: Record<string, string> = {
   DEVELOPING: 'bg-amber-50 text-amber-700',
   WEAK: 'bg-orange-50 text-orange-700',
   NEEDS_INTERVENTION: 'bg-red-50 text-red-700',
-  INSUFFICIENT_EVIDENCE: 'bg-slate-100 text-slate-600',
+  INSUFFICIENT_EVIDENCE: 'bg-surface-100 text-surface-600',
 };
 
 function TopicSection({
   topic,
   onNavigate,
 }: {
-  topic: any;
+  topic: { id: string; name: string; concepts?: Array<{ id: string; name: string; contentCount?: number; mastery?: { level: string } }> };
   onNavigate: (conceptId: string) => void;
 }) {
   const [expanded, setExpanded] = useState(true);
@@ -44,6 +44,7 @@ function TopicSection({
     <div className="rounded-2xl border border-surface-200 bg-white overflow-hidden">
       <button
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
         className="flex w-full items-center justify-between gap-3 p-5 text-left hover:bg-surface-50 transition-colors"
       >
         <div className="min-w-0">
@@ -61,7 +62,7 @@ function TopicSection({
 
       {expanded && concepts.length > 0 && (
         <div className="border-t border-surface-100">
-          {concepts.map((concept: any) => (
+          {concepts.map((concept: { id: string; name: string; contentCount?: number; mastery?: { level: string } }) => (
             <button
               key={concept.id}
               onClick={() => onNavigate(concept.id)}
@@ -102,6 +103,7 @@ function TopicSection({
 
 export default function ChapterDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const chapterId = params.chapterId as string;
 
   const { data: chapter, isLoading, error } = useChapterDetail(chapterId);
@@ -124,7 +126,20 @@ export default function ChapterDetailPage() {
 
   if (error) return <ErrorBanner message={(error as Error).message} />;
 
-  if (!chapter) return null;
+  if (!chapter) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-surface-200 bg-white p-12 text-center">
+          <BookOpen className="mx-auto h-12 w-12 text-surface-300" />
+          <p className="mt-4 text-lg font-medium text-surface-700">Chapter not found</p>
+          <p className="mt-1 text-sm text-surface-400">The chapter you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+          <Link href="/app/learn" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+            <ChevronLeft className="h-4 w-4" /> Back to Learn
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const topics = chapter.topics ?? [];
 
@@ -143,6 +158,7 @@ export default function ChapterDetailPage() {
       <div className="flex items-start gap-3">
         <Link
           href="/app/learn"
+          aria-label="Go back to Learn"
           className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -174,12 +190,12 @@ export default function ChapterDetailPage() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {topics.map((topic: any) => (
+          {topics.map((topic: { id: string; name: string; concepts?: Array<{ id: string; name: string; contentCount?: number; mastery?: { level: string } }> }) => (
             <TopicSection
               key={topic.id}
               topic={topic}
               onNavigate={(id) => {
-                window.location.href = `/app/learn/concepts/${id}`;
+                router.push(`/app/learn/concepts/${id}`);
               }}
             />
           ))}

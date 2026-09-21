@@ -18,6 +18,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Spinner, ErrorBanner } from '@/components/ui';
 import {
@@ -55,7 +56,7 @@ const STATUS_STYLE: Record<string, string> = {
   REVIEW: 'bg-amber-100 text-amber-700',
   APPROVED: 'bg-blue-100 text-blue-700',
   PUBLISHED: 'bg-green-100 text-green-700',
-  ARCHIVED: 'bg-slate-200 text-slate-600',
+  ARCHIVED: 'bg-surface-200 text-surface-600',
 };
 
 const VALIDATION_STYLE: Record<string, string> = {
@@ -99,7 +100,7 @@ export default function ArManagementPage() {
       <div className="flex flex-col items-center justify-center py-20">
         <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
         <h2 className="text-xl font-semibold">Access Denied</h2>
-        <p className="text-muted-foreground">AR content management is restricted to institution managers.</p>
+        <p className="text-surface-500">AR content management is restricted to institution managers.</p>
       </div>
     );
   }
@@ -154,7 +155,7 @@ export default function ArManagementPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">AR / 3D Content</h1>
-          <p className="text-muted-foreground">
+          <p className="text-surface-500">
             Author, validate and publish curriculum-linked 3D models for concept pages.
           </p>
         </div>
@@ -205,10 +206,10 @@ export default function ArManagementPage() {
                 <Input value={form.learningObjective} onChange={(e) => setForm({ ...form, learningObjective: e.target.value })} />
               </Field>
               <Field label="Description" className="md:col-span-2">
-                <Input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
               </Field>
               <Field label="How to use" className="md:col-span-2">
-                <Input value={form.instructions} onChange={(e) => setForm({ ...form, instructions: e.target.value })} />
+                <Textarea value={form.instructions} onChange={(e) => setForm({ ...form, instructions: e.target.value })} rows={3} />
               </Field>
               <Field label="Source">
                 <Input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Sanro original / Wikimedia" />
@@ -256,7 +257,7 @@ export default function ArManagementPage() {
       )}
       {list.isError && <ErrorBanner message="Could not load AR content. Please retry." />}
       {!list.isLoading && !list.isError && records.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-surface-300 py-16">
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-dashed border-surface-300 py-16 dark:border-surface-700 dark:bg-surface-900/50">
           <Boxes className="h-9 w-9 text-surface-400" />
           <p className="text-sm font-medium text-surface-700">No AR content yet</p>
           <p className="text-xs text-surface-500">Create a draft, upload a .glb model and map it to a concept.</p>
@@ -311,6 +312,7 @@ function ArRow({ record, expanded, onToggle }: { record: ArAdminRecord; expanded
   const uploadPreview = useUploadArPreview(record.id);
   const remove = useDeleteAr();
   const [actionError, setActionError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [draft, setDraft] = useState({
     title: record.title,
     description: record.description ?? '',
@@ -374,10 +376,10 @@ function ArRow({ record, expanded, onToggle }: { record: ArAdminRecord; expanded
                 />
               </Field>
               <Field label="Description">
-                <Input value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+                <Textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} rows={3} />
               </Field>
               <Field label="How to use">
-                <Input value={draft.instructions} onChange={(e) => setDraft({ ...draft, instructions: e.target.value })} />
+                <Textarea value={draft.instructions} onChange={(e) => setDraft({ ...draft, instructions: e.target.value })} rows={3} />
               </Field>
             </div>
 
@@ -483,19 +485,33 @@ function ArRow({ record, expanded, onToggle }: { record: ArAdminRecord; expanded
                   {next}
                 </Button>
               ))}
-              <Button
-                size="sm"
-                variant="ghost"
-                className="ml-auto rounded-xl text-red-600 hover:bg-red-50"
-                disabled={remove.isPending}
-                onClick={() => {
-                  if (confirm(`Delete "${record.title}"? This removes the model and preview files.`)) {
-                    run(() => remove.mutate(record.id, { onError: (err) => setActionError((err as Error).message) }));
-                  }
-                }}
-              >
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete
-              </Button>
+              {confirmDelete ? (
+                <div className="ml-auto flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={remove.isPending}
+                    onClick={() => {
+                      run(() => remove.mutate(record.id, { onError: (err) => setActionError((err as Error).message), onSettled: () => setConfirmDelete(false) }));
+                    }}
+                  >
+                    Confirm delete
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setConfirmDelete(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="ml-auto rounded-xl text-red-600 hover:bg-red-50"
+                  disabled={remove.isPending}
+                  onClick={() => setConfirmDelete(true)}
+                >
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete
+                </Button>
+              )}
             </div>
           </div>
         )}

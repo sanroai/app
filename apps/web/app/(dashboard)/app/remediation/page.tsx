@@ -8,6 +8,7 @@ import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { titleCase } from '@/lib/format';
+import { toast } from 'sonner';
 import { Check, Circle, Target, CheckCircle2, Loader2, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
@@ -17,7 +18,7 @@ const LEVEL_STYLE: Record<string, string> = {
   DEVELOPING: 'bg-amber-50 text-amber-700',
   WEAK: 'bg-orange-50 text-orange-700',
   NEEDS_INTERVENTION: 'bg-red-50 text-red-700',
-  INSUFFICIENT_EVIDENCE: 'bg-slate-100 text-slate-600',
+  INSUFFICIENT_EVIDENCE: 'bg-surface-100 text-surface-600',
 };
 
 export default function RemediationPage() {
@@ -43,7 +44,7 @@ export default function RemediationPage() {
       });
       await queryClient.invalidateQueries({ queryKey: ['remediation', 'my'] });
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Update failed');
+      toast.error(e instanceof Error ? e.message : 'Update failed');
     } finally {
       setPendingItems((prev) => {
         const next = new Set(prev);
@@ -58,8 +59,8 @@ export default function RemediationPage() {
       <div>
         <h1 className="text-2xl font-bold">Mastery &amp; remediation</h1>
         {diagnosis ? (
-          <p className="mt-1 text-sm text-slate-500">
-            Average mastery score: <span className="font-semibold text-slate-800">{diagnosis.averageScore ?? 0}%</span>{' '}
+          <p className="mt-1 text-sm text-surface-500">
+            Average mastery score: <span className="font-semibold text-surface-800">{diagnosis.averageScore ?? 0}%</span>{' '}
             across {diagnosis.concepts?.length ?? 0} concepts
           </p>
         ) : null}
@@ -69,17 +70,17 @@ export default function RemediationPage() {
         <h2 className="mb-3 text-lg font-semibold">Concept mastery</h2>
         {diagnosis && Array.isArray(diagnosis.concepts) && diagnosis.concepts.length > 0 ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {diagnosis.concepts.map((m: any) => (
+            {diagnosis.concepts.map((m: { id: string; level: string; score: number; concept?: { id: string; name: string; topic?: { name: string; chapter?: { name: string } } }; conceptId?: string }) => (
               <Link key={m.id} href={`/app/learn/concepts/${m.concept?.id ?? m.conceptId ?? ''}`}>
                 <Card className="group cursor-pointer hover:shadow-md transition-all">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-slate-900 group-hover:text-brand-700 transition-colors">{m.concept?.name ?? 'Concept'}</p>
-                    <Badge className={LEVEL_STYLE[m.level] ?? 'bg-slate-100 text-slate-600'}>{titleCase(m.level ?? '')}</Badge>
+                    <p className="font-medium text-surface-900 group-hover:text-brand-700 transition-colors">{m.concept?.name ?? 'Concept'}</p>
+                    <Badge className={LEVEL_STYLE[m.level] ?? 'bg-surface-100 text-surface-600'}>{titleCase(m.level ?? '')}</Badge>
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-surface-500">
                     {m.concept?.topic?.chapter?.name ?? m.concept?.topic?.name ?? ''}
                   </p>
-                  <div className="mt-3 h-2 rounded-full bg-slate-100">
+                  <div className="mt-3 h-2 rounded-full bg-surface-100">
                     <div
                       className={cn(
                         'h-2 rounded-full',
@@ -89,17 +90,17 @@ export default function RemediationPage() {
                     />
                   </div>
                   <div className="mt-1 flex items-center justify-between">
-                    <p className="text-xs text-slate-500">{m.score ?? 0}%</p>
-                    <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-brand-500 transition-colors" />
+                    <p className="text-xs text-surface-500">{m.score ?? 0}%</p>
+                    <ChevronRight className="h-4 w-4 text-surface-300 group-hover:text-brand-500 transition-colors" />
                   </div>
                 </Card>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-            <Target className="h-10 w-10 text-slate-300 mb-3" />
-            <p className="text-sm text-slate-500 max-w-sm">No mastery data yet — complete an assessment to build it.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
+            <Target className="h-10 w-10 text-surface-300 mb-3" />
+            <p className="text-sm text-surface-500 max-w-sm">No mastery data yet — complete an assessment to build it.</p>
           </div>
         )}
       </section>
@@ -107,26 +108,26 @@ export default function RemediationPage() {
       <section>
         <h2 className="mb-3 text-lg font-semibold">Remediation plans</h2>
         <div className="space-y-4">
-          {(Array.isArray(planList) ? planList : []).map((plan: any) => (
+          {(Array.isArray(planList) ? planList : []).map((plan: { id: string; progress?: number; completedItems?: number; _count?: { items?: number }; concept?: { name: string }; items?: Array<{ id: string; title?: string; type?: string; contentType?: string; status?: string }> }) => (
             <Card key={plan.id}>
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="font-semibold text-slate-900">{plan.concept?.name ?? 'Plan'}</h3>
-                  <p className="mt-1 text-xs text-slate-500">
+                  <h3 className="font-semibold text-surface-900">{plan.concept?.name ?? 'Plan'}</h3>
+                  <p className="mt-1 text-xs text-surface-500">
                     {plan.completedItems ?? 0} of {plan._count?.items ?? plan.items?.length ?? 0} items done
                   </p>
                 </div>
                 <Badge>{plan.progress ?? 0}%</Badge>
               </div>
-              <div className="mt-3 h-2 rounded-full bg-slate-100">
+              <div className="mt-3 h-2 rounded-full bg-surface-100">
                 <div className="h-2 rounded-full bg-brand-600" style={{ width: `${plan.progress ?? 0}%` }} />
               </div>
               <ul className="mt-4 space-y-2">
-                {(plan.items ?? []).map((item: any) => (
-                  <li key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2">
+                {(plan.items ?? []).map((item: { id: string; title?: string; type?: string; contentType?: string; status?: string }) => (
+                  <li key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-surface-50 px-3 py-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm text-slate-800">{item.title ?? item.type ?? 'Item'}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className="truncate text-sm text-surface-800">{item.title ?? item.type ?? 'Item'}</p>
+                      <p className="text-xs text-surface-500">
                         {item.type ?? item.contentType ?? ''} · {item.status ?? ''}
                       </p>
                     </div>
@@ -156,9 +157,9 @@ export default function RemediationPage() {
             </Card>
           ))}
           {Array.isArray(planList) && planList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 py-12 text-center">
-              <CheckCircle2 className="h-10 w-10 text-slate-300 mb-3" />
-              <p className="text-sm text-slate-500 max-w-sm">No active remediation plans — weak concepts will appear here after assessments.</p>
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
+              <CheckCircle2 className="h-10 w-10 text-surface-300 mb-3" />
+              <p className="text-sm text-surface-500 max-w-sm">No active remediation plans — weak concepts will appear here after assessments.</p>
             </div>
           ) : null}
         </div>

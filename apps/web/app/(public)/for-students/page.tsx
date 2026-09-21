@@ -66,7 +66,7 @@ export default function ForStudentsPage() {
             <Smartphone className="h-4 w-4" />
             For Students
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             What should I do{' '}
             <span className="gradient-text">today</span>?
           </h1>
@@ -78,14 +78,14 @@ export default function ForStudentsPage() {
 
         {/* Journey */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-surface-900 mb-12 text-center">
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-12 text-center">
             Your Learning <span className="gradient-text">Journey</span>
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {journey.map((step, i) => (
               <div
                 key={step.title}
-                className="rounded-3xl bg-white p-6 shadow-card border border-surface-100 relative"
+                className="rounded-3xl bg-white p-6 shadow-card border border-surface-100 relative overflow-visible"
               >
                 <div className="absolute -top-3 -left-3 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white text-sm font-bold">
                   {i + 1}
@@ -103,7 +103,7 @@ export default function ForStudentsPage() {
         {/* What You Get */}
         <div className="mb-20 grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl font-bold text-surface-900 mb-4">
+            <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">
               Built for <span className="gradient-text">Every Learner</span>
             </h2>
             <p className="text-surface-600 mb-6 leading-relaxed">
@@ -166,7 +166,7 @@ export default function ForStudentsPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">Start Improving Today</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Start Improving Today</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             Download the Sanro AI app or sign in to your account.
           </p>

@@ -127,7 +127,7 @@ export default function LeaderboardPage() {
             </div>
           ) : (
             <div className="divide-y divide-surface-100">
-              {entries.map((entry: any) => (
+              {entries.map((entry: { userId: string; name: string; xp: number; rank: number; level?: number; streakDays?: number }) => (
                 <div
                   key={entry.userId}
                   className={cn(

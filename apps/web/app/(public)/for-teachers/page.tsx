@@ -53,7 +53,7 @@ export default function ForTeachersPage() {
             <Users className="h-4 w-4" />
             For Teachers
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             Which students need{' '}
             <span className="gradient-text">my attention</span>?
           </h1>
@@ -132,7 +132,7 @@ export default function ForTeachersPage() {
             </div>
           </div>
           <div className="order-1 md:order-2">
-            <h2 className="text-3xl font-bold text-surface-900 mb-4">
+            <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">
               Concept-Level <span className="gradient-text">Visibility</span>
             </h2>
             <p className="text-surface-600 mb-6 leading-relaxed">
@@ -159,12 +159,12 @@ export default function ForTeachersPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">Start Using Sanro AI</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Start Using Sanro AI</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             Set up Sanro AI for your classes and start seeing concept-level student data.
           </p>
           <Link
-            href="/login"
+            href="/register"
             className="rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white hover:from-brand-700 hover:to-purple-700 transition-all shadow-xl inline-flex items-center gap-2"
           >
             Get Started <ArrowRight className="h-5 w-5" />

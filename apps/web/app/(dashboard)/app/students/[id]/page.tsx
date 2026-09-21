@@ -170,7 +170,7 @@ export default function StudentDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-3">
-                <Button variant="outline">
+                <Button variant="outline" disabled>
                   <Edit3 className="h-4 w-4" />
                   Edit Student
                 </Button>
@@ -182,7 +182,7 @@ export default function StudentDetailPage() {
                   <Shield className="h-4 w-4" />
                   {isActive ? 'Deactivate' : 'Activate'}
                 </Button>
-                <Button variant="outline">
+                <Button variant="outline" disabled>
                   <Users className="h-4 w-4" />
                   Move to Group
                 </Button>

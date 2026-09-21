@@ -252,7 +252,7 @@ export default function CurriculumImportPage() {
           ) : null}
 
           <Card>
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-surface-200 px-4 py-3">
               <p className="text-sm font-medium text-surface-800">{preview.fileName} — first {preview.previewRows.length} rows</p>
               {!committed && !commitMutation.isPending ? (
                 <Button onClick={handleCommit} variant={invalidCount > 0 ? 'warning' : 'default'} disabled={commitMutation.isPending || (summary?.validRows ?? 0) === 0}>
@@ -269,7 +269,7 @@ export default function CurriculumImportPage() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[1000px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                  <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                     <th className="px-4 py-3 font-medium">Row</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Entity</th>
@@ -289,8 +289,8 @@ export default function CurriculumImportPage() {
                     <tr
                       key={row.rowNumber}
                       className={cn(
-                        'border-b border-slate-100 last:border-0',
-                        row.status === 'INVALID' ? 'bg-red-50/60' : 'hover:bg-slate-50/70',
+                        'border-b border-surface-100 last:border-0',
+                        row.status === 'INVALID' ? 'bg-red-50/60' : 'hover:bg-surface-50/70',
                       )}
                     >
                       <td className="px-4 py-3 text-surface-500">{row.rowNumber}</td>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UpdateProfileSchema, type UpdateProfile } from '@sanro/validation';
@@ -17,6 +18,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { CheckCircle2, Loader2, UserCircle2 } from 'lucide-react';
 
 const LANGUAGE_LABELS: Record<string, string> = {
@@ -38,6 +46,7 @@ type MeResponse = {
 };
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { user, setUser, clearSession } = useAuthStore();
   const [meInfo, setMeInfo] = useState<MeResponse | null>(null);
   const [success, setSuccess] = useState(false);
@@ -47,6 +56,8 @@ export default function ProfilePage() {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<UpdateProfile>({
     resolver: zodResolver(UpdateProfileSchema),
@@ -171,20 +182,21 @@ export default function ProfilePage() {
 
             <div className="space-y-2">
               <Label htmlFor="language">Language</Label>
-              <select
-                id="language"
-                className="flex h-10 w-full rounded-xl border border-surface-200 bg-white px-3 py-2 text-sm text-surface-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
-                defaultValue={
-                  ((user as { language?: string })?.language ?? 'EN') as 'EN' | 'MR' | 'HI'
-                }
-                {...register('language')}
+              <Select
+                value={watch('language') ?? 'EN'}
+                onValueChange={(v) => setValue('language', v as 'EN' | 'MR' | 'HI')}
               >
-                {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {errors.language && (
                 <p className="text-sm text-red-500">{errors.language.message}</p>
               )}
@@ -227,7 +239,7 @@ export default function ProfilePage() {
             className="text-red-600 hover:text-red-700"
             onClick={() => {
               clearSession();
-              window.location.href = '/login';
+              router.replace('/login');
             }}
           >
             <UserCircle2 className="mr-2 h-4 w-4" />

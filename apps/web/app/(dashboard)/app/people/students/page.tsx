@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useAdminStudents, type AdminStudentQuery } from '@/lib/people-hooks';
 import { useInstitutions } from '@/lib/institution-hooks';
@@ -43,9 +44,9 @@ const SUB_STATUS_STYLES: Record<string, string> = {
   TRIAL: 'bg-sky-50 text-sky-700 border-sky-200',
   EXPIRING_SOON: 'bg-amber-50 text-amber-700 border-amber-200',
   EXPIRED: 'bg-rose-50 text-rose-700 border-rose-200',
-  CANCELLED: 'bg-slate-50 text-slate-500 border-slate-200',
-  SUSPENDED: 'bg-slate-50 text-slate-500 border-slate-200',
-  NONE: 'bg-slate-50 text-slate-500 border-slate-200',
+  CANCELLED: 'bg-surface-50 text-surface-500 border-surface-200',
+  SUSPENDED: 'bg-surface-50 text-surface-500 border-surface-200',
+  NONE: 'bg-surface-50 text-surface-500 border-surface-200',
 };
 
 const SOURCE_FILTERS = ['INSTITUTION', 'DIRECT_SANRO'];
@@ -244,7 +245,7 @@ export default function PeopleStudentsPage() {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-slate-100" />
+            <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-100" />
           ))}
         </div>
       ) : error ? (
@@ -264,7 +265,7 @@ export default function PeopleStudentsPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                   <th className="px-4 py-3 font-medium">Student</th>
                   <th className="px-4 py-3 font-medium">Source</th>
                   <th className="px-4 py-3 font-medium">Institution</th>
@@ -278,15 +279,15 @@ export default function PeopleStudentsPage() {
                 {rows.map((row) => {
                   const rowSub = row.subscription;
                   return (
-                    <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+                    <tr key={row.id} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
                       <td className="px-4 py-3">
                         <p className="font-medium text-surface-900">
-                          <a
+                          <Link
                             href={`/app/people/students/${row.id}`}
                             className="hover:text-brand-700 hover:underline"
                           >
                             {row.name}
-                          </a>
+                          </Link>
                         </p>
                         <p className="text-xs text-surface-500">{row.email ?? '—'}</p>
                       </td>
@@ -298,7 +299,7 @@ export default function PeopleStudentsPage() {
                       </td>
                       <td className="px-4 py-3 text-surface-700">{row.grade ? `Grade ${row.grade}` : '—'}</td>
                       <td className="px-4 py-3">
-                        <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status ?? ''] ?? 'bg-slate-100 text-slate-600')}>
+                        <Badge variant="outline" className={cn('text-xs', STATUS_STYLES[row.status ?? ''] ?? 'bg-surface-100 text-surface-600')}>
                           {row.status ?? '—'}
                         </Badge>
                       </td>
@@ -324,7 +325,7 @@ export default function PeopleStudentsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-44">
                             <DropdownMenuItem asChild>
-                              <a href={`/app/people/students/${row.id}`}>View details</a>
+                              <Link href={`/app/people/students/${row.id}`}>View details</Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -335,7 +336,7 @@ export default function PeopleStudentsPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
+          <div className="flex items-center justify-between border-t border-surface-200 px-4 py-3">
             <p className="text-xs text-surface-500">
               Showing {(data?.total ?? 0) === 0 ? 0 : (page - 1) * pageSize + 1}–
               {Math.min(page * pageSize, data?.total ?? 0)} of {data?.total ?? 0}

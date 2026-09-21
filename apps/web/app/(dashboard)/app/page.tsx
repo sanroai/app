@@ -167,7 +167,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 leading-tight">
-            {greeting}, {user.name.split(' ')[0]}! 👋
+            {greeting}, {(user.name || 'there').split(' ')[0] || 'there'}! 👋
           </h1>
           <p className="text-surface-600 mt-1 text-sm sm:text-base">
             {isStudent
@@ -198,8 +198,11 @@ export default function DashboardPage() {
       </div>
 
       {error && !isSuperAdmin && (
-        <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-600">
-          {error}
+        <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-600 flex items-center justify-between">
+          <span>{error}</span>
+          <Button size="sm" variant="outline" className="ml-4 shrink-0" onClick={() => router.refresh()}>
+            Retry
+          </Button>
         </div>
       )}
 
@@ -849,7 +852,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
           <div className="space-y-3">
             {/* Fix weakness CTA */}
             {weakConcepts.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl bg-white p-4 border border-orange-100">
+              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-surface-800 p-4 border border-orange-100 dark:border-orange-800/30">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100">
                     <Target className="h-5 w-5 text-orange-600" />
@@ -869,7 +872,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
 
             {/* Upcoming assessment */}
             {pendingAssignments.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl bg-white p-4 border border-blue-100">
+              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-surface-800 p-4 border border-blue-100 dark:border-blue-800/30">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
                     <FileText className="h-5 w-5 text-blue-600" />
@@ -891,7 +894,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
 
             {/* No weak concepts */}
             {weakConcepts.length === 0 && pendingAssignments.length === 0 && (
-              <div className="flex items-center gap-3 rounded-xl bg-white p-4 border border-green-100">
+              <div className="flex items-center gap-3 rounded-xl bg-white dark:bg-surface-800 p-4 border border-green-100 dark:border-green-800/30">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
                   <CheckCircle2 className="h-5 w-5 text-green-600" />
                 </div>
@@ -1287,7 +1290,7 @@ function QuickActions({ role }: { role: string }) {
           ]
         : isSuperAdmin
           ? [
-              { label: 'Institutions', icon: Users, color: 'bg-slate-100 text-slate-700', href: '/app/institutions' },
+              { label: 'Institutions', icon: Users, color: 'bg-surface-100 text-surface-700', href: '/app/institutions' },
               { label: 'Curriculum', icon: BookOpen, color: 'bg-brand-100 text-brand-600', href: '/app/curriculum' },
               { label: 'Questions', icon: ListChecks, color: 'bg-purple-100 text-purple-600', href: '/app/questions' },
             ]
@@ -1405,7 +1408,7 @@ function EmptyState({ role }: { role: string }) {
               ? "You don't have any classes assigned yet. Contact your administrator."
               : role === 'PARENT'
                 ? "No data available yet. Your children's information will appear here."
-                : "Dashboard data is loading..."}
+                : "No data available yet."}
           </p>
         </div>
       </CardContent>

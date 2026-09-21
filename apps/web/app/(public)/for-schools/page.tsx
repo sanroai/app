@@ -52,7 +52,7 @@ export default function ForSchoolsPage() {
             <Shield className="h-4 w-4" />
             For Schools &amp; Institutions
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             How is academic performance across{' '}
             <span className="gradient-text">my institution</span>?
           </h1>
@@ -148,13 +148,13 @@ export default function ForSchoolsPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">Set Up Sanro AI for Your School</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Set Up Sanro AI for Your School</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             Get institution-wide academic visibility. Contact us for a demo.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              href="/login"
+              href="/register"
               className="rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white hover:from-brand-700 hover:to-purple-700 transition-all shadow-xl inline-flex items-center gap-2"
             >
               Get Started <ArrowRight className="h-5 w-5" />

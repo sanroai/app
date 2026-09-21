@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Mail, CheckCircle, Loader2 } from 'lucide-react';
 
 const ForgotPasswordSchema = z.object({ email: z.string().email('Enter a valid email') });
 type ForgotPassword = z.infer<typeof ForgotPasswordSchema>;
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-surface-900">Reset your password</h1>
+        <h1 className="text-3xl font-bold text-surface-900">Reset your password</h1>
         <p className="mt-2 text-surface-600">
           Enter your email and we&apos;ll send you a reset link
         </p>
@@ -79,6 +79,7 @@ export default function ForgotPasswordPage() {
                   autoComplete="email"
                   placeholder="you@school.edu"
                   className="pl-10"
+                  aria-invalid={!!errors.email}
                   {...register('email')}
                 />
               </div>
@@ -88,13 +89,20 @@ export default function ForgotPasswordPage() {
             </div>
 
             {serverError && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+              <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
                 {serverError}
               </div>
             )}
 
             <Button type="submit" className="w-full h-11" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Send reset link'}
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending...
+                </div>
+              ) : (
+                'Send reset link'
+              )}
             </Button>
           </form>
         </CardContent>

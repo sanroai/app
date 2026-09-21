@@ -47,7 +47,7 @@ export default function ForParentsPage() {
             <Heart className="h-4 w-4" />
             For Parents
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-surface-900 mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold font-display text-surface-900 mb-6">
             How is my child{' '}
             <span className="gradient-text">progressing</span>?
           </h1>
@@ -78,7 +78,7 @@ export default function ForParentsPage() {
         {/* Dashboard Preview */}
         <div className="mb-20 grid md:grid-cols-2 gap-12 items-center">
           <div className="order-2 md:order-1">
-            <h2 className="text-3xl font-bold text-surface-900 mb-4">
+            <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">
               Your Child&apos;s <span className="gradient-text">Dashboard</span>
             </h2>
             <p className="text-surface-600 mb-6 leading-relaxed">
@@ -141,12 +141,12 @@ export default function ForParentsPage() {
 
         {/* CTA */}
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-surface-900 mb-4">Track Your Child&apos;s Progress</h2>
+          <h2 className="text-3xl font-bold font-display text-surface-900 mb-4">Track Your Child&apos;s Progress</h2>
           <p className="text-surface-600 mb-8 max-w-xl mx-auto">
             Sign in to see your child&apos;s concept mastery, weak areas, and improvement.
           </p>
           <Link
-            href="/login"
+            href="/register"
             className="rounded-2xl bg-gradient-to-r from-brand-600 to-purple-600 px-8 py-4 text-lg font-semibold text-white hover:from-brand-700 hover:to-purple-700 transition-all shadow-xl inline-flex items-center gap-2"
           >
             Get Started <ArrowRight className="h-5 w-5" />

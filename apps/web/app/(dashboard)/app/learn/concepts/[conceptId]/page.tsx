@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { useConceptDetail, useCompleteContent, useStartPractice, useRateFlashcard } from '@/lib/learning-hooks';
+import { useConceptDetail, useCompleteContent, useStartPractice, useRateFlashcard, type ContentItem, type ConceptDetail } from '@/lib/learning-hooks';
 import { useConceptAr } from '@/lib/ar-hooks';
 import { ConceptArPanel } from '@/components/ar/ConceptArPanel';
 import { Card, CardContent } from '@/components/ui/card';
@@ -48,7 +48,7 @@ const MASTERY_STYLE: Record<string, { badge: string; color: string; bg: string }
   DEVELOPING: { badge: 'bg-amber-50 text-amber-700', color: 'text-amber-600', bg: 'bg-amber-50' },
   WEAK: { badge: 'bg-orange-50 text-orange-700', color: 'text-orange-600', bg: 'bg-orange-50' },
   NEEDS_INTERVENTION: { badge: 'bg-red-50 text-red-700', color: 'text-red-600', bg: 'bg-red-50' },
-  INSUFFICIENT_EVIDENCE: { badge: 'bg-slate-100 text-slate-600', color: 'text-slate-600', bg: 'bg-slate-50' },
+  INSUFFICIENT_EVIDENCE: { badge: 'bg-surface-100 text-surface-600', color: 'text-surface-600', bg: 'bg-surface-50' },
 };
 
 const TABS = [
@@ -97,13 +97,27 @@ export default function ConceptDetailPage() {
   }
 
   if (error) return <ErrorBanner message={(error as Error).message} />;
-  if (!concept) return null;
+  if (!concept) {
+    return (
+      <div className="space-y-6">
+        <div className="rounded-2xl border border-surface-200 bg-white p-12 text-center">
+          <BookOpen className="mx-auto h-12 w-12 text-surface-300" />
+          <p className="mt-4 text-lg font-medium text-surface-700">Concept not found</p>
+          <p className="mt-1 text-sm text-surface-400">The concept you&apos;re looking for doesn&apos;t exist or has been removed.</p>
+          <Link href="/app/learn" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+            <ChevronLeft className="h-4 w-4" /> Back to Learn
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const mastery = concept.mastery;
   const masteryStyle = mastery?.level ? MASTERY_STYLE[mastery.level] : null;
   const contentItems = concept.content ?? [];
   const arContent = arItems ?? [];
   const tabs = arContent.length > 0 ? [...TABS.slice(0, 5), AR_TAB, ...TABS.slice(5)] : TABS;
+  type PracticeQ = ConceptDetail['practiceQuestions'][number];
   const questions = concept.practiceQuestions ?? [];
   const weakMastery =
     mastery?.level === 'WEAK' ||
@@ -112,8 +126,8 @@ export default function ConceptDetailPage() {
 
   const chapterName = concept.chapter?.name ?? '';
   const topicName = concept.topic?.name ?? '';
-  const videos = contentItems.filter((c: any) => c.type === 'VIDEO');
-  const notes = contentItems.filter((c: any) => c.type === 'NOTES' || c.type === 'ARTICLE');
+  const videos = contentItems.filter((c: ContentItem) => c.type === 'VIDEO');
+  const notes = contentItems.filter((c: ContentItem) => c.type === 'NOTES' || c.type === 'ARTICLE');
 
   return (
     <div className="space-y-6">
@@ -191,13 +205,33 @@ export default function ConceptDetailPage() {
       )}
 
       {/* Tab Navigation */}
-      <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1">
+      <div
+        role="tablist"
+        className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1"
+        onKeyDown={(e) => {
+          const idx = tabs.findIndex((t) => t.id === activeTab);
+          if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            const next = (idx + 1) % tabs.length;
+            setActiveTab(tabs[next].id);
+          } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            const prev = (idx - 1 + tabs.length) % tabs.length;
+            setActiveTab(tabs[prev].id);
+          }
+        }}
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={isActive}
+              tabIndex={isActive ? 0 : -1}
+              id={`tab-${tab.id}`}
+              aria-controls={`panel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
                 'flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all',
@@ -215,7 +249,7 @@ export default function ConceptDetailPage() {
 
       {/* Tab Content */}
       {activeTab === 'learn' && (
-        <div className="space-y-6">
+        <div role="tabpanel" id="panel-learn" aria-labelledby="tab-learn" className="space-y-6">
           {/* Video Lessons */}
           {videos.length > 0 && (
             <section>
@@ -224,9 +258,9 @@ export default function ConceptDetailPage() {
                 Video Lessons
               </h2>
               <div className="grid gap-4 md:grid-cols-2">
-                {videos.map((item: any) => {
-                  const isYouTube = item.url && (item.url.includes('youtube.com') || item.url.includes('youtu.be'));
-                  const youtubeId = isYouTube ? (item.url.match(/(?:v=|youtu\.be\/)([^&?/]+)/) || [])[1] : null;
+                {videos.map((item: ContentItem) => {
+                  const isYouTube = item.url != null && (item.url.includes('youtube.com') || item.url.includes('youtu.be'));
+                  const youtubeId = isYouTube ? (item.url!.match(/(?:v=|youtu\.be\/)([^&?/]+)/) || [])[1] : null;
                   return (
                     <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all group">
                       {youtubeId ? (
@@ -237,6 +271,7 @@ export default function ConceptDetailPage() {
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                             title={item.title}
+                            loading="lazy"
                           />
                         </div>
                       ) : (
@@ -277,7 +312,7 @@ export default function ConceptDetailPage() {
                 Study Notes
               </h2>
               <div className="space-y-2">
-                {notes.map((item: any) => (
+                {notes.map((item: ContentItem) => (
                   <div key={item.id} className="flex items-center gap-4 rounded-xl border border-surface-100 bg-surface-50 p-4 transition-all hover:bg-white hover:shadow-sm">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
                       <FileText className="h-5 w-5 text-emerald-600" />
@@ -286,8 +321,8 @@ export default function ConceptDetailPage() {
                       <p className="font-semibold text-surface-900">{item.title}</p>
                       <div className="mt-0.5 flex items-center gap-2 text-xs text-surface-400">
                         <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
-                        {item.durationSeconds > 0 && (
-                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.ceil(item.durationSeconds / 60)} min</span>
+                        {(item.durationSeconds ?? 0) > 0 && (
+                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.ceil((item.durationSeconds ?? 0) / 60)} min</span>
                         )}
                       </div>
                     </div>
@@ -322,7 +357,7 @@ export default function ConceptDetailPage() {
                   <p>Revise these notes before your next test, then test yourself in Practice.</p>
                   {notes.length > 0 ? (
                     <ul className="mt-3 space-y-1.5">
-                      {notes.slice(0, 4).map((item: any) => (
+                      {notes.slice(0, 4).map((item: ContentItem) => (
                         <li key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-white/70 px-3 py-2">
                           <span className="flex items-center gap-2 font-medium text-surface-800">
                             <FileText className="h-3.5 w-3.5 text-emerald-600" />
@@ -339,7 +374,7 @@ export default function ConceptDetailPage() {
                   ) : null}
                   {videos.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {videos.slice(0, 3).map((item: any) => (
+                      {videos.slice(0, 3).map((item: ContentItem) => (
                         <Badge
                           key={item.id}
                           variant="secondary"
@@ -359,7 +394,7 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'practice' && (
-        <div className="space-y-6">
+        <div role="tabpanel" id="panel-practice" aria-labelledby="tab-practice" className="space-y-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -429,7 +464,7 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'quiz' && (
-        <div className="space-y-4">
+        <div role="tabpanel" id="panel-quiz" aria-labelledby="tab-quiz" className="space-y-4">
           <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -462,11 +497,11 @@ export default function ConceptDetailPage() {
                 </div>
               ) : (
                 <>
-                  {questions.slice(0, 5).map((q: any, i: number) => (
+                  {questions.slice(0, 5).map((q: PracticeQ, i: number) => (
                     <div key={q.id ?? i} className="mb-4 rounded-xl bg-white p-4 border border-surface-100">
                       <p className="font-medium text-surface-900 mb-3">Q{i + 1}. {q.text}</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(q.options ?? q.choices ?? []).map((opt: any, oi: number) => (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {(q.options ?? []).map((opt, oi) => (
                           <button
                             key={oi}
                             onClick={() => {
@@ -488,21 +523,28 @@ export default function ConceptDetailPage() {
                       </div>
                     </div>
                   ))}
+                  {(() => {
+                    const quizCount = Math.min(questions.length, 5);
+                    const allAnswered = Array.from({ length: quizCount }, (_, i) => i).every((i) => selectedAnswers[i] != null);
+                    return !allAnswered ? (
+                      <p className="text-center text-sm text-red-600 mt-2">Please answer all questions</p>
+                    ) : null;
+                  })()}
                   <Button
                     className="w-full rounded-xl bg-amber-500 hover:bg-amber-600 text-white"
                     onClick={() => {
                       const quizQuestions = questions.slice(0, 5);
+                      const allAnswered = quizQuestions.every((_, i) => selectedAnswers[i] != null);
+                      if (!allAnswered) return;
                       let correct = 0;
-                      quizQuestions.forEach((q: any, i: number) => {
-                        const opts = q.options ?? q.choices ?? [];
+                      quizQuestions.forEach((q: PracticeQ, i: number) => {
+                        const opts = q.options ?? [];
                         const selectedIdx = selectedAnswers[i];
                         if (selectedIdx != null) {
                           const selectedOpt = opts[selectedIdx];
-                          if (selectedOpt?.isCorrect || q.correctOptionIndex === selectedIdx) {
+                          if (selectedOpt?.isCorrect) {
                             correct++;
                           }
-                        } else if (q.correctOptionIndex != null) {
-                          // No selection but question has a correct answer — unanswered
                         }
                       });
                       setQuizScore({ correct, total: quizQuestions.length });
@@ -518,7 +560,7 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'flashcards' && (
-        <div className="space-y-4">
+        <div role="tabpanel" id="panel-flashcards" aria-labelledby="tab-flashcards" className="space-y-4">
           <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-rose-50">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -555,13 +597,14 @@ export default function ConceptDetailPage() {
                   {flipped && (
                     <div className="mt-4 flex gap-2">
                       {[
-                        { label: 'Again', rating: 'AGAIN', icon: '😕', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
-                        { label: 'Hard', rating: 'HARD', icon: '🙂', color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
-                        { label: 'Good', rating: 'GOOD', icon: '😊', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-                        { label: 'Easy', rating: 'EASY', icon: '🔥', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
+                        { label: 'Again', rating: 'AGAIN', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
+                        { label: 'Hard', rating: 'HARD', color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
+                        { label: 'Good', rating: 'GOOD', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
+                        { label: 'Easy', rating: 'EASY', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
                       ].map((btn) => (
-                        <button
+                        <Button
                           key={btn.label}
+                          variant="ghost"
                           className={cn('flex-1 rounded-xl px-3 py-2 text-sm font-medium transition-all', btn.color)}
                           onClick={() => {
                             const current = questions[flashcardIndex];
@@ -570,19 +613,34 @@ export default function ConceptDetailPage() {
                             setFlipped(false);
                           }}
                         >
-                          {btn.icon} {btn.label}
-                        </button>
+                          {btn.label}
+                        </Button>
                       ))}
                     </div>
                   )}
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" className="flex-1 rounded-xl" onClick={() => { setFlashcardIndex(Math.max(0, flashcardIndex - 1)); setFlipped(false); }} disabled={flashcardIndex === 0}>
-                      <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-                    </Button>
-                    <Button variant="outline" className="flex-1 rounded-xl" onClick={() => { setFlashcardIndex(Math.min(questions.length - 1, flashcardIndex + 1)); setFlipped(false); }} disabled={flashcardIndex >= questions.length - 1}>
-                      Next <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
+                  {flashcardIndex >= questions.length - 1 ? (
+                    <div className="mt-4 rounded-xl bg-green-50 border border-green-200 p-4 text-center">
+                      <CheckCircle2 className="mx-auto h-8 w-8 text-green-600 mb-2" />
+                      <p className="font-semibold text-green-800">Deck complete!</p>
+                      <p className="text-sm text-green-600 mt-1">You&apos;ve reviewed all flashcards for this concept.</p>
+                      <Button
+                        variant="outline"
+                        className="mt-3 rounded-xl"
+                        onClick={() => { setFlashcardIndex(0); setFlipped(false); }}
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" /> Start Over
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="outline" className="flex-1 rounded-xl" aria-label="Previous card" onClick={() => { setFlashcardIndex(Math.max(0, flashcardIndex - 1)); setFlipped(false); }} disabled={flashcardIndex === 0}>
+                        <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                      </Button>
+                      <Button variant="outline" className="flex-1 rounded-xl" aria-label="Next card" onClick={() => { setFlashcardIndex(Math.min(questions.length - 1, flashcardIndex + 1)); setFlipped(false); }} disabled={flashcardIndex >= questions.length - 1}>
+                        Next <ChevronRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </div>
+                  )}
                 </>
               )}
             </CardContent>
@@ -591,7 +649,7 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'challenge' && (
-        <div className="space-y-4">
+        <div role="tabpanel" id="panel-challenge" aria-labelledby="tab-challenge" className="space-y-4">
           <Card className="border-red-200 bg-gradient-to-r from-red-50 to-orange-50">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -641,7 +699,7 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'ask' && (
-        <div className="space-y-4">
+        <div role="tabpanel" id="panel-ask" aria-labelledby="tab-ask" className="space-y-4">
           <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-purple-50">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -678,7 +736,9 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'ar' && arContent.length > 0 && (
-        <ConceptArPanel conceptId={conceptId} items={arContent} />
+        <div role="tabpanel" id="panel-ar" aria-labelledby="tab-ar">
+          <ConceptArPanel conceptId={conceptId} items={arContent} />
+        </div>
       )}
     </div>
   );

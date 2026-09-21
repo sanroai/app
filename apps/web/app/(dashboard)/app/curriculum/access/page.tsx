@@ -46,7 +46,7 @@ const NONE = '__none__';
 
 function GradeBadge({ grade }: { grade: string }) {
   return (
-    <Badge variant="outline" className="text-xs bg-slate-50 text-slate-600">
+    <Badge variant="outline" className="text-xs bg-surface-50 text-surface-600">
       Grade {grade}
     </Badge>
   );
@@ -241,7 +241,7 @@ export default function CurriculumAccessPage() {
       </Card>
 
       <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-surface-200 px-4 py-3">
           <p className="text-sm font-medium text-surface-800">Access grants</p>
           <div className="w-64">
             <Select value={filterInstitutionId || NONE} onValueChange={(v) => setFilterInstitutionId(v === NONE ? '' : v)}>
@@ -261,7 +261,7 @@ export default function CurriculumAccessPage() {
         {accessQ.isLoading ? (
           <div className="space-y-3 p-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-14 animate-pulse rounded-xl bg-slate-100" />
+              <div key={i} className="h-14 animate-pulse rounded-xl bg-surface-100" />
             ))}
           </div>
         ) : accessQ.error ? (
@@ -279,7 +279,7 @@ export default function CurriculumAccessPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[800px] text-left text-sm">
               <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-surface-500">
+                <tr className="border-b border-surface-200 text-xs uppercase tracking-wide text-surface-500">
                   <th className="px-4 py-3 font-medium">Institution</th>
                   <th className="px-4 py-3 font-medium">Board</th>
                   <th className="px-4 py-3 font-medium">Grade</th>
@@ -290,7 +290,7 @@ export default function CurriculumAccessPage() {
               </thead>
               <tbody>
                 {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/70">
+                  <tr key={row.id} className="border-b border-surface-100 last:border-0 hover:bg-surface-50/70">
                     <td className="px-4 py-3">
                       <p className="font-medium text-surface-900">{row.institution.name}</p>
                       <p className="text-xs text-surface-500">{row.institution.code}</p>

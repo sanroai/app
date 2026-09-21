@@ -36,6 +36,8 @@ import {
   Mail, 
   Phone, 
   Lock, 
+  Eye, 
+  EyeOff, 
   ArrowRight,
   GraduationCap,
   BookOpen
@@ -46,6 +48,7 @@ export default function RegisterPage() {
   const setSession = useAuthStore((s) => s.setSession);
   const setBlocked = useAuthStore((s) => s.setBlocked);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -86,6 +89,13 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-surface-600 hover:text-brand-600 transition-colors">
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Home
+        </Link>
+      </div>
+
       <div className="text-center">
         <div className="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700 mb-4">
           <GraduationCap className="h-4 w-4" />
@@ -108,11 +118,13 @@ export default function RegisterPage() {
                   id="institutionName"
                   placeholder="Sunrise Public School"
                   className="pl-10"
+                  aria-invalid={!!errors.institutionName}
+                  aria-describedby={errors.institutionName ? 'institutionName-error' : undefined}
                   {...register('institutionName')}
                 />
               </div>
               {errors.institutionName && (
-                <p className="text-sm text-red-500">{errors.institutionName.message}</p>
+                <p id="institutionName-error" className="text-sm text-red-500">{errors.institutionName.message}</p>
               )}
             </div>
 
@@ -156,11 +168,13 @@ export default function RegisterPage() {
                   autoComplete="name"
                   placeholder="Asha Kulkarni"
                   className="pl-10"
+                  aria-invalid={!!errors.adminName}
+                  aria-describedby={errors.adminName ? 'adminName-error' : undefined}
                   {...register('adminName')}
                 />
               </div>
               {errors.adminName && (
-                <p className="text-sm text-red-500">{errors.adminName.message}</p>
+                <p id="adminName-error" className="text-sm text-red-500">{errors.adminName.message}</p>
               )}
             </div>
 
@@ -174,11 +188,13 @@ export default function RegisterPage() {
                   autoComplete="email"
                   placeholder="asha@school.edu"
                   className="pl-10"
+                  aria-invalid={!!errors.adminEmail}
+                  aria-describedby={errors.adminEmail ? 'adminEmail-error' : undefined}
                   {...register('adminEmail')}
                 />
               </div>
               {errors.adminEmail && (
-                <p className="text-sm text-red-500">{errors.adminEmail.message}</p>
+                <p id="adminEmail-error" className="text-sm text-red-500">{errors.adminEmail.message}</p>
               )}
             </div>
 
@@ -192,11 +208,13 @@ export default function RegisterPage() {
                   autoComplete="tel"
                   placeholder="+91 98765 43210"
                   className="pl-10"
+                  aria-invalid={!!errors.adminPhone}
+                  aria-describedby={errors.adminPhone ? 'adminPhone-error' : undefined}
                   {...register('adminPhone')}
                 />
               </div>
               {errors.adminPhone && (
-                <p className="text-sm text-red-500">{errors.adminPhone.message}</p>
+                <p id="adminPhone-error" className="text-sm text-red-500">{errors.adminPhone.message}</p>
               )}
             </div>
 
@@ -206,20 +224,34 @@ export default function RegisterPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-surface-400" />
                 <Input
                   id="adminPassword"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   placeholder="Min. 8 characters"
-                  className="pl-10"
+                  className="pl-10 pr-10"
+                  aria-invalid={!!errors.adminPassword}
+                  aria-describedby={errors.adminPassword ? 'adminPassword-error' : undefined}
                   {...register('adminPassword')}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 rounded-lg"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
               {errors.adminPassword && (
-                <p className="text-sm text-red-500">{errors.adminPassword.message}</p>
+                <p id="adminPassword-error" className="text-sm text-red-500">{errors.adminPassword.message}</p>
               )}
             </div>
 
             {serverError && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
+              <div role="alert" className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">
                 {serverError}
               </div>
             )}
@@ -232,7 +264,8 @@ export default function RegisterPage() {
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <div role="status" className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span className="sr-only">Loading...</span>
                   Creating account...
                 </div>
               ) : (

@@ -6,6 +6,7 @@ import { usePaper } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
 import { Button, Card, ErrorBanner, Input, Label, Select } from '@/components/ui';
+import { ArrowLeft } from 'lucide-react';
 
 export default function NewAssessmentPage() {
   const router = useRouter();
@@ -26,6 +27,10 @@ export default function NewAssessmentPage() {
 
   async function create() {
     setError(null);
+    if (startsAt && dueAt && new Date(startsAt) >= new Date(dueAt)) {
+      setError('Start date must be before due date.');
+      return;
+    }
     setSubmitting(true);
     try {
       const body: Record<string, unknown> = {
@@ -56,10 +61,15 @@ export default function NewAssessmentPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="mb-6">
+        <button onClick={() => router.push('/app/assessments')} className="mb-3 inline-flex items-center gap-1.5 text-sm text-surface-500 hover:text-surface-800">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Assessments
+        </button>
         <h1 className="text-2xl font-bold">Create assessment</h1>
-        {paperId ? <p className="mt-1 text-sm text-slate-500">Source paper: <span className="font-medium text-slate-700">{paper?.title ?? '…'}</span></p> : null}
+        {paperId ? <p className="mt-1 text-sm text-surface-500">Source paper: <span className="font-medium text-surface-700">{paper?.title ?? '…'}</span></p> : null}
       </div>
-      <Card className="space-y-5">
+      <Card>
+        <form onSubmit={(e) => { e.preventDefault(); create(); }} className="space-y-5">
         <div>
           <Label htmlFor="title">Assessment title</Label>
           <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={defaultTitle || 'Unit Test 1'} />
@@ -89,9 +99,10 @@ export default function NewAssessmentPage() {
           </div>
         </div>
         <ErrorBanner message={error} />
-        <Button onClick={create} loading={submitting} className="w-full" disabled={!(title || defaultTitle)}>
+        <Button type="submit" loading={submitting} className="w-full" disabled={!(title || defaultTitle)}>
           Create assessment
         </Button>
+        </form>
       </Card>
     </div>
   );
