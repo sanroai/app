@@ -6,10 +6,11 @@
   },
   "deploy": {
     "startCommand": "node apps/api/dist/main.js",
-    "preDeployCommand": "pnpm --filter @sanro/api exec prisma migrate deploy && pnpm --filter @sanro/api db:seed",
+    "preDeployCommand": "pnpm --filter @sanro/api exec prisma migrate deploy",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10,
     "healthcheckPath": "/api/v1/health",
-    "healthcheckTimeout": 100
+    "healthcheckTimeout": 300
   }
+}
 }
