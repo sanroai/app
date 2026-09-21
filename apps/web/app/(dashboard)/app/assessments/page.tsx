@@ -34,11 +34,12 @@ function StaffAssessments() {
   const user = useAuthStore((s) => s.user);
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   const [institutionFilter, setInstitutionFilter] = useState('ALL');
-  const { data: institutions } = useQuery<{ id: string; name: string }[]>({
+  const { data: institutionsData } = useQuery<{ items: { id: string; name: string }[] }>({
     queryKey: ['admin-institutions'],
-    queryFn: () => api('/admin/institutions', { token: useAuthStore.getState().token }),
+    queryFn: () => api('/admin/institutions?pageSize=100', { token: useAuthStore.getState().token }),
     enabled: isSuperAdmin,
   });
+  const institutions = institutionsData?.items ?? [];
   const { data, isLoading, error } = useAssessments(
     user?.role,
     isSuperAdmin && institutionFilter !== 'ALL' ? institutionFilter : undefined,
