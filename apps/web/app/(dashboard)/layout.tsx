@@ -258,10 +258,30 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   return (
     <nav className="flex items-center gap-1" aria-label="Main navigation">
       {primaryLinks.map(renderLink)}
-      {peopleDropdownLinks.length > 0 && renderDropdown('People', Users, peopleDropdownLinks)}
-      {academicLinks.length > 0 && renderDropdown('Academic', Layers, academicLinks)}
-      {analyticsLinks.length > 0 && renderDropdown('Analytics', BarChart2, analyticsLinks)}
-      {settingsLinks.length > 0 && renderDropdown('Settings', Settings, settingsLinks)}
+      {peopleDropdownLinks.length > 0 && (
+        <>
+          <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
+          {renderDropdown('People', Users, peopleDropdownLinks)}
+        </>
+      )}
+      {academicLinks.length > 0 && (
+        <>
+          <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
+          {renderDropdown('Academic', Layers, academicLinks)}
+        </>
+      )}
+      {analyticsLinks.length > 0 && (
+        <>
+          <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
+          {renderDropdown('Analytics', BarChart2, analyticsLinks)}
+        </>
+      )}
+      {settingsLinks.length > 0 && (
+        <>
+          <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
+          {renderDropdown('Settings', Settings, settingsLinks)}
+        </>
+      )}
     </nav>
   );
 }
@@ -401,19 +421,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
-              aria-label="Toggle navigation menu"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
+            {user.role !== 'STUDENT' && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                aria-label="Toggle navigation menu"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
+            )}
           </div>
         </div>
 
@@ -425,8 +447,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      {/* Mobile Nav */}
-      {mobileMenuOpen && (
+      {/* Mobile Nav — hidden for students (they use bottom tabs) */}
+      {user.role !== 'STUDENT' && mobileMenuOpen && (
         <>
           <div
             className="md:hidden fixed inset-0 z-30 bg-black/40"
