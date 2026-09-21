@@ -12,7 +12,6 @@ export async function GET(
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     cache: 'no-store',
   });
-  console.log('[proxy]', id, res.status, res.statusText);
   if (!res.ok) {
     return NextResponse.json({ error: `Preview failed with status ${res.status}` }, { status: res.status });
   }
