@@ -2,12 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import { usePapers } from '@/lib/api-hooks';
+import { useRole } from '@/lib/role-theme';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { formatDate } from '@/lib/format';
 import { Eye, FileText, Plus } from 'lucide-react';
 
 export default function PapersPage() {
   const router = useRouter();
+  const role = useRole();
   const { data, isLoading, error } = usePapers();
 
   if (isLoading) return <Spinner label="Loading papers…" />;
@@ -17,10 +19,12 @@ export default function PapersPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Question papers</h1>
-        <Button onClick={() => router.push('/app/papers/new')}>
-          <Plus className="h-4 w-4" />
-          New paper
-        </Button>
+        {role !== 'SUPER_ADMIN' && (
+          <Button onClick={() => router.push('/app/papers/new')}>
+            <Plus className="h-4 w-4" />
+            New paper
+          </Button>
+        )}
       </div>
       <div className="space-y-3">
         {(data ?? []).map((p: { id: string; title: string; status: string; subject?: { name: string } | null; examName?: string; totalMarks?: number; durationMinutes?: number; date?: string | null }) => (

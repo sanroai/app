@@ -35,6 +35,24 @@ export type ImportJob = {
   _count: { rows: number };
 };
 
+export type AcademicYear = {
+  id: string;
+  institutionId: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+};
+
+export function useAcademicYears() {
+  const token = useAuthStore((s) => s.token);
+  return useQuery<AcademicYear[]>({
+    queryKey: ['academic-years'],
+    queryFn: () => api<AcademicYear[]>('/academics/academic-years', { token }),
+    enabled: !!token,
+  });
+}
+
 export function useImportUpload() {
   const token = useAuthStore((s) => s.token);
   return useMutation({

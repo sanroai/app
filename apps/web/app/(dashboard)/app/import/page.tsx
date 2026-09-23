@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { useImportUpload, useImportCommit, useImportHistory } from '@/lib/import-hooks';
+import { useImportUpload, useImportCommit, useImportHistory, useAcademicYears } from '@/lib/import-hooks';
 import { useInstitutions } from '@/lib/institution-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -71,6 +71,7 @@ export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [entityType, setEntityType] = useState<string>('STUDENTS');
   const [institutionId, setInstitutionId] = useState<string>(user?.institutionId ?? '');
+  const [academicYearId, setAcademicYearId] = useState<string>('');
   const [result, setResult] = useState<ImportResult | null>(null);
   const [commitResult, setCommitResult] = useState<CommitResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -81,6 +82,13 @@ export default function ImportPage() {
   const institutionsQuery = useInstitutions({ page: 1, pageSize: 100, status: 'ACTIVE' });
   const institutions = institutionsQuery.data?.items ?? [];
   const selectedInstitution = institutions.find((i) => i.id === institutionId);
+
+  const academicYearsQuery = useAcademicYears();
+  const academicYears = (academicYearsQuery.data ?? []).filter((y) =>
+    institutionId ? y.institutionId === institutionId : true,
+  );
+  const selectedYear = academicYears.find((y) => y.id === academicYearId);
+  const yearReady = !!academicYearId || academicYears.some((y) => y.status === 'ACTIVE');
 
   const uploadMutation = useImportUpload();
   const commitMutation = useImportCommit();
@@ -110,8 +118,13 @@ export default function ImportPage() {
   function handleUpload() {
     if (!file || !institutionId) return;
     setUploadError(null);
+    const resolvedYearId =
+      academicYearId ||
+      academicYears.find((y) => y.status === 'ACTIVE')?.id ||
+      academicYears[0]?.id ||
+      '';
     uploadMutation.mutate(
-      { file, entityType, academicYearId: '', institutionId },
+      { file, entityType, academicYearId: resolvedYearId, institutionId },
       {
         onSuccess: (data) => setResult(data),
         onError: (err) => setUploadError(err.message),
@@ -137,6 +150,7 @@ export default function ImportPage() {
     setResult(null);
     setCommitResult(null);
     setUploadError(null);
+    setAcademicYearId('');
   }
 
   function downloadSample(type: string) {
@@ -255,6 +269,42 @@ export default function ImportPage() {
               )}
             </div>
 
+            {/* Academic year selector */}
+            <div>
+              <label className="text-sm font-medium text-surface-700 mb-2 block">
+                Academic Year <span className="text-red-500">*</span>
+              </label>
+              <Select value={academicYearId || undefined} onValueChange={(v) => setAcademicYearId(v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select academic year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {academicYears.map((y) => (
+                    <SelectItem key={y.id} value={y.id}>
+                      {y.name}
+                      {y.status === 'ACTIVE' ? ' · Active' : y.status !== 'ACTIVE' ? ` · ${y.status}` : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!academicYearsQuery.isLoading && academicYears.length === 0 && (
+                <p className="mt-1 text-xs text-red-600">
+                  No academic year found for this institution.
+                </p>
+              )}
+              {!academicYearsQuery.isLoading && academicYears.length > 0 && !yearReady && (
+                <p className="mt-1 text-xs text-amber-600">
+                  Select an academic year to continue.
+                </p>
+              )}
+              {selectedYear && (
+                <p className="mt-1 text-xs text-surface-500">
+                  {new Date(selectedYear.startDate).toLocaleDateString('en-IN')} –{' '}
+                  {new Date(selectedYear.endDate).toLocaleDateString('en-IN')}
+                </p>
+              )}
+            </div>
+
             {/* Entity type selector */}
             <div>
               <label className="text-sm font-medium text-surface-700 mb-2 block">Entity Type</label>
@@ -358,7 +408,7 @@ export default function ImportPage() {
               )}
               <Button
                 onClick={handleUpload}
-                disabled={!file || !institutionId || uploadMutation.isPending}
+                disabled={!file || !institutionId || !yearReady || uploadMutation.isPending}
               >
                 {uploadMutation.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

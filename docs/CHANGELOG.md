@@ -2,6 +2,46 @@
 
 Format: date — phase — change.
 
+## 2026-09-23 — Bulk import fixed (was broken for every role) + Super Admin write scope
+- **P0: import never worked end-to-end.** The Bulk Import page hardcoded
+  `academicYearId: ''` and had no academic-year selector, so
+  `academicYear.findFirst({ id: '' })` hit Prisma with an empty UUID and
+  threw `500 INTERNAL_ERROR` before any row was parsed. Super Admin and
+  teacher both failed identically — the button was never reachable.
+- **Fix (API)**: `imports.service.preview` now resolves the year instead of
+  trusting the client — a supplied id must belong to the target institution,
+  and a blank id falls back to that institution's `ACTIVE` year. Invalid
+  UUIDs are rejected with `400` instead of escalating to `500`.
+- **Fix (web)**: added the missing academic-year selector to
+  `/app/import` (new `useAcademicYears` hook reading
+  `/academics/academic-years`, filtered to the chosen institution), with the
+  active year preselected as the upload default.
+- **Super Admin import was also blocked at the gate**: `@Roles` on
+  `POST /imports/upload` and `/:jobId/commit` omitted `SUPER_ADMIN`, and the
+  controller never read the `institutionId` the UI was already sending, so
+  Super Admin fell into `requireInstitution` → `403 "Super admin is not bound
+  to an institution"`. Both roles are now granted, `institutionId` is passed
+  through, an empty institution returns `400 "Select an institution"` (not a
+  misleading 403), and `commit` scopes the job lookup by
+  `assertInstitutionAccess` and takes the target institution/year from the
+  saved job.
+- **Content Ingest (`content-import`) 403s**: the controller already allowed
+  `SUPER_ADMIN`, but all five service sites called `requireInstitution`.
+  Super Admin now creates platform knowledge bases with
+  `institutionId: null` + `ownerType: 'PLATFORM'` (both fields are nullable),
+  and list/detail/process are platform-wide for Super Admin.
+- **`restoreVersion` ordering**: it called `requireInstitution` before its
+  own admin-role check, so Super Admin could never reach the SUPER branch
+  below it. The role check now runs first; only non-super restores scope to
+  an institution.
+- **UI**: the `+ New paper` button on `/app/papers` is hidden for Super
+  Admin — the nav already omits `/app/papers/new` (institution-bound
+  generation), so the button was a dead end.
+- **Verified**: typecheck 6/6, 178/178 tests, build 6/6, plus a live
+  end-to-end run — Super Admin upload `201` → commit `201 {"imported":1}`
+  → history `COMMITTED` with the resolved year; teacher upload `201` and
+  still `403` on `/admin/institutions`.
+
 ## 2026-09-23 — Super Admin platform scope (403 sweep)
 - **Bug**: 86 call sites still used `TenantAccessService.requireInstitution`,
   which throws `403 "Super admin is not bound to an institution"` for

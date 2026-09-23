@@ -3,7 +3,7 @@ import * as XLSX from 'xlsx';
 import * as bcrypt from 'bcryptjs';
 import { ImportEntityType, ImportStatus, ImportRowStatus } from '@sanro/types';
 import { IMPORT_LIMITS } from '@sanro/config';
-import { Prisma } from '@prisma/client';
+import { AcademicYearStatus, Prisma } from '@prisma/client';
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
@@ -24,6 +24,7 @@ interface ParsedRow {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^\+?[0-9\s-]{8,15}$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parseSheet(buffer: Buffer, filename: string): Array<Record<string, unknown>> {
   const workbook = XLSX.read(buffer, { type: 'buffer' });
@@ -85,19 +86,40 @@ export class ImportsService {
     private readonly audit: AuditService,
   ) {}
 
-  async preview(user: RequestUser, entityType: ImportEntityType, academicYearId: string, file: Express.Multer.File) {
-    const institutionId = this.tenant.requireInstitution(user);
+  async preview(
+    user: RequestUser,
+    entityType: ImportEntityType,
+    academicYearId: string,
+    file: Express.Multer.File,
+    requestedInstitutionId?: string,
+  ) {
     if (user.role !== 'INSTITUTION_ADMIN' && user.role !== 'TEACHER' && user.role !== 'SUPER_ADMIN') {
       throw new BadRequestException('Only administrators and teachers can import data');
     }
+    const institutionId = this.tenant.assertInstitutionAccess(user, requestedInstitutionId);
+    if (!institutionId) throw new BadRequestException('Select an institution to import into');
     if (file.size > IMPORT_LIMITS.MAX_FILE_BYTES) {
       throw new BadRequestException(`File exceeds the ${IMPORT_LIMITS.MAX_FILE_BYTES / 1024 / 1024} MB limit`);
     }
 
-    const academicYear = await this.prisma.academicYear.findFirst({
-      where: { id: academicYearId, institutionId },
-    });
-    if (!academicYear) throw new BadRequestException('Invalid academic year');
+    const requestedYearId = (academicYearId ?? '').trim();
+    if (requestedYearId && !UUID_RE.test(requestedYearId)) {
+      throw new BadRequestException('Invalid academic year');
+    }
+    const academicYear = requestedYearId
+      ? await this.prisma.academicYear.findFirst({ where: { id: requestedYearId, institutionId } })
+      : await this.prisma.academicYear.findFirst({
+          where: { institutionId, status: AcademicYearStatus.ACTIVE },
+          orderBy: { startDate: 'desc' },
+        });
+    if (!academicYear) {
+      throw new BadRequestException(
+        requestedYearId
+          ? 'Invalid academic year for this institution'
+          : 'No active academic year for this institution',
+      );
+    }
+    const resolvedYearId = academicYear.id;
 
     const rows = parseSheet(file.buffer, file.originalname);
     const parsed = rows.map((r, i) => validateRow(r, i + 2));
@@ -108,7 +130,7 @@ export class ImportsService {
     const job = await this.prisma.importJob.create({
       data: {
         institutionId,
-        academicYearId,
+        academicYearId: resolvedYearId,
         entityType,
         fileName: file.originalname,
         originalName: file.originalname,
@@ -145,14 +167,15 @@ export class ImportsService {
   }
 
   async commit(user: RequestUser, jobId: string): Promise<{ imported: number; duplicates: number; errors: string[] }> {
-    const institutionId = this.tenant.requireInstitution(user);
+    const scoped = this.tenant.assertInstitutionAccess(user);
     const job = await this.prisma.importJob.findFirst({
-      where: { id: jobId, institutionId },
+      where: { id: jobId, ...(scoped ? { institutionId: scoped } : {}) },
       include: { rows: { where: { status: 'VALID' } } },
     });
     if (!job) throw new NotFoundException('Import job not found');
     if (job.status === 'COMMITTED') throw new BadRequestException('Import already committed');
 
+    const institutionId = job.institutionId;
     const academicYearId = job.academicYearId;
     const errors: string[] = [];
     let imported = 0;

@@ -17,7 +17,7 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 export class ImportsController {
   constructor(private readonly service: ImportsService) {}
 
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('file', {
@@ -36,8 +36,15 @@ export class ImportsController {
     @UploadedFile() file: Express.Multer.File,
     @Body('entityType') entityType: ImportEntityType,
     @Body('academicYearId') academicYearId: string,
+    @Body('institutionId') institutionId?: string,
   ) {
-    return this.service.preview(user, entityType as ImportEntityType, academicYearId, file);
+    return this.service.preview(
+      user,
+      entityType as ImportEntityType,
+      academicYearId,
+      file,
+      institutionId,
+    );
   }
 
   @Get()
@@ -45,7 +52,7 @@ export class ImportsController {
     return this.service.history(user);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
   @Post(':jobId/commit')
   commit(@CurrentUser() user: RequestUser, @Param('jobId') jobId: string) {
     return this.service.commit(user, jobId);

@@ -100,14 +100,15 @@ export class ContentService {
   }
 
   async restoreVersion(user: RequestUser, contentId: string, version: number) {
-    const institutionId = this.tenant.requireInstitution(user);
     if (user.role !== 'INSTITUTION_ADMIN' && user.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only admins can restore versions');
     }
 
     const item = user.role === 'SUPER_ADMIN'
       ? await this.prisma.contentItem.findUnique({ where: { id: contentId } })
-      : await this.prisma.contentItem.findFirst({ where: { id: contentId, institutionId } });
+      : await this.prisma.contentItem.findFirst({
+          where: { id: contentId, institutionId: this.tenant.requireInstitution(user) },
+        });
     if (!item) throw new NotFoundException('Content not found');
 
     const versionRecord = await this.prisma.contentVersion.findFirst({

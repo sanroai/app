@@ -23,7 +23,8 @@ export class ContentImportService {
     board?: string;
     chapter?: string;
   }) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const isSuper = user.role === 'SUPER_ADMIN';
+    const institutionId: string | null = isSuper ? null : this.tenant.requireInstitution(user);
 
     if (!file) throw new BadRequestException('File is required');
     if (file.size > 50 * 1024 * 1024) throw new BadRequestException('File exceeds 50MB limit');
@@ -51,6 +52,7 @@ export class ContentImportService {
         sourceUrl: result.url,
         storageKey: result.key,
         institutionId,
+        ownerType: institutionId ? 'INSTITUTION' : 'PLATFORM',
         creatorId: user.id,
         status: 'DRAFT' as ContentLifecycleStatus,
         metadata: {
@@ -117,7 +119,8 @@ export class ContentImportService {
     board?: string;
     chapter?: string;
   }) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const isSuper = user.role === 'SUPER_ADMIN';
+    const institutionId: string | null = isSuper ? null : this.tenant.requireInstitution(user);
 
     const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
     const match = data.url.match(youtubeRegex);
@@ -134,6 +137,7 @@ export class ContentImportService {
         sourceType: 'YOUTUBE',
         sourceUrl: data.url,
         institutionId,
+        ownerType: institutionId ? 'INSTITUTION' : 'PLATFORM',
         creatorId: user.id,
         status: 'PUBLISHED' as ContentLifecycleStatus,
         metadata: {
@@ -152,18 +156,18 @@ export class ContentImportService {
   }
 
   async getImports(user: any) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = user.role === 'SUPER_ADMIN' ? null : this.tenant.requireInstitution(user);
     return this.prisma.knowledgeBase.findMany({
-      where: { institutionId },
+      where: institutionId ? { institutionId } : {},
       include: { _count: { select: { chunks: true, jobs: true } } },
       orderBy: { createdAt: 'desc' },
     });
   }
 
   async getImportDetail(id: string, user: any) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = user.role === 'SUPER_ADMIN' ? null : this.tenant.requireInstitution(user);
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id, institutionId },
+      where: { id, ...(institutionId ? { institutionId } : {}) },
       include: {
         chunks: { orderBy: { createdAt: 'asc' } },
         jobs: { orderBy: { createdAt: 'desc' } },
@@ -174,9 +178,9 @@ export class ContentImportService {
   }
 
   async processContent(id: string, user: any) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = user.role === 'SUPER_ADMIN' ? null : this.tenant.requireInstitution(user);
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id, institutionId },
+      where: { id, ...(institutionId ? { institutionId } : {}) },
     });
     if (!kb) throw new NotFoundException('Knowledge base not found');
 
