@@ -34,10 +34,24 @@ Mobile env: EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1 (all EAS profiles
 ## 3. Deploy Procedure
 
 1. Run CI: typecheck → test → build → E2E.
-2. Push API: Railway deploys from GitHub. The project is configured at the
-   repo root (`railway.json`, auto-detected; run `railway up` from the repo
-   root, not `apps/api`); preDeploy runs Prisma migrations + idempotent seed.
-   Health check `GET /api/v1/health`.
+2. Deploy API: **direct deploy from the repo root** — run `railway up
+   --service api` from the repo root (not `apps/api`). preDeploy runs
+   `prisma migrate deploy` + idempotent `db:seed`; health check
+   `GET /api/v1/health`.
+   - **No config-as-code file**: `railway.json` was removed. Railway's GitHub
+     App could not snapshot `sanroai/app` ("Failed to snapshot repository"),
+     which blocked every deploy. Deploy config (start command
+     `node apps/api/dist/main.js`, health check `/api/v1/health`, preDeploy
+     migrate + seed, restart policy) is now **stored on the Railway service
+     itself** and does not depend on a repo file. This also resolves the
+     Config-as-Code deprecation warning (deadline 2026-12-01).
+   - **Do not re-add `railway.json`** — it re-triggers the repo snapshot and
+     fails the deploy. To change start/healthcheck/preDeploy, edit it in the
+     Railway dashboard service settings.
+   - The `railway` npm SDK was removed from `devDependencies`: it was unused
+     and pinned to 3.11.0, which conflicts with Railway CLI ≥5.42.1 and broke
+     `railway config` commands. The Railway CLI (`railway` global binary) is
+     the only Railway tooling needed.
 3. Push web: Vercel production deploy.
 4. Verify domains, HTTPS, CORS, auth login, critical workflows, PDF, uploads,
    AI.

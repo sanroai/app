@@ -251,8 +251,12 @@ owner account token. Android bundle audited: contains `https://api.sanroai.com/a
 committed so Railway never re-uploads the APK.
 
 ### Follow-ups (non-blocking)
-- Railway warns `railway.json` Config-as-Code deprecation → migrate to
-  `.railway/railway.ts` (`railway config migrate`) before 2026-12-01.
+- ~~Railway warns `railway.json` Config-as-Code deprecation → migrate to
+  `.railway/railway.ts` (`railway config migrate`) before 2026-12-01.~~
+  **RESOLVED (2026-09-23)**: `railway.json` deleted outright. Railway's GitHub
+  App could not snapshot the repo ("Failed to snapshot repository"), blocking
+  all deploys; config now lives on the Railway service settings, so no
+  config-as-code file remains to deprecate. See docs/DEPLOYMENT.md §3.
 - PDF report export remains a documented follow-up (HTML fallback on Railway).
 - Web tests / E2E screenshots after web redeploy.
 

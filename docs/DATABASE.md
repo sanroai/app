@@ -6,6 +6,37 @@ PostgreSQL (native / managed). Prisma ORM, migration history managed in
 `apps/api/prisma/migrations`. Deploy uses `prisma migrate deploy`; seed uses
 idempotent `db:seed`. `prisma migrate reset` is forbidden on production.
 
+### Schema drift guardrail
+
+Local dev has historically been synced with `db push`, which writes schema
+**without recording migrations**. That silently desyncs local from production:
+prod runs `migrate deploy`, so a field added via `db push` exists locally but
+not in prod — and the failure only surfaces at deploy time (seed crashes in
+`preDeployCommand`, container never starts).
+
+Never trust "migrations applied" as proof the schema matches. Before deploying
+schema changes, run the authoritative diff:
+
+```bash
+npx prisma migrate diff \
+  --from-migrations ./prisma/migrations \
+  --to-schema-datamodel ./prisma/schema.prisma \
+  --shadow-database-url "postgresql://postgres:postgres@localhost:5432/sanro_shadow" \
+  --script
+```
+
+Output must be `-- This is an empty migration.` If it prints SQL, that SQL is
+missing from production. Fix by adding an **idempotent, non-destructive**
+migration (guarded `ALTER TYPE ... ADD VALUE`, `ADD COLUMN IF NOT EXISTS`,
+`CREATE INDEX IF NOT EXISTS`) — never by running `db push` against prod.
+
+Replay check before deploying (proves migrate + seed succeed in the same
+order prod runs them):
+
+```bash
+# fresh DB → migrate deploy → seed twice (2nd run must also exit 0)
+```
+
 ## 2. Domain Map (models grouped)
 
 ### Tenancy & People

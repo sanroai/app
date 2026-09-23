@@ -172,9 +172,6 @@ importers:
       prettier:
         specifier: ^3.4.2
         version: 3.9.6
-      railway:
-        specifier: ^3.11.0
-        version: 3.11.0
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
@@ -1741,11 +1738,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@graphql-typed-document-node/core@3.2.0':
-    resolution: {integrity: sha512-mB9oAsNCm9aM3/SOv4YtBMqZbYj10R7dkq8byBqxGY/ncFwhf2oQzMV+LCRlWoDSEBJ3COiR1yeDvMtsoOsuFQ==}
-    peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
   '@hookform/resolvers@3.10.0':
     resolution: {integrity: sha512-79Dv+3mDF7i+2ajj7SkypSKHhl1cbln1OGavqrsF7p6mbUv11xpqpacPsGDCTRvCSjEEIez2ef1NveSVL3b0Ag==}
@@ -6652,11 +6644,6 @@ packages:
   queue@6.0.2:
     resolution: {integrity: sha512-iHZWu+q3IdFZFX36ro/lKBkSvfkztY5Y7HMiPlOUjhupPcG2JMfst2KKEpu5XndviX/3UhFbRngUPNKtgvtZiA==}
 
-  railway@3.11.0:
-    resolution: {integrity: sha512-ehLFHCxV+gITWeBlIVaXulXaVRg4LCxqm0bq64iXSwYL1DESd0pUeLYMP/BMBhnZWeFFBYyJCREaq+Nka7Wgmw==}
-    engines: {node: '>=22'}
-    hasBin: true
-
   range-parser@1.2.1:
     resolution: {integrity: sha512-Hrgsx+orqoygnmhFbKaHE6c296J+HTAQXoxEF6gNupROmmGJRoyzfG3ccAveqCBrwr/2yxQ5BVd/GTl5agOwSg==}
     engines: {node: '>= 0.6'}
@@ -9623,10 +9610,6 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
 
   '@floating-ui/utils@0.2.12': {}
-
-  '@graphql-typed-document-node/core@3.2.0(graphql@16.14.2)':
-    dependencies:
-      graphql: 16.14.2
 
   '@hookform/resolvers@3.10.0(react-hook-form@7.88.0(react@19.3.0))':
     dependencies:
@@ -13599,7 +13582,8 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
-  graphql@16.14.2: {}
+  graphql@16.14.2:
+    optional: true
 
   has-flag@3.0.0: {}
 
@@ -14877,12 +14861,6 @@ snapshots:
   queue@6.0.2:
     dependencies:
       inherits: 2.0.4
-
-  railway@3.11.0:
-    dependencies:
-      '@graphql-typed-document-node/core': 3.2.0(graphql@16.14.2)
-      graphql: 16.14.2
-      tsx: 4.23.13
 
   range-parser@1.2.1: {}
 

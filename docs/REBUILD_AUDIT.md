@@ -109,7 +109,7 @@ releases/    sanroai.apk (78 MB, v1.1.0, versionCode 2) — gitignored
 | 1 | `packages/ui` is an empty stub (no package.json/src) | Low |
 | 2 | `apps/web/src/` empty vestigial directory | Low |
 | 3 | Production PDF relies on HTML fallback (Playwright unavailable on Railway) | Medium |
-| 4 | Deployment drift: railway.json `db push` vs .railway/railway.ts `migrate deploy` | Medium |
+| 4 | Deployment drift: railway.json `db push` vs .railway/railway.ts `migrate deploy` | Medium — **RESOLVED**: `railway.json` removed; deploy uses `migrate deploy` via Railway service settings |
 | 5 | No CI/CD at all | Medium |
 | 6 | Mobile base URL defaults to localhost when env unset | Medium (prod builds override) |
 | 7 | Homepage `/api/contact` route missing (contact form 404 risk) | Medium |

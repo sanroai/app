@@ -2,6 +2,39 @@
 
 Format: date — phase — change.
 
+## 2026-09-23 — Production deploy unblocked (schema drift + Railway config)
+- **Root cause of failed production deploys**: prod DB was ahead of migration
+  history in reverse — `prisma migrate deploy` reported "no pending
+  migrations" while the schema lacked `StudentStatus.ARCHIVED`,
+  `Student.archivedAt`, and `Institution_isSystemInstitution_idx`. Seed then
+  crashed (`P2022 column Student.archivedAt does not exist`) inside
+  `preDeployCommand`, so the container was stopped before start.
+  Local dev had them only because it was synced via `db push`.
+- **Fix**: new idempotent, non-destructive migration
+  `20260923120000_student_archive_schema_drift` — guarded enum add,
+  `ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`. Verified by
+  replaying all 13 migrations onto a clean DB, running seed twice (exit 0
+  both times), and confirming `prisma migrate diff` now reports an **empty**
+  migration (zero drift).
+- **Railway config-as-code removed**: `railway.json` deleted. Railway's GitHub
+  App returned `Not Authorized` on `githubRepos`, so every deploy failed with
+  `Failed to snapshot repository`. Deploy config (start command, healthcheck,
+  preDeploy migrate+seed) is now stored on the Railway service itself. This
+  also clears the Config-as-Code deprecation (deadline 2026-12-01).
+- **GitHub access fixed**: `gh` CLI re-authenticated as `sanroai`
+  (`wavoklu` inactive); fine-grained PAT saved as `GH_TOKEN` (User scope).
+  Railway `serviceDisconnect` run on the `api` service to drop the broken repo
+  link; `repoTriggers` now empty.
+- **Removed unused `railway` npm SDK** (devDependency 3.11.0): incompatible
+  with Railway CLI ≥5.42.1, it broke `railway config plan`. CLI-only now.
+- **Verified live**: migration applied on prod, seed completed, Nest started,
+  `GET /api/v1/health` → `ok`/`connected`, and `GET /api/v1/assessments` as
+  Super Admin → **200 with data** (previously failed with "Super admin is not
+  bound to any institution").
+- Local gate: typecheck clean (6 packages), 178/178 API tests pass,
+  `pnpm build` 6/6.
+- Live: https://api.sanroai.com · https://sanroai.com
+
 ## 2026-09-21 — Web UI/UX overhaul + mobile fixes + design token migration
 - **Comprehensive 64-page UI/UX audit** executed via 15+ parallel agents across
   83 files (+1178/-721 lines). Covers every dashboard, auth, public, and
