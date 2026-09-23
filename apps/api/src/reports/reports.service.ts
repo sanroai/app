@@ -29,7 +29,11 @@ private async resolveScope(user: RequestUser, institutionId?: string): Promise<S
 
     const resolvedInstitutionId = this.tenant.assertInstitutionAccess(user, institutionId);
     if (!resolvedInstitutionId) {
-      throw new ForbiddenException('Super admin must specify the institutionId query parameter');
+      const allGroups = await this.prisma.group.findMany({
+        where: { status: 'ACTIVE' },
+        select: { id: true },
+      });
+      return { institutionId: '', groupIds: allGroups.map((g) => g.id) };
     }
     const groups = await this.prisma.group.findMany({
       where: { institutionId: resolvedInstitutionId, status: 'ACTIVE' },
@@ -292,7 +296,7 @@ private async resolveScope(user: RequestUser, institutionId?: string): Promise<S
         subject: { select: { name: true } },
       },
     });
-    if (!assessment || assessment.institutionId !== scope.institutionId) {
+    if (!assessment || (scope.institutionId && assessment.institutionId !== scope.institutionId)) {
       throw new NotFoundException('Assessment not found');
     }
 

@@ -19,6 +19,7 @@ export interface DistributionEntry {
 }
 
 export interface PaperGenerateConfig {
+  institutionId?: string;
   title: string;
   examName: string;
   boardId: string;
@@ -66,7 +67,8 @@ export class PapersService {
   ) {}
 
   async generate(user: RequestUser, cfg: PaperGenerateConfig) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const scoped = this.tenant.assertInstitutionAccess(user, cfg.institutionId);
+    const institutionId = scoped || this.tenant.requireInstitution(user);
     if (user.role === 'STUDENT' || user.role === 'PARENT') {
       throw new ForbiddenException('Students and parents cannot generate papers');
     }
@@ -270,9 +272,9 @@ export class PapersService {
   }
 
   async list(user: RequestUser) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     return this.prisma.questionPaper.findMany({
-      where: { institutionId, status: { not: 'ARCHIVED' } },
+      where: { ...(institutionId ? { institutionId } : {}), status: { not: 'ARCHIVED' } },
       orderBy: { createdAt: 'desc' },
       include: {
         subject: { select: { name: true, code: true } },
@@ -283,9 +285,9 @@ export class PapersService {
   }
 
   async detail(user: RequestUser, id: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     const paper = await this.prisma.questionPaper.findFirst({
-      where: { id, institutionId },
+      where: { id, ...(institutionId ? { institutionId } : {}) },
       include: {
         institution: { select: { name: true, logoUrl: true, address: true, city: true, state: true } },
         subject: true,
@@ -348,9 +350,9 @@ export class PapersService {
   }
 
   async duplicate(user: RequestUser, id: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const scoped = this.tenant.assertInstitutionAccess(user);
     const source = await this.prisma.questionPaper.findFirst({
-      where: { id, institutionId },
+      where: { id, ...(scoped ? { institutionId: scoped } : {}) },
       include: { questions: true },
     });
     if (!source) throw new NotFoundException('Paper not found');
@@ -358,6 +360,7 @@ export class PapersService {
     const distribution = asDistribution(source.distribution as Record<string, { count: number; marks: number }>);
     const usedIds = source.questions.map((q) => q.questionId);
     const cfg: PaperGenerateConfig = {
+      institutionId: source.institutionId,
       title: `${source.title} Version B`,
       examName: source.examName,
       boardId: source.boardId,
@@ -379,9 +382,9 @@ export class PapersService {
   }
 
   async regenerateQuestion(user: RequestUser, paperId: string, questionId: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const scoped = this.tenant.assertInstitutionAccess(user);
     const paper = await this.prisma.questionPaper.findFirst({
-      where: { id: paperId, institutionId },
+      where: { id: paperId, ...(scoped ? { institutionId: scoped } : {}) },
       include: { questions: { include: { question: true } } },
     });
     if (!paper) throw new NotFoundException('Paper not found');
@@ -404,7 +407,7 @@ export class PapersService {
       distribution: paper.distribution as Record<string, { count: number; marks: number }>,
     };
     const candidates = await this.pickQuestions(
-      institutionId,
+      paper.institutionId,
       cfg,
       entry ?? { type: current.question.type as QuestionType, count: 1, marks: current.marks },
       excludeIds,
@@ -430,8 +433,10 @@ export class PapersService {
   }
 
   async setStatus(user: RequestUser, paperId: string, status: PaperStatus, kind: 'STUDENT' | 'ANSWER_KEY') {
-    const institutionId = this.tenant.requireInstitution(user);
-    const paper = await this.prisma.questionPaper.findFirst({ where: { id: paperId, institutionId } });
+    const scoped = this.tenant.assertInstitutionAccess(user);
+    const paper = await this.prisma.questionPaper.findFirst({
+      where: { id: paperId, ...(scoped ? { institutionId: scoped } : {}) },
+    });
     if (!paper) throw new NotFoundException('Paper not found');
     await this.prisma.questionPaper.update({
       where: { id: paperId },
@@ -439,7 +444,7 @@ export class PapersService {
     });
     await this.audit.log({
       userId: user.sub,
-      institutionId,
+      institutionId: paper.institutionId,
       action: 'PAPER_EXPORTED',
       entityType: 'QuestionPaper',
       entityId: paperId,

@@ -33,9 +33,9 @@ export class QuestionsService {
     page?: number;
     pageSize?: number;
   }) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     const where: Prisma.QuestionWhereInput = {
-      OR: [{ institutionId }, { institutionId: null }],
+      ...(institutionId ? { OR: [{ institutionId }, { institutionId: null }] } : {}),
       status: { not: 'ARCHIVED' },
       ...(query.grade ? { grade: query.grade } : {}),
       ...(query.boardId ? { boardId: query.boardId } : {}),
@@ -72,9 +72,12 @@ export class QuestionsService {
   }
 
   async detail(user: RequestUser, id: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     const question = await this.prisma.question.findFirst({
-      where: { id, OR: [{ institutionId }, { institutionId: null }] },
+      where: {
+        id,
+        ...(institutionId ? { OR: [{ institutionId }, { institutionId: null }] } : {}),
+      },
       include: {
         options: { orderBy: { order: 'asc' } },
         chapter: true,
@@ -110,7 +113,7 @@ export class QuestionsService {
       aiGenerated?: boolean;
     },
   ) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user) || null;
     if (user.role === 'STUDENT' || user.role === 'PARENT') {
       throw new ForbiddenException('Students and parents cannot create questions');
     }
@@ -168,9 +171,9 @@ export class QuestionsService {
   }
 
   async update(user: RequestUser, id: string, data: Record<string, unknown>) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     const question = await this.prisma.question.findFirst({
-      where: { id, institutionId },
+      where: { id, ...(institutionId ? { institutionId } : {}) },
     });
     if (!question) throw new NotFoundException('Question not found');
     if (question.status === 'APPROVED' && data.status !== 'ARCHIVED') {
@@ -199,9 +202,9 @@ export class QuestionsService {
   }
 
   async delete(user: RequestUser, id: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     const question = await this.prisma.question.findFirst({
-      where: { id, institutionId },
+      where: { id, ...(institutionId ? { institutionId } : {}) },
     });
     if (!question) throw new NotFoundException('Question not found');
     if (question.status === 'APPROVED') {
@@ -212,12 +215,15 @@ export class QuestionsService {
   }
 
   async review(user: RequestUser, id: string, action: 'APPROVE' | 'REJECT' | 'ARCHIVE') {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     if (user.role !== 'INSTITUTION_ADMIN' && user.role !== 'SUPER_ADMIN') {
       throw new ForbiddenException('Only admins can approve questions');
     }
     const question = await this.prisma.question.findFirst({
-      where: { id, OR: [{ institutionId }, { institutionId: null }] },
+      where: {
+        id,
+        ...(institutionId ? { OR: [{ institutionId }, { institutionId: null }] } : {}),
+      },
     });
     if (!question) throw new NotFoundException('Question not found');
 
@@ -244,13 +250,13 @@ export class QuestionsService {
     knowledgeBaseId: string,
     options: { count?: number; grade?: string; subject?: string; board?: string },
   ) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     if (user.role === 'STUDENT' || user.role === 'PARENT') {
       throw new ForbiddenException('Students and parents cannot generate questions');
     }
 
     const kb = await this.prisma.knowledgeBase.findFirst({
-      where: { id: knowledgeBaseId, institutionId },
+      where: { id: knowledgeBaseId, ...(institutionId ? { institutionId } : {}) },
       include: { chunks: { take: 50 } },
     });
     if (!kb) throw new NotFoundException('Knowledge base not found');

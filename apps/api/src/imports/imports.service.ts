@@ -345,9 +345,9 @@ export class ImportsService {
   }
 
   async history(user: RequestUser) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     return this.prisma.importJob.findMany({
-      where: { institutionId },
+      where: institutionId ? { institutionId } : {},
       orderBy: { createdAt: 'desc' },
       include: {
         createdBy: { select: { name: true } },
@@ -358,9 +358,9 @@ export class ImportsService {
   }
 
   async jobDetail(user: RequestUser, jobId: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     const job = await this.prisma.importJob.findFirst({
-      where: { id: jobId, institutionId },
+      where: { id: jobId, ...(institutionId ? { institutionId } : {}) },
       include: {
         rows: { orderBy: { rowNumber: 'asc' }, take: 500 },
         createdBy: { select: { name: true } },

@@ -19,9 +19,9 @@ export class AcademicsService {
   // ---- Academic years ------------------------------------------------------
 
   async listAcademicYears(user: RequestUser) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
     return this.prisma.academicYear.findMany({
-      where: { institutionId },
+      where: institutionId ? { institutionId } : {},
       orderBy: { startDate: 'desc' },
     });
   }
@@ -61,17 +61,18 @@ export class AcademicsService {
   // ---- Groups --------------------------------------------------------------
 
   async listGroups(user: RequestUser, yearId?: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
+    const institutionFilter = institutionId ? { institutionId } : {};
 
     if (user.role === 'TEACHER') {
       const teacherGroups = await this.prisma.teacherGroup.findMany({
-        where: { teacher: { userId: user.sub }, academicYear: { institutionId } },
+        where: { teacher: { userId: user.sub }, academicYear: institutionFilter },
         select: { groupId: true },
       });
       const allowed = new Set(teacherGroups.map((t) => t.groupId));
       return this.prisma.group.findMany({
         where: {
-          institutionId,
+          ...institutionFilter,
           status: 'ACTIVE',
           ...(yearId ? { academicYearId: yearId } : {}),
           ...(allowed.size ? { id: { in: [...allowed] } } : { id: '00000000-0000-0000-0000-000000000000' }),
@@ -82,7 +83,7 @@ export class AcademicsService {
     }
 
     return this.prisma.group.findMany({
-      where: { institutionId, ...(yearId ? { academicYearId: yearId } : {}) },
+      where: { ...institutionFilter, ...(yearId ? { academicYearId: yearId } : {}) },
       orderBy: [{ grade: 'asc' }, { name: 'asc' }],
       include: { _count: { select: { memberships: true } } },
     });

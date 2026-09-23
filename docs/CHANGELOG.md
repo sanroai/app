@@ -2,6 +2,36 @@
 
 Format: date — phase — change.
 
+## 2026-09-23 — Super Admin platform scope (403 sweep)
+- **Bug**: 86 call sites still used `TenantAccessService.requireInstitution`,
+  which throws `403 "Super admin is not bound to an institution"` for
+  `SUPER_ADMIN`. The prior assessments fix covered only its 7 sites, so most
+  Super Admin nav pages were dead: Question Bank, Question Papers, Reports,
+  Gamification, Import, and the academic-year/group selectors all returned 403.
+- **Fix**: reads in `questions`, `papers`, `academics`, `learning`,
+  `reports`, `imports` now use `assertInstitutionAccess`, which returns `''`
+  for Super Admin = **platform-wide scope** (the institution filter is omitted
+  instead of matched against `''`). Non-super roles are unchanged — still
+  bound to their single institution.
+- **Writes stay institution-bound**: `institutionId` is a required UUID FK on
+  most tables, so a `''` would turn a 403 into a FK violation. Paper
+  generation resolves the target institution via `assertInstitutionAccess(user,
+  cfg.institutionId)`; duplicate/regenerate/status resolve it from the source
+  paper, so Super Admin can act on any paper without owning one.
+- **Gamification profile/achievements** return an empty profile/catalog for
+  non-students (teachers, admins, Super Admin) instead of 403. The page checks
+  `if (error) return <ErrorBanner/>` **before** its admin branch, so the 403
+  hid the entire admin view behind an error banner. Body is `{}` (valid JSON)
+  rather than `null`, which Nest would serialize as an empty body — the mobile
+  client calls `res.json()` without a guard.
+- **Reports**: Super Admin with no `institutionId` now gets platform-wide
+  scope (all active groups) instead of `403 "must specify institutionId"`;
+  the Reports UI already sends `institutionId` only when a filter is chosen.
+  Fixed the assessment report guard so `scope.institutionId === ''` does not
+  404 every assessment.
+- Local verification: all 18 previously-failing Super Admin endpoints return
+  200. Typecheck clean (6 pkgs), 178/178 tests, `pnpm build` 6/6.
+
 ## 2026-09-23 — Production deploy unblocked (schema drift + Railway config)
 - **Root cause of failed production deploys**: prod DB was ahead of migration
   history in reverse — `prisma migrate deploy` reported "no pending

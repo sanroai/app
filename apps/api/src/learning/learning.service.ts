@@ -819,9 +819,15 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
   }
 
   async getGamificationProfile(user: RequestUser) {
-    this.tenant.requireInstitution(user);
     const student = await this.identity.resolveForUser(user);
-    if (!student) throw new ForbiddenException('Only students have gamification profiles');
+    if (!student) {
+      if (user.role === 'STUDENT' || user.role === 'PARENT') {
+        throw new ForbiddenException('Only students have gamification profiles');
+      }
+      return {};
+    }
+    const institutionId = this.tenant.assertInstitutionAccess(user);
+    const institutionFilter = institutionId ? { institutionId } : {};
 
     const profile = await this.prisma.gamificationProfile.findUnique({
       where: { studentId: student.id },
@@ -834,12 +840,12 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     // Compute rank within institution
     const members = await this.prisma.institutionMember.findMany({
-      where: { institutionId: this.tenant.requireInstitution(user), role: 'STUDENT', status: 'ACTIVE' },
+      where: { ...institutionFilter, role: 'STUDENT', status: 'ACTIVE' },
       select: { userId: true },
     });
     const allStudentUserIds = members.map((m) => m.userId);
     const allStudents = await this.prisma.student.findMany({
-      where: { userId: { in: allStudentUserIds }, institutionId: this.tenant.requireInstitution(user) },
+      where: { userId: { in: allStudentUserIds }, ...institutionFilter },
       select: { id: true },
     });
     const allStudentIds = allStudents.map((s) => s.id);
@@ -880,16 +886,17 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
   }
 
   async getLeaderboard(user: RequestUser, period: string) {
-    const institutionId = this.tenant.requireInstitution(user);
+    const institutionId = this.tenant.assertInstitutionAccess(user);
+    const institutionFilter = institutionId ? { institutionId } : {};
 
     const members = await this.prisma.institutionMember.findMany({
-      where: { institutionId, role: 'STUDENT', status: 'ACTIVE' },
+      where: { ...institutionFilter, role: 'STUDENT', status: 'ACTIVE' },
       select: { userId: true },
     });
     const userIds = members.map((m) => m.userId);
 
     const students = await this.prisma.student.findMany({
-      where: { userId: { in: userIds }, institutionId },
+      where: { userId: { in: userIds }, ...institutionFilter },
       select: { id: true, userId: true, name: true },
     });
 
@@ -922,13 +929,26 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
   }
 
   async getAchievements(user: RequestUser) {
-    this.tenant.requireInstitution(user);
-    const student = await this.identity.resolveForUser(user);
-    if (!student) throw new ForbiddenException('Only students have achievements');
-
     const allAchievements = await this.prisma.achievement.findMany({
       orderBy: { name: 'asc' },
     });
+
+    const student = await this.identity.resolveForUser(user);
+    if (!student) {
+      if (user.role === 'STUDENT' || user.role === 'PARENT') {
+        throw new ForbiddenException('Only students have achievements');
+      }
+      return {
+        earned: [],
+        locked: allAchievements.map((a) => ({
+          id: a.id,
+          name: a.name,
+          description: a.description,
+          icon: a.icon,
+          key: a.key,
+        })),
+      };
+    }
 
     const earned = await this.prisma.studentAchievement.findMany({
       where: { studentId: student.id },
