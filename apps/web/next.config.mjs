@@ -4,6 +4,11 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@sanro/types', '@sanro/validation', '@sanro/config'],
+  async redirects() {
+    return [
+      { source: '/app/learn', destination: '/app/library', permanent: false },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'img.youtube.com' },

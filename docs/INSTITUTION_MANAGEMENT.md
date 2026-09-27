@@ -217,20 +217,20 @@ creation time — `registerInstitution` seeds the trial subscription with
 
 ### Enforcement points
 
-- **Student create**: `StudentsService.enforceSeatLimit(institutionId, 1)` runs at the
-  top of `createStudent`; throws
-  `400 { code: 'SEAT_LIMIT_REACHED', message: 'Student seat limit reached. Please upgrade your subscription.' }`.
-  Limit comes from the current ACTIVE/TRIAL subscription's `seatLimit`, else
-  `institution.seatLimit`; no limit → pass. Note this path counts **ACTIVE students
-  only**, not the full billable set.
-- **Bulk import**: not currently enforced (imports module has no seat check) — documented gap.
-- **`SubscriptionAccessService.assertSeatAvailable(institutionId, additional[, tx])`**
-  throws `400 { code: 'USER_LIMIT_REACHED', message: 'User limit reached. Please contact
+- **Single-create paths**: `SubscriptionAccessService.assertSeatAvailable(institutionId, 1[, tx])`
+  runs at the top of `people/students.service.ts#createStudent`,
+  `people/teachers.service.ts#createTeacher` and
+  `people/parents.service.ts#createParent`. Throws
+  `400 { code: 'USER_LIMIT_REACHED', message: 'User limit reached. Please contact
   your SANRO administrator to increase your subscription limit.', details: { current,
-  requested, limit } }`, and `seatAvailability()` is a non-throwing variant returning
-  `{ current, available, requested, allowed, limit }` for pre-commit rejection. **Both
-  are currently defined but not yet called by any controller/service.** The wired
-  enforcement today is `enforceSeatLimit` in `students.service.ts`.
+  requested, available, limit } }`. The older `enforceSeatLimit` /
+  `SEAT_LIMIT_REACHED` student path no longer exists.
+- **Bulk import**: `seatAvailability()` (the non-throwing variant returning
+  `{ current, available, requested, allowed, limit }`) gates
+  `imports.service.commit` **before** the transaction opens, for
+  `STUDENTS` / `TEACHERS` / `PARENTS` only — a full subscription raises
+  `400 USER_LIMIT_REACHED` and no row is written. `CONTENT` and `QUESTIONS`
+  imports are deliberately seat-free (added 2026-09-26).
 - **`limitExceeded`** (usage beyond limit) is surfaced to clients via
   `GET /auth/account-state` (`institution.limitExceeded`) and computed in the
   entitlement; it does **not** block access by itself.

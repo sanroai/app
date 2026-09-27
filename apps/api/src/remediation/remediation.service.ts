@@ -145,10 +145,23 @@ export class RemediationService {
     return { ok: true };
   }
 
-  async createRetest(user: RequestUser, studentId: string, conceptIds: string[]) {
+  async createRetest(user: RequestUser, requestedStudentId: string | undefined, conceptIds: string[]) {
     const institutionId = this.tenant.requireInstitution(user);
-    if (user.role === 'STUDENT' || user.role === 'PARENT') throw new ForbiddenException('Not allowed');
-    await this.studentBelongs(institutionId, studentId);
+    if (user.role === 'PARENT') throw new ForbiddenException('Not allowed');
+
+    let studentId = requestedStudentId;
+    if (user.role === 'STUDENT') {
+      const self = await this.identity.resolveForUser(user);
+      if (!self) throw new ForbiddenException('Not allowed');
+      if (studentId && studentId !== self.id) {
+        throw new ForbiddenException('You can only request a retest for yourself');
+      }
+      studentId = self.id;
+    } else {
+      if (!studentId) throw new BadRequestException('studentId is required');
+      await this.studentBelongs(institutionId, studentId);
+    }
+
     if (conceptIds.length === 0) throw new BadRequestException('Select at least one concept to retest');
 
     const questions = await this.prisma.question.findMany({
@@ -180,18 +193,20 @@ export class RemediationService {
       data: { assessmentId: assessment.id, studentId },
     });
 
-    const studentUser = await this.prisma.student.findUnique({
-      where: { id: studentId },
-      select: { userId: true },
-    });
-    await this.notifications.create({
-      recipientUserId: studentUser?.userId ?? '',
-      type: 'RETEST_AVAILABLE',
-      title: 'Retest available',
-      body: 'A retest for your weak areas is now available. Give it your best!',
-      entityType: 'Assessment',
-      entityId: assessment.id,
-    });
+    if (user.role !== 'STUDENT') {
+      const studentUser = await this.prisma.student.findUnique({
+        where: { id: studentId },
+        select: { userId: true },
+      });
+      await this.notifications.create({
+        recipientUserId: studentUser?.userId ?? '',
+        type: 'RETEST_AVAILABLE',
+        title: 'Retest available',
+        body: 'A retest for your weak areas is now available. Give it your best!',
+        entityType: 'Assessment',
+        entityId: assessment.id,
+      });
+    }
 
     return { id: assessment.id, title: assessment.title };
   }

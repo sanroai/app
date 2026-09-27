@@ -26,27 +26,51 @@ import {
   UserPlus,
   GraduationCap,
   Building2,
+  BookOpen,
+  HelpCircle,
 } from 'lucide-react';
 
 const ENTITY_TYPES = [
   { value: 'STUDENTS', label: 'Students', icon: GraduationCap },
   { value: 'TEACHERS', label: 'Teachers', icon: UserPlus },
   { value: 'PARENTS', label: 'Parents', icon: Users },
+  { value: 'CONTENT', label: 'Content', icon: BookOpen },
+  { value: 'QUESTIONS', label: 'Questions', icon: HelpCircle },
 ] as const;
 
 const SAMPLE_FILES: Record<string, { filename: string; columns: string }> = {
   STUDENTS: {
     filename: 'sample-students.csv',
-    columns: 'name, email, phone, rollNumber, parentName, parentPhone, grade',
+    columns: 'name,email,phone,rollNumber,parentName,parentPhone,grade',
   },
   TEACHERS: {
     filename: 'sample-teachers.csv',
-    columns: 'name, email, phone, employeeId',
+    columns: 'name,email,phone,employeeId',
   },
   PARENTS: {
     filename: 'sample-parents.csv',
-    columns: 'name, email, phone',
+    columns: 'name,email,phone,studentEmail',
   },
+  CONTENT: {
+    filename: 'sample-content.csv',
+    columns:
+      'type,title,description,board,grade,subject,chapter,topic,concept,url,order,status,language',
+  },
+  QUESTIONS: {
+    filename: 'sample-questions.csv',
+    columns:
+      'type,text,options,answer,difficulty,marks,board,grade,subject,chapter,topic,concept,hint,explanation',
+  },
+};
+
+const SAMPLE_ROWS: Record<string, string> = {
+  STUDENTS: 'Aarav Sharma,aarav@example.com,9876543210,101,Sunita Sharma,9876543211,10',
+  TEACHERS: 'Priya Patel,priya@school.com,9876543212,T001',
+  PARENTS: 'Rahul Verma,rahul@example.com,9876543213,',
+  CONTENT:
+    'NOTES,Laws of Reflection,"Angle of incidence equals angle of reflection; all rays lie in one plane",CBSE,10,Science,Light - Reflection and Refraction,,,,0,APPROVED,EN',
+  QUESTIONS:
+    'MCQ,"In reflection of light, the angle of incidence is",equal to the angle of reflection|greater than the angle of reflection|half the angle of reflection|zero always,equal to the angle of reflection,MEDIUM,1,CBSE,10,Science,Light - Reflection and Refraction,,,,',
 };
 
 type ImportResult = {
@@ -157,11 +181,7 @@ export default function ImportPage() {
     const sample = SAMPLE_FILES[type as keyof typeof SAMPLE_FILES];
     if (!sample) return;
     const header = sample.columns;
-    const row = type === 'STUDENTS'
-      ? 'Aarav Sharma,aarav@example.com,9876543210,101,Sunita Sharma,9876543211,10'
-      : type === 'TEACHERS'
-        ? 'Priya Patel,priya@school.com,9876543212,T001'
-        : 'Rahul Verma,rahul@example.com,9876543213';
+    const row = SAMPLE_ROWS[type] ?? SAMPLE_ROWS.STUDENTS;
     const csv = `${header}\n${row}\n`;
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -182,7 +202,7 @@ export default function ImportPage() {
           Bulk Import
         </h1>
         <p className="text-surface-500 text-sm mt-1">
-          Import students, teachers, or parents from an XLSX/CSV file
+          Import students, teachers, library content, or question-bank rows from an XLSX/CSV file
         </p>
       </div>
 

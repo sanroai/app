@@ -122,7 +122,7 @@ export default function PracticePage() {
     if (practiceData?.conceptId) {
       router.push(`/app/learn/concepts/${practiceData.conceptId}`);
     } else {
-      router.push('/app/learn');
+      router.push('/app/library');
     }
   }, [practiceData, router]);
 
@@ -139,8 +139,8 @@ export default function PracticePage() {
     return (
       <div className="space-y-6">
         <nav className="flex items-center gap-2 text-sm text-surface-500">
-          <Link href="/app/learn" className="hover:text-brand-600 transition-colors">
-            Learn
+          <Link href="/app/library" className="hover:text-brand-600 transition-colors">
+            Library
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span className="text-surface-400">Practice</span>
@@ -158,8 +158,8 @@ export default function PracticePage() {
     return (
       <div className="space-y-6">
         <nav className="flex items-center gap-2 text-sm text-surface-500">
-          <Link href="/app/learn" className="hover:text-brand-600 transition-colors">
-            Learn
+          <Link href="/app/library" className="hover:text-brand-600 transition-colors">
+            Library
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span className="text-surface-400">Practice Results</span>
@@ -276,8 +276,8 @@ export default function PracticePage() {
   return (
     <div className="space-y-6">
       <nav className="flex items-center gap-2 text-sm text-surface-500">
-        <Link href="/app/learn" className="hover:text-brand-600 transition-colors">
-          Learn
+        <Link href="/app/library" className="hover:text-brand-600 transition-colors">
+          Library
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-surface-400">Practice</span>

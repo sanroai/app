@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { z } from 'zod';
 import { Role } from '@sanro/types';
@@ -88,6 +88,54 @@ export class CurriculumController {
   }
 }
 
+const ContentTypes = [
+  'VIDEO',
+  'NOTES',
+  'PDF',
+  'QUIZ',
+  'MODEL_3D',
+  'AR',
+  'GAME',
+  'PRACTICE_SET',
+  'ARTICLE',
+  'IMAGE',
+  'WORKSHEET',
+  'REVISION',
+  'FLASHCARDS',
+  'INTERACTIVE',
+  'EXAMPLE',
+  'READING',
+  'OTHER',
+] as const;
+
+const ContentBrowseSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(24),
+  search: z.string().trim().max(200).optional(),
+  type: z.enum(ContentTypes).optional(),
+  subjectId: z.string().uuid().optional(),
+  chapterId: z.string().uuid().optional(),
+  conceptId: z.string().uuid().optional(),
+  grade: z.string().trim().max(10).optional(),
+  sort: z.enum(['default', 'newest', 'title']).default('default'),
+});
+
+const VideoInputSchema = z.object({
+  url: z.string().trim().min(4).max(500),
+  title: z.string().trim().min(1).max(300),
+  description: z.string().trim().max(3000).optional(),
+  durationSeconds: z.coerce.number().int().min(0).max(86400).optional(),
+  thumbnailUrl: z.string().trim().url().max(1000).optional(),
+  order: z.coerce.number().int().min(0).optional(),
+});
+
+const CreateVideosSchema = z.object({
+  chapterId: z.string().uuid(),
+  topicId: z.string().uuid().optional(),
+  conceptId: z.string().uuid().optional(),
+  videos: z.array(VideoInputSchema).min(1).max(50),
+});
+
 @ApiTags('content')
 @Controller('content')
 @SubscriptionRequired()
@@ -97,6 +145,29 @@ export class ContentController {
   @Get()
   list(@CurrentUser() user: RequestUser, @Query() q: Record<string, string | undefined>) {
     return this.service.list(user, q);
+  }
+
+  @Get('browse')
+  browse(@CurrentUser() user: RequestUser, @Query(new ZodValidationPipe(ContentBrowseSchema)) query: z.infer<typeof ContentBrowseSchema>) {
+    return this.service.browse(user, query);
+  }
+
+  @Get('videos')
+  listVideos(@CurrentUser() user: RequestUser, @Query('chapterId') chapterId?: string) {
+    if (!chapterId) throw new BadRequestException('chapterId is required');
+    return this.service.listVideos(user, chapterId);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Post('videos')
+  createVideos(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateVideosSchema)) body: z.infer<typeof CreateVideosSchema>) {
+    return this.service.createVideos(user, body);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Delete('videos/:id')
+  removeVideo(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.removeVideo(user, id);
   }
 
   @Get(':id')

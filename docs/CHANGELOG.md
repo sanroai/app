@@ -2,6 +2,50 @@
 
 Format: date — phase — change.
 
+## 2026-09-26 — Two-menu IA (Library / Assessments), learning Path, lesson media, 5-way imports
+- **IA split.** The single Learn menu now separates *self-directed study*
+  from *diagnosis-driven improvement*. **Library** (`/app/library`) is a new
+  browse experience — subject → chapter → lesson item, with type chips, search
+  and a lesson detail view. **Assessments** (`/app/assessments`) keeps its
+  Tests tab and gains a **Path** tab: the ordered concept list derived from
+  diagnosis, each row `mastered` / `inProgress` / `notStarted`. `/app/learn`
+  permanently redirects to `/app/library`; the nav entry is renamed
+  `Library` and highlights for both paths.
+- **New read API**: `GET /content/browse` (paginated lesson browse,
+  registered ahead of `GET /content/:id`) and `GET /learning/path`
+  (`PARENT_RESTRICTED_KEY`) returning the ordered concepts for the signed-in
+  student. No schema change — visibility still comes from
+  `ContentScopeService.buildContentWhere` (`APPROVED|PUBLISHED`).
+- **Students can now trigger retests.** `POST /remediation/retest` accepts
+  `STUDENT` and an optional `studentId`; a student omitting it retests their
+  own concepts (`CreateRetestSchema` in `@sanro/validation`). Previously only
+  staff could open a retest.
+- **Mobile follows the same IA**: student tabs are now
+  Home / Library / Assessments / Ask Sanro AI / Me — the Practice tab was
+  removed (Practice is a concept mode, not a destination) and the Tests
+  screen became the Assessments screen.
+- **Lesson media.** Notes and descriptions render as Markdown on web and
+  mobile (`components/markdown.tsx` / `components/Markdown.tsx`), and every
+  chapter can carry managed YouTube lessons
+  (`GET/POST/DELETE /content/videos`, `chapterContent` on chapter detail),
+  managed from the new `/app/content/videos` page.
+- **Bulk imports grew from 2 entity types to 5.** `CONTENT`, `QUESTIONS` and
+  `PARENTS` are now first-class in `/app/import`, with per-type sample CSVs.
+  Curriculum paths for content/question rows resolve at **preview** time, so a
+  bad board/chapter reference is an `INVALID` row before anything is written.
+  The seat gate now applies only to `STUDENTS`/`TEACHERS`/`PARENTS` — lesson
+  and question rows never consume subscription seats. Audit actions added:
+  `PARENT_CREATED`, `CONTENT_CREATED`, `QUESTION_GENERATED`. Three idempotent
+  `ALTER TYPE … ADD VALUE` migrations.
+- **New e2e coverage**: `content-browse` (10), `learning-path` (14),
+  `content-import` (9), `parents-import` (4), `chapter-videos`.
+- **Verified**: `pnpm -r typecheck` 6/6, `pnpm --filter @sanro/api test`
+  236/236 tests across 22 files, `pnpm --filter @sanro/web build` pass,
+  `prisma migrate status` "up to date" (16 migrations) on both `sanro_dev`
+  and `sanro_test`, API `:4000` and web `:3000` returning 200.
+- Structural/data record: `docs/CHANGELOG_DEVELOPMENT.md`; import contract:
+  `docs/IMPORTS.md`.
+
 ## 2026-09-23 — Bulk import fixed (was broken for every role) + Super Admin write scope
 - **P0: import never worked end-to-end.** The Bulk Import page hardcoded
   `academicYearId: ''` and had no academic-year selector, so

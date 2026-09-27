@@ -70,8 +70,8 @@ closing.
 | `endsAt = null` | Never expires (expired flag only when `endsAt` non-null and past) |
 | Grace window | `gracePeriodDays` stored + surfaced; NOT yet applied to expiry math (default 0) |
 | Concurrent admin ops (two set-subscription calls) | Both new rows are created; each `updateMany` cancels prior ACTIVE/TRIAL — last-created wins by `createdAt` ordering; no locking/version guard today |
-| Seat limit exactly full | `current + additional > limit` → `SEAT_LIMIT_REACHED` (student create); `USER_LIMIT_REACHED` helper defined but unused |
-| Bulk import past limit | Not yet enforced (imports path has no seat check) |
+| Seat limit exactly full | `assertSeatAvailable` → `400 USER_LIMIT_REACHED` on student/teacher/parent create; `seatAvailability()` → `400 USER_LIMIT_REACHED` before bulk import writes. Both wired |
+| Bulk import past limit | **Enforced since 2026-09-26** for `STUDENTS`/`TEACHERS`/`PARENTS`: `imports.service.commit` calls `subscription.seatAvailability(institutionId, job.rows.length)` before the transaction and throws `400 USER_LIMIT_REACHED {current, requested, available, limit}`. `CONTENT`/`QUESTIONS` rows never consume seats |
 | User disabled / membership deactivated | `USER_DISABLED`/`MEMBERSHIP_DEACTIVATED` checked BEFORE entitlement → blocked even if tenant is healthy |
 | Entitlement cache staleness | Admin mutations do not invalidate → decision lags ≤15 s; force `evaluate(institutionId, true)` for immediate read |
 

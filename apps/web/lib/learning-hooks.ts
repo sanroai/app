@@ -51,7 +51,9 @@ export interface ContentItem {
   id: string;
   title: string;
   type: string;
+  description?: string;
   url?: string;
+  videoId?: string;
   thumbnailUrl?: string;
   durationSeconds?: number;
 }

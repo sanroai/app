@@ -81,8 +81,8 @@ export default function LearnScreen() {
 function Header() {
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>Learn</Text>
-      <Text style={styles.headerSub}>Classwise curriculum mapped to your board</Text>
+      <Text style={styles.headerTitle}>Library</Text>
+      <Text style={styles.headerSub}>Browse lessons by class and subject</Text>
     </View>
   );
 }

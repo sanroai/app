@@ -325,6 +325,22 @@ export class LearningService {
       select: { id: true, conceptId: true },
     });
 
+    const chapterContent = await this.prisma.contentItem.findMany({
+      where: this.consumerWhere(user, { chapterId, conceptId: null }),
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        description: true,
+        url: true,
+        videoId: true,
+        thumbnailUrl: true,
+        durationSeconds: true,
+        order: true,
+      },
+    });
+
     const contentByConcept = new Map<string, number>();
     const allContentIds: string[] = [];
     for (const item of allContent) {
@@ -382,6 +398,7 @@ export class LearningService {
       order: chapter.order,
       description: chapter.description,
       subject: chapter.subject,
+      chapterContent,
       topics: chapter.topics.map((t) => ({
         id: t.id,
         name: t.name,
@@ -626,6 +643,242 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
         type: r.content.type,
         completedAt: r.completedAt,
       })),
+    };
+  }
+
+  async getLearningPath(user: RequestUser) {
+    this.tenant.requireInstitution(user);
+
+    const student = await this.identity.resolveForUser(user);
+    if (!student) throw new ForbiddenException('Only students have a learning path');
+
+    const [rawConcepts, masteryRows] = await Promise.all([
+      this.prisma.concept.findMany({
+        where: student.grade ? { topic: { chapter: { grade: student.grade } } } : {},
+        include: {
+          topic: {
+            select: {
+              id: true,
+              name: true,
+              order: true,
+              chapter: {
+                select: {
+                  id: true,
+                  name: true,
+                  order: true,
+                  grade: true,
+                  subjectId: true,
+                  subject: { select: { id: true, name: true, order: true } },
+                },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.conceptMastery.findMany({
+        where: { studentId: student.id },
+        select: {
+          conceptId: true,
+          score: true,
+          level: true,
+          attempts: true,
+          correct: true,
+          evidenceCount: true,
+          lastUpdatedAt: true,
+        },
+      }),
+    ]);
+
+    const ordered = [...rawConcepts].sort((a, b) => {
+      if (a.topic.chapter.subject.order !== b.topic.chapter.subject.order)
+        return a.topic.chapter.subject.order - b.topic.chapter.subject.order;
+      if (a.topic.chapter.order !== b.topic.chapter.order)
+        return a.topic.chapter.order - b.topic.chapter.order;
+      if (a.topic.order !== b.topic.order) return a.topic.order - b.topic.order;
+      return a.order - b.order;
+    });
+
+    const masteryByConcept = new Map(masteryRows.map((m) => [m.conceptId, m]));
+
+    const track = ordered.map((c, index) => {
+      const m = masteryByConcept.get(c.id);
+      const state: 'NOT_STARTED' | 'IN_PROGRESS' | 'DONE' = !m
+        ? 'NOT_STARTED'
+        : m.level === 'MASTERED' || m.level === 'GOOD'
+          ? 'DONE'
+          : 'IN_PROGRESS';
+      return {
+        index,
+        conceptId: c.id,
+        conceptName: c.name,
+        topicId: c.topic.id,
+        topicName: c.topic.name,
+        topicOrder: c.topic.order,
+        chapterId: c.topic.chapter.id,
+        chapterName: c.topic.chapter.name,
+        chapterOrder: c.topic.chapter.order,
+        subjectId: c.topic.chapter.subjectId,
+        subjectName: c.topic.chapter.subject.name,
+        subjectOrder: c.topic.chapter.subject.order,
+        grade: c.topic.chapter.grade,
+        order: c.order,
+        level: (m?.level ?? 'INSUFFICIENT_EVIDENCE') as string,
+        score: m?.score ?? null,
+        evidenceCount: m?.evidenceCount ?? 0,
+        state,
+      };
+    });
+
+    const severity: Record<string, number> = { NEEDS_INTERVENTION: 0, WEAK: 1 };
+    const focusBase = track
+      .filter((t) => t.level === 'NEEDS_INTERVENTION' || t.level === 'WEAK')
+      .sort(
+        (a, b) =>
+          (severity[a.level] ?? 9) - (severity[b.level] ?? 9) ||
+          (a.score ?? 0) - (b.score ?? 0) ||
+          a.index - b.index,
+      );
+    const focusIds = focusBase.map((f) => f.conceptId);
+
+    const [plans, questionCounts, retestAssignments] = await Promise.all([
+      focusIds.length
+        ? this.prisma.remediationPlan.findMany({
+            where: { studentId: student.id, conceptId: { in: focusIds } },
+            include: { items: { orderBy: { order: 'asc' } } },
+          })
+        : Promise.resolve([]),
+      focusIds.length
+        ? this.prisma.question.groupBy({
+            by: ['conceptId'],
+            where: { conceptId: { in: focusIds }, status: 'APPROVED' },
+            _count: { _all: true },
+          })
+        : Promise.resolve([]),
+      this.prisma.assessmentAssignment.findMany({
+        where: { studentId: student.id, assessment: { title: 'Retest', status: 'PUBLISHED' } },
+        include: {
+          assessment: {
+            select: { id: true, title: true, dueAt: true, chapter: { select: { name: true } } },
+          },
+        },
+      }),
+    ]);
+
+    const planByConcept = new Map(plans.map((p) => [p.conceptId, p]));
+    const questionCountByConcept = new Map(questionCounts.map((q) => [q.conceptId, q._count._all]));
+
+    const focus = focusBase.map((f) => {
+      const plan = planByConcept.get(f.conceptId);
+      return {
+        conceptId: f.conceptId,
+        conceptName: f.conceptName,
+        chapterId: f.chapterId,
+        chapterName: f.chapterName,
+        subjectId: f.subjectId,
+        subjectName: f.subjectName,
+        grade: f.grade,
+        level: f.level,
+        score: f.score,
+        evidenceCount: f.evidenceCount,
+        practiceQuestionCount: questionCountByConcept.get(f.conceptId) ?? 0,
+        plan: plan
+          ? {
+              id: plan.id,
+              status: plan.status,
+              totalSteps: plan.items.length,
+              completedSteps: plan.items.filter((i) => i.status === 'COMPLETED').length,
+            }
+          : null,
+        steps: (plan?.items ?? []).map((i) => ({
+          id: i.id,
+          title: i.title,
+          contentType: i.contentType,
+          contentId: i.contentId,
+          status: i.status,
+          order: i.order,
+        })),
+      };
+    });
+
+    const retestAssessmentIds = retestAssignments.map((a) => a.assessmentId);
+    const retestAttempts = retestAssessmentIds.length
+      ? await this.prisma.assessmentAttempt.findMany({
+          where: { studentId: student.id, assessmentId: { in: retestAssessmentIds } },
+          select: { assessmentId: true, status: true },
+        })
+      : [];
+    const attemptByAssessment = new Map<string, string>();
+    for (const a of retestAttempts) attemptByAssessment.set(a.assessmentId, a.status);
+    const pendingRetests = retestAssignments
+      .filter((a) => !['SUBMITTED', 'AUTO_SUBMITTED', 'EXPIRED'].includes(attemptByAssessment.get(a.assessmentId) ?? ''))
+      .map((a) => ({
+        assessmentId: a.assessmentId,
+        title: a.assessment.title,
+        chapterName: a.assessment.chapter?.name ?? null,
+        dueAt: a.assessment.dueAt,
+        started: attemptByAssessment.get(a.assessmentId) === 'IN_PROGRESS',
+      }));
+
+    const stateCounts = { DONE: 0, IN_PROGRESS: 0, NOT_STARTED: 0 };
+    const levelCounts: Record<string, number> = {};
+    for (const t of track) {
+      stateCounts[t.state] += 1;
+      levelCounts[t.level] = (levelCounts[t.level] ?? 0) + 1;
+    }
+
+    let next: {
+      conceptId: string;
+      conceptName: string;
+      chapterName: string;
+      action: 'FIX' | 'STUDY' | 'RETEST';
+      reason: string;
+    } | null = null;
+    if (focus.length > 0) {
+      next = {
+        conceptId: focus[0].conceptId,
+        conceptName: focus[0].conceptName,
+        chapterName: focus[0].chapterName,
+        action: 'FIX',
+        reason: `Weakest concept right now — ${focus[0].score ?? 0}% mastery`,
+      };
+    } else if (pendingRetests.length > 0) {
+      next = {
+        conceptId: '',
+        conceptName: pendingRetests[0].title,
+        chapterName: pendingRetests[0].chapterName ?? '',
+        action: 'RETEST',
+        reason: 'A retest is waiting for you',
+      };
+    } else {
+      const pending = track.find((t) => t.state !== 'DONE');
+      if (pending) {
+        next = {
+          conceptId: pending.conceptId,
+          conceptName: pending.conceptName,
+          chapterName: pending.chapterName,
+          action: 'STUDY',
+          reason: 'Next in your curriculum order',
+        };
+      }
+    }
+
+    return {
+      student: { id: student.id, name: student.name, grade: student.grade },
+      summary: {
+        totalConcepts: track.length,
+        done: stateCounts.DONE,
+        inProgress: stateCounts.IN_PROGRESS,
+        notStarted: stateCounts.NOT_STARTED,
+        masteryPercent: track.length > 0 ? Math.round((stateCounts.DONE / track.length) * 100) : 0,
+        weakConcepts: focus.length,
+        untestedConcepts: stateCounts.NOT_STARTED,
+        pendingRetests: pendingRetests.length,
+        byLevel: levelCounts,
+      },
+      next,
+      focus,
+      retests: pendingRetests,
+      track,
     };
   }
 

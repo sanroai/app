@@ -80,8 +80,8 @@ export default function AboutPage() {
                 desc: 'Assessment data is useless unless it tells a student what to do next. Sanro AI converts every data point into a specific learning action.',
               },
               {
-                title: 'Not a Content Library',
-                desc: 'Thousands of apps deliver content. Sanro AI delivers improvement. Every feature exists to support the Assess → Diagnose → Fix → Retest → Improve loop.',
+                title: 'Not Just a Content Library',
+                desc: 'Anyone can hand you a pile of content. Sanro AI gives you a Library of NCERT-mapped lessons AND a personalised learning path built from your own assessment data.',
               },
               {
                 title: 'Built for India',

@@ -180,7 +180,7 @@ export default function DashboardPage() {
           </p>
         </div>
         {isStudent && (
-          <Link href="/app/learn">
+          <Link href="/app/library">
             <Button className="sm:w-auto w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
               <Lightbulb className="mr-2 h-4 w-4" />
               Continue Learning
@@ -983,7 +983,7 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
               <CardTitle>Continue Learning</CardTitle>
               <CardDescription>Pick up where you left off</CardDescription>
             </div>
-            <Link href="/app/learn">
+            <Link href="/app/library">
               <Button variant="ghost" size="sm">
                 View all <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
@@ -992,7 +992,7 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Link href="/app/learn" className="flex items-center gap-4 rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
+            <Link href="/app/library" className="flex items-center gap-4 rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
               <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
                 <BookOpen className="h-5 w-5 text-blue-600" />
               </div>

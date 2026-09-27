@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Spinner, ErrorBanner } from '@/components/ui';
+import { YouTubePlayer } from '@/components/youtube-player';
 import {
   ChevronRight,
   ChevronLeft,
@@ -133,8 +134,8 @@ export default function ChapterDetailPage() {
           <BookOpen className="mx-auto h-12 w-12 text-surface-300" />
           <p className="mt-4 text-lg font-medium text-surface-700">Chapter not found</p>
           <p className="mt-1 text-sm text-surface-400">The chapter you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <Link href="/app/learn" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
-            <ChevronLeft className="h-4 w-4" /> Back to Learn
+          <Link href="/app/library" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+            <ChevronLeft className="h-4 w-4" /> Back to Library
           </Link>
         </div>
       </div>
@@ -147,8 +148,8 @@ export default function ChapterDetailPage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-surface-500">
-        <Link href="/app/learn" className="hover:text-brand-600 transition-colors">
-          Learn
+        <Link href="/app/library" className="hover:text-brand-600 transition-colors">
+          Library
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-surface-400">Chapter</span>
@@ -157,8 +158,8 @@ export default function ChapterDetailPage() {
       {/* Header */}
       <div className="flex items-start gap-3">
         <Link
-          href="/app/learn"
-          aria-label="Go back to Learn"
+          href="/app/library"
+          aria-label="Go back to Library"
           className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -176,6 +177,47 @@ export default function ChapterDetailPage() {
           </p>
         </div>
       </div>
+
+      {/* Chapter videos */}
+      {(chapter.chapterContent ?? []).filter((item: { type: string }) => item.type === 'VIDEO').length > 0 && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-surface-900">
+            <Video className="h-5 w-5 text-blue-600" />
+            Chapter Videos
+          </h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {(chapter.chapterContent ?? [])
+              .filter((item: { type: string }) => item.type === 'VIDEO')
+              .map(
+                (item: {
+                  id: string;
+                  title: string;
+                  description?: string;
+                  url?: string;
+                  videoId?: string;
+                  thumbnailUrl?: string;
+                  durationSeconds?: number;
+                }) => (
+                  <Card key={item.id} className="overflow-hidden transition-all hover:shadow-md">
+                    <YouTubePlayer
+                      url={item.url}
+                      videoId={item.videoId}
+                      title={item.title}
+                      thumbnailUrl={item.thumbnailUrl}
+                      durationSeconds={item.durationSeconds}
+                    />
+                    <CardContent className="p-4">
+                      <p className="font-semibold text-surface-900">{item.title}</p>
+                      {item.description ? (
+                        <p className="mt-1 line-clamp-2 text-sm text-surface-500">{item.description}</p>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                ),
+              )}
+          </div>
+        </section>
+      )}
 
       {/* Topics */}
       {topics.length === 0 ? (

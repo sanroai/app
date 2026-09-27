@@ -11,6 +11,12 @@ if (existsSync(envPath)) {
   }
 }
 
+// The QA suite runs against DATABASE_URL_TEST so the developer database
+// (DATABASE_URL) can stay clean after a local data reset.
+if (process.env.DATABASE_URL_TEST) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
+}
+
 const swcOptions: SwcOptions = {
   module: { type: 'es6' },
   jsc: {

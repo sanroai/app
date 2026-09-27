@@ -13,6 +13,11 @@ human review → publish
 
 Traceability retained: book, page, chapter, topic, concept, source reference.
 
+Local source-material tooling lives in `scripts/books/{extract,ocr,build-index}.cjs`
+(`pnpm books:extract|books:ocr|books:index`) and writes the git-ignored
+`books/<board>/<class>/<subject>/` tree — page text, OCR cross-check, page
+screenshots, embedded figures and per-chapter study notes. See `AGENTS.md`.
+
 ## 2. Failure Handling
 
 Handle scanned PDFs, OCR failures, corrupt PDFs, password-protected PDFs, huge
@@ -32,6 +37,10 @@ Store URL/videoId/title/thumbnail/duration/source/curriculum mapping. Handle
 deleted, private, region-restricted, unembeddable, duplicate, wrong mapping.
 Uses `youtube-transcript` for transcript extraction where allowed.
 
+Chapter-wise lessons are administered through `GET|POST|DELETE /content/videos`
+(added 2026-09-26, web page `/app/content/videos`) and surfaced as
+`chapterContent` on `GET /learning/chapters/:chapterId`.
+
 ## 5. Knowledge Base
 
 - KnowledgeBase + KnowledgeBaseChunk records
@@ -45,3 +54,9 @@ Uses `youtube-transcript` for transcript extraction where allowed.
 
 PDF / CSV / XLSX / ZIP (where appropriate) / YouTube URLs. Large files never
 loaded entirely into browser memory (server-side chunked handling).
+
+Tabular bulk imports are a separate, fully validated pipeline —
+`POST /imports/upload` → preview → `POST /imports/:jobId/commit`, for
+`STUDENTS | TEACHERS | PARENTS | CONTENT | QUESTIONS` (≤10 MB, MIME-checked,
+server-parsed). Column contracts, curriculum resolution, duplicate rules and
+seat behaviour: **`docs/IMPORTS.md`**.

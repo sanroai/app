@@ -8,6 +8,8 @@ import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ArConceptPanel } from '../../components/ArConceptPanel';
+import { YouTubePlayer } from '../../components/YouTubePlayer';
+import { Markdown } from '../../components/Markdown';
 
 const TABS = [
   { id: 'learn', label: 'Learn', icon: 'play-circle' as const, color: Colors.info },
@@ -24,6 +26,7 @@ export default function ConceptDetailScreen() {
   const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
   const router = useRouter();
   const [tab, setTab] = useState('learn');
+  const [openNote, setOpenNote] = useState<string | null>(null);
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
   const startPractice = useStartPractice();
@@ -112,17 +115,15 @@ export default function ConceptDetailScreen() {
                 <Text style={styles.sectionTitle}>Video Lessons</Text>
                 {videos.map((v) => (
                   <Card key={v.id} style={styles.itemCard}>
-                    <TouchableOpacity onPress={() => v.url && Linking.openURL(v.url)}>
-                      <View style={styles.videoThumb}>
-                        <View style={styles.playBtn}>
-                          <Ionicons name="play" size={26} color={Colors.white} />
-                        </View>
-                        {v.durationSeconds ? (
-                          <Text style={styles.duration}>{Math.ceil(v.durationSeconds / 60)} min</Text>
-                        ) : null}
-                      </View>
-                      <Text style={styles.itemTitle}>{v.title}</Text>
-                    </TouchableOpacity>
+                    <YouTubePlayer
+                      url={v.url}
+                      videoId={v.videoId}
+                      title={v.title}
+                      thumbnailUrl={v.thumbnailUrl}
+                      durationSeconds={v.durationSeconds}
+                    />
+                    <Text style={styles.itemTitle}>{v.title}</Text>
+                    {v.description ? <Text style={styles.itemDesc}>{v.description}</Text> : null}
                     <TouchableOpacity
                       style={styles.doneBtn}
                       onPress={() => completeContent.mutate(v.id)}
@@ -140,28 +141,42 @@ export default function ConceptDetailScreen() {
             {notes.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Study Notes</Text>
-{notes.map((n) => {
-                const noteUrl = n.url;
-                return (
-                  <Card key={n.id} style={styles.itemCard}>
-                    <View style={styles.noteRow}>
-                      <View style={styles.noteIcon}>
-                        <Ionicons name="document-text" size={20} color={Colors.success} />
-                      </View>
-                      <Text style={styles.itemTitleF}>{n.title}</Text>
-                      {noteUrl ? (
-                        <TouchableOpacity onPress={() => Linking.openURL(noteUrl)}>
-                          <Ionicons name="open-outline" size={18} color={Colors.textMuted} />
-                        </TouchableOpacity>
+                {notes.map((n) => {
+                  const noteUrl = n.url;
+                  const open = openNote === n.id;
+                  return (
+                    <Card key={n.id} style={styles.itemCard}>
+                      <TouchableOpacity
+                        style={styles.noteRow}
+                        disabled={!n.description}
+                        onPress={() => setOpenNote(open ? null : n.id)}
+                        accessibilityRole={n.description ? 'button' : 'text'}
+                        accessibilityState={{ expanded: open }}
+                      >
+                        <View style={styles.noteIcon}>
+                          <Ionicons name="document-text" size={20} color={Colors.success} />
+                        </View>
+                        <Text style={styles.itemTitleF}>{n.title}</Text>
+                        {n.description ? (
+                          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
+                        ) : noteUrl ? (
+                          <TouchableOpacity onPress={() => Linking.openURL(noteUrl)}>
+                            <Ionicons name="open-outline" size={18} color={Colors.textMuted} />
+                          </TouchableOpacity>
+                        ) : null}
+                      </TouchableOpacity>
+                      {open && n.description ? (
+                        <View style={styles.noteBody}>
+                          <Markdown>{n.description}</Markdown>
+                        </View>
                       ) : null}
-                    </View>
-                    <TouchableOpacity style={styles.doneBtn} onPress={() => completeContent.mutate(n.id)} accessibilityLabel="Mark as complete" accessibilityRole="button">
-                      <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-                      <Text style={styles.doneBtnText}>Mark as read</Text>
-                    </TouchableOpacity>
-                  </Card>
-                );
-              })}
+                      <TouchableOpacity style={styles.doneBtn} onPress={() => completeContent.mutate(n.id)} accessibilityLabel="Mark as complete" accessibilityRole="button">
+                        <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                        <Text style={styles.doneBtnText}>Mark as read</Text>
+                      </TouchableOpacity>
+                    </Card>
+                  );
+                })}
               </View>
             )}
 
@@ -171,7 +186,9 @@ export default function ConceptDetailScreen() {
                 <Text style={styles.revisionTitle}>Quick Revision</Text>
               </View>
               {concept.description ? (
-                <Text style={styles.revisionBody}>{concept.description}</Text>
+                <View style={{ marginTop: Spacing.sm }}>
+                  <Markdown>{concept.description}</Markdown>
+                </View>
               ) : null}
               {notes.length > 0 ? (
                 <View style={{ marginTop: Spacing.sm, gap: 4 }}>
@@ -375,6 +392,7 @@ const styles = StyleSheet.create({
   playBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
   duration: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', color: Colors.white, fontSize: 12, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
   itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm },
+  itemDesc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   itemTitleF: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.text },
   noteRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   noteIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.success + '20', alignItems: 'center', justifyContent: 'center' },
@@ -384,6 +402,7 @@ const styles = StyleSheet.create({
   revisionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   revisionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
   revisionBody: { fontSize: 13, color: Colors.textSecondary, marginTop: Spacing.sm, lineHeight: 20 },
+  noteBody: { marginTop: Spacing.sm, paddingTop: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.borderLight },
   revisionItem: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   revisionItemText: { flex: 1, fontSize: 13, fontWeight: '500', color: Colors.text },
   modeCard: { padding: Spacing.lg },

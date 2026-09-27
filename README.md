@@ -13,12 +13,13 @@ Built for CBSE Board, focused on Classes 1–10 Science and Mathematics.
 ```bash
 pnpm install
 pnpm --filter @sanro/api db:push    # Create tables
-pnpm --filter @sanro/api db:seed    # Seed demo data
+pnpm --filter @sanro/api db:seed    # SYSTEM ONLY: plans, achievements, bootstrap super admin
+pnpm --filter @sanro/api db:seed:demo  # Optional: full demo data (demo users below)
 pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 ```
 
-**Demo login**: `student@sanroai.com` / `Sanro@123`
+**Demo login**: `student@sanroai.com` / `Sanro@123` (available after `db:seed:demo`)
 
 ## Monorepo Layout
 
@@ -38,14 +39,18 @@ pnpm --filter @sanro/web dev        # Web on :3000
 - **SEO** — robots.txt, sitemap, Open Graph, metadata across all pages
 - **Auth** — Login, register, JWT with refresh tokens, multi-tenant
 - **Student Dashboard** — XP, streaks, mastery level, badges, pending assessments
+- **Library** — self-directed browse (board → grade → subject → chapter → lesson), search, lesson detail with Markdown notes
+- **Assessments** — Tests tab plus a diagnosis-driven learning **Path**: ordered concepts with `mastered / inProgress / notStarted` and student-triggered retests
 - **Paper Generator** — Board→Grade→Subject, configurable distributions, HTML preview
 - **Assessment System** — Create, publish to groups, timed attempts, auto-grading
 - **Remediation** — Concept mastery tracking, targeted learning plans, progress marking
 - **Teacher Tools** — Paper management, assessment creation, student monitoring
-- **Learning Path** — Class-wise content (CBSE 1-10), 6 concept learning modes
+- **Concept Learning** — Class-wise content (CBSE 1-10), 6 concept learning modes
 - **Gamification** — XP, streaks, achievements, leaderboard
 - **AI Tutor** — Context-aware chat with curriculum grounding
 - **Question Bank** — 7-filter search, CRUD, bulk import
+- **Bulk Imports** — Students, teachers, parents, content and questions from CSV/XLSX with preview, duplicate detection and audit
+- **Lesson Media** — Markdown rendering on web + mobile, chapter-wise YouTube video management
 - **Mobile App** — Expo React Native with 5-tab student shell + role-specific tabs for teacher/parent/admin
 - **Security** — CORS production lockdown, RBAC on all mutation endpoints, rate limiting, Zod validation, file upload limits
 
@@ -54,10 +59,8 @@ pnpm --filter @sanro/web dev        # Web on :3000
 - Achievement icon mapping to Lucide icons
 
 ### Planned
-- Playwright E2E tests
 - Real AI provider integration
 - Redis/BullMQ job queues
-- 3D/AR viewer
 
 ## Tech Stack
 
@@ -92,11 +95,15 @@ All passwords: `Sanro@123`
 
 | Doc | Description |
 |-----|-------------|
-| [Full Documentation](docs/DOCUMENTATION.md) | Comprehensive project documentation |
-| [Architecture](docs/architecture.md) | System design & module map |
-| [API Reference](docs/api.md) | Endpoint documentation |
-| [Implementation Status](docs/IMPLEMENTATION_STATUS.md) | Feature status & changelog |
-| [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md) | Deployment spec & verification |
+| [Architecture](docs/ARCHITECTURE.md) | System design & module map |
+| [Deployment](docs/DEPLOYMENT.md) | Production targets, env, procedure, verification |
+| [Changelog](docs/CHANGELOG.md) | Product / phase history |
+| [Development log](docs/CHANGELOG_DEVELOPMENT.md) | Schema, migration and data-change record |
+| [Imports](docs/IMPORTS.md) | Bulk import contract (5 entity types, column schemas) |
+| [Learning architecture](docs/LEARNING_ARCHITECTURE.md) | Library vs Assessments, learning Path, APIs |
+| [QA](docs/QA.md) | Test layers, gates, journeys, DoD |
+| [Product spec](docs/MASTER_PRODUCT_SPEC.md) | Full product specification |
+| API reference | Swagger UI — `http://localhost:4000/docs` (gated to non-production) |
 
 ## License
 

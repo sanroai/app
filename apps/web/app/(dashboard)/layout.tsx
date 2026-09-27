@@ -30,6 +30,7 @@ import {
   Database,
   Boxes,
   ShieldX,
+  Film,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -65,7 +66,7 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-type NavLink = { href: string; label: string; icon: LucideIcon };
+type NavLink = { href: string; label: string; icon: LucideIcon; alias?: string[] };
 
 function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -86,7 +87,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const studentLinks: NavLink[] = role === 'STUDENT'
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/learn', label: 'Learn', icon: BookOpen },
+        { href: '/app/library', label: 'Library', icon: BookOpen, alias: ['/app/learn'] },
         { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
         { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
         { href: '/app/gamification', label: 'Progress', icon: Trophy },
@@ -103,7 +104,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const staffLinks: NavLink[] = staff && !isSuperAdmin
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/learn', label: 'Learn', icon: BookOpen },
+        { href: '/app/library', label: 'Library', icon: BookOpen },
       ]
     : [];
 
@@ -136,6 +137,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),
         ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FileText }] : []),
         { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
+        { href: '/app/content/videos', label: 'Chapter Videos', icon: Film },
         { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
       ]
     : [];
@@ -152,8 +154,11 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     { href: '/app/settings', label: 'Settings', icon: Settings },
   ];
 
+  const activeFor = (l: NavLink) =>
+    isActive(pathname, l.href) || (l.alias ?? []).some((a) => isActive(pathname, a));
+
   const renderLink = (l: NavLink) => {
-    const active = isActive(pathname, l.href);
+    const active = activeFor(l);
     return (
       <Link
         key={l.href}
@@ -173,7 +178,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   };
 
   const renderDropdown = (label: string, Icon: LucideIcon, links: NavLink[]) => {
-    const active = links.some((l) => isActive(pathname, l.href));
+    const active = links.some((l) => activeFor(l));
     return (
       <DropdownMenu key={label}>
         <DropdownMenuTrigger asChild>
@@ -207,7 +212,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   };
 
   const renderMobileLink = (l: NavLink) => {
-    const active = isActive(pathname, l.href);
+    const active = activeFor(l);
     return (
       <Link
         key={l.href}

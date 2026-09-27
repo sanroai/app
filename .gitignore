@@ -47,11 +47,26 @@ Thumbs.db
 .railway/
 releases/
 
+# local database backups (never commit)
+backups/
+/backups/
+
 # runtime storage (uploads, AR models)
 storage/
 
 # captured screenshots (regenerate via scripts/screenshots-*.mts)
 screenshots/
 
+# local book source material + extracted artifacts (regenerate via scripts/books/)
+/books/
+
+# OCR / extraction caches (tesseract traineddata, temp render input)
+.cache/
+*.traineddata
+*.traineddata.gz
+
 # TypeScript build info
 *.tsbuildinfo
+
+# local AI assistant working notes (paste-into-ChatGPT briefing, never commit)
+CHAT.md

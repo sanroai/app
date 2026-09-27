@@ -23,7 +23,7 @@ function SkeletonCard() {
   );
 }
 
-export default function LearnPage() {
+export default function LibrarySubjectsPage() {
   const { data, isLoading, error } = useLearningHome();
   const [search, setSearch] = useState('');
 
@@ -62,7 +62,7 @@ export default function LearnPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-surface-900">Choose your learning path</h1>
+        <h1 className="text-2xl font-bold text-surface-900">Browse by subject</h1>
         <p className="mt-1 text-sm text-surface-500">
           {totalClasses} classes · {totalSubjects} subjects available — select a subject to start learning
         </p>

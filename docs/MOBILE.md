@@ -10,13 +10,18 @@ is a turbo stub.
 
 Role-aware tab shell + stacked screens:
 
-- Student tabs: Home / Learn / Practice / Tests / Me
-- Teacher/admin tabs: Home / Classes / Assessments / Me
+- Student tabs: Home / Library / Assessments / Ask Sanro AI / Me
+  (`learn` tab retitled **Library**, `tests` tab retitled **Assessments**;
+  the `practice` screen was removed — Practice is a concept mode)
+- Teacher/admin tabs: Home / Classes / Assess / Me
 - Parent tabs: Home / Children / Me
-- Stacked: learn browse (board→grade→subject), chapter, concept (6 modes),
-  practice, quiz, flashcards, challenge, ask, attempt, leaderboard, profile-edit.
+- Stacked: library browse (board→grade→subject), chapter, concept (6 modes),
+  learning Path (inside Assessments), practice, quiz, flashcards, challenge,
+  ask, attempt, leaderboard, profile-edit.
 
-Wrong-role navigation is never shown.
+Wrong-role navigation is never shown. Lesson notes/descriptions render via
+`components/Markdown.tsx`; YouTube lessons via `components/YouTubePlayer.tsx`
+(react-native-webview iframe).
 
 ## 3. Concept Page Modes (student)
 

@@ -23,6 +23,11 @@ const AR_ACTIVITY_TYPES = [
 
 const MANAGED_STATUSES = ['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED'] as const;
 
+// Sentinel for callers with no institution (e.g. platform Super Admin).
+// Must be a valid UUID: Prisma casts it against UUID columns, and a non-UUID
+// sentinel makes the query fail with "invalid character ... found".
+const NO_INSTITUTION_ID = '00000000-0000-0000-0000-000000000000';
+
 const TRANSITIONS: Record<string, string[]> = {
   DRAFT: ['REVIEW', 'ARCHIVED'],
   REVIEW: ['APPROVED', 'DRAFT', 'ARCHIVED'],
@@ -83,7 +88,7 @@ export class ArService {
       status: 'PUBLISHED',
       OR: [
         { visibility: 'PUBLIC' },
-        { visibility: 'INSTITUTION_ONLY', institutionId: user.institutionId ?? '__none__' },
+        { visibility: 'INSTITUTION_ONLY', institutionId: user.institutionId ?? NO_INSTITUTION_ID },
       ],
     };
     if (grade) where.AND = [{ OR: [{ grade: null }, { grade }] }];
@@ -102,7 +107,7 @@ export class ArService {
       status: 'PUBLISHED',
       OR: [
         { visibility: 'PUBLIC' },
-        { visibility: 'INSTITUTION_ONLY', institutionId: user.institutionId ?? '__none__' },
+        { visibility: 'INSTITUTION_ONLY', institutionId: user.institutionId ?? NO_INSTITUTION_ID },
       ],
     };
     if (filters.subjectId) where.subjectId = filters.subjectId;
@@ -173,7 +178,7 @@ export class ArService {
       where: {
         conceptId: item.conceptId,
         status: 'APPROVED',
-        OR: [{ institutionId: null }, { institutionId: user.institutionId ?? '__none__' }],
+        OR: [{ institutionId: null }, { institutionId: user.institutionId ?? NO_INSTITUTION_ID }],
         ...(item.grade ? { grade: item.grade } : {}),
       },
       orderBy: { id: 'asc' },
@@ -204,7 +209,7 @@ export class ArService {
         id: { in: questionIds },
         conceptId: item.conceptId ?? undefined,
         status: 'APPROVED',
-        OR: [{ institutionId: null }, { institutionId: user.institutionId ?? '__none__' }],
+        OR: [{ institutionId: null }, { institutionId: user.institutionId ?? NO_INSTITUTION_ID }],
       },
       select: {
         id: true,

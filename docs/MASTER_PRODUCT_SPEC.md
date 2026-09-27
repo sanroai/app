@@ -141,8 +141,10 @@ Recent activity. Not overloaded.
 
 ## 14. Navigation IA
 
-Student tabs (mobile + web app): **Home / Learn / Assess / Progress / Me**.
-No 7–8 permanent tabs. Practice and remediation are contextual destinations.
+Student tabs (mobile + web app): **Home / Library / Assessments / Ask Sanro AI /
+Me** (mobile; web is a sidebar, not tabs). Library = self-directed browse,
+Assessments = learning Path + Tests. No 7–8 permanent tabs. Practice and
+remediation are contextual destinations (concept modes), not tabs.
 Teacher: Dashboard / Classes / Assessments / Reports / Me.
 Parent: Dashboard / Children / Progress / Notifications / Me.
 Principal: Dashboard / School / People / Reports / Me.

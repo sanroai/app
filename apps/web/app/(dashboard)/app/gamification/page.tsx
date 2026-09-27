@@ -144,7 +144,7 @@ function StudentProfile({ profile: profileData }: { profile: any }) {
           </Card>
         </Link>
 
-        <Link href="/app/learn">
+        <Link href="/app/library">
           <Card className="group cursor-pointer hover:shadow-md transition-all">
             <CardContent className="flex items-center gap-4 p-6">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-100">

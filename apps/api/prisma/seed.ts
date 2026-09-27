@@ -1,8 +1,27 @@
+// env-loader must be imported before @prisma/client so that shell-exported
+// environment is observed before Prisma auto-loads apps/api/.env.
+import { loadApiEnv, resolveTargetUrl, parseTarget, isLocalHost } from './env-loader';
+import { seedSystem } from './seed-system';
+
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { seedArContent } from './seed-ar';
 
-const prisma = new PrismaClient();
+loadApiEnv();
+
+type SeedMode = 'system' | 'demo' | 'qa';
+
+function resolveMode(argv: string[]): SeedMode {
+  if (argv.includes('--qa')) return 'qa';
+  if (argv.includes('--demo')) return 'demo';
+  if (argv.includes('--system')) return 'system';
+  return 'system';
+}
+
+const MODE: SeedMode = resolveMode(process.argv.slice(2));
+const TARGET_URL = resolveTargetUrl(MODE === 'qa');
+
+const prisma = new PrismaClient(TARGET_URL ? { datasources: { db: { url: TARGET_URL } } } : undefined);
 
 const HASH = bcrypt.hashSync('Sanro@123', 10);
 
@@ -813,21 +832,8 @@ async function ensureSystemInstitution() {
 }
 
 async function seedPlansAndInstitution() {
-  const institutionPlan = await prisma.plan.upsert({
-    where: { key: 'INSTITUTION' },
-    update: {},
-    create: { key: 'INSTITUTION', name: 'Institution Plan', perSeat: 100, priceYearly: 29999, active: true },
-  });
-  await prisma.plan.upsert({
-    where: { key: 'STUDENT_MONTHLY' },
-    update: {},
-    create: { key: 'STUDENT_MONTHLY', name: 'Student Monthly', priceMonthly: 249, active: true },
-  });
-  await prisma.plan.upsert({
-    where: { key: 'STUDENT_YEARLY' },
-    update: {},
-    create: { key: 'STUDENT_YEARLY', name: 'Student Yearly', priceYearly: 2499, active: true },
-  });
+  const institutionPlan = await prisma.plan.findUnique({ where: { key: 'INSTITUTION' } });
+  if (!institutionPlan) throw new Error('INSTITUTION plan missing — run the system seed first.');
 
   const institution = await prisma.institution.upsert({
     where: { code: 'DEMO01' },
@@ -2215,26 +2221,7 @@ async function seedQuestions() {
 }
 
 async function seedAchievements() {
-  const defs = [
-    { key: 'FIRST_LOGIN', name: 'First Steps', description: 'Logged in for the first time', xp: 25, icon: 'star' },
-    { key: 'FIRST_ASSESSMENT', name: 'First Assessment', description: 'Completed your first assessment', xp: 50, icon: 'clipboard' },
-    { key: 'PERFECT_SCORE', name: 'Perfect Score', description: 'Scored 100% on any assessment', xp: 100, icon: 'trophy' },
-    { key: 'STREAK_3', name: 'On Fire', description: 'Logged in 3 days in a row', xp: 30, icon: 'flame' },
-    { key: 'STREAK_7', name: 'Week Warrior', description: 'Logged in 7 days in a row', xp: 75, icon: 'zap' },
-    { key: 'CHAPTER_MASTER', name: 'Chapter Master', description: 'Completed all concepts in a chapter', xp: 150, icon: 'book' },
-    { key: 'SPEED_DEMON', name: 'Speed Demon', description: 'Completed an assessment in under 5 minutes', xp: 40, icon: 'clock' },
-    { key: 'PRACTICE_PRO', name: 'Practice Pro', description: 'Completed 5 practice quizzes', xp: 60, icon: 'brain' },
-  ];
-
-  const created: Record<string, string> = {};
-  for (const d of defs) {
-    const a = await prisma.achievement.upsert({
-      where: { key: d.key },
-      update: {},
-      create: d,
-    });
-    created[d.key] = a.id;
-  }
+  const defs = await prisma.achievement.findMany({ select: { id: true, key: true } });
 
   const studentUser = await prisma.user.findUnique({ where: { email: 'student@sanroai.com' } });
   const student = studentUser ? await prisma.student.findUnique({ where: { userId: studentUser.id } }) : null;
@@ -2286,6 +2273,25 @@ async function seedAchievements() {
 }
 
 async function main() {
+  const target = parseTarget(TARGET_URL);
+  const modeLabel = MODE === 'system' ? 'system only' : MODE === 'qa' ? 'QA fixtures' : 'system + demo';
+
+  console.log(`[seed] mode: ${modeLabel}`);
+  console.log(`[seed] target: ${target ? `${target.host}:${target.port || '5432'}/${target.database} (from ${target.source})` : TARGET_URL ? '<custom url>' : '<prisma default>'}`);
+
+  if (target && !isLocalHost(target.host)) {
+    throw new Error(`Refusing to seed a non-local database host "${target.host}". Seed modes are development-only.`);
+  }
+
+  const sys = await seedSystem(prisma);
+  console.log(`[seed] system: ${sys.plans} plans, ${sys.achievements} achievements, systemInstitution=${sys.systemInstitution ?? 'present'}, superAdmin=${sys.superAdmin ?? 'missing'}${sys.superAdminCreated ? ' (created)' : ''}`);
+  for (const w of sys.warnings) console.warn(`[seed] WARNING: ${w}`);
+
+  if (MODE === 'system') {
+    console.log('[seed] system seed complete. No demo/academic data created.');
+    return;
+  }
+
   await seedCurriculum();
   await ensureSystemInstitution();
   const { academicYear, institution } = await seedPlansAndInstitution();

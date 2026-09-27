@@ -265,6 +265,9 @@ export type ImportRowStatus = (typeof ImportRowStatus)[keyof typeof ImportRowSta
 export const ImportEntityType = {
   STUDENTS: 'STUDENTS',
   TEACHERS: 'TEACHERS',
+  PARENTS: 'PARENTS',
+  CONTENT: 'CONTENT',
+  QUESTIONS: 'QUESTIONS',
 } as const;
 export type ImportEntityType = (typeof ImportEntityType)[keyof typeof ImportEntityType];
 
@@ -424,6 +427,7 @@ export const AuditAction = {
   TEACHER_ENABLED: 'TEACHER_ENABLED',
   TEACHER_ARCHIVED: 'TEACHER_ARCHIVED',
   TEACHER_INSTITUTION_CHANGED: 'TEACHER_INSTITUTION_CHANGED',
+  PARENT_CREATED: 'PARENT_CREATED',
   PARENT_UPDATED: 'PARENT_UPDATED',
   PARENT_DISABLED: 'PARENT_DISABLED',
   PARENT_ENABLED: 'PARENT_ENABLED',

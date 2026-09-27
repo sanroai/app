@@ -163,14 +163,17 @@ Keep the real-institution path as-is.
 **Mobile**: `apps/mobile/lib/auth-store.ts` + `apps/mobile/lib/api.ts` already read
 `AccountBlockState`/`blockState`; the mobile/expired screen should now render BOTH
 "institution expired" and "Direct SANRO subscription expired" messaging (check
-`apps/mobile/app/(auth)/login.tsx` behavior on blocked). Add a small helper
-`apps/mobile/lib/entitlement.ts` mapping entitlement result → expired message.
+`apps/mobile/app/(auth)/login.tsx` behavior on blocked). Implemented as
+`apps/mobile/lib/blocked.ts` mapping block state → expired message and the
+`/expired?state=…` redirect (plus an entitlement cache in
+`apps/mobile/lib/offline-auth.ts`).
 
 ## 5. PEOPLE ADMIN API (new)
 
-Create `apps/api/src/people/admin-people.controller.ts` + `admin-people.service.ts`
-(register in `PeopleModule`, controllers `['/admin/people']` under `ApiTags('admin-people')`,
-global `@Roles(Role.SUPER_ADMIN)` + `@SubscriptionRequired()`).
+Implemented as `apps/api/src/admin/admin-people.controller.ts` +
+`admin-people.service.ts` + `admin-people.module.ts` (own `AdminPeopleModule`
+under `ApiTags('admin-people')`, global `@Roles(Role.SUPER_ADMIN)` +
+`@SubscriptionRequired()`).
 RBAC: ONLY `SUPER_ADMIN`. Super admin skips entitlement.
 
 Endpoint contract (all prisma-scoped to super admin; use `AuditLog` writes):

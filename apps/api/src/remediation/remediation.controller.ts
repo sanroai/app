@@ -6,7 +6,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
-import { UpdateRemediationItemSchema } from '@sanro/validation';
+import { UpdateRemediationItemSchema, CreateRetestSchema } from '@sanro/validation';
 
 @ApiTags('remediation')
 @Controller('remediation')
@@ -39,9 +39,12 @@ export class RemediationController {
     return this.service.updateItemStatus(user, id, body.status);
   }
 
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.STUDENT)
   @Post('retest')
-  createRetest(@CurrentUser() user: RequestUser, @Body() body: { studentId: string; conceptIds: string[] }) {
+  createRetest(
+    @CurrentUser() user: RequestUser,
+    @Body(new ZodValidationPipe(CreateRetestSchema)) body: { studentId?: string; conceptIds: string[] },
+  ) {
     return this.service.createRetest(user, body.studentId, body.conceptIds);
   }
 }

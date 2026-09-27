@@ -27,7 +27,7 @@ export function login(app: INestApplication, email: string, password: string) {
   return request(app.getHttpServer()).post(`${BASE}/auth/login`).send({ email, password });
 }
 
-export function api(app: INestApplication, method: 'get' | 'post' | 'patch', path: string, token: string, body?: unknown) {
+export function api(app: INestApplication, method: 'get' | 'post' | 'patch' | 'delete', path: string, token: string, body?: unknown) {
   let req = request(app.getHttpServer())[method](`${BASE}${path}`);
   if (token) req = req.set('Authorization', `Bearer ${token}`);
   if (body !== undefined) req = req.send(body as Record<string, unknown>);

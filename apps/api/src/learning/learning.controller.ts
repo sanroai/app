@@ -63,6 +63,12 @@ export class LearningController {
     return this.service.getLearningProgress(user);
   }
 
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Get('path')
+  path(@CurrentUser() user: RequestUser) {
+    return this.service.getLearningPath(user);
+  }
+
   @Roles('STUDENT')
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Post('practice/start')

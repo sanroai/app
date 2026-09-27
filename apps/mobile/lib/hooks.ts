@@ -95,6 +95,7 @@ export interface ChapterDetail {
   code: string;
   grade: string;
   subject: { id: string; name: string };
+  chapterContent?: ChapterContentItem[];
   topics: Array<{
     id: string;
     name: string;
@@ -120,9 +121,22 @@ export interface ContentItem {
   id: string;
   title: string;
   type: string;
+  description?: string;
   url?: string;
+  videoId?: string;
   thumbnailUrl?: string;
   durationSeconds?: number;
+}
+export interface ChapterContentItem {
+  id: string;
+  type: string;
+  title: string;
+  description?: string;
+  url?: string;
+  videoId?: string;
+  thumbnailUrl?: string;
+  durationSeconds?: number;
+  order: number;
 }
 export interface ConceptDetail {
   id: string;
@@ -265,6 +279,91 @@ export function useLearningProgress() {
   return useQuery<LearningProgress>({
     queryKey: ['learning', 'progress'],
     queryFn: () => apiAuthed<LearningProgress>('/learning/progress'),
+  });
+}
+
+// ─── Learning Path ────────────────────────────────────────
+export interface PathTrackStep {
+  conceptId: string;
+  conceptName: string;
+  topicName: string;
+  chapterId: string;
+  chapterName: string;
+  chapterOrder: number;
+  subjectId: string;
+  subjectName: string;
+  subjectOrder: number;
+  order: number;
+  level: string;
+  score: number | null;
+  state: 'NOT_STARTED' | 'IN_PROGRESS' | 'DONE';
+}
+
+export interface PathFocusStep {
+  conceptId: string;
+  conceptName: string;
+  chapterId: string;
+  chapterName: string;
+  subjectName: string;
+  level: string;
+  score: number | null;
+  practiceQuestionCount: number;
+  plan: { id: string; status: string; totalSteps: number; completedSteps: number } | null;
+  steps: Array<{ id: string; title: string; status: string; order: number }>;
+}
+
+export interface PathRetest {
+  assessmentId: string;
+  title: string;
+  chapterName: string | null;
+  dueAt: string | null;
+  started: boolean;
+}
+
+export interface LearningPathResponse {
+  student: { id: string; name: string; grade: string | null };
+  summary: {
+    totalConcepts: number;
+    done: number;
+    inProgress: number;
+    notStarted: number;
+    masteryPercent: number;
+    weakConcepts: number;
+    untestedConcepts: number;
+    pendingRetests: number;
+    byLevel: Record<string, number>;
+  };
+  next: {
+    conceptId: string;
+    conceptName: string;
+    chapterName: string;
+    action: 'FIX' | 'STUDY' | 'RETEST';
+    reason: string;
+  } | null;
+  focus: PathFocusStep[];
+  retests: PathRetest[];
+  track: PathTrackStep[];
+}
+
+export function useLearningPath() {
+  return useQuery<LearningPathResponse>({
+    queryKey: ['learning', 'path'],
+    queryFn: () => apiAuthed<LearningPathResponse>('/learning/path'),
+  });
+}
+
+export function useRequestRetest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (conceptIds: string[]) =>
+      apiAuthed<{ id: string; title: string }>('/remediation/retest', {
+        method: 'POST',
+        body: { conceptIds },
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['learning', 'path'] });
+      qc.invalidateQueries({ queryKey: ['assessments', 'my'] });
+    },
   });
 }
 

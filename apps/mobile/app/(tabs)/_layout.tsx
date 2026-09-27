@@ -35,15 +35,15 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="learn"
         options={{
-          title: 'Learn',
-          tabBarIcon: ({ color, size }) => <Ionicons name="book" size={size} color={color} />,
+          title: 'Library',
+          tabBarIcon: ({ color, size }) => <Ionicons name="library" size={size} color={color} />,
           href: isStudent ? undefined : null,
         }}
       />
       <Tabs.Screen
         name="tests"
         options={{
-          title: 'Assessment',
+          title: 'Assessments',
           tabBarIcon: ({ color, size }) => <Ionicons name="clipboard" size={size} color={color} />,
           href: isStudent ? undefined : null,
         }}
@@ -53,14 +53,6 @@ export default function TabsLayout() {
         options={{
           title: 'Ask Sanro AI',
           tabBarIcon: ({ color, size }) => <Ionicons name="chatbubble" size={size} color={color} />,
-          href: isStudent ? undefined : null,
-        }}
-      />
-      <Tabs.Screen
-        name="practice"
-        options={{
-          title: 'Progress',
-          tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} />,
           href: isStudent ? undefined : null,
         }}
       />

@@ -325,6 +325,11 @@ export const UpdateRemediationItemSchema = z.object({
   status: z.enum(['COMPLETED', 'SKIPPED']),
 });
 
+export const CreateRetestSchema = z.object({
+  studentId: z.string().uuid().optional(),
+  conceptIds: z.array(z.string().uuid()).min(1).max(10),
+});
+
 export const ChatSchema = z.object({
   message: z.string().min(1).max(2000),
   context: z

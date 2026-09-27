@@ -88,7 +88,7 @@ Stages (`KnowledgeBase.stage`, enum `ContentProcessingStage`):
 ## 7. Content security & audit (spec §89-§97)
 
 - All library/curriculum mutations: `@Roles` (SUPER_ADMIN for platform + curriculum; INSTITUTION_ADMIN/TEACHER for own-institution content within their tenure) + Zod validation + `@AuditLog` entries.
-- New `AuditAction` values (schema + migration): `CONTENT_CREATED, CONTENT_UPDATED, CONTENT_STATUS_CHANGED, CONTENT_DELETED, CONTENT_VERSION_RESTORED, CONTENT_ASSIGNED, CONTENT_UNASSIGNED, CONTENT_REVIEWED, CONTENT_PUBLISHED, BOOK_UPLOADED, BOOK_PROCESSING_FAILED, BOOK_COMPLETED, CURRICULUM_CREATED, CURRICULUM_UPDATED, CURRICULUM_IMPORTED, CURRICULUM_ASSIGNED, CURRICULUM_UNASSIGNED, KNOWLEDGE_BASE_CREATED, KNOWLEDGE_BASE_DELETED, YOUTUBE_ADDED`.
+- New `AuditAction` values (schema + migration): `CONTENT_CREATED, CONTENT_UPDATED, CONTENT_STATUS_CHANGED, CONTENT_DELETED, CONTENT_VERSION_RESTORED, CONTENT_ASSIGNED, CONTENT_UNASSIGNED, CONTENT_REVIEWED, CONTENT_PUBLISHED, BOOK_UPLOADED, BOOK_PROCESSING_FAILED, BOOK_COMPLETED, CURRICULUM_CREATED, CURRICULUM_UPDATED, CURRICULUM_IMPORTED, CURRICULUM_ASSIGNED, CURRICULUM_UNASSIGNED, KNOWLEDGE_BASE_CREATED, KNOWLEDGE_BASE_DELETED, YOUTUBE_ADDED`, plus import-side `CONTENT_CREATED, QUESTION_GENERATED, PARENT_CREATED` added 2026-09-26.
 - Tenant isolation tests are part of e2e (institution A cannot read/know B's or unassigned platform content; direct student scoping; parent blocked).
 
 ## 8. Performance (spec §99)
@@ -106,7 +106,9 @@ _admin/library (SUPER_ADMIN + institution-admin split)_:
 _admin/curriculum_: `POST/GET boards`, `POST/PATCH grades`, `POST/PATCH subjects`, `POST/PATCH chapters`, `POST/PATCH topics/concepts` (SUPER_ADMIN), `POST /admin/curriculum/import` (multipart CSV/XLSX, preview then commit job), `GET /admin/curriculum/import/:id`
 _admin/curriculum/access (SUPER_ADMIN)_: `GET/POST /admin/curriculum/access` (assign), `DELETE /admin/curriculum/access/:id`
 _content pipeline_: `POST /content/upload` (multipart, PDF_BOOK) `POST /content/upload-multiple`, `POST /content/youtube`, `GET /content/ingestions` (stage-aware list), `GET /content/ingestions/:id` (stage + jobs + chunks + provenance), `POST /content/ingestions/:id/retry`, `POST /content/ingestions/:id/publish` (human review gate), `GET /content/ingestions/:id/source`
-_learning (student read)_: `GET /learning/library?subjectId&chapterId&conceptId&type` (new unified, tenant+assignment+PUBLISHED-scoped, paginated) — mobile/web Learn continue to work.
+_student read (Library, added 2026-09-26)_: `GET /content/browse?search&type&boardId&grade&subjectId&chapterId&topicId&conceptId&page&limit` (paginated, tenant+assignment+`APPROVED|PUBLISHED` scoped, grouped counts in `byType`) — feeds `/app/library` on web; registered **before** `GET /content/:id` so `browse` is not parsed as an id. Supersedes the previously planned `GET /learning/library`, which was never implemented and is not called by any client.
+_chapter-wise YouTube (added 2026-09-26)_: `GET /content/videos?chapterId`, `POST /content/videos`, `DELETE /content/videos/:id`; chapter detail returns `chapterContent`.
+_learning path (added 2026-09-26)_: `GET /learning/path` — ordered diagnosis-derived concepts with `mastered | inProgress | notStarted`.
 
 Legacy `/content-import/*` and `/knowledge-base/*` remain functional (institution tenant), migrated to share pipeline where relevant.
 

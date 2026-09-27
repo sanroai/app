@@ -11,9 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Spinner, ErrorBanner } from '@/components/ui';
+import { YouTubePlayer } from '@/components/youtube-player';
+import { Markdown } from '@/components/markdown';
 import {
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   Video,
   FileText,
   BookOpen,
@@ -72,6 +76,7 @@ export default function ConceptDetailPage() {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const [flashcardIndex, setFlashcardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [openNotes, setOpenNotes] = useState<string[]>([]);
 
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
@@ -104,8 +109,8 @@ export default function ConceptDetailPage() {
           <BookOpen className="mx-auto h-12 w-12 text-surface-300" />
           <p className="mt-4 text-lg font-medium text-surface-700">Concept not found</p>
           <p className="mt-1 text-sm text-surface-400">The concept you&apos;re looking for doesn&apos;t exist or has been removed.</p>
-          <Link href="/app/learn" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
-            <ChevronLeft className="h-4 w-4" /> Back to Learn
+          <Link href="/app/library" className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+            <ChevronLeft className="h-4 w-4" /> Back to Library
           </Link>
         </div>
       </div>
@@ -128,12 +133,14 @@ export default function ConceptDetailPage() {
   const topicName = concept.topic?.name ?? '';
   const videos = contentItems.filter((c: ContentItem) => c.type === 'VIDEO');
   const notes = contentItems.filter((c: ContentItem) => c.type === 'NOTES' || c.type === 'ARTICLE');
+  const toggleNote = (id: string) =>
+    setOpenNotes((prev) => (prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]));
 
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm text-surface-500">
-        <Link href="/app/learn" className="hover:text-brand-600 transition-colors">Learn</Link>
+        <Link href="/app/library" className="hover:text-brand-600 transition-colors">Library</Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-surface-400">{chapterName}</span>
         <ChevronRight className="h-3.5 w-3.5" />
@@ -143,7 +150,7 @@ export default function ConceptDetailPage() {
       {/* Header */}
       <div className="flex items-start gap-3">
         <Link
-          href="/app/learn"
+          href="/app/library"
           className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -258,48 +265,28 @@ export default function ConceptDetailPage() {
                 Video Lessons
               </h2>
               <div className="grid gap-4 md:grid-cols-2">
-                {videos.map((item: ContentItem) => {
-                  const isYouTube = item.url != null && (item.url.includes('youtube.com') || item.url.includes('youtu.be'));
-                  const youtubeId = isYouTube ? (item.url!.match(/(?:v=|youtu\.be\/)([^&?/]+)/) || [])[1] : null;
-                  return (
-                    <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all group">
-                      {youtubeId ? (
-                        <div className="relative aspect-video">
-                          <iframe
-                            src={`https://www.youtube.com/embed/${youtubeId}`}
-                            className="absolute inset-0 w-full h-full"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            title={item.title}
-                            loading="lazy"
-                          />
-                        </div>
-                      ) : (
-                        <div className="relative aspect-video bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center cursor-pointer" onClick={() => item.url && window.open(item.url, '_blank')}>
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm group-hover:bg-white/30 transition-all">
-                            <Play className="h-8 w-8 text-white ml-1" />
-                          </div>
-                          {item.durationSeconds && (
-                            <div className="absolute bottom-2 right-2 rounded-lg bg-black/60 px-2 py-1 text-xs text-white">
-                              {Math.ceil(item.durationSeconds / 60)} min
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <CardContent className="p-4">
-                        <p className="font-semibold text-surface-900 line-clamp-2">{item.title}</p>
-                        <div className="mt-2 flex items-center justify-between">
-                          <Badge variant="secondary" className="text-[10px]">
-                            <Video className="mr-1 h-3 w-3" /> VIDEO
-                          </Badge>
-                          <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
-                            <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Done
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {videos.map((item: ContentItem) => (
+                  <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all group">
+                    <YouTubePlayer
+                      url={item.url}
+                      videoId={item.videoId}
+                      title={item.title}
+                      thumbnailUrl={item.thumbnailUrl}
+                      durationSeconds={item.durationSeconds}
+                    />
+                    <CardContent className="p-4">
+                      <p className="font-semibold text-surface-900 line-clamp-2">{item.title}</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <Badge variant="secondary" className="text-[10px]">
+                          <Video className="mr-1 h-3 w-3" /> VIDEO
+                        </Badge>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Done
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </section>
           )}
@@ -312,34 +299,49 @@ export default function ConceptDetailPage() {
                 Study Notes
               </h2>
               <div className="space-y-2">
-                {notes.map((item: ContentItem) => (
-                  <div key={item.id} className="flex items-center gap-4 rounded-xl border border-surface-100 bg-surface-50 p-4 transition-all hover:bg-white hover:shadow-sm">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
-                      <FileText className="h-5 w-5 text-emerald-600" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-surface-900">{item.title}</p>
-                      <div className="mt-0.5 flex items-center gap-2 text-xs text-surface-400">
-                        <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
-                        {(item.durationSeconds ?? 0) > 0 && (
-                          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.ceil((item.durationSeconds ?? 0) / 60)} min</span>
-                        )}
+                {notes.map((item: ContentItem) => {
+                  const open = openNotes.includes(item.id);
+                  return (
+                    <div key={item.id} className="overflow-hidden rounded-xl border border-surface-100 bg-surface-50 transition-all hover:bg-white hover:shadow-sm">
+                      <div className="flex items-center gap-4 p-4">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
+                          <FileText className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-surface-900">{item.title}</p>
+                          <div className="mt-0.5 flex items-center gap-2 text-xs text-surface-400">
+                            <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+                            {(item.durationSeconds ?? 0) > 0 && (
+                              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.ceil((item.durationSeconds ?? 0) / 60)} min</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {item.description ? (
+                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => toggleNote(item.id)} aria-expanded={open}>
+                              {open ? 'Hide' : 'Read'}
+                              {open ? <ChevronUp className="h-3.5 w-3.5 ml-1" /> : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
+                            </Button>
+                          ) : item.url ? (
+                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(item.url, '_blank')}>
+                              <ExternalLink className="h-3.5 w-3.5 mr-1" /> Read
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" className="h-8 text-xs" disabled>Read</Button>
+                          )}
+                          <Button variant="ghost" size="sm" className="h-8 text-xs text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
+                      {open && item.description ? (
+                        <div className="border-t border-surface-100 bg-white px-4 py-4">
+                          <Markdown>{item.description}</Markdown>
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {item.url ? (
-                        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(item.url, '_blank')}>
-                          <ExternalLink className="h-3.5 w-3.5 mr-1" /> Read
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" className="h-8 text-xs" disabled>Read</Button>
-                      )}
-                      <Button variant="ghost" size="sm" className="h-8 text-xs text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}
@@ -353,7 +355,7 @@ export default function ConceptDetailPage() {
                   <h3 className="font-bold text-surface-900">Quick Revision</h3>
                 </div>
                 <div className="space-y-2 text-sm text-surface-700">
-                  {concept.description && <p>{concept.description}</p>}
+                  {concept.description ? <Markdown>{concept.description}</Markdown> : null}
                   <p>Revise these notes before your next test, then test yourself in Practice.</p>
                   {notes.length > 0 ? (
                     <ul className="mt-3 space-y-1.5">

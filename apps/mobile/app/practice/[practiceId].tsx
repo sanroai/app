@@ -88,8 +88,8 @@ export default function PracticeScreen() {
             </Text>
           </View>
         ) : null}
-        <TouchableOpacity style={styles.doneBtn} onPress={() => router.replace('/(tabs)/practice')}>
-          <Text style={styles.doneBtnText}>Back to Practice</Text>
+        <TouchableOpacity style={styles.doneBtn} onPress={() => router.replace('/(tabs)/tests')}>
+          <Text style={styles.doneBtnText}>Back to Assessments</Text>
         </TouchableOpacity>
       </View>
     );

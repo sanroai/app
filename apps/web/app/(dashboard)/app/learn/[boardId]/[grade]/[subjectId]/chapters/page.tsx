@@ -60,8 +60,8 @@ export default function ChaptersPage() {
     <div className="space-y-6">
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-surface-500">
-        <Link href="/app/learn" className="hover:text-brand-600 transition-colors">
-          Learn
+        <Link href="/app/library" className="hover:text-brand-600 transition-colors">
+          Library
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <span className="text-surface-400">Class {grade}</span>
@@ -72,8 +72,8 @@ export default function ChaptersPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link
-          href="/app/learn"
-          aria-label="Go back to Learn"
+          href="/app/library"
+          aria-label="Go back to Library"
           className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
         >
           <ChevronLeft className="h-4 w-4" />

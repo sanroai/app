@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatDate, formatScore, titleCase } from '@/lib/format';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LearningPath } from '@/components/learning-path';
 import { toast } from 'sonner';
 import { Play, RotateCw, Eye, ClipboardList, FileText, Search, X } from 'lucide-react';
 
@@ -182,9 +184,12 @@ function StudentAssessments() {
   const { data, isLoading, error } = useMyAssessments();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [tab, setTab] = useState<'path' | 'tests'>('path');
 
-  if (isLoading) return <Spinner label="Loading assessments…" />;
-  if (error) return <ErrorBanner message={(error as Error).message} />;
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('tab');
+    if (requested === 'tests' || requested === 'path') setTab(requested);
+  }, []);
 
   async function start(assessmentId: string) {
     try {
@@ -201,64 +206,83 @@ function StudentAssessments() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">My assessments</h1>
-      <div className="space-y-4">
-        {(data?.assignments ?? []).map((row: AssignmentRow) => {
-          const activeAttempt = row.attempts.find((a) => a.status === 'IN_PROGRESS');
-          const submitted = row.attempts.filter((a) => a.status !== 'IN_PROGRESS');
-          return (
-            <Card key={row.id}>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="font-semibold text-surface-900">{row.assessment.title}</h2>
-                  <p className="mt-1 text-sm text-surface-500">
-                    {row.assessment.subject?.name ?? '—'} · {row.assessment.totalMarks} marks ·{' '}
-                    {formatDate(row.dueAt)}
-                  </p>
+      <h1 className="mb-4 text-2xl font-bold">Assessments</h1>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as 'path' | 'tests')}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="path">Path</TabsTrigger>
+          <TabsTrigger value="tests">Tests</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="path">
+          <LearningPath />
+        </TabsContent>
+
+        <TabsContent value="tests">
+          {isLoading ? (
+            <Spinner label="Loading assessments…" />
+          ) : error ? (
+            <ErrorBanner message={(error as Error).message} />
+          ) : (
+            <div className="space-y-4">
+              {(data?.assignments ?? []).map((row: AssignmentRow) => {
+                const activeAttempt = row.attempts.find((a) => a.status === 'IN_PROGRESS');
+                const submitted = row.attempts.filter((a) => a.status !== 'IN_PROGRESS');
+                return (
+                  <Card key={row.id}>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <h2 className="font-semibold text-surface-900">{row.assessment.title}</h2>
+                        <p className="mt-1 text-sm text-surface-500">
+                          {row.assessment.subject?.name ?? '—'} · {row.assessment.totalMarks} marks ·{' '}
+                          {formatDate(row.dueAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {activeAttempt ? (
+                          <Button variant="outline" onClick={() => router.push(`/app/assessments/attempt/${activeAttempt.id}`)}>
+                            <RotateCw className="h-4 w-4" />
+                            Resume attempt
+                          </Button>
+                        ) : (
+                          <Button onClick={() => start(row.assessmentId)}>
+                            <Play className="h-4 w-4" />
+                            Start
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    {submitted.length > 0 ? (
+                      <ul className="mt-4 divide-y divide-slate-100">
+                        {submitted.map((a: AttemptSummary) => (
+                          <li key={a.id} className="flex items-center justify-between py-2 text-sm">
+                            <span className="text-surface-600">
+                              Attempt {a.attemptIndex} · {a.status === 'SUBMITTED' ? 'Submitted' : titleCase(a.status)} ·{' '}
+                              {formatDate(a.submittedAt)}
+                            </span>
+                            <span className="flex items-center gap-2 font-medium text-surface-800">
+                              {formatScore(a.score, a.maxScore)}
+                              <Button variant="ghost" onClick={() => router.push(`/app/assessments/attempt/${a.id}`)}>
+                                <Eye className="h-4 w-4" />
+                                View
+                              </Button>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </Card>
+                );
+              })}
+              {data?.assignments?.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
+                  <ClipboardList className="h-10 w-10 text-surface-300 mb-3" />
+                  <p className="text-sm text-surface-500 max-w-sm">No assessments assigned yet — check back soon or ask your teacher.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  {activeAttempt ? (
-                    <Button variant="outline" onClick={() => router.push(`/app/assessments/attempt/${activeAttempt.id}`)}>
-                      <RotateCw className="h-4 w-4" />
-                      Resume attempt
-                    </Button>
-                  ) : (
-                    <Button onClick={() => start(row.assessmentId)}>
-                      <Play className="h-4 w-4" />
-                      Start
-                    </Button>
-                  )}
-                </div>
-              </div>
-              {submitted.length > 0 ? (
-                <ul className="mt-4 divide-y divide-slate-100">
-                  {submitted.map((a: AttemptSummary) => (
-                    <li key={a.id} className="flex items-center justify-between py-2 text-sm">
-                      <span className="text-surface-600">
-                        Attempt {a.attemptIndex} · {a.status === 'SUBMITTED' ? 'Submitted' : titleCase(a.status)} ·{' '}
-                        {formatDate(a.submittedAt)}
-                      </span>
-                      <span className="flex items-center gap-2 font-medium text-surface-800">
-                        {formatScore(a.score, a.maxScore)}
-                        <Button variant="ghost" onClick={() => router.push(`/app/assessments/attempt/${a.id}`)}>
-                          <Eye className="h-4 w-4" />
-                          View
-                        </Button>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
               ) : null}
-            </Card>
-          );
-        })}
-        {data?.assignments?.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
-            <ClipboardList className="h-10 w-10 text-surface-300 mb-3" />
-            <p className="text-sm text-surface-500 max-w-sm">No assessments assigned yet — check back soon or ask your teacher.</p>
-          </div>
-        ) : null}
-      </div>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -3,8 +3,61 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { ContentScopeService, STUDENT_VISIBLE_STATUSES } from '../common/content/content-scope.service';
-import { ContentType, ContentStatus, Visibility, Prisma } from '@prisma/client';
+import { ContentStatus, Visibility, Prisma, ContentType } from '@prisma/client';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+
+const YOUTUBE_HOSTS = new Set([
+  'youtube.com',
+  'www.youtube.com',
+  'm.youtube.com',
+  'music.youtube.com',
+  'youtu.be',
+  'youtube-nocookie.com',
+  'www.youtube-nocookie.com',
+]);
+
+const VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,20}$/;
+
+export function parseYouTubeVideoId(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+  const host = url.hostname.toLowerCase();
+  if (!YOUTUBE_HOSTS.has(host)) return null;
+
+  const segments = url.pathname.split('/').filter(Boolean);
+  let id: string | null = null;
+  if (host === 'youtu.be') {
+    id = segments[0] ?? null;
+  } else if (url.pathname === '/watch') {
+    id = url.searchParams.get('v');
+  } else if (segments[0] === 'embed' || segments[0] === 'shorts' || segments[0] === 'live' || segments[0] === 'v') {
+    id = segments[1] ?? null;
+  } else {
+    id = url.searchParams.get('v');
+  }
+  if (!id) return null;
+  return VIDEO_ID_PATTERN.test(id) ? id : null;
+}
+
+export function youtubeThumbnailUrl(videoId: string): string {
+  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+}
+
+export interface VideoInput {
+  url: string;
+  title: string;
+  description?: string;
+  durationSeconds?: number;
+  thumbnailUrl?: string;
+  order?: number;
+}
 
 @Injectable()
 export class ContentService {
@@ -19,6 +72,110 @@ export class ContentService {
     const base = this.scope.buildContentWhere(user);
     const where: Prisma.ContentItemWhereInput = { ...base };
     return where;
+  }
+
+  async browse(
+    user: RequestUser,
+    query: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      type?: string;
+      subjectId?: string;
+      chapterId?: string;
+      conceptId?: string;
+      grade?: string;
+      sort?: string;
+    } = {},
+  ) {
+    const ands: Prisma.ContentItemWhereInput[] = [this.visibleWhere(user)];
+    if (query.type) ands.push({ type: query.type as ContentType });
+    if (query.subjectId) ands.push({ subjectId: query.subjectId });
+    if (query.chapterId) ands.push({ chapterId: query.chapterId });
+    if (query.conceptId) ands.push({ conceptId: query.conceptId });
+    if (query.grade) ands.push({ grade: query.grade });
+    if (query.search) {
+      ands.push({
+        OR: [
+          { title: { contains: query.search, mode: 'insensitive' } },
+          { description: { contains: query.search, mode: 'insensitive' } },
+        ],
+      });
+    }
+
+    const where: Prisma.ContentItemWhereInput = { AND: ands };
+    const page = Math.max(query.page ?? 1, 1);
+    const pageSize = Math.min(Math.max(query.pageSize ?? 24, 1), 100);
+
+    const orderBy: Prisma.ContentItemOrderByWithRelationInput[] =
+      query.sort === 'newest'
+        ? [{ createdAt: 'desc' }]
+        : query.sort === 'title'
+          ? [{ title: 'asc' }]
+          : [{ chapterId: 'asc' }, { order: 'asc' }, { createdAt: 'desc' }];
+
+    const [items, total, byType, byChapter] = await Promise.all([
+      this.prisma.contentItem.findMany({
+        where,
+        orderBy,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: {
+          id: true,
+          type: true,
+          title: true,
+          description: true,
+          durationSeconds: true,
+          thumbnailUrl: true,
+          url: true,
+          videoId: true,
+          order: true,
+          status: true,
+          language: true,
+          subjectId: true,
+          chapterId: true,
+          topicId: true,
+          conceptId: true,
+          concept: { select: { id: true, name: true } },
+          chapter: { select: { id: true, name: true } },
+          subject: { select: { id: true, name: true } },
+        },
+      }),
+      this.prisma.contentItem.count({ where }),
+      this.prisma.contentItem.groupBy({ by: ['type'], where, _count: { _all: true } }),
+      this.prisma.contentItem.groupBy({ by: ['chapterId'], where, _count: { _all: true } }),
+    ]);
+
+    const chapterIds = byChapter.map((c) => c.chapterId).filter((id): id is string => !!id);
+    const chapters = chapterIds.length
+      ? await this.prisma.chapter.findMany({
+          where: { id: { in: chapterIds } },
+          select: { id: true, name: true, grade: true, order: true, subjectId: true },
+        })
+      : [];
+    const chapterById = new Map(chapters.map((c) => [c.id, c]));
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+      pageCount: Math.max(Math.ceil(total / pageSize), 1),
+      facets: {
+        byType: Object.fromEntries(byType.map((t) => [t.type, t._count._all])),
+        byChapter: byChapter
+          .filter((c) => c.chapterId)
+          .map((c) => ({
+            chapterId: c.chapterId as string,
+            name: chapterById.get(c.chapterId as string)?.name ?? 'Unknown chapter',
+            grade: chapterById.get(c.chapterId as string)?.grade ?? null,
+            order: chapterById.get(c.chapterId as string)?.order ?? 0,
+            subjectId: chapterById.get(c.chapterId as string)?.subjectId ?? null,
+            count: c._count._all,
+          }))
+          .sort((a, b) => a.order - b.order),
+      },
+    };
   }
 
   async list(user: RequestUser, query: Record<string, string | undefined> = {}) {
@@ -199,6 +356,129 @@ export class ContentService {
         createdById: user.sub,
       },
     });
+  }
+
+  async createVideos(
+    user: RequestUser,
+    data: { chapterId: string; topicId?: string; conceptId?: string; videos: VideoInput[] },
+  ) {
+    const isSuper = user.role === 'SUPER_ADMIN';
+    let institutionId: string | null = null;
+    if (!isSuper) {
+      institutionId = this.tenant.requireInstitution(user);
+      if (user.role === 'STUDENT' || user.role === 'PARENT') {
+        throw new ForbiddenException('Students and parents cannot create content');
+      }
+    }
+
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: data.chapterId },
+      include: { subject: { select: { id: true, boardId: true } } },
+    });
+    if (!chapter) throw new NotFoundException('Chapter not found');
+
+    if (data.topicId) {
+      const topic = await this.prisma.topic.findUnique({ where: { id: data.topicId } });
+      if (!topic || topic.chapterId !== chapter.id) {
+        throw new BadRequestException('topicId does not belong to this chapter');
+      }
+    }
+    if (data.conceptId) {
+      const concept = await this.prisma.concept.findUnique({ where: { id: data.conceptId }, include: { topic: true } });
+      if (!concept || concept.topic.chapterId !== chapter.id) {
+        throw new BadRequestException('conceptId does not belong to this chapter');
+      }
+    }
+
+    const parsed = data.videos.map((video) => {
+      const videoId = parseYouTubeVideoId(video.url);
+      if (!videoId) throw new BadRequestException(`Not a valid YouTube URL: ${video.url}`);
+      return { ...video, videoId };
+    });
+
+    const existing = await this.prisma.contentItem.findMany({
+      where: { chapterId: chapter.id, type: 'VIDEO', videoId: { in: [...new Set(parsed.map((v) => v.videoId))] } },
+      select: { videoId: true },
+    });
+    const existingIds = new Set(existing.map((e) => e.videoId).filter(Boolean));
+    const duplicates = parsed.filter((v) => existingIds.has(v.videoId));
+    const toCreate = parsed.filter((v) => !existingIds.has(v.videoId));
+
+    let nextOrder =
+      (await this.prisma.contentItem.aggregate({ where: { chapterId: chapter.id, type: 'VIDEO' }, _max: { order: true } }))
+        ._max.order ?? -1;
+
+    const created = [];
+    for (const video of toCreate) {
+      nextOrder += 1;
+      created.push(
+        await this.prisma.contentItem.create({
+          data: {
+            type: 'VIDEO',
+            status: ContentStatus.APPROVED,
+            visibility: isSuper ? Visibility.PUBLIC : Visibility.INSTITUTION_ONLY,
+            ownerType: isSuper ? 'PLATFORM' : 'INSTITUTION',
+            directSanroAvailable: isSuper,
+            institutionId,
+            title: video.title,
+            description: video.description ?? null,
+            url: video.url,
+            videoId: video.videoId,
+            thumbnailUrl: video.thumbnailUrl ?? youtubeThumbnailUrl(video.videoId),
+            durationSeconds: video.durationSeconds ?? null,
+            order: video.order ?? nextOrder,
+            sourceType: 'YOUTUBE',
+            boardId: chapter.subject.boardId,
+            subjectId: chapter.subjectId,
+            chapterId: chapter.id,
+            topicId: data.topicId ?? null,
+            conceptId: data.conceptId ?? null,
+            grade: chapter.grade,
+            publishedAt: new Date(),
+            createdById: user.sub,
+          },
+        }),
+      );
+    }
+
+    return {
+      created,
+      duplicates: duplicates.map((d) => ({ videoId: d.videoId, url: d.url })),
+    };
+  }
+
+  async listVideos(user: RequestUser, chapterId: string) {
+    return this.prisma.contentItem.findMany({
+      where: { AND: [{ type: 'VIDEO' }, { chapterId }, this.visibleWhere(user)] },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        url: true,
+        videoId: true,
+        thumbnailUrl: true,
+        durationSeconds: true,
+        order: true,
+        status: true,
+        grade: true,
+        topicId: true,
+        conceptId: true,
+        concept: { select: { id: true, name: true } },
+        createdAt: true,
+      },
+    });
+  }
+
+  async removeVideo(user: RequestUser, id: string) {
+    const item = await this.prisma.contentItem.findFirst({ where: { id, type: 'VIDEO' } });
+    if (!item) throw new NotFoundException('Video not found');
+    if (user.role !== 'SUPER_ADMIN') {
+      const institutionId = this.tenant.requireInstitution(user);
+      if (item.institutionId !== institutionId) throw new ForbiddenException('Not your institution content');
+    }
+    await this.prisma.contentItem.delete({ where: { id } });
+    return { ok: true };
   }
 
   async recordProgress(

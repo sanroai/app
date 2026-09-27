@@ -152,7 +152,7 @@ const faqs = [
   },
   {
     q: 'How is Sanro AI different from other learning apps?',
-    a: 'SANRO is not a content library. It follows a structured loop: Assess, Diagnose, Fix, Retest, Improve. Every feature is designed to convert assessment data into specific learning actions and measurable improvement.',
+    a: 'Other apps hand you the same pile of content for everyone. SANRO starts from your assessments: Assess, Diagnose, Fix, Retest, Improve. The Library gives you NCERT-mapped lessons, and your learning path tells you exactly which ones to study next.',
   },
   {
     q: 'Is there a mobile app?',

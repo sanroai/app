@@ -16,8 +16,8 @@
 
 ## 3. Critical E2E Journeys
 
-- Student: login → Home → Learn → Concept → Video/Notes → Practice → Assess →
-  Result → Diagnosis → Fix → Retest → Improvement
+- Student: login → Home → Library → Concept → Video/Notes → Practice →
+  Assess → Path → Result → Diagnosis → Fix → Retest → Improvement
 - Teacher: login → dashboard → create assessment → publish → view results →
   diagnose → remediation
 - Parent: login → child → result → weak concepts → improvement
