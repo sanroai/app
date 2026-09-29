@@ -6,7 +6,7 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 ## Commands
 ```bash
 pnpm -r typecheck              # Typecheck all packages (6 tasks)
-pnpm --filter @sanro/api test  # Run Vitest (236 tests, 22 files) — migrates + seeds sanro_test first
+pnpm --filter @sanro/api test  # Run Vitest (244 tests, 22 files) — migrates + seeds sanro_test first
 pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 pnpm --filter @sanro/mobile dev     # Expo dev server (mobile)
@@ -14,6 +14,7 @@ pnpm --filter @sanro/mobile typecheck  # Mobile typecheck only
 pnpm build                     # Full Turborepo build (6 tasks)
 npx tsx scripts/screenshots.mts     # Capture all page screenshots
 npx tsx scripts/verify-empty-states.mts  # Login + screenshot 18 admin screens (servers must be running)
+npx tsx scripts/verify-roles.mts student  # Also: teacher | parent — login + verify that role's pages (servers must be running)
 pnpm --filter @sanro/api db:seed      # SYSTEM ONLY: Plans, achievements, system institution, bootstrap super admin
 pnpm --filter @sanro/api db:seed:demo # Full demo data (opt-in)
 pnpm --filter @sanro/api db:seed:qa   # QA fixtures (targets sanro_test)
@@ -149,6 +150,9 @@ JWT-based. Zustand persist store in localStorage key `sanro-auth`. Hydration tra
 - `apps/mobile/lib/api.ts` — API client; base reads `EXPO_PUBLIC_API_URL` (default `https://api.sanroai.com/api/v1`)
 - `apps/mobile/components/OfflineBanner.tsx` — Shared offline status banner
 - `apps/mobile/app/` — Expo Router screens (5-tab shell, learn flow, concept 6 modes, attempts)
+- `scripts/verify-roles.mts` — Playwright verifier for student/teacher/parent pages (screenshots + `summary.json`)
+- `scripts/verify-empty-states.mts` — Playwright verifier for the 18 super-admin screens
+- `apps/mobile/expo-types.d.ts` — local `expo/types` reference; replaces the `expo-env.d.ts` that `expo start` deletes when `typedRoutes` is off
 
 ## Demo Users (password: Sanro@123)
 - `admin@sanroai.com` (SUPER_ADMIN)

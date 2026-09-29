@@ -12,7 +12,11 @@
 - `pnpm --filter @sanro/api test` — Vitest suite
 - `pnpm --filter @sanro/mobile typecheck`
 - `pnpm build` — full turbo build
-- `npx tsx scripts/screenshots.mts` — page capture QA
+- `npx tsx scripts/screenshots.mts` — page capture QA (kills :3000/:4000 first)
+- `npx tsx scripts/verify-empty-states.mts` — login + verify 18 super-admin
+  screens, capture screenshots, fail on console errors / failed API calls
+- `npx tsx scripts/verify-roles.mts <student|teacher|parent>` — same checks for
+  that role's pages; writes `screenshots/<role>/summary.json`
 
 ## 3. Critical E2E Journeys
 

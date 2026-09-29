@@ -56,7 +56,8 @@ async function apiRequest<T>(path: string, options: RequestOptions = {}): Promis
 
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   if (!isFormData && body !== undefined) headers['Content-Type'] = 'application/json';
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const resolvedToken = token === undefined ? useAuthStore.getState().token : token;
+  if (resolvedToken) headers['Authorization'] = `Bearer ${resolvedToken}`;
 
   let res: Response;
   try {
@@ -123,10 +124,12 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   try {
     return await apiRequest<T>(path, options);
   } catch (err) {
-    if (err instanceof ApiError && err.status === 401 && options.token) {
+    if (err instanceof ApiError && err.status === 401) {
       const { useAuthStore } = await import('@/lib/auth-store');
       const store = useAuthStore.getState();
       if (store.blocked) throw err;
+      const hadSession = Boolean(store.token || store.refreshToken || options.token);
+      if (!hadSession) throw err;
       const refreshed = await tryRefreshToken();
       if (refreshed) {
         const newToken = useAuthStore.getState().token;

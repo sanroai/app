@@ -24,6 +24,7 @@ import {
   Eye,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { titleCase } from '@/lib/format';
 
 type ChildData = {
   id: string;
@@ -31,11 +32,9 @@ type ChildData = {
   grade: string | null;
   overallMastery: number;
   weakConcepts: Array<{
-    conceptId: string;
-    conceptName: string;
-    subjectName: string;
-    chapterName: string;
-    masteryScore: number;
+    name: string;
+    score: number;
+    level: string;
   }>;
   recentActivity: Array<{
     type: string;
@@ -192,13 +191,13 @@ function ChildDetailCard({ child }: { child: ChildData }) {
             </h4>
             <div className="space-y-2">
               {weakConcepts.slice(0, 3).map((wc) => (
-                <div key={wc.conceptId} className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 p-3">
+                <div key={wc.name} className="flex items-center justify-between rounded-lg bg-amber-50 border border-amber-200 p-3">
                   <div>
-                    <p className="text-sm font-medium text-amber-800">{wc.conceptName}</p>
-                    <p className="text-xs text-amber-600">{wc.subjectName} — {wc.chapterName}</p>
+                    <p className="text-sm font-medium text-amber-800">{wc.name}</p>
+                    <p className="text-xs text-amber-600">{titleCase(wc.level)}</p>
                   </div>
                   <Badge variant="outline" className="text-amber-600 border-amber-300">
-                    {wc.masteryScore}%
+                    {wc.score}%
                   </Badge>
                 </div>
               ))}

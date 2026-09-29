@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-09-29 — Local-run defect sweep: web dev crash, role/contract fixes, role UI verifier
+
+| Field | Detail |
+|---|---|
+| Date | 2026-09-29 |
+| Task | Run the whole stack locally end to end, fix every defect it surfaced (the web dev server was down for every role), and leave a repeatable per-role verification script in the repo |
+| Reason | A full local run is the only honest readiness check before deployment. It exposed that `next dev` crashed on first compile, that two flagship student routes rendered "Application error", that several API calls were sent without auth headers, and that non-student roles hit 404/500/403 paths that rendered as user-facing errors |
+| Entities affected | API: `apps/api/src/remediation/remediation.controller.ts`, `remediation.service.ts`, `apps/api/test/learning-path.e2e-spec.ts`. Web: `apps/web/tailwind.config.ts`, `apps/web/components/ui/button.tsx`, `apps/web/lib/api.ts`, `apps/web/lib/api-hooks.ts`, `apps/web/lib/institution-hooks.ts`, `apps/web/app/(dashboard)/app/children/page.tsx`, `curriculum/page.tsx`, `remediation/page.tsx`. Mobile: `apps/mobile/expo-types.d.ts` (new), `apps/mobile/tsconfig.json`, `apps/mobile/expo-env.d.ts` (deleted). Scripts: `scripts/verify-roles.mts` (new). Docs: `AGENTS.md`, `docs/QA.md` |
+| Database changes | none — no schema change, no rows touched |
+| API changes | `GET /remediation/weak` no longer 500s: the controller forwards `studentId`, and the service rejects non-UUID ids with `400 Invalid studentId`, resolves `STUDENT` to self (403 for another student's id), requires `studentId` for staff (`400`), and returns `403` for parents. Contract otherwise unchanged |
+| Frontend changes | `tailwind.config.ts` replaced `require('tailwindcss-animate')` with a static import (ESM config → `ReferenceError` killed every page compile). `Button asChild` now renders `children` only (Radix `Slot` rejects a sibling spinner → "Application error" on `/app/library`, `/app/assessments`). `lib/api.ts` attaches the Zustand token when `options.token` is omitted and refreshes on 401 whenever a session exists, so profile save, change-password, add-student and add-teacher stopped failing silently with 401. `useInstitutions` gated to `SUPER_ADMIN` (teachers were 403-ing on `/app/import`). `children/page.tsx` uses the real `weakConcepts` contract `{name,score,level}` instead of never-existing fields (removed `undefined` rendering and the React key warning). `/app/remediation` is role-aware: students keep mastery + plans, staff see institution plans, super-admin sees an explanatory note instead of a 404 alert. `/app/curriculum` outer row toggles became `div role="button"` so inner `Button`s are valid HTML (hydration error gone) |
+| Seed/import changes | none |
+| Migration | `none — no schema change` |
+| Verification | `pnpm -r typecheck` → 6/6. `pnpm --filter @sanro/api test` → **244/244 tests, 22/22 files** (8 new `GET /remediation/weak` cases: 200/400/403 for student, staff, parent, bad UUID, no id). `pnpm --filter @sanro/web build` → pass (60 pages). UI: `npx tsx scripts/verify-roles.mts student` → 8/8, `… teacher` → 8/8, `… parent` → 3/3, `npx tsx scripts/verify-empty-states.mts` → 18/18 — **zero console errors and zero >=400 API calls in every run**; `/app/learn` → 307 to `/app/library`. Screenshots + `summary.json` under `screenshots/{student,teacher,parent,empty-state}/` (git-ignored). Live probes: `GET /remediation/weak` 200 `[]` (student), 400 (staff without id), 400 (bad UUID), 403 (parent); all 5 demo logins 200; `/api/v1/admin/super-admin/dashboard/*` 200 |
+| Known issues | none identified yet. Expo's `typedRoutes: false` makes `expo start` delete `apps/mobile/expo-env.d.ts` and strip the two `include` entries from `apps/mobile/tsconfig.json` — now intended state; `apps/mobile/expo-types.d.ts` supplies the same `expo/types` reference so mobile typecheck passes regardless |
+
 ### 2026-09-26 — Bulk import: CONTENT, QUESTIONS and PARENTS entity types
 
 | Field | Detail |

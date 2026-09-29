@@ -150,10 +150,14 @@ export function useGroups() {
   return useAuthedQuery<Group[]>(['groups'], '/academics/groups');
 }
 
-export function useRemediationMy() {
-  return useAuthedQuery<any>(['remediation', 'my'], '/remediation/my');
+export function useRemediationMy(enabled = true) {
+  return useAuthedQuery<any>(['remediation', 'my'], '/remediation/my', enabled);
 }
 
-export function useDiagnosisMy() {
-  return useAuthedQuery<any>(['diagnosis', 'my'], '/diagnosis/my');
+export function useDiagnosisMy(enabled = true) {
+  return useAuthedQuery<any>(['diagnosis', 'my'], '/diagnosis/my', enabled);
+}
+
+export function useRemediationPlans(enabled = true) {
+  return useAuthedQuery<any>(['remediation', 'plans'], '/remediation/plans', enabled);
 }

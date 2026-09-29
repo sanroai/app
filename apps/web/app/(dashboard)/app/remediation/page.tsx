@@ -3,7 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useDiagnosisMy, useRemediationMy } from '@/lib/api-hooks';
+import { useDiagnosisMy, useRemediationMy, useRemediationPlans } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
@@ -21,18 +21,42 @@ const LEVEL_STYLE: Record<string, string> = {
   INSUFFICIENT_EVIDENCE: 'bg-surface-100 text-surface-600',
 };
 
+type PlanRow = {
+  id: string;
+  progress?: number;
+  completedItems?: number;
+  _count?: { items?: number };
+  concept?: { name: string };
+  student?: { name?: string | null };
+  items?: Array<{ id: string; title?: string; type?: string; contentType?: string; status?: string }>;
+};
+
+function planStats(plan: PlanRow) {
+  const items = plan.items ?? [];
+  const done = plan.completedItems ?? items.filter((i) => i.status === 'COMPLETED').length;
+  const total = plan._count?.items ?? items.length;
+  const progress = plan.progress ?? (total > 0 ? Math.round((done / total) * 100) : 0);
+  return { done, total, progress };
+}
+
 export default function RemediationPage() {
-  const diag = useDiagnosisMy();
-  const plans = useRemediationMy();
+  const user = useAuthStore((s) => s.user);
+  const role = user?.role;
+  const isStudent = role === 'STUDENT';
+  const canViewPlans = !isStudent && role !== 'SUPER_ADMIN';
+  const diag = useDiagnosisMy(isStudent);
+  const plans = useRemediationMy(isStudent);
+  const staffPlans = useRemediationPlans(canViewPlans);
   const queryClient = useQueryClient();
   const [pendingItems, setPendingItems] = useState<Set<string>>(new Set());
 
-  if (diag.isLoading || plans.isLoading) return <Spinner label="Loading mastery…" />;
-  const err = diag.error ?? plans.error;
+  const loading = isStudent ? diag.isLoading || plans.isLoading : staffPlans.isLoading;
+  const err = isStudent ? (diag.error ?? plans.error) : staffPlans.error;
+  if (loading) return <Spinner label="Loading mastery…" />;
   if (err) return <ErrorBanner message={(err as Error).message} />;
 
-  const diagnosis = diag.data;
-  const planList = plans.data;
+  const diagnosis = isStudent ? diag.data : null;
+  const planList = isStudent ? plans.data : canViewPlans ? staffPlans.data : [];
 
   async function setItemStatus(planId: string, itemId: string, status: 'COMPLETED' | 'SKIPPED') {
     setPendingItems((prev) => new Set(prev).add(itemId));
@@ -66,6 +90,7 @@ export default function RemediationPage() {
         ) : null}
       </div>
 
+      {isStudent && (
       <section>
         <h2 className="mb-3 text-lg font-semibold">Concept mastery</h2>
         {diagnosis && Array.isArray(diagnosis.concepts) && diagnosis.concepts.length > 0 ? (
@@ -104,23 +129,32 @@ export default function RemediationPage() {
           </div>
         )}
       </section>
+      )}
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Remediation plans</h2>
+        {!isStudent && !canViewPlans ? (
+          <p className="mb-3 text-sm text-surface-500">
+            Plans live inside each institution — sign in as an institution admin or teacher to review them.
+          </p>
+        ) : null}
         <div className="space-y-4">
-          {(Array.isArray(planList) ? planList : []).map((plan: { id: string; progress?: number; completedItems?: number; _count?: { items?: number }; concept?: { name: string }; items?: Array<{ id: string; title?: string; type?: string; contentType?: string; status?: string }> }) => (
+          {(Array.isArray(planList) ? planList : []).map((plan: PlanRow) => {
+            const { done, total, progress } = planStats(plan);
+            return (
             <Card key={plan.id}>
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <h3 className="font-semibold text-surface-900">{plan.concept?.name ?? 'Plan'}</h3>
                   <p className="mt-1 text-xs text-surface-500">
-                    {plan.completedItems ?? 0} of {plan._count?.items ?? plan.items?.length ?? 0} items done
+                    {plan.student?.name ? `${plan.student.name} · ` : ''}
+                    {done} of {total} items done
                   </p>
                 </div>
-                <Badge>{plan.progress ?? 0}%</Badge>
+                <Badge>{progress}%</Badge>
               </div>
               <div className="mt-3 h-2 rounded-full bg-surface-100">
-                <div className="h-2 rounded-full bg-brand-600" style={{ width: `${plan.progress ?? 0}%` }} />
+                <div className="h-2 rounded-full bg-brand-600" style={{ width: `${progress}%` }} />
               </div>
               <ul className="mt-4 space-y-2">
                 {(plan.items ?? []).map((item: { id: string; title?: string; type?: string; contentType?: string; status?: string }) => (
@@ -155,11 +189,16 @@ export default function RemediationPage() {
                 ))}
               </ul>
             </Card>
-          ))}
+            );
+          })}
           {Array.isArray(planList) && planList.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-surface-200 bg-surface-50/50 py-12 text-center dark:border-surface-700 dark:bg-surface-900/50">
               <CheckCircle2 className="h-10 w-10 text-surface-300 mb-3" />
-              <p className="text-sm text-surface-500 max-w-sm">No active remediation plans — weak concepts will appear here after assessments.</p>
+              <p className="text-sm text-surface-500 max-w-sm">
+                {isStudent
+                  ? 'No active remediation plans — weak concepts will appear here after assessments.'
+                  : 'No active remediation plans for your institution yet.'}
+              </p>
             </div>
           ) : null}
         </div>

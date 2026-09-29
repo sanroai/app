@@ -236,4 +236,54 @@ describe('Learning path & student retest (e2e)', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('GET /remediation/weak', () => {
+    it('requires authentication', async () => {
+      const res = await api(app, 'get', '/remediation/weak', '');
+      expect(res.status).toBe(401);
+    });
+
+    it('returns weak concepts for a student without passing a studentId', async () => {
+      const res = await api(app, 'get', '/remediation/weak', studentToken);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('returns weak concepts when the student passes their own studentId', async () => {
+      const res = await api(app, 'get', `/remediation/weak?studentId=${studentId}`, studentToken);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('rejects a student querying someone else', async () => {
+      const other = await prisma.student.findFirst({
+        where: { id: { not: studentId } },
+        select: { id: true },
+      });
+      if (!other) return;
+      const res = await api(app, 'get', `/remediation/weak?studentId=${other.id}`, studentToken);
+      expect(res.status).toBe(403);
+    });
+
+    it('requires a studentId when staff omit it', async () => {
+      const res = await api(app, 'get', '/remediation/weak', teacherToken);
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects a malformed studentId instead of failing in Prisma', async () => {
+      const res = await api(app, 'get', '/remediation/weak?studentId=not-a-uuid', teacherToken);
+      expect(res.status).toBe(400);
+    });
+
+    it('returns weak concepts for staff inspecting a student', async () => {
+      const res = await api(app, 'get', `/remediation/weak?studentId=${studentId}`, teacherToken);
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('returns 403 for a parent', async () => {
+      const res = await api(app, 'get', '/remediation/weak', parentToken);
+      expect(res.status).toBe(403);
+    });
+  });
 });

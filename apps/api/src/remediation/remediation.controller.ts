@@ -26,7 +26,7 @@ export class RemediationController {
 
   @Get('weak')
   weak(@CurrentUser() user: RequestUser, @Query('studentId') studentId?: string) {
-    return this.service.detectWeakConcepts(user, studentId ?? '');
+    return this.service.detectWeakConcepts(user, studentId);
   }
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)

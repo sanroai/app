@@ -9,6 +9,8 @@ import { TenantAccessService } from '../common/security/tenant-access.service';
 import { NotificationsService } from '../common/services/audit-notifications.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 @Injectable()
 export class RemediationService {
   constructor(
@@ -19,6 +21,7 @@ export class RemediationService {
   ) {}
 
   private async studentBelongs(institutionId: string, studentId: string): Promise<void> {
+    if (!UUID_RE.test(studentId)) throw new BadRequestException('Invalid studentId');
     const student = await this.prisma.student.findFirst({ where: { id: studentId, institutionId } });
     if (!student) throw new NotFoundException('Student not found');
   }
@@ -211,9 +214,23 @@ export class RemediationService {
     return { id: assessment.id, title: assessment.title };
   }
 
-  async detectWeakConcepts(user: RequestUser, studentId: string) {
+  async detectWeakConcepts(user: RequestUser, requestedStudentId?: string) {
     const institutionId = this.tenant.requireInstitution(user);
+    if (user.role === 'PARENT') throw new ForbiddenException('Not allowed');
+
+    let studentId = requestedStudentId?.trim() || undefined;
+    if (user.role === 'STUDENT') {
+      const self = await this.identity.resolveForUser(user);
+      if (!self) throw new ForbiddenException('Not allowed');
+      if (studentId && studentId !== self.id) {
+        throw new ForbiddenException('You can only view your own weak concepts');
+      }
+      studentId = self.id;
+    } else if (!studentId) {
+      throw new BadRequestException('studentId is required');
+    }
     await this.studentBelongs(institutionId, studentId);
+
     const latests = await this.prisma.diagnosticResult.findMany({
       where: { studentId },
       orderBy: { createdAt: 'desc' },

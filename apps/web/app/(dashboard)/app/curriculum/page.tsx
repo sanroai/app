@@ -253,9 +253,17 @@ export default function CurriculumPage() {
         <div className="space-y-4">
           {filteredBoards.map((board) => (
             <Card key={board.id}>
-              <button
+              <div
+                role="button"
+                tabIndex={0}
                 onClick={() => toggle(expandedBoards, board.id, setExpandedBoards)}
-                className="flex w-full items-center gap-3 p-4 text-left hover:bg-surface-50 transition-colors rounded-xl"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle(expandedBoards, board.id, setExpandedBoards);
+                  }
+                }}
+                className="flex w-full cursor-pointer items-center gap-3 p-4 text-left hover:bg-surface-50 transition-colors rounded-xl"
               >
                 {expandedBoards.has(board.id) ? <ChevronDown className="h-5 w-5 text-surface-400" /> : <ChevronRight className="h-5 w-5 text-surface-400" />}
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-600">
@@ -274,15 +282,23 @@ export default function CurriculumPage() {
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
-              </button>
+              </div>
 
               {expandedBoards.has(board.id) && (
                 <div className="px-4 pb-4 space-y-3 ml-12">
                   {board.subjects.map((subject) => (
                     <div key={subject.id} className="rounded-xl border border-surface-100">
-                      <button
+                      <div
+                        role="button"
+                        tabIndex={0}
                         onClick={() => toggle(expandedSubjects, subject.id, setExpandedSubjects)}
-                        className="flex w-full items-center gap-3 p-3 text-left hover:bg-surface-50 transition-colors rounded-xl"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            toggle(expandedSubjects, subject.id, setExpandedSubjects);
+                          }
+                        }}
+                        className="flex w-full cursor-pointer items-center gap-3 p-3 text-left hover:bg-surface-50 transition-colors rounded-xl"
                       >
                         {expandedSubjects.has(subject.id) ? <ChevronDown className="h-4 w-4 text-surface-400" /> : <ChevronRight className="h-4 w-4 text-surface-400" />}
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
@@ -321,15 +337,23 @@ export default function CurriculumPage() {
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      </button>
+                      </div>
 
                       {expandedSubjects.has(subject.id) && (
                         <div className="px-3 pb-3 space-y-2 ml-8">
                           {subject.chapters.map((chapter) => (
                             <div key={chapter.id} className="rounded-lg border border-surface-50">
-                              <button
+                              <div
+                                role="button"
+                                tabIndex={0}
                                 onClick={() => toggle(expandedChapters, chapter.id, setExpandedChapters)}
-                                className="flex w-full items-center gap-2 p-2 text-left hover:bg-surface-50 transition-colors rounded-lg"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    toggle(expandedChapters, chapter.id, setExpandedChapters);
+                                  }
+                                }}
+                                className="flex w-full cursor-pointer items-center gap-2 p-2 text-left hover:bg-surface-50 transition-colors rounded-lg"
                               >
                                 {expandedChapters.has(chapter.id) ? <ChevronDown className="h-3 w-3 text-surface-400" /> : <ChevronRight className="h-3 w-3 text-surface-400" />}
                                 <span className="text-sm font-medium text-surface-700">{chapter.name}</span>
@@ -363,7 +387,7 @@ export default function CurriculumPage() {
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
-                              </button>
+                              </div>
 
                               {expandedChapters.has(chapter.id) && (
                                 <div className="px-2 pb-2 ml-6 space-y-1">

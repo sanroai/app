@@ -129,6 +129,7 @@ export interface RenewSubscriptionInput {
 
 export function useInstitutions(params: InstitutionQuery) {
   const token = useToken();
+  const isSuperAdmin = useAuthStore((s) => s.user?.role === 'SUPER_ADMIN');
   const searchParams = new URLSearchParams();
   if (params.search) searchParams.set('search', params.search);
   if (params.type) searchParams.set('type', params.type);
@@ -146,7 +147,7 @@ export function useInstitutions(params: InstitutionQuery) {
   return useQuery<InstitutionListResponse>({
     queryKey: ['institutions', params],
     queryFn: () => api<InstitutionListResponse>(`/admin/institutions${qs ? `?${qs}` : ''}`, { token }),
-    enabled: !!token,
+    enabled: !!token && isSuperAdmin,
   });
 }
 
