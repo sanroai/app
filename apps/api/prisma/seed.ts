@@ -2279,8 +2279,14 @@ async function main() {
   console.log(`[seed] mode: ${modeLabel}`);
   console.log(`[seed] target: ${target ? `${target.host}:${target.port || '5432'}/${target.database} (from ${target.source})` : TARGET_URL ? '<custom url>' : '<prisma default>'}`);
 
-  if (target && !isLocalHost(target.host)) {
-    throw new Error(`Refusing to seed a non-local database host "${target.host}". Seed modes are development-only.`);
+  if (target && !isLocalHost(target.host) && MODE !== 'system') {
+    throw new Error(
+      `Refusing to seed a non-local database host "${target.host}". Only the system bootstrap (seed.ts --system) may run remotely; --demo and --qa are development-only.`,
+    );
+  }
+
+  if (target && !isLocalHost(target.host) && MODE === 'system') {
+    console.log('[seed] remote host: system bootstrap only (plans, achievements, system institution, super admin)');
   }
 
   const sys = await seedSystem(prisma);
