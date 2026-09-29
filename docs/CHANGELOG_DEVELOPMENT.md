@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-09-29 — Production deploy: Vercel web + Railway API, preDeploy seed blocker fixed
+
+| Field | Detail |
+|---|---|
+| Date | 2026-09-29 |
+| Task | Ship the Library/Assessments IA and the local-run defect sweep to production, and unblock the Railway deploy pipeline that had been failing since 2026-09-23 |
+| Reason | Production was reachable but running a 2026-09-23 build: `app.sanroai.com` still showed the old `Learn` nav with `/app/library` → 404, and the API returned 404 for `GET /learning/path`, 500 for `GET /remediation/weak` and 500 for `GET /content/browse`. Every `railway up` failed in preDeploy after `prisma migrate deploy` succeeded |
+| Entities affected | `apps/api/prisma/seed.ts` (remote-host guard), Railway service `api` (preDeploy `prisma migrate deploy` + `db:seed`), Vercel project `sanroai-web` (rootDirectory `apps/web`), `AGENTS.md` |
+| Database changes | **Production (Railway Postgres, `postgres.railway.internal`) received 3 pending migrations** via preDeploy: `20260926090000_import_entity_content_questions`, `20260926100000_audit_action_parent_created`, `20260926110000_import_entity_type_parents` (all additive enum values). Idempotent system seed then ran (plans, achievements, system institution, super admin) |
+| API changes | None in contract. `seed.ts` guard relaxed: a non-local DB host is refused **only** for `--demo`/`--qa`; `--system` (the documented deploy-time bootstrap) now runs remotely and logs `[seed] remote host: system bootstrap only …` |
+| Frontend changes | Deployed to Vercel production (deployment `dpl_H1hQrRFjSSRNGXq44xjcXgcY7wWF`, target `production`, aliases `sanroai.com`, `app.sanroai.com`, `www.sanroai.com`, `sanroai-web.vercel.app`): Library/Assessments IA, `Button asChild` fix, API-client token/refresh fix, role-aware remediation, curriculum hydration fix, parent weak-contract fix |
+| Seed/import changes | Behaviour change only (above); no rows seeded beyond the idempotent system bootstrap. Production content library is still empty (0 `ContentItem` rows) — content must be ingested/imported in prod |
+| Migration | `prisma migrate deploy` on Railway applied the 3 existing 20260926 migrations; no migration file added in this change |
+| Verification | Gates before deploy: `pnpm -r typecheck` → 6/6, `pnpm --filter @sanro/api test` → 244/244 (22 files), `pnpm --filter @sanro/web build` → pass. Guard test: `--demo` against a remote host still throws, `--system` passes the guard. Live after deploy: `GET /api/v1/health` → `{"status":"ok","database":"connected"}`; with a student token `GET /learning/path` → 200 (112 concepts), `GET /remediation/weak` → 200 `[]`, `GET /content/browse` → 200, `GET /users/me` → 200, `GET /dashboard/student` → 200; `POST /auth/login` → 200 for all demo roles. Playwright against `https://app.sanroai.com` with `WEB_URL` set: `verify-roles.mts student` → 8/8, `… teacher` → 8/8, `… parent` → 3/3, `verify-empty-states.mts` → 18/18, all zero console errors and zero failed API calls |
+| Known issues | Production `GET /content/browse` returns `items: []` / `total: 0` because no `ContentItem` rows exist in the prod DB — the Library page renders its empty state. Needs content ingest + publish in prod (data work, not code). CI (`.github/workflows/ci.yml`) has no deploy job; deploys are manual (`vercel deploy --prod`, `railway up --service api`) |
+
 ### 2026-09-29 — Local-run defect sweep: web dev crash, role/contract fixes, role UI verifier
 
 | Field | Detail |

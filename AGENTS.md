@@ -37,6 +37,8 @@ reliable gates.
 - `sanro_test` must be built with `migrate deploy`, not `db push` — `db push`
   cannot create the partial unique index `Institution_system_institution_singleton`.
 - Seed modes: `seed.ts` defaults to `--system`; `--demo` and `--qa` are explicit.
+  Only `--system` may run against a remote host (it is the idempotent platform
+  bootstrap that Railway preDeploy calls); `--demo`/`--qa` refuse non-local hosts.
 
 ## Information architecture — two menus, one spine
 Shared spine: `Board → Grade → Subject → Chapter → Topic → Concept`.
