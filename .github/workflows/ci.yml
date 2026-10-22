@@ -12,9 +12,28 @@ concurrency:
 
 jobs:
   verify:
-    name: Typecheck · Test · Build
+    name: Typecheck · Lint · Test · Build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sanro_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/sanro_test
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,8 +58,23 @@ jobs:
       - name: Typecheck all packages
         run: pnpm -r typecheck
 
+      - name: Lint all packages
+        run: pnpm -r lint
+
+      - name: Web tests
+        run: pnpm --filter @sanro/web test
+
+      - name: Mobile tests
+        run: pnpm --filter @sanro/mobile test
+
       - name: API tests
         run: pnpm --filter @sanro/api test
+
+      # Report-only until the advisory backlog is triaged (see docs/SECURITY_TRIAGE.md).
+      # Does not block CI; contains no secrets.
+      - name: Dependency audit (report-only)
+        continue-on-error: true
+        run: pnpm audit --prod --audit-level critical
 
       - name: Build
         run: pnpm build

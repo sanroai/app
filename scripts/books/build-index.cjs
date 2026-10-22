@@ -1,17 +1,19 @@
 /**
- * Build the human-readable index for the extracted CBSE Class 10 Science book:
- *   books/cbse/class-10/science/README.md
+ * Build the human-readable index for an extracted CBSE book:
+ *   books/cbse/class-<n>/<subject>/README.md
  *
  * Pulls manifest.json + ocr/report.json and flags pages where OCR and the PDF
  * text layer disagree (low Dice similarity) so they can be reviewed by hand.
  *
- * Usage: node scripts/books/build-index.cjs
+ * Usage: node scripts/books/build-index.cjs [--subject science|mathematics|english] [--class 9|10]
  */
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = path.join(__dirname, '..', '..', 'books', 'cbse', 'class-10', 'science');
-const CH = path.join(ROOT, 'chapters');
+const { resolveSubject, argOf } = require('./subjects.cjs');
+const SUBJECT = resolveSubject(argOf(process.argv, '--subject', 'science'), argOf(process.argv, '--class', '10'));
+const ROOT = SUBJECT.root;
+const CH = SUBJECT.chaptersDir;
 
 const readJson = (p, fallback) => {
   try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return fallback; }
@@ -28,6 +30,20 @@ function dirSize(dir) {
     }
   };
   if (fs.existsSync(dir)) walk(dir);
+  return { bytes: sum, files: count };
+}
+
+/** Size of the source PDFs only (the source folder may also hold the artefacts). */
+function pdfSize(dir) {
+  let sum = 0;
+  let count = 0;
+  if (fs.existsSync(dir)) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (!e.isFile() || !e.name.toLowerCase().endsWith('.pdf')) continue;
+      sum += fs.statSync(path.join(dir, e.name)).size;
+      count++;
+    }
+  }
   return { bytes: sum, files: count };
 }
 
@@ -100,7 +116,7 @@ function main() {
 
   lowAgreement.sort((a, b) => a.similarity - b.similarity);
 
-  const srcSize = dirSize(path.join(ROOT, 'source'));
+  const srcSize = pdfSize(SUBJECT.source);
   const shotSize = manifest.books.reduce(
     (acc, b) => {
       const s = dirSize(path.join(CH, b.slug, 'screenshots'));
@@ -118,9 +134,13 @@ function main() {
   const totalSize = dirSize(ROOT);
 
   const lines = [];
-  lines.push('# CBSE / Class 10 / Science — extracted book data');
+  const classLabel = String(manifest.class ?? SUBJECT.classNumber);
+  const sourcePath = path.relative(ROOT, SUBJECT.source).replace(/\\/g, '/');
+  const sourceRow = sourcePath ? `${sourcePath}/*.pdf` : '*.pdf';
+  const sourceCount = manifest.books.filter((b) => !b.error).length;
+  lines.push(`# CBSE / Class ${classLabel} / ${manifest.subject} — extracted book data`);
   lines.push('');
-  lines.push(`**Board** ${manifest.board} &nbsp;·&nbsp; **Class** ${manifest.class} &nbsp;·&nbsp; **Subject** ${manifest.subject}`);
+  lines.push(`**Board** ${manifest.board} &nbsp;·&nbsp; **Class** ${classLabel} &nbsp;·&nbsp; **Subject** ${manifest.subject}`);
   lines.push('');
   lines.push(`**Edition**: ${manifest.edition}`);
   lines.push('');
@@ -130,7 +150,7 @@ function main() {
   lines.push('');
   lines.push('| Path | Contents |');
   lines.push('|---|---|');
-  lines.push('| `source/*.pdf` | Original NCERT PDFs (15), untouched, SHA-256 recorded in each `meta.json` |');
+  lines.push(`| \`${sourceRow}\` | Original NCERT PDFs (${sourceCount}), untouched, SHA-256 recorded in each \`meta.json\` |`);
   lines.push('| `chapters/<slug>/text.txt` | **Copy-paste text** — PDF text layer, page-delimited |');
   lines.push('| `chapters/<slug>/text.merged.txt` | **Highest-accuracy text** — text layer, falling back to OCR on scan/photo pages |');
   lines.push('| `chapters/<slug>/pages.json` | Same text split per page (`{page, chars, text}`) |');
@@ -142,10 +162,12 @@ function main() {
   lines.push('| `manifest.json` | Machine-readable index of all of the above |');
   lines.push('| `ocr/report.json` | OCR quality report (confidence + similarity per chapter) |');
   lines.push('| `qc.json` | Quality-control summary + low-agreement page list |');
-  lines.push('| `notes/*.md` | **Structured study guides** — section outline, definitions, every equation/numerical, every activity, every question, figure descriptions, misconception traps, CBSE exam signals |');
+  const notesDir = path.join(ROOT, 'notes');
+  if (fs.existsSync(notesDir)) {
+    lines.push('| `notes/*.md` | **Structured study guides** — section outline, definitions, every equation/numerical, every activity, every question, figure descriptions, misconception traps, CBSE exam signals |');
+  }
   lines.push('');
 
-  const notesDir = path.join(ROOT, 'notes');
   if (fs.existsSync(notesDir)) {
     const noteFiles = fs.readdirSync(notesDir).filter((f) => f.endsWith('.md')).sort();
     if (noteFiles.length) {
@@ -169,9 +191,9 @@ function main() {
   lines.push('## Regenerating');
   lines.push('');
   lines.push('```bash');
-  lines.push('pnpm books:extract   # text + screenshots + images + manifest');
-  lines.push('pnpm books:ocr       # OCR pass + cross-check (slow, ~6 min for 232 pages)');
-  lines.push('pnpm books:index     # rebuild this file');
+  lines.push(`node scripts/books/extract.cjs --subject ${SUBJECT.slug} --class ${classLabel}   # text + screenshots + images + manifest`);
+  lines.push(`node scripts/books/ocr.cjs --subject ${SUBJECT.slug} --class ${classLabel} --workers 4   # OCR pass + cross-check (slow)`);
+  lines.push(`node scripts/books/build-index.cjs --subject ${SUBJECT.slug} --class ${classLabel}   # rebuild this file`);
   lines.push('```');
   lines.push('');
   lines.push('## Chapter index');
@@ -223,8 +245,14 @@ function main() {
     lines.push('- The **text layer** is authoritative for prose; OCR is the cross-check and the fallback for figure labels.');
     lines.push('- Equations, subscripts and superscripts do not survive plain-text extraction; use the **screenshots** for anything formula-shaped.');
     lines.push('- Low-agreement pages are cover/title/committee pages: the PDF has almost no text there, so OCR is the only copy.');
-    lines.push('- `99-answers` is a compact answer booklet scanned at a different scale, so its OCR confidence is much lower than the chapters.');
-    lines.push('- Chapters 01-08 contain no raster images: their figures are vector drawings, visible only in the screenshots.');
+    const extraNote = rows.find((r) => r.slug.startsWith('99-'));
+    if (extraNote) {
+      lines.push(`- \`${extraNote.slug}\` is a compact back-matter booklet scanned at a different scale, so its OCR confidence is much lower than the chapters.`);
+    }
+    const vectorOnly = rows.filter((r) => !r.imgs).map((r) => `\`${r.slug}\``);
+    if (vectorOnly.length) {
+      lines.push(`- ${vectorOnly.join(', ')}: no raster images - the figures are vector drawings, visible only in the screenshots.`);
+    }
     lines.push('');
   } else {
     lines.push('- OCR has not been run yet — `pnpm books:ocr`.');
@@ -245,6 +273,10 @@ function main() {
 
   const qc = {
     generatedAt: new Date().toISOString(),
+    board: manifest.board,
+    class: classLabel,
+    subject: manifest.subject,
+    edition: manifest.edition,
     totals: { chapters: rows.length, pages: totalPages, textChars: totalChars, screenshots: totalShots, embeddedImages: totalImgs },
     ocr: ocr
       ? {

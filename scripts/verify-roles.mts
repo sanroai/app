@@ -2,15 +2,16 @@ import { chromium } from 'playwright';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
+import { QA_PASSWORD } from './qa/_env.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
 const WEB_URL = process.env.WEB_URL ?? 'http://localhost:3000';
 
 const CREDENTIALS: Record<string, { email: string; password: string }> = {
-  student: { email: 'student@sanroai.com', password: 'Sanro@123' },
-  teacher: { email: 'teacher@sanroai.com', password: 'Sanro@123' },
-  parent: { email: 'parent@sanroai.com', password: 'Sanro@123' },
+  student: { email: 'student@sanroai.com', password: QA_PASSWORD },
+  teacher: { email: 'teacher@sanroai.com', password: QA_PASSWORD },
+  parent: { email: 'parent@sanroai.com', password: QA_PASSWORD },
 };
 
 const PAGES: Record<string, Array<{ name: string; url: string }>> = {
