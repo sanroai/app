@@ -1,14 +1,15 @@
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl, FlatList } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import type { ComponentProps } from 'react';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUserDisplayRole } from '../../lib/hooks';
-import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile } from '../../lib/hooks';
+import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile, useLearningProgress, useAchievements } from '../../lib/hooks';
 import { useRoleTheme } from '../../lib/role-theme';
 import { Card } from '../../components/Card';
-import { Colors, Spacing, BorderRadius, Shadow } from '../../constants/theme';
+import { Icon3D } from '../../components/Icon3D';
+import { SubjectCard, StatTile, SectionHeader, ProgressBar, resolveAchievement } from '../../components/visuals';
+import { Colors, Spacing, BorderRadius, Shadow, Pastel } from '../../constants/theme';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -19,6 +20,8 @@ export default function HomeScreen() {
   const { data: diagnosis } = useMyDiagnosis();
   const { data: assessments, refetch: refetchAssess, isFetching: assessLoading } = useMyAssessments();
   const { data: gamification } = useGamificationProfile();
+  const { data: progress } = useLearningProgress();
+  const { data: achievements } = useAchievements();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -40,9 +43,16 @@ export default function HomeScreen() {
   const pendingAssessments = (assessments?.assignments ?? []).filter((a) =>
     !a.attempts.some((at) => at.status === 'SUBMITTED' || at.status === 'AUTO_SUBMITTED'),
   );
-  const xp = gamification?.profile?.totalXp ?? 0;
-  const streak = gamification?.profile?.currentStreak ?? 0;
-  const mastery = gamification?.profile?.averageMastery ?? 0;
+  const xp = gamification?.xp ?? 0;
+  const streak = gamification?.streakDays ?? 0;
+  const mastery = progress?.mastery.averageScore ?? 0;
+  const subjects =
+    home?.boards.flatMap((b) =>
+      b.grades.flatMap((g) =>
+        g.subjects.map((s) => ({ key: `${b.id}-${g.grade}-${s.id}`, boardId: b.id, grade: g.grade, ...s })),
+      ),
+    ) ?? [];
+  const badges = achievements?.earned ?? [];
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -161,21 +171,61 @@ export default function HomeScreen() {
             <Text style={styles.roleChip}>{roleLabel}</Text>
           </View>
           <TouchableOpacity style={styles.logoWrap} onPress={() => router.push('/(tabs)/me')}>
-            <Ionicons name="school" size={30} color={Colors.white} />
+            <Icon3D name="graduation-cap" size={38} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.subHeader}>TODAY → DO THIS → IMPROVE</Text>
+      </View>
+
+      <View style={styles.streakCard}>
+        <View style={styles.streakIcon}>
+          <Icon3D name="fire" size={30} />
+        </View>
+        <View style={styles.streakBody}>
+          <Text style={styles.streakTitle}>You&apos;re on a {streak} day streak!</Text>
+          <Text style={styles.streakSub}>Study today to keep it alive.</Text>
+        </View>
       </View>
 
       <View style={styles.statsRow}>
-        <StatChip icon="star" label="XP" value={String(xp)} color={Colors.primary} />
-        <StatChip icon="flame" label="Streak" value={`${streak}d`} color={Colors.warning} />
-        <StatChip icon="fitness" label="Mastery" value={`${Math.round(mastery)}%`} color={Colors.success} />
+        <StatTile icon="star" label="Total XP" value={String(xp)} tint={Pastel.sand} />
+        <StatTile icon="chart" label="Mastery" value={`${Math.round(mastery)}%`} tint={Pastel.mint} />
+        <StatTile icon="target" label="Level" value={String(gamification?.level ?? 1)} tint={Pastel.violet} />
+      </View>
+
+      <View style={styles.levelCard}>
+        <View style={styles.levelRow}>
+          <Text style={styles.levelLabel}>Level {gamification?.level ?? 1}</Text>
+          <Text style={styles.levelValue}>
+            {gamification?.xpInLevel ?? 0} / {gamification?.xpForLevel ?? 500} XP
+          </Text>
+        </View>
+        <ProgressBar
+          pct={gamification && gamification.xpForLevel > 0 ? (gamification.xpInLevel / gamification.xpForLevel) * 100 : 0}
+          color={Colors.primary}
+        />
+      </View>
+
+      {/* The same three destinations as the web student dashboard's Quick Actions
+          (docs/PARITY_POLICY.md): take an assessment, see what to fix, compare. */}
+      <Text style={styles.sectionTitle}>Quick Actions</Text>
+      <View style={styles.actionsRow}>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/tests')}>
+          <Ionicons name="checkbox" size={24} color={Colors.primary} />
+          <Text style={styles.actionLabel}>Take Assessment</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/remediation')}>
+          <Ionicons name="locate" size={24} color="#7c3aed" />
+          <Text style={styles.actionLabel}>View Remediation</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/leaderboard')}>
+          <Ionicons name="trophy" size={24} color={Colors.warning} />
+          <Text style={styles.actionLabel}>Leaderboard</Text>
+        </TouchableOpacity>
       </View>
 
       {weakConcepts.length > 0 || pendingAssessments.length > 0 ? (
         <>
-          <Text style={styles.sectionTitle}>Your Focus Today</Text>
+          <SectionHeader title="Your focus today" />
 
           {weakConcepts.slice(0, 2).map((wc) => (
             <Card key={wc.conceptId} accent style={styles.focusCard}>
@@ -225,65 +275,52 @@ export default function HomeScreen() {
         </>
       ) : null}
 
-      <Text style={styles.sectionTitle}>Continue Learning</Text>
-      {home && home.boards.length > 0 ? (
-        home.boards.flatMap((b) =>
-          b.grades.map((g) =>
-            g.subjects.map((s) => (
-              <Card key={s.id} style={styles.subjectCard}>
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: '/learn/[boardId]/[grade]/[subjectId]',
-                      params: { boardId: b.id, grade: g.grade, subjectId: s.id },
-                    })
-                  }
-                >
-                  <View style={styles.subjectRow}>
-                    <View style={styles.subjectIcon}>
-                      <Ionicons name={s.code === 'MATH' ? 'calculator' : 'flask'} size={22} color={Colors.primary} />
-                    </View>
-                    <View style={styles.subjectBody}>
-                      <Text style={styles.subjectName}>{s.name}</Text>
-                      <Text style={styles.subjectMeta}>Class {g.grade}</Text>
-                    </View>
-                    <View style={styles.subjectPct}>
-                      <Text style={styles.subjectPctText}>
-                        {s.totalContent > 0 ? Math.round((s.completedContent / s.totalContent) * 100) : 0}%
-                      </Text>
-                    </View>
-                  </View>
-                  <View style={styles.progressTrack}>
-                    <View
-                      style={[
-                        styles.progressFill,
-                        {
-                          width: `${s.totalContent > 0 ? (s.completedContent / s.totalContent) * 100 : 0}%`,
-                        },
-                      ]}
-                    />
-                  </View>
-                </TouchableOpacity>
-              </Card>
-            )),
-          ),
-        )
+      <SectionHeader title="Continue learning" actionLabel="See all" onAction={() => router.push('/(tabs)/learn')} />
+      {subjects.length > 0 ? (
+        <View style={styles.subjectGrid}>
+          {subjects.map((s) => (
+            <SubjectCard
+              key={s.key}
+              name={s.name}
+              subtitle={`Class ${s.grade} · ${s.totalContent} topics`}
+              progress={s.totalContent > 0 ? (s.completedContent / s.totalContent) * 100 : 0}
+              style={styles.subjectGridItem}
+              onPress={() =>
+                router.push({
+                  pathname: '/learn/[boardId]/[grade]/[subjectId]',
+                  params: { boardId: s.boardId, grade: s.grade, subjectId: s.id },
+                })
+              }
+            />
+          ))}
+        </View>
       ) : (
         <Card style={styles.emptyCard}>
           <Text style={styles.emptyText}>Loading your classes…</Text>
         </Card>
       )}
-    </ScrollView>
-  );
-}
 
-function StatChip({ icon, label, value, color }: { icon: ComponentProps<typeof Ionicons>['name']; label: string; value: string; color: string }) {
-  return (
-    <View style={[styles.statChip, { backgroundColor: color + '15', borderColor: color + '30' }]}>
-      <Ionicons name={icon} size={14} color={color} />
-      <Text style={[styles.statValue, { color }]}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+      {badges.length > 0 ? (
+        <>
+          <SectionHeader title="Badges earned" actionLabel="See all" onAction={() => router.push('/(tabs)/me')} />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.badgeRow}>
+            {badges.map((b, i) => {
+              const r = resolveAchievement(b.icon, i);
+              return (
+                <View key={b.id} style={styles.badgeItem}>
+                  <View style={[styles.badgeIcon, { backgroundColor: r.bg }]}>
+                    <Icon3D name={r.icon} size={34} />
+                  </View>
+                  <Text style={styles.badgeName} numberOfLines={2}>
+                    {b.name}
+                  </Text>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </>
+      ) : null}
+    </ScrollView>
   );
 }
 
@@ -300,19 +337,19 @@ const styles = StyleSheet.create({
   },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   greetingWrap: {},
-  greetingSmall: { color: Colors.primaryLight, fontSize: 13 },
-  greeting: { color: Colors.white, fontSize: 24, fontWeight: '700', marginTop: 2 },
+  greetingSmall: { color: 'rgba(255,255,255,0.9)', fontSize: 14, fontWeight: '500' },
+  greeting: { color: Colors.white, fontSize: 26, fontWeight: '800', marginTop: 2 },
   roleChip: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.25)',
     color: Colors.white,
-    fontSize: 11,
-    fontWeight: '600',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    fontSize: 12,
+    fontWeight: '700',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
-    marginTop: 6,
+    marginTop: 8,
   },
   logoWrap: {
     width: 56, height: 56, borderRadius: BorderRadius.full,
@@ -320,7 +357,53 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   subHeader: { color: Colors.primaryLight, fontSize: 11, fontWeight: '600', letterSpacing: 1.5, marginTop: Spacing.lg },
-  statsRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: -Spacing.lg, gap: Spacing.sm },
+  statsRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, marginTop: Spacing.lg, gap: Spacing.sm },
+  streakCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    padding: Spacing.lg,
+    backgroundColor: Pastel.sand,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
+  },
+  streakIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
+    backgroundColor: 'rgba(255,255,255,0.78)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  streakBody: { flex: 1 },
+  streakTitle: { fontSize: 15, fontWeight: '800', color: Colors.text },
+  streakSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  levelCard: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    padding: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    ...Shadow.sm,
+  },
+  levelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.sm },
+  levelLabel: { fontSize: 13, fontWeight: '700', color: Colors.text },
+  levelValue: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
+  subjectGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, marginHorizontal: Spacing.lg },
+  subjectGridItem: { flexBasis: '47%', flexGrow: 1 },
+  badgeRow: { gap: Spacing.md, paddingHorizontal: Spacing.lg },
+  badgeItem: { width: 76, alignItems: 'center' },
+  badgeIcon: {
+    width: 62,
+    height: 62,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.sm,
+    ...Shadow.sm,
+  },
+  badgeName: { fontSize: 11, fontWeight: '600', color: Colors.textSecondary, textAlign: 'center' },
   statChip: {
     flex: 1,
     backgroundColor: Colors.surface,
