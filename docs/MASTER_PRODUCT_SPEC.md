@@ -192,7 +192,8 @@ handling (never full browser memory load).
 
 ## 21. Security
 
-RBAC, tenant isolation, Zod validation (forbidUnknownValues), rate limiting,
+RBAC, tenant isolation, Zod validation (unknown keys stripped by default,
+`.strict()` where rejection is required), rate limiting,
 secure headers, CORS locked to explicit origins, JWT secret ≥32 chars
 (production refuses `dev-`), production secrets outside source control, signed
 storage URLs, upload limits + MIME validation, audit logs, authorization on

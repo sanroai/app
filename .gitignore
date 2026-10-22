@@ -72,3 +72,6 @@ screenshots/
 
 # local AI assistant working notes (paste-into-ChatGPT briefing, never commit)
 CHAT.md
+
+# MCP scratch output
+.playwright-mcp/

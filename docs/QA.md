@@ -18,6 +18,30 @@
 - `npx tsx scripts/verify-roles.mts <student|teacher|parent>` — same checks for
   that role's pages; writes `screenshots/<role>/summary.json`
 
+### 2.1 Content audits (the seeded curriculum)
+
+The content is data, so it needs its own gates. Each script prints a number and
+fails when that number is wrong.
+
+- `node scripts/qa/audit-curriculum-coverage.mjs` — every VIDEO lesson has a
+  URL, every URL has a lesson, every chapter has a video, no lesson points at
+  an unknown chapter.
+- `node scripts/qa/audit-video-durations.mjs --min 120` — the real YouTube
+  length of every seeded video; rejects clips under two minutes.
+- `node scripts/qa/verify-video-liveness.mjs sanro_dev` — every video id is
+  alive and embeddable.
+- `node scripts/qa/audit-chapter-pdfs.mjs` — every chapter code resolves to an
+  NCERT PDF that is on disk (classes 1-7 have no extracted book yet).
+- `node scripts/qa/audit-book-alignment.mjs` — every seeded chapter matches the
+  book's own chapter title (a different wording is reported, a different
+  chapter fails).
+- `node scripts/qa/audit-web-mobile-parity.mjs` — a student capability that
+  exists on one platform only fails the build.
+- `node scripts/qa/probe-chapter-hub.mjs` — the chapter hub contract
+  (payload, PDF, practice, 404s).
+- `powershell -ExecutionPolicy Bypass -File scripts/qa/verify-release.ps1` —
+  all of the above plus typecheck, lint and the three test suites.
+
 ## 3. Critical E2E Journeys
 
 - Student: login → Home → Library → Concept → Video/Notes → Practice →

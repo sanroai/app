@@ -3,31 +3,59 @@
 ## Project
 Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGNOSE → FIX → RETEST → IMPROVE). CBSE Board, Classes 1-10 (Science + Mathematics).
 
+## Planning & setup docs
+- `docs/ROADMAP.md` — current plan (P0/P1/P2/CUT), research-grounded; authoritative over any roadmap text elsewhere.
+- `docs/MCP_SETUP.md` — MCP server decision matrix + which servers need an OpenCode restart.
+- `docs/MASTER_PRODUCT_SPEC.md` — frozen reference spec; never delete or gut.
+
 ## Commands
 ```bash
 pnpm -r typecheck              # Typecheck all packages (6 tasks)
-pnpm --filter @sanro/api test  # Run Vitest (244 tests, 22 files) — migrates + seeds sanro_test first
+pnpm --filter @sanro/api test  # Run Vitest (569 tests, 28 files) — migrates + seeds sanro_test first
 pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 pnpm --filter @sanro/mobile dev     # Expo dev server (mobile)
 pnpm --filter @sanro/mobile typecheck  # Mobile typecheck only
-pnpm build                     # Full Turborepo build (6 tasks)
-npx tsx scripts/screenshots.mts     # Capture all page screenshots
+pnpm build                     # Full Turborepo build (6 tasks) - STOP `next dev` first: the build replaces apps/web/.next (the dev server then 404s every static asset, e.g. /_next/static/css/app/layout.css) and apps/api/dist (the nest watcher stops serving)
+npx tsx scripts/screenshots.mts     # Capture all page screenshots (--role/--viewport/--out/--tabs/--login-only; one script replaces nine older ones)
 npx tsx scripts/verify-empty-states.mts  # Login + screenshot 18 admin screens (servers must be running)
 npx tsx scripts/verify-roles.mts student  # Also: teacher | parent — login + verify that role's pages (servers must be running)
+powershell -ExecutionPolicy Bypass -File scripts/qa/device-smoke.ps1 -Label ar-check   # On-device smoke: adb reverse 4000/8081/3000 -> launch com.sanro.ai -> screencap into artifacts/qa/<date>/screenshots/
+powershell -ExecutionPolicy Bypass -File scripts/qa/device-tab-check.ps1             # Drives all 3 concept modes on the phone and measures each rendered label (fails if a label is compressed)
+powershell -ExecutionPolicy Bypass -File scripts/qa/device-video-play.ps1            # Plays a concept video on the phone and fails if YouTube shows a player configuration error (153 / 152-4)
+node scripts/qa/mcp-postgres-check.mjs                                                # Verifies the postgres MCP end-to-end (read-only; never prints the DSN)
+node scripts/qa/probe-files-proxy.mjs                                                # Edge cases for the /api/v1/files proxy (traversal, range, HEAD, scope)
+node scripts/qa/verify-video-liveness.mjs sanro_dev                                    # Every VIDEO lesson must resolve to a live, embeddable video
+node scripts/qa/source-video-lessons.mjs                                              # Re-source curriculum-aligned YouTube videos (search -> oEmbed -> score)
+node scripts/qa/apply-video-sources.mjs                                               # Apply sourced videos to the seed + dev DB and verify liveness
+node scripts/qa/probe-ar-activity-loop.mjs                                           # Regression guard for the AR activity storm (BUG-L): activity POSTs must stay <= 3 per page load
+npx tsx scripts/qa/web-walkthrough.mts                                               # 69-page role/viewport walkthrough (PARTIAL = real error, EXPECTED = RBAC)
+node scripts/qa/fuzz-write-path.mjs                                                   # 11 write-path safety cases (no 2xx/5xx, no leaks)
+node scripts/qa/probe-auth-security.mjs                                               # 10 auth/secret-leak cases
+node scripts/qa/probe-rate-limit.mjs                                                  # 5 throttle cases - run ALONE (it exhausts the login limiter)
 pnpm --filter @sanro/api db:seed      # SYSTEM ONLY: Plans, achievements, system institution, bootstrap super admin
 pnpm --filter @sanro/api db:seed:demo # Full demo data (opt-in)
 pnpm --filter @sanro/api db:seed:qa   # QA fixtures (targets sanro_test)
 pnpm --filter @sanro/api db:push      # Sync Prisma schema
 pnpm reset-local-data          # Guarded LOCAL-ONLY data reset (needs LOCAL_RESET_CONFIRMATION)
-pnpm books:extract             # Text + page screenshots + figures from NCERT PDFs -> books/
-pnpm books:ocr                 # Tesseract OCR of every page screenshot + text-layer cross-check
-pnpm books:index               # Rebuild books/.../README.md + qc.json (accuracy report)
+pnpm books:extract -- --subject english   # Text + page screenshots + figures from NCERT PDFs -> books/ (--subject science|english|mathematics|mathematics-part2 --class 8|9|10)
+pnpm books:ocr -- --subject english         # Tesseract OCR of every page screenshot + text-layer cross-check
+pnpm books:index -- --subject english       # Rebuild books/.../README.md + qc.json (accuracy report)
+node scripts/qa/source-video-chapters.mjs    # Real chapter markers of every lesson video (split by time)
+node scripts/qa/apply-video-chapters.mjs     # Writes the markers into the seed + the database
+node scripts/qa/audit-video-durations.mjs     # Real duration of every seeded video (rejects clips < 2 min)
+node scripts/qa/audit-curriculum-coverage.mjs # Which chapters have a video and which lessons have a URL
+node scripts/qa/audit-chapter-pdfs.mjs        # Every chapter code -> the NCERT PDF that is on disk
+node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths codes with the 2026 book (14 chapters)
+node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
+node scripts/qa/audit-web-mobile-parity.mjs  # Fails when a student capability exists on one side only
+node scripts/qa/probe-chapter-hub.mjs        # Probes the chapter hub contract (payload, PDF, practice, 404s)
 ```
 
-Lint (`pnpm --filter @sanro/api lint`) is currently broken repo-wide: ESLint 9
-requires `eslint.config.js` and none exists. Typecheck and tests are the
-reliable gates.
+Lint works: `pnpm -r lint` (ESLint 9 flat config: `eslint.config.mjs` in
+`apps/api`, `apps/web`, `apps/mobile`) — currently **0 errors** with warnings only
+(unused imports, `any` types, exhaustive-deps). Treat warnings as a backlog, not a gate.
+Gates: `pnpm -r typecheck`, `pnpm -r lint`, `pnpm build`, and the three test suites.
 
 ## Data & databases
 - Dev: `localhost:5432/sanro_dev` (`DATABASE_URL`). Tests: `localhost:5432/sanro_test` (`DATABASE_URL_TEST`).
@@ -56,6 +84,63 @@ Shared spine: `Board → Grade → Subject → Chapter → Topic → Concept`.
 - Student content visibility is always filtered to
   `ContentStatus.APPROVED|PUBLISHED` via `ContentScopeService.buildContentWhere`.
 
+## Chapter hub + chapter markers
+The concept page's parent is the **chapter hub** (`/app/learn/chapters/[chapterId]` web,
+`/chapter/[chapterId]` mobile). One scroll, five sections, in learning-loop order:
+**Continue** (the first unmastered concept) -> **Contents** (every concept with its mastery)
+-> **Learn** (the chapter's videos **split by time**, the overall chapter notes, and the
+**textbook chapter PDF viewable in the app**) -> **Practise** (one session over the whole
+chapter) -> **Ask** (Ask SANRO AI about this chapter). The API is
+`GET /learning/chapters/:chapterId` (hub payload) and
+`GET /learning/chapters/:chapterId/pdf` (the NCERT chapter, 404 when the book is not on disk).
+`POST /learning/practice/start` also accepts `{ chapterId }`.
+
+**Chapter markers (split by time)** live on `ContentItem.segments` (JSON
+`[{ title, startSeconds }]`, max 24). They are produced by
+`scripts/qa/source-video-chapters.mjs` (reads YouTube's own chapter list, then the
+description timestamps) and applied by `scripts/qa/apply-video-chapters.mjs` (seed + database).
+The web and the mobile both render the markers under the player and seek on tap
+(`postMessage` -> \`seekTo\`).
+
+**Chapter -> textbook PDF** is resolved from the chapter code: \`SCI-10-4\` ->
+\`books/cbse/class-10/science/source/jesc104.pdf\`, \`MAT-9-3\` -> \`class-9/math/iemh103.pdf\`,
+\`SCI-8-2\` -> \`class-8/science/hecu102.pdf\`, \`MAT-8P2-3\` -> \`class-8/math part 2/hegp203.pdf\`
+(the class-8 maths book is split into two volumes, so volume 2 needs the \`MAT-8P2-n\` code).
+The books are git-ignored and local-only: in production \`pdfUrl\` is \`null\` and the route 404s
+unless the NCERT books ship with the API.
+
+## Web <-> mobile parity (one rule)
+Every **student-facing** capability exists on both platforms with the same behaviour and the
+same numbers; authoring and administration stay web-only by design. Both clients call the
+**same API** - a missing capability is an API gap, not a mobile gap. The living parity table,
+the accepted differences and the sweep procedure are in `docs/PARITY_POLICY.md`. When a
+feature is added, it lands on both platforms in the same change.
+
+## Gamification XP ledger + leaderboard scopes
+`GamificationProfile.xp` is the **lifetime** counter; `XpEvent` (student, xp, reason,
+createdAt) is the **ledger** every award is written to. The leaderboard
+(`GET /learning/gamification/leaderboard?period=weekly|monthly|all&groupId=`) sums the
+ledger over the window (weekly = **calendar week**, Monday local - not a rolling 7x24h),
+optionally scoped to one class, and returns the caller's permitted scopes in `groups`
+so the UI can offer *Whole school* / *Class X* without another request. The ledger is
+the single source of truth so `xp` and `totalXp` can never disagree. Covered by
+`apps/api/test/leaderboard-period.e2e-spec.ts`. The `.env` loader lives once in
+`apps/api/src/common/api-env.ts` (re-exported from `prisma/env-loader.ts`).
+
+## Content-type taxonomy — 17 → 6 canonical
+Browse, query and authoring accept only
+`VIDEO · NOTES · WORKSHEET · INTERACTIVE · EXAMPLE · OTHER`.
+**`OTHER` is surfaced in UI as the label "Resource"** — there is deliberately no
+`RESOURCE` enum value (label-only). Legacy values fold at read time via
+`apps/api/src/common/content/content-types.ts` (`canonicalContentType`,
+`canonicalTypeMembers`, `mergeCanonicalCounts`):
+ARTICLE/READING/PDF → NOTES · MODEL_3D/GAME/AR → INTERACTIVE ·
+QUIZ/PRACTICE_SET/IMAGE/REVISION/FLASHCARDS → OTHER.
+The Prisma enum keeps all 17 values **on purpose**: `RemediationItem.contentType`
+legitimately writes `PRACTICE_SET`/`QUIZ` as plan-step markers, so no enum-recreate
+migration. Facet counts merge to canonical keys, so `facets.byType` and item
+`type` always agree (see `content-browse.e2e-spec.ts`).
+
 ## Bulk imports (5 entity types)
 `entityType` ∈ `STUDENTS | TEACHERS | PARENTS | CONTENT | QUESTIONS`.
 Seat gate applies only to `STUDENTS/TEACHERS/PARENTS`. Audit actions:
@@ -65,9 +150,18 @@ QUESTION_GENERATED`. Column contracts: `docs/IMPORTS.md`.
 ## Build Order
 Always build shared packages first: `@sanro/types` → `@sanro/validation` → `@sanro/config` → API → Web.
 
+## Dependency overrides (pnpm)
+**Overrides live in `pnpm-workspace.yaml` under `overrides:`** - pnpm >=10 reads them from
+there. A top-level `"overrides"` field in `package.json` is **npm's** format and pnpm
+silently ignores it (this already cost us one security control - see BUG-O in
+`docs/qa/BUG_REPORT.md`). After changing overrides: `pnpm install` → check that
+`pnpm-lock.yaml` now contains an `overrides:` section → `pnpm peers check` →
+`pnpm audit --prod`. `apps/api` has `postinstall: prisma generate` so a dependency
+re-resolution can never leave the Prisma client un-generated.
+
 ## Mobile App (apps/mobile)
-- Expo SDK 52 / React Native 0.76.5 / expo-router 4 / React 18.3.1 — primary student experience (P0)
-- 5-tab shell: Home / Library / Assessments / Ask Sanro AI / Me; concept page has 6 modes (Learn, Practice, Quick Quiz, Flashcards, Challenge, Ask SANRO)
+- Expo SDK 53 / React Native 0.79.6 / expo-router 5 / React 18.3.1 — primary student experience (P0)
+- 5-tab shell: Home / Library / Assessments / Ask Sanro AI / Me; concept page has **3 modes** (Learn, Practice, Ask Sanro AI) - AR / 3D lives inside Learn as an "Interactive 3D Model" card, and Flashcards is a *format* inside Practice (Quiz | Flashcards), not a mode of its own
 - **Multi-role tabs**: student (Library/Assessments/Ask), teacher/admin (Classes/Assess), parent (Children)
 - Stack: TypeScript strict, Zod, Zustand, TanStack Query 5, expo-secure-store
 - Runtime is Expo (no native build step in turbo; `@sanro/mobile#build` is a stub)
@@ -76,6 +170,7 @@ Always build shared packages first: `@sanro/types` → `@sanro/validation` → `
 - Memberships persisted to SecureStore
 - ErrorBoundary wrapping app root
 - RN peer pulls `@types/react@18`; web uses `@types/react@19`. Do NOT try to unify these versions — web's tsconfig `paths` for `react`/`react-dom`/`jsx-runtime` keeps the two React type identities separate.
+- **Asset URLs**: `lib/ar-assets.ts` resolves relative `/api/v1/files/...` against `EXPO_PUBLIC_WEB_URL`, so the **web origin must proxy `/api/v1/files/*` to the API** (`apps/web/next.config.mjs` rewrite). On-device AR/3D: the 3D preview works everywhere; the native "View in your space" affordance needs a WebXR/ARCore device and is hidden (with an explanation) otherwise.
 
 ## Code Style
 - TypeScript strict, no comments unless asked
@@ -103,7 +198,7 @@ JWT-based. Zustand persist store in localStorage key `sanro-auth`. Hydration tra
 - **JWT Secret**: Min 32 chars; production refuses dev default (`AUTH_SECRET` must not start with `dev-`)
 - **RBAC**: `@Roles()` on all mutation endpoints (people, questions, papers, curriculum, academics, institutions, imports, remediation)
 - **Rate Limiting**: Auth-specific (login 10/min, forgot-password 3/min, register 5/min)
-- **Validation**: Zod schemas on 13+ endpoints, `forbidUnknownValues: true`
+- **Validation**: Zod schemas on 13+ endpoints via `ZodValidationPipe`. Unknown keys are **stripped** by default (Zod `safeParse`), not rejected — this still blocks mass-assignment/privilege escalation because the handler never sees unrecognised fields. A few schemas opt into `.strict()` to reject unknown keys (e.g. admin-curriculum, content-ingest).
 - **File Upload**: 10MB limit + MIME validation on imports
 - **Forgot-Password**: Raw token no longer returned (returns `{ success: true }`)
 - **Swagger**: Gated behind `NODE_ENV !== 'production'`
@@ -156,7 +251,13 @@ JWT-based. Zustand persist store in localStorage key `sanro-auth`. Hydration tra
 - `scripts/verify-empty-states.mts` — Playwright verifier for the 18 super-admin screens
 - `apps/mobile/expo-types.d.ts` — local `expo/types` reference; replaces the `expo-env.d.ts` that `expo start` deletes when `typedRoutes` is off
 
-## Demo Users (password: Sanro@123)
+## Demo Users (password omitted from this file; defined by the local `--demo` seed)
+
+The demo/QA password is **never stored in the repository**: it is read from
+`SEED_DEMO_PASSWORD` in `apps/api/.env` (git-ignored) via
+`apps/api/src/common/demo-password.ts` (API side) and `scripts/qa/_env.mjs`
+(scripts side). The seed, the e2e suite and every QA script all read the same
+value, so rotating it is a one-line `.env` change.
 - `admin@sanroai.com` (SUPER_ADMIN)
 - `principal@sanroai.com` (INSTITUTION_ADMIN)
 - `teacher@sanroai.com` (TEACHER)
@@ -166,14 +267,36 @@ JWT-based. Zustand persist store in localStorage key `sanro-auth`. Hydration tra
 ## Design Language
 Purple/violet primary (#7c3aed), rounded cards (2xl/3xl), soft shadows, gradient accents, Poppins headings, Inter body. Logo: GraduationCap icon (replaced Sparkles).
 
-## Concept Detail Page — 6 Learning Modes
-The concept detail page (`/app/learn/concepts/[conceptId]`) has a 6-tab interface:
-1. **Learn** — Video lessons (YouTube embeds) + Study notes (markdown) + Quick revision
-2. **Practice** — Backend-driven quiz with mastery tracking, "Fix This" CTA for weak concepts
-3. **Quick Quiz** — 5 concept-specific questions from DB, submit, score (NO hardcoded mock questions)
-4. **Flashcards** — Concept-specific questions with flip + confidence rating (Again/Hard/Good/Easy)
-5. **Challenge** — Timed 60s challenge, 10 questions, 50 XP max
-6. **Ask SANRO** — Context-aware questions → AI chat
+## Concept Detail Page - 3 Modes
+The concept detail page (`/app/learn/concepts/[conceptId]`) has a **3-mode** interface:
+1. **Learn** - video lessons (YouTube, plays inline, captions off), study notes, quick revision,
+   and the **Interactive 3D Model** card (opens the viewer in a dialog/modal - it is lesson
+   content, not a peer mode, and the heavy viewer only mounts on demand)
+2. **Practice** - the study surface with **two formats**:
+   - *Quiz* - a server-side session (`POST /learning/practice/start` ->
+     `/learning/practice/[practiceId]`) with a per-question timer. Submitting records mastery
+     evidence and XP - this is the ASSESS -> DIAGNOSE edge
+   - *Flashcards* - self-rated recall (Again / Hard / Good / Easy), written server-side
+3. **Ask Sanro AI** - context-aware tutor for the concept
+
+**Cut (2026-10-21):** *Quick Quiz* and *Challenge* (both replayed the same
+`practiceQuestions` pool as Practice - Challenge even routed to the same screen - and their
+XP promises were never awarded; the orphaned mobile `/quiz/[conceptId]` and
+`/challenge/[conceptId]` screens were deleted) and *Flashcards as a mode of its own* (a
+student does not think of a quiz and a flashcard deck as different activities - it is a
+format inside Practice).
+
+**The graded answer is the option TEXT** (that is what `question.answer` holds). Clients must
+send the text; the API also resolves an option id for robustness
+(`normaliseAnswerToOptionText` in `apps/api/src/diagnosis/mastery.service.ts`). Written
+answers are not auto-graded, so they are neither right nor wrong - they are excluded from the
+score and from the mastery evidence.
+
+**XP rules (truthful):** Practice awards **5 XP per correct answer + 10 XP for finishing**
+(`apps/api/src/common/xp.ts`); assessments award the assessment score. Every award is written
+to the `XpEvent` ledger, which the leaderboard reads. The same file owns the streak rule
+(same day = keep, yesterday = extend, older = restart) - the old inline copies reset the
+streak to 1 on a second activity in the same day.
 
 ## Student Dashboard — "What should I do today?"
 - **Your Focus Today**: Weak concept "Fix This" CTA + upcoming assessment "Prepare"
@@ -198,34 +321,64 @@ Deployment is part of the task. Do NOT stop after local development — the proj
 
 ## CBSE curriculum source material (`books/`, git-ignored)
 NCERT textbook source for authoring platform content, organised
-`books/<board>/<class>/<subject>/`. Currently only `books/cbse/class-10/science/`
-(15 PDFs, 232 pages, ~495k chars).
+`books/cbse/class-<8|9|10>/<subject>/`. **Classes 8, 9 and 10 are extracted** (science,
+mathematics, english) with one pipeline: text layer, page screenshots, embedded figures, an
+OCR cross-check and a README/qc index.
+
+| Class | Subject | Folder | Chapters | Pages | Book (2026 edition) |
+|---|---|---|---|---|---|
+| 8 | science | `class-8/science` | 14 | 248 | Curiosity |
+| 8 | mathematics | `class-8/math part 1` + `math part 2` | 8 + 8 | 263 + 192 | Ganita Prakash (two volumes) |
+| 8 | english | `class-8/english` | 6 units | 268 | Poorvi |
+| 9 | science | `class-9/science` | 14 | 292 | Exploration |
+| 9 | mathematics | `class-9/math` | 9 | 220 | Ganita Manjari |
+| 9 | english | `class-9/english` | 10 units | 296 | Kaveri |
+| 10 | science | `class-10/science` | 15 | 232 | Science |
+| 10 | mathematics | `class-10/mathematics` | 15 | 231 | Mathematics |
+| 10 | english | `class-10/english` | 10 | 152 | First Flight |
+
+> The class-9 books are the **new 2026 NCERT titles**, not the old syllabus - every chapter
+> title in the registry was verified against each book's own contents page. The class-8 maths
+> book is split into **two volumes** that both number their chapters 1-7, so volume 2 needs
+> the `MAT-8P2-n` code form.
 
 | Path | Contents |
 |---|---|
-| `source/*.pdf` | Original NCERT PDFs, SHA-256 in each `meta.json` |
+| `source/*.pdf` (or the subject folder) | Original NCERT PDFs, SHA-256 in each `meta.json` |
 | `chapters/<slug>/text.merged.txt` | **Read this one** — text layer, OCR fallback on image-only pages |
 | `chapters/<slug>/text.txt` | Raw PDF text layer, page-delimited |
 | `chapters/<slug>/pages.json` | Same text split per page |
 | `chapters/<slug>/ocr/text.txt` + `ocr/pages.json` | Tesseract output, per-page confidence + agreement score |
 | `chapters/<slug>/screenshots/pNNN.png` | 1240px page renders — use for figures, equations, layout |
-| `chapters/<slug>/images/` | 185 embedded raster figures (chapters 09-13 only) |
-| `notes/*.md` | **Study guides** per chapter pair — outline, definitions, equations/numericals, activities, all questions, figure descriptions, CBSE exam signals |
+| `chapters/<slug>/images/` | Embedded raster figures (the 2026 books use **JPEG2000** → `scripts/books/pdfjs-assets.cjs` wires the OpenJPEG decoder; without it the images are silently dropped from the renders *and* the extraction) |
+| `notes/*.md` | **Study guides** per chapter pair — outline, definitions, equations, activities, all questions, figure descriptions, CBSE exam signals |
 | `manifest.json`, `ocr/report.json`, `qc.json`, `README.md` | Machine + human indexes, accuracy report |
 
-Slugs are `NN-slugified-title` (`00-prelims` … `13-our-environment`, `99-answers`).
+Slugs are `NN-slugified-title` (`00-prelims` … `99-answers`).
 
-Quality: OCR confidence 89.3 avg, text-layer↔OCR similarity 0.947, 4 low-agreement
-pages (all cover/committee/answer pages with no text layer). Chapters 01-08 are
-vector-only — their figures exist **only** as screenshots.
+Quality: class 10 OCR confidence ~89 avg with a text-layer↔OCR similarity of ~0.95. The 2026
+class-9 books score 4-9 points lower (far more artwork inside the text column) with the same
+similarity.
 
-Tooling lives in `scripts/books/{extract,ocr,build-index}.cjs` (root devDeps:
-`pdf-parse`, `tesseract.js`, `sharp`). The whole `books/` tree is ignored in
-`.gitignore` — never commit PDFs/PNGs.
+Tooling lives in `scripts/books/{extract,ocr,build-index,subjects,pdfjs-assets}.cjs`
+(root devDeps: `pdf-parse`, `tesseract.js`, `sharp`), driven by
+`--subject science|english|mathematics|mathematics-part2 --class 8|9|10`. The whole `books/`
+tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
-- Class 10: 13 Science + 15 Math chapters (48 content items)
-- Class 9: 4 + 4 chapters (34 content items)
-- Class 8: 3 + 3 chapters (53 content items)
-- Classes 1-7: 2-3 chapters each (structure ready)
+- Seeded: **132 chapters**, **605 concepts** and **185 video + 190 notes lessons**
+  - Class 10: 13 Science + 15 Math + 9 English chapters
+  - Class 9: 13 Science + 8 Math + 8 English chapters (Science has 13: 1-13; the class-9
+    **English book (Kaveri) is seeded**)
+  - Class 8: 13 Science + 14 Math (7 + 7 across the two volumes) + 5 English chapters
+    (the new class-8 books - Curiosity, Ganita Prakash, Poorvi - are seeded)
+  - Classes 1-7: 2-3 chapters each, Science + Mathematics only (structure ready, content
+    not populated)
+- **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
+  the seed are the real YouTube lengths.
+- The NCERT **books** for classes 8, 9 and 10 are all extracted (see the section above) and their
+  chapters are seeded; adding a class means adding its chapters, topics, concepts and lessons to
+  `seed.ts`.
+- The counts above are what `sanro_dev` holds after `db:seed:demo`; verify with
+  `SELECT count(*) FROM "Chapter";` rather than trusting this line.
