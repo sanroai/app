@@ -112,13 +112,41 @@ export interface ConceptDetail {
   flashcardRatings?: Record<string, string>;
 }
 
+/**
+ * GET /learning/progress - the shape the API actually returns (nested, not flat).
+ * The mobile client renders the same three numbers: content completed, concepts
+ * mastered and average mastery.
+ */
 export interface LearningProgress {
-  totalContent: number;
-  completedContent: number;
-  totalConcepts: number;
-  masteredConcepts: number;
-  averageMastery: number;
-  recentActivity: Array<{ id: string; title: string; type: string; completedAt: string }>;
+  student: { id: string; name: string; grade: string | null };
+  contentProgress: { totalContent: number; completedContent: number; percentComplete: number };
+  mastery: { averageScore: number; totalConcepts: number; byLevel: Record<string, number> };
+  recentActivity: Array<{ contentId: string; title: string; type: string; completedAt: string }>;
+}
+
+export interface AchievementItem {
+  id: string;
+  name: string;
+  description?: string;
+  icon: string;
+  key?: string;
+  unlockedAt?: string | null;
+}
+
+export interface AchievementsResponse {
+  earned: AchievementItem[];
+  locked: AchievementItem[];
+}
+
+export interface GamificationProfile {
+  xp: number;
+  level: number;
+  xpInLevel: number;
+  xpForLevel: number;
+  rank: number;
+  streakDays: number;
+  achievementCount: number;
+  recentAchievements: AchievementItem[];
 }
 
 export function useLearningHome() {
@@ -195,38 +223,60 @@ export function useRateFlashcard() {
   });
 }
 
-export function useLearningProgress() {
+export function useLearningProgress(options?: { enabled?: boolean }) {
   const token = useToken();
   return useQuery<LearningProgress>({
     queryKey: ['learning', 'progress'],
     queryFn: () => api<LearningProgress>('/learning/progress', { token }),
-    enabled: !!token,
+    enabled: !!token && (options?.enabled ?? true),
   });
 }
 
-export function useGamificationProfile() {
+export function useGamificationProfile(options?: { enabled?: boolean }) {
   const token = useToken();
-  return useQuery({
+  return useQuery<GamificationProfile>({
     queryKey: ['gamification', 'profile'],
-    queryFn: () => api<any>('/learning/gamification/profile', { token }),
-    enabled: !!token,
+    queryFn: () => api<GamificationProfile>('/learning/gamification/profile', { token }),
+    enabled: !!token && (options?.enabled ?? true),
   });
 }
 
-export function useLeaderboard(period: string) {
+export interface LeaderboardEntry {
+  userId: string;
+  name: string;
+  xp: number;
+  totalXp: number;
+  level: number;
+  streakDays: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  entries: LeaderboardEntry[];
+  myRank: number;
+  period: string;
+  groupId: string | null;
+  groups: Array<{ id: string; name: string; grade?: string | null }>;
+}
+
+export function useLeaderboard(period: string, groupId?: string | null) {
   const token = useToken();
-  return useQuery({
-    queryKey: ['gamification', 'leaderboard', period],
-    queryFn: () => api<any>(`/learning/gamification/leaderboard?period=${period}`, { token }),
+  return useQuery<LeaderboardResponse>({
+    queryKey: ['gamification', 'leaderboard', period, groupId ?? 'school'],
+    queryFn: () =>
+      api<LeaderboardResponse>(
+        `/learning/gamification/leaderboard?period=${period}${groupId ? `&groupId=${groupId}` : ''}`,
+        { token },
+      ),
     enabled: !!token,
   });
 }
 
 export function useAchievements() {
   const token = useToken();
-  return useQuery({
+  return useQuery<AchievementsResponse>({
     queryKey: ['gamification', 'achievements'],
-    queryFn: () => api<any>('/learning/gamification/achievements', { token }),
+    queryFn: () => api<AchievementsResponse>('/learning/gamification/achievements', { token }),
     enabled: !!token,
   });
 }

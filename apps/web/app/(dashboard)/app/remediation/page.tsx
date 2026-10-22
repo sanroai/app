@@ -5,11 +5,12 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useDiagnosisMy, useRemediationMy, useRemediationPlans } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
+import { useRole } from '@/lib/role-theme';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { titleCase } from '@/lib/format';
 import { toast } from 'sonner';
-import { Check, Circle, Target, CheckCircle2, Loader2, ChevronRight } from 'lucide-react';
+import { Check, Circle, Target, CheckCircle2, Loader2, ChevronRight, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 const LEVEL_STYLE: Record<string, string> = {
@@ -26,9 +27,16 @@ type PlanRow = {
   progress?: number;
   completedItems?: number;
   _count?: { items?: number };
-  concept?: { name: string };
+  concept?: { id?: string; name: string };
   student?: { name?: string | null };
-  items?: Array<{ id: string; title?: string; type?: string; contentType?: string; status?: string }>;
+  items?: Array<{
+    id: string;
+    title?: string;
+    type?: string;
+    contentType?: string;
+    contentId?: string | null;
+    status?: string;
+  }>;
 };
 
 function planStats(plan: PlanRow) {
@@ -40,9 +48,11 @@ function planStats(plan: PlanRow) {
 }
 
 export default function RemediationPage() {
-  const user = useAuthStore((s) => s.user);
-  const role = user?.role;
+  const role = useRole();
   const isStudent = role === 'STUDENT';
+  // `POST /remediation/items/:id/status` is staff-only, so a student must not be
+  // offered the action - it would only ever return a 403.
+  const canMarkComplete = role === 'TEACHER' || role === 'INSTITUTION_ADMIN';
   const canViewPlans = !isStudent && role !== 'SUPER_ADMIN';
   const diag = useDiagnosisMy(isStudent);
   const plans = useRemediationMy(isStudent);
@@ -133,6 +143,11 @@ export default function RemediationPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-semibold">Remediation plans</h2>
+        {isStudent ? (
+          <p className="mb-3 text-sm text-surface-500">
+            Open the work below to strengthen this concept - your teacher marks plan items as done.
+          </p>
+        ) : null}
         {!isStudent && !canViewPlans ? (
           <p className="mb-3 text-sm text-surface-500">
             Plans live inside each institution — sign in as an institution admin or teacher to review them.
@@ -157,7 +172,20 @@ export default function RemediationPage() {
                 <div className="h-2 rounded-full bg-brand-600" style={{ width: `${progress}%` }} />
               </div>
               <ul className="mt-4 space-y-2">
-                {(plan.items ?? []).map((item: { id: string; title?: string; type?: string; contentType?: string; status?: string }) => (
+                {(plan.items ?? []).map((item: {
+                  id: string;
+                  title?: string;
+                  type?: string;
+                  contentType?: string;
+                  contentId?: string | null;
+                  status?: string;
+                }) => {
+                  const openHref = item.contentId
+                    ? `/app/library/item/${item.contentId}`
+                    : plan.concept?.id
+                      ? `/app/learn/concepts/${plan.concept.id}`
+                      : null;
+                  return (
                   <li key={item.id} className="flex items-center justify-between gap-3 rounded-lg bg-surface-50 px-3 py-2">
                     <div className="min-w-0">
                       <p className="truncate text-sm text-surface-800">{item.title ?? item.type ?? 'Item'}</p>
@@ -170,7 +198,7 @@ export default function RemediationPage() {
                         <Check className="mr-1 h-3 w-3" />
                         Done
                       </Badge>
-                    ) : (
+                    ) : canMarkComplete ? (
                       <Button
                         variant="outline"
                         onClick={() => setItemStatus(plan.id, item.id, 'COMPLETED')}
@@ -184,9 +212,22 @@ export default function RemediationPage() {
                         )}
                         Mark complete
                       </Button>
+                    ) : openHref ? (
+                      // A student cannot mark an item done (the endpoint is
+                      // staff-only), so point at the work instead.
+                      <Link
+                        href={openHref}
+                        className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-surface-300 bg-white px-4 py-2 text-sm font-medium text-surface-700 transition-colors hover:bg-surface-50"
+                      >
+                        <BookOpen className="h-4 w-4" />
+                        Open
+                      </Link>
+                    ) : (
+                      <span className="shrink-0 text-xs text-surface-400">Your teacher marks this done</span>
                     )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </Card>
             );

@@ -12,6 +12,7 @@ import {
   useUpdateAdminParent,
   useDisableAdminParent,
   useEnableAdminParent,
+  useBulkAdminParentAction,
   useAdminParentLinkChild,
   useAdminParentUnlinkChild,
   useAdminStudentSearch,
@@ -117,6 +118,7 @@ export default function PeopleParentsPage() {
   };
 
   const { data, isLoading, isFetching, error, refetch } = useAdminParents(params);
+  const bulkAction = useBulkAdminParentAction();
 
   const institutionsQuery = useInstitutions({ page: 1, pageSize: 100 });
   const institutions = institutionsQuery.data?.items ?? [];
@@ -523,10 +525,11 @@ export default function PeopleParentsPage() {
             const doAll = async () => {
               for (const id of ids) {
                 try {
-                  const mut = pendingBulk === 'deactivate'
-                    ? useDisableAdminParent(id)
-                    : useEnableAdminParent(id);
-                  await mut.mutateAsync();
+                  if (pendingBulk === 'deactivate') {
+                    await bulkAction.mutateAsync({ id, path: '/disable' });
+                  } else {
+                    await bulkAction.mutateAsync({ id, path: '/enable' });
+                  }
                   ok++;
                 } catch {}
               }

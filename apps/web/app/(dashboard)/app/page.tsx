@@ -40,6 +40,12 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useLearningHome, useGamificationProfile, useAchievements } from '@/lib/learning-hooks';
+import {
+  SubjectProgressGrid,
+  BadgesEarned,
+  type SubjectProgressItem,
+} from '@/lib/learner-progress';
 import { KpiCards } from '@/components/super-admin/kpi-cards';
 import { InstitutionHealthPanel } from '@/components/super-admin/institution-health-panel';
 import { AttentionPanel } from '@/components/super-admin/attention-panel';
@@ -840,6 +846,12 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
   const mastery = data?.masterySummary as Record<string, unknown> | undefined;
   const weakConcepts = (data?.weakConcepts as { name: string; score: number; level: string; conceptId?: string }[]) ?? [];
   const pendingAssignments = (data?.pendingAssignments as Record<string, unknown>[]) ?? [];
+  // Level / XP-to-next-level only exist on GET /learning/gamification/profile -
+  // the dashboard payload carries the raw profile row (xp + streak) instead.
+  const { data: profile } = useGamificationProfile();
+  const xpForLevel = profile?.xpForLevel ?? 500;
+  const xpInLevel = profile?.xpInLevel ?? 0;
+  const levelProgress = xpForLevel > 0 ? Math.round((xpInLevel / xpForLevel) * 100) : 0;
 
   return (
     <>
@@ -850,47 +862,70 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
           <p className="text-sm text-surface-500 dark:text-surface-400 mb-4">What needs your attention right now</p>
 
           <div className="space-y-3">
-            {/* Fix weakness CTA */}
-            {weakConcepts.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-surface-800 p-4 border border-orange-100 dark:border-orange-800/30">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100">
+            {/* Fix weakness CTA - the mobile home shows the two weakest concepts */}
+            {weakConcepts.slice(0, 2).map((weak) => (
+              <div
+                key={weak.conceptId ?? weak.name}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white dark:bg-surface-800 p-4 border border-orange-100 dark:border-orange-800/30"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
                     <Target className="h-5 w-5 text-orange-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-surface-900">{weakConcepts[0].name}</p>
-                    <p className="text-xs text-orange-600">{weakConcepts[0].score}% mastery · Needs practice</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-surface-900">{weak.name}</p>
+                    <p className="text-xs text-orange-600">{weak.score}% mastery · Needs practice</p>
                   </div>
                 </div>
-                <Link href={`/app/learn/concepts/${weakConcepts[0].conceptId ?? ''}`}>
-                  <Button size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white">
-                    Fix This
-                  </Button>
-                </Link>
+                <div className="flex shrink-0 items-center gap-2">
+                  {weak.conceptId ? (
+                    <Link href={`/app/flashcards/${weak.conceptId}`}>
+                      <Button size="sm" variant="ghost" className="rounded-xl text-brand-600 hover:bg-brand-50">
+                        Flashcards
+                      </Button>
+                    </Link>
+                  ) : null}
+                  <Link href={`/app/learn/concepts/${weak.conceptId ?? ''}`}>
+                    <Button size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white">
+                      Fix This
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            )}
+            ))}
 
-            {/* Upcoming assessment */}
-            {pendingAssignments.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-surface-800 p-4 border border-blue-100 dark:border-blue-800/30">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-                    <FileText className="h-5 w-5 text-blue-600" />
+            {/* Upcoming assessment - the mobile home shows the next two */}
+            {pendingAssignments.slice(0, 2).map((assignment, i) => {
+              const assessment = (assignment as Record<string, unknown>)?.assessment as
+                | Record<string, unknown>
+                | undefined;
+              const subject = assessment?.subject as Record<string, unknown> | undefined;
+              return (
+                <div
+                  key={i}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white dark:bg-surface-800 p-4 border border-blue-100 dark:border-blue-800/30"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-surface-900">
+                        {(assessment?.title as string) ?? 'Assessment'}
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        Upcoming · {(subject?.name as string) ?? 'Assessment'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-surface-900">{((pendingAssignments[0] as Record<string, unknown>)?.assessment as Record<string, unknown>)?.title as string ?? 'Assessment'}</p>
-                    <p className="text-xs text-blue-600">
-                      Upcoming · {(((pendingAssignments[0] as Record<string, unknown>)?.assessment as Record<string, unknown>)?.subject as Record<string, unknown>)?.name as string ?? 'Assessment'}
-                    </p>
-                  </div>
+                  <Link href="/app/assessments" className="shrink-0">
+                    <Button size="sm" variant="outline" className="rounded-xl border-blue-300 text-blue-700">
+                      Prepare
+                    </Button>
+                  </Link>
                 </div>
-                <Link href="/app/assessments">
-                  <Button size="sm" variant="outline" className="rounded-xl border-blue-300 text-blue-700">
-                    Prepare
-                  </Button>
-                </Link>
-              </div>
-            )}
+              );
+            })}
 
             {/* No weak concepts */}
             {weakConcepts.length === 0 && pendingAssignments.length === 0 && (
@@ -909,7 +944,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
       </Card>
 
       {/* Progress Summary */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-gradient-to-br from-violet-500 to-purple-600 border-0 text-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
@@ -964,6 +999,26 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
             </div>
           </CardContent>
         </Card>
+
+        <Card className="bg-gradient-to-br from-brand-500 to-fuchsia-600 border-0 text-white">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-brand-100 font-medium">Level</p>
+                <p className="text-2xl font-bold text-white mt-1">{profile?.level ?? 1}</p>
+              </div>
+              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Trophy className="h-5 w-5 text-white" />
+              </div>
+            </div>
+            <div className="mt-3">
+              <Progress value={levelProgress} className="h-1.5 bg-white/20" />
+            </div>
+            <p className="mt-1 text-xs text-brand-100">
+              {xpInLevel}/{xpForLevel} XP to next level
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </>
   );
@@ -972,6 +1027,28 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
 function StudentContent({ data }: { data: Record<string, unknown> | null }) {
   const pendingAssignments = (data?.pendingAssignments as Record<string, unknown>[]) ?? [];
   const recentAttempts = (data?.recentAttempts as Record<string, unknown>[]) ?? [];
+  // The mobile home screen shows the same subject grid (Class X, topics, done
+  // count and a progress bar) from the same GET /learning/home payload.
+  const { data: home } = useLearningHome();
+  const { data: achievements } = useAchievements();
+
+  const subjects: SubjectProgressItem[] =
+    home?.boards.flatMap((board) =>
+      board.grades.flatMap((grade) =>
+        grade.subjects.map((subject) => ({
+          id: subject.id,
+          name: subject.name,
+          boardId: board.id,
+          boardName: board.name,
+          grade: grade.grade,
+          completedContent: subject.completedContent,
+          totalContent: subject.totalContent,
+          averageMastery: subject.averageMastery,
+        })),
+      ),
+    ) ?? [];
+
+  const badges = achievements?.earned ?? [];
 
   return (
     <>
@@ -991,20 +1068,31 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <Link href="/app/library" className="flex items-center gap-4 rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
-              <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-surface-900">Browse All Subjects</p>
-                <p className="text-sm text-surface-500">Science & Mathematics</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-surface-400" />
-            </Link>
-          </div>
+          {subjects.length > 0 ? (
+            <SubjectProgressGrid subjects={subjects} />
+          ) : (
+            <div className="space-y-3">
+              <Link href="/app/library" className="flex items-center gap-4 rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
+                <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-surface-900">Browse All Subjects</p>
+                  <p className="text-sm text-surface-500">Science &amp; Mathematics</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-surface-400" />
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
+
+      {/* Badges earned */}
+      {badges.length > 0 ? (
+        <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-card">
+          <BadgesEarned achievements={badges} />
+        </div>
+      ) : null}
 
       {/* Pending Assessments */}
       {pendingAssignments.length > 0 && (

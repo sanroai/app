@@ -131,7 +131,10 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const academicLinks: NavLink[] = staff
     ? [
-        { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
+        // Curriculum is a SUPER_ADMIN management console (the page calls
+        // GET /admin/curriculum, @Roles(SUPER_ADMIN) only) — gating the nav link to the
+        // same role prevents TEACHER/IA from hitting a 403 error banner. See BUG-I.
+        ...(isSuperAdmin ? [{ href: '/app/curriculum', label: 'Curriculum', icon: Layers }] : []),
         { href: '/app/questions', label: 'Question Bank', icon: HelpCircle },
         { href: '/app/papers', label: 'Question Papers', icon: FileText },
         ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),

@@ -2,9 +2,15 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { useGamificationProfile, useLeaderboard, useAchievements } from '@/lib/learning-hooks';
+import {
+  useGamificationProfile,
+  useLeaderboard,
+  useAchievements,
+  useLearningProgress,
+} from '@/lib/learning-hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import { useRole } from '@/lib/role-theme';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +19,10 @@ import { Spinner, ErrorBanner } from '@/components/ui';
 import { Trophy, Flame, Star, Award, ChevronRight, Zap, Target, TrendingUp, Brain, ClipboardList, Rocket, Heart, BookOpen, Users, Settings, Crown, Medal, Lock } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { type LucideIcon } from 'lucide-react';
+import {
+  BadgeGrid,
+  LearningProgressBars,
+} from '@/lib/learner-progress';
 
 const ICON_MAP: Record<string, LucideIcon> = {
   brain: Brain,
@@ -249,6 +259,7 @@ function AdminOverview({ profile: profileData }: { profile: any }) {
 function AdminLeaderboard() {
   const [period, setPeriod] = useState('weekly');
   const { data, isLoading, error } = useLeaderboard(period);
+  const myUserId = useAuthStore((s) => s.user?.id);
 
   if (isLoading) {
     return (
@@ -292,12 +303,12 @@ function AdminLeaderboard() {
             </div>
           ) : (
             <div className="divide-y divide-surface-100">
-              {entries.map((entry: { userId: string; name: string; xp: number; rank: number; level?: number; streakDays?: number }) => (
+              {entries.map((entry) => (
                 <div
                   key={entry.userId}
                   className={cn(
                     'flex items-center gap-4 px-6 py-4 transition-colors',
-                    entry.userId === data?.userId ? 'bg-brand-50' : 'hover:bg-surface-50'
+                    entry.userId === myUserId ? 'bg-brand-50' : 'hover:bg-surface-50'
                   )}
                 >
                   <span className={cn(
@@ -393,9 +404,70 @@ function AdminAchievements() {
   );
 }
 
+/**
+ * The mobile "Me" tab is the learner's progress hub: the gamification tiles,
+ * the learning-progress numbers and the badges. The web splits it over
+ * /app/gamification (Progress) and /app/profile, so both carry the same
+ * numbers from the same endpoints.
+ */
+function StudentProgressSection() {
+  const role = useRole();
+  const { data: progress } = useLearningProgress({ enabled: role === 'STUDENT' });
+  const { data: achievements } = useAchievements();
+
+  return (
+    <div className="space-y-6">
+      {progress ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Learning progress</CardTitle>
+            <CardDescription>
+              Content completed, concepts mastered and average mastery.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <LearningProgressBars progress={progress} />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <CardTitle>Achievements</CardTitle>
+              <CardDescription>
+                {(achievements?.earned.length ?? 0)} earned ·{' '}
+                {(achievements?.locked.length ?? 0)} remaining
+              </CardDescription>
+            </div>
+            <Link
+              href="/app/gamification/achievements"
+              className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700"
+            >
+              See all
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {(achievements?.earned.length ?? 0) > 0 ? (
+            <BadgeGrid achievements={achievements?.earned ?? []} />
+          ) : (
+            <p className="py-2 text-sm text-surface-500">
+              Complete learning activities to earn achievements.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function GamificationPage() {
   const role = useRole();
-  const { data: profile, isLoading, error } = useGamificationProfile();
+  // A parent has no gamification profile - the endpoint rejects the role, so
+  // the query stays off instead of raising an error banner.
+  const { data: profile, isLoading, error } = useGamificationProfile({ enabled: role !== 'PARENT' });
   const isAdmin = ADMIN_ROLES.has(role);
 
   if (isLoading) {
@@ -455,6 +527,8 @@ export default function GamificationPage() {
       </div>
 
       <StudentProfile profile={profile} />
+
+      <StudentProgressSection />
     </div>
   );
 }

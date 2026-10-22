@@ -13,7 +13,9 @@ export type ChatReply = {
 export function useChat() {
   const token = useAuthStore((s) => s.token);
   return useMutation({
-    mutationFn: (data: { message: string; context?: { conceptId?: string; questionId?: string; assessmentId?: string } }) =>
-      api<ChatReply>('/chat/ask-sanro', { method: 'POST', token, body: data }),
+    mutationFn: (data: {
+      message: string;
+      context?: { conceptId?: string; questionId?: string; assessmentId?: string; chapterId?: string };
+    }) => api<ChatReply>('/chat/ask-sanro', { method: 'POST', token, body: data }),
   });
 }

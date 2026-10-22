@@ -145,7 +145,6 @@ export default function LibraryItemPage() {
       ) : null}
 
       {item.type === 'IMAGE' && (item.thumbnailUrl || item.url) ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={item.thumbnailUrl ?? item.url!} alt={item.title} className="w-full rounded-xl border border-surface-200" />
       ) : null}
 

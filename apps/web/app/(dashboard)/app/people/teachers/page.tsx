@@ -12,6 +12,7 @@ import {
   useUpdateAdminTeacher,
   useDisableAdminTeacher,
   useEnableAdminTeacher,
+  useBulkAdminTeacherAction,
   useTransferAdminTeacher,
   type AdminTeacherQuery,
   type AdminTeacherListItem,
@@ -210,6 +211,7 @@ export default function PeopleTeachersPage() {
 
   const deactivateMut = useDisableAdminTeacher(deactivateRow?.id ?? '');
   const enableMut = useEnableAdminTeacher(enableRow?.id ?? '');
+  const bulkAction = useBulkAdminTeacherAction();
   const transferMut = useTransferAdminTeacher(transferRow?.id ?? '');
 
   const handleDeactivate = async () => {
@@ -257,10 +259,11 @@ export default function PeopleTeachersPage() {
     let ok = 0;
     for (const id of ids) {
       try {
-        const mut = pendingBulk === 'deactivate'
-          ? useDisableAdminTeacher(id)
-          : useEnableAdminTeacher(id);
-        await mut.mutateAsync();
+        if (pendingBulk === 'deactivate') {
+          await bulkAction.mutateAsync({ id, path: '/disable' });
+        } else {
+          await bulkAction.mutateAsync({ id, path: '/enable' });
+        }
         ok++;
       } catch {}
     }

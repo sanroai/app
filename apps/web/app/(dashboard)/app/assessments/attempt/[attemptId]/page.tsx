@@ -7,7 +7,15 @@ import { useAttempt } from '@/lib/api-hooks';
 import { useAuthStore } from '@/lib/auth-store';
 import { api } from '@/lib/api';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
-import { formatScore, titleCase } from '@/lib/format';
+import { formatScore } from '@/lib/format';
+import {
+  formatJoinedAnswer,
+  formatMultiSelectAnswer,
+  isAutoGradedType,
+  parseJoinedAnswer,
+  parseMultiSelectAnswer,
+  toggleMultiSelectAnswer,
+} from '@/lib/answer-format';
 import { ArrowLeft, Check, Save, Send, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
@@ -33,18 +41,33 @@ export default function AttemptPage() {
     setAnswers(initial);
   }
 
+  /**
+   * Stores the answers on the server. The attempt is graded from the answers the
+   * server holds, so this has to run before the submit as well - a student who
+   * never pressed "Save answers" would otherwise be graded on an empty attempt.
+   */
+  async function persistAnswers() {
+    const payload = attemptData.questions
+      .map((q) => ({ snapshotQuestionId: q.id, answer: answers[q.id] ?? '' }))
+      .filter((a) => {
+        if (a.answer.trim().length === 0) return false;
+        const question = attemptData.questions.find((q) => q.id === a.snapshotQuestionId);
+        // an empty multi-select is not an answer
+        if (question?.type === 'MULTI_SELECT') return parseMultiSelectAnswer(a.answer).length > 0;
+        return true;
+      });
+    await api(`/assessments/attempts/${attemptId}/answers`, {
+      method: 'POST',
+      token: useAuthStore.getState().token,
+      body: { answers: payload },
+    });
+  }
+
   async function save() {
     setSaving(true);
     setMsg(null);
     try {
-      const payload = attemptData.questions
-        .map((q) => ({ snapshotQuestionId: q.id, answer: answers[q.id] ?? '' }))
-        .filter((a) => a.answer.length > 0);
-      await api(`/assessments/attempts/${attemptId}/answers`, {
-        method: 'POST',
-        token: useAuthStore.getState().token,
-        body: { answers: payload },
-      });
+      await persistAnswers();
       setMsg('Answers saved.');
     } catch (e) {
       setMsg(e instanceof Error ? e.message : 'Save failed');
@@ -57,6 +80,7 @@ export default function AttemptPage() {
     setSubmitting(true);
     setMsg(null);
     try {
+      await persistAnswers();
       await api(`/assessments/attempts/${attemptId}/submit`, {
         method: 'POST',
         token: useAuthStore.getState().token,
@@ -91,7 +115,20 @@ export default function AttemptPage() {
 
       <div className="space-y-4 mb-24">
         {data.questions.map((q, idx) => {
-          const isAnswered = !!(answers[q.id] && answers[q.id].length > 0);
+          const isMultiSelect = q.type === 'MULTI_SELECT';
+          const isSingleChoice = q.type === 'MCQ' || q.type === 'TRUE_FALSE';
+          const isChoice = isSingleChoice || isMultiSelect;
+          const selectedOptions = isMultiSelect ? parseMultiSelectAnswer(answers[q.id]) : [];
+          const correctOptions = isMultiSelect ? parseJoinedAnswer(q.correctAnswer) : [];
+          const isAnswered = isMultiSelect
+            ? selectedOptions.length > 0
+            : !!(answers[q.id] && answers[q.id].length > 0);
+          const yourAnswerText = isMultiSelect
+            ? formatMultiSelectAnswer(q.yourAnswer)
+            : (q.yourAnswer ?? '');
+          const correctAnswerText = isMultiSelect
+            ? formatJoinedAnswer(q.correctAnswer)
+            : (q.correctAnswer ?? '');
           return (
           <Card key={q.id} className={cn('border-l-4', isAnswered ? 'border-l-green-500' : 'border-l-slate-300')}>
             <div className="flex items-start justify-between gap-3">
@@ -102,7 +139,47 @@ export default function AttemptPage() {
               <Badge className="shrink-0 bg-surface-100 text-surface-600">{q.marks} mark{q.marks > 1 ? 's' : ''}</Badge>
             </div>
 
-            {q.type === 'MCQ' ? (
+            {isMultiSelect ? (
+              <div className="mt-3 grid gap-2">
+                <p className="text-xs text-surface-500">Select all that apply</p>
+                {(q.options ?? []).map((opt, oi) => {
+                  const selected = selectedOptions.includes(opt.text);
+                  const isAnswer = submitted && correctOptions.includes(opt.text);
+                  const wrongPick = submitted && selected && !isAnswer;
+                  return (
+                    <button
+                      key={oi}
+                      type="button"
+                      disabled={submitted}
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [q.id]: toggleMultiSelectAnswer(prev[q.id], opt.text),
+                        }))
+                      }
+                      className={cn(
+                        'flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm transition-colors',
+                        selected ? 'border-brand-600 bg-brand-50 text-surface-900' : 'border-surface-200 bg-white hover:bg-surface-50',
+                        isAnswer && 'border-green-500 bg-green-50 text-green-800',
+                        wrongPick && 'border-red-400 bg-red-50 text-red-700',
+                        submitted && 'cursor-default',
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-medium',
+                          selected ? 'border-brand-600 bg-brand-600 text-white' : 'border-surface-300 text-surface-500',
+                        )}
+                      >
+                        {String.fromCharCode(65 + oi)}
+                      </span>
+                      <span>{opt.text}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : isSingleChoice ? (
               <div className="mt-3 grid gap-2">
                 {(q.options ?? []).map((opt, oi) => {
                   const selected = answers[q.id] === opt.text;
@@ -136,26 +213,33 @@ export default function AttemptPage() {
                 })}
               </div>
             ) : (
-              <textarea
-                className="mt-3 w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 disabled:bg-surface-50"
-                rows={3}
-                disabled={submitted}
-                value={answers[q.id] ?? ''}
-                onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
-                placeholder="Type your answer…"
-              />
+              <div className="mt-3">
+                <textarea
+                  className="w-full rounded-lg border border-surface-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 disabled:bg-surface-50"
+                  rows={3}
+                  disabled={submitted}
+                  value={answers[q.id] ?? ''}
+                  onChange={(e) => setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))}
+                  placeholder="Type your answer…"
+                />
+                <p className="mt-2 text-xs text-surface-400">
+                  {isAutoGradedType(q.type)
+                    ? 'This answer is checked automatically.'
+                    : 'Written answers are not auto-graded - your teacher reviews them.'}
+                </p>
+              </div>
             )}
 
-            {submitted && (q.yourAnswer || q.correctAnswer) ? (
+            {submitted && (yourAnswerText || correctAnswerText) ? (
               <div className="mt-3 space-y-1 text-sm">
-                {q.yourAnswer ? (
+                {yourAnswerText ? (
                   <p className="text-surface-600">
-                    Your answer: <span className="font-medium">{q.yourAnswer}</span>
+                    Your answer: <span className="font-medium">{yourAnswerText}</span>
                   </p>
                 ) : null}
-                {q.correctAnswer ? (
+                {correctAnswerText ? (
                   <p className="text-surface-600">
-                    Correct answer: <span className="font-medium text-green-700">{q.correctAnswer}</span>
+                    Correct answer: <span className="font-medium text-green-700">{correctAnswerText}</span>
                   </p>
                 ) : null}
                 <p className={cn('font-medium', q.isCorrect === true ? 'text-green-700' : q.isCorrect === false ? 'text-red-600' : 'text-surface-500')}>
@@ -165,7 +249,7 @@ export default function AttemptPage() {
               </div>
             ) : null}
 
-            {!submitted && q.type === 'MCQ' ? (
+            {!submitted && isChoice ? (
               <p className="mt-2 text-xs text-surface-400">{q.options?.length ?? 0} options</p>
             ) : null}
           </Card>

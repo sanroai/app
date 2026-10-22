@@ -1,6 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import Image from 'next/image';
 import { Play, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -45,8 +52,21 @@ export function parseYouTubeId(raw?: string | null): string | null {
   return id && VIDEO_ID_PATTERN.test(id) ? id : null;
 }
 
-export function youTubeEmbedUrl(videoId: string): string {
-  return `https://www.youtube.com/embed/${videoId}`;
+export function youTubeEmbedUrl(videoId: string, origin?: string | null): string {
+  // cc_load_policy=0 keeps captions off - without it the embed follows the viewer's
+  // own YouTube caption preference and can subtitle over the lesson.
+  const params = new URLSearchParams({
+    enablejsapi: '1',
+    playsinline: '1',
+    rel: '0',
+    modestbranding: '1',
+    cc_load_policy: '0',
+    hl: 'en',
+  });
+  // YouTube only accepts postMessage commands (seekTo) when the embed knows the
+  // page origin, so the origin travels with the embed URL.
+  if (origin) params.set('origin', origin);
+  return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 }
 
 export function youTubeThumbUrl(videoId: string): string {
@@ -61,23 +81,136 @@ export function formatDuration(seconds?: number | null): string | null {
   return secs === 0 ? `${mins} min` : `${mins}:${String(secs).padStart(2, '0')}`;
 }
 
-export function YouTubePlayer({
-  url,
-  videoId,
-  title,
-  thumbnailUrl,
-  durationSeconds,
-  className,
-}: {
-  url?: string | null;
-  videoId?: string | null;
-  title: string;
-  thumbnailUrl?: string | null;
-  durationSeconds?: number | null;
-  className?: string;
-}) {
+export interface YouTubePlayerHandle {
+  seekTo: (seconds: number) => void;
+}
+
+function isYouTubeOrigin(origin: string): boolean {
+  try {
+    const host = new URL(origin).hostname.toLowerCase();
+    return (
+      host === 'youtube.com' ||
+      host.endsWith('.youtube.com') ||
+      host === 'youtube-nocookie.com' ||
+      host.endsWith('.youtube-nocookie.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
+type YouTubeMessage = { event?: string; info?: { currentTime?: number } };
+
+function parseYouTubeMessage(data: unknown): YouTubeMessage | null {
+  let payload: unknown = data;
+  if (typeof payload === 'string') {
+    try {
+      payload = JSON.parse(payload);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof payload !== 'object' || payload === null) return null;
+  return payload as YouTubeMessage;
+}
+
+export const YouTubePlayer = forwardRef<
+  YouTubePlayerHandle,
+  {
+    url?: string | null;
+    videoId?: string | null;
+    title: string;
+    thumbnailUrl?: string | null;
+    durationSeconds?: number | null;
+    className?: string;
+  }
+>(function YouTubePlayer(
+  { url, videoId, title, thumbnailUrl, durationSeconds, className },
+  ref,
+) {
   const id = videoId ?? parseYouTubeId(url);
   const [playing, setPlaying] = useState(false);
+  const [origin, setOrigin] = useState<string | undefined>(undefined);
+  const [seekNonce, setSeekNonce] = useState(0);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const pendingSeekRef = useRef<number | null>(null);
+  const readyRef = useRef(false);
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
+  const postSeek = useCallback((seconds: number) => {
+    const target = iframeRef.current?.contentWindow;
+    if (!target) return false;
+    target.postMessage(
+      JSON.stringify({ event: 'command', func: 'seekTo', args: [seconds] }),
+      '*',
+    );
+    return true;
+  }, []);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      seekTo(seconds: number) {
+        if (!Number.isFinite(seconds) || seconds < 0) return;
+        const target = Math.floor(seconds);
+        setPlaying(true);
+        if (readyRef.current) {
+          // The embed already answered, so the command lands straight away and
+          // no retry is needed.
+          pendingSeekRef.current = null;
+          postSeek(target);
+          return;
+        }
+        pendingSeekRef.current = target;
+        setSeekNonce((n) => n + 1);
+        postSeek(target);
+      },
+    }),
+    [postSeek],
+  );
+
+  // The embed boots asynchronously and drops commands sent before it is ready,
+  // so a pending seek is repeated until YouTube answers.
+  useEffect(() => {
+    if (!playing || seekNonce === 0) return;
+    let attempts = 0;
+    const timer = setInterval(() => {
+      const pending = pendingSeekRef.current;
+      if (pending === null) {
+        clearInterval(timer);
+        return;
+      }
+      attempts += 1;
+      postSeek(pending);
+      if (attempts >= 3) clearInterval(timer);
+    }, 600);
+    return () => clearInterval(timer);
+  }, [playing, seekNonce, postSeek]);
+
+  useEffect(() => {
+    if (!playing) return;
+    const onMessage = (event: MessageEvent) => {
+      if (!isYouTubeOrigin(event.origin)) return;
+      const message = parseYouTubeMessage(event.data);
+      if (!message) return;
+      readyRef.current = true;
+      const pending = pendingSeekRef.current;
+      if (pending === null) return;
+      const currentTime =
+        typeof message.info?.currentTime === 'number' ? message.info.currentTime : null;
+      if (currentTime !== null && Math.abs(currentTime - pending) <= 1.5) {
+        pendingSeekRef.current = null;
+        return;
+      }
+      postSeek(pending);
+      pendingSeekRef.current = null;
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [playing, postSeek]);
 
   if (!id) {
     if (!url) return null;
@@ -101,7 +234,8 @@ export function YouTubePlayer({
     return (
       <div className={cn('relative aspect-video w-full bg-black', className)}>
         <iframe
-          src={youTubeEmbedUrl(id)}
+          ref={iframeRef}
+          src={youTubeEmbedUrl(id, origin)}
           className="absolute inset-0 h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
@@ -132,4 +266,6 @@ export function YouTubePlayer({
       ) : null}
     </button>
   );
-}
+});
+
+YouTubePlayer.displayName = 'YouTubePlayer';

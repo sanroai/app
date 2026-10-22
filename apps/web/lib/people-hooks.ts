@@ -411,6 +411,19 @@ export function useRestoreAdminStudent(id: string) {
   return useAdminStudentAction(id, '/status');
 }
 
+export function useBulkAdminStudentAction() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: ({ id, path, body }: { id: string; path: string; body?: Record<string, unknown> }) =>
+      api<{ ok: boolean }>(`/admin/people/students/${id}${path}`, { method: 'POST', body: body ?? {}, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'students'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'students', 'search'] });
+    },
+  });
+}
+
 export function useSetDirectSubscription(id: string) {
   const qc = useQueryClient();
   const token = useToken();
@@ -470,6 +483,18 @@ export function useEnableAdminTeacher(id: string) {
 }
 export function useTransferAdminTeacher(id: string) {
   return useAdminTeacherAction(id, '/transfer');
+}
+
+export function useBulkAdminTeacherAction() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: ({ id, path, body }: { id: string; path: string; body?: Record<string, unknown> }) =>
+      api<{ ok: boolean }>(`/admin/people/teachers/${id}${path}`, { method: 'POST', body: body ?? {}, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'teachers'] });
+    },
+  });
 }
 
 export function useCreateAdminTeacher() {
@@ -536,6 +561,18 @@ export function useDisableAdminParent(id: string) {
 }
 export function useEnableAdminParent(id: string) {
   return useAdminParentAction(id, '/enable');
+}
+
+export function useBulkAdminParentAction() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: ({ id, path, body }: { id: string; path: string; body?: Record<string, unknown> }) =>
+      api<{ ok: boolean }>(`/admin/people/parents/${id}${path}`, { method: 'POST', body: body ?? {}, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents'] });
+    },
+  });
 }
 
 export function useCreateAdminParent() {

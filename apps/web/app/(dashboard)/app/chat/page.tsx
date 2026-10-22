@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useChat } from '@/lib/ai-hooks';
+import { useChapterHub } from '@/lib/chapter-hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,10 @@ export default function ChatPage() {
   const chatMutation = useChat();
   const searchParams = useSearchParams();
   const conceptId = searchParams.get('conceptId') ?? undefined;
+  // The chapter hub links here with ?chapterId=... - the tutor has to know the
+  // chapter, otherwise the answer is a generic one with no grounding.
+  const chapterId = searchParams.get('chapterId') ?? undefined;
+  const { data: chapter } = useChapterHub(chapterId, { enabled: Boolean(chapterId) });
   const prefill = searchParams.get('q') ?? '';
   const autoSentRef = useRef(false);
 
@@ -69,7 +74,13 @@ export default function ChatPage() {
     setInput('');
 
     chatMutation.mutate(
-      { message, context: conceptId ? { conceptId } : undefined },
+      {
+        message,
+        context: {
+          ...(conceptId ? { conceptId } : {}),
+          ...(chapterId ? { chapterId } : {}),
+        },
+      },
       {
         onSuccess: (data) => {
           setMessages((prev) => [
@@ -97,6 +108,12 @@ export default function ChatPage() {
     );
   }
 
+  const contextLabel = chapter?.name
+    ? `About ${chapter.name}`
+    : conceptId
+      ? 'Context-aware tutor'
+      : 'Get instant help with concepts, practice problems, and study tips';
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <div className="mb-4">
@@ -104,9 +121,7 @@ export default function ChatPage() {
           <Brain className="h-6 w-6 text-brand-500" />
           Ask Sanro AI
         </h1>
-        <p className="text-surface-500 text-sm mt-1">
-          Get instant help with concepts, practice problems, and study tips
-        </p>
+        <p className="text-surface-500 text-sm mt-1">{contextLabel}</p>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden">

@@ -76,7 +76,6 @@ const components = {
   ),
   hr: () => <hr className="my-4 border-surface-200" />,
   img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    // eslint-disable-next-line @next/next/no-img-element
     <img {...props} alt={props.alt ?? ''} className="my-3 max-w-full rounded-lg" />
   ),
 };

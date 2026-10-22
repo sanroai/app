@@ -9,6 +9,13 @@ const nextConfig = {
       { source: '/app/learn', destination: '/app/library', permanent: false },
     ];
   },
+  async rewrites() {
+    const api = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
+    const origin = new URL(api).origin;
+    return [
+      { source: '/api/v1/files/:path*', destination: `${origin}/api/v1/files/:path*` },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'img.youtube.com' },
