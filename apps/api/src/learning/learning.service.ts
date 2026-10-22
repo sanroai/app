@@ -2,10 +2,76 @@ import { BadRequestException, ConflictException, ForbiddenException, Injectable,
 import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
-import { MasteryService } from '../diagnosis/mastery.service';
+import { MasteryService, normaliseAnswerToOptionText } from '../diagnosis/mastery.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 import { ContentScopeService } from '../common/content/content-scope.service';
+import { canonicalContentType } from '../common/content/content-types';
+import { normalizeChapterSegments } from '../common/books/chapter-segments';
+import { chapterPdfPath, chapterPdfFileName } from '../common/books/chapter-pdf';
+import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
+import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
 import { Prisma } from '@prisma/client';
+
+/** The API prefix every chapter PDF link is built with. */
+const API_PREFIX = '/api/v1';
+
+/** The mastery levels that count as "learned" for the chapter progress bar. */
+const MASTERED_LEVELS = new Set(['MASTERED', 'GOOD']);
+
+/** The most questions a single practice set may hold. */
+const PRACTICE_QUESTION_LIMIT = 20;
+
+/** The fewest questions a single practice set may hold. */
+const PRACTICE_QUESTION_MIN = 1;
+
+/** The default size of a concept practice set. */
+const DEFAULT_PRACTICE_QUESTIONS = 5;
+
+/** The default size of a chapter practice set. */
+const DEFAULT_CHAPTER_PRACTICE_QUESTIONS = 10;
+
+/**
+ * The client picks how many questions it wants, so the number is clamped to a
+ * sane range: a request for 100000 questions would otherwise load the whole
+ * question bank into a practice set.
+ */
+export function clampQuestionCount(value: unknown, fallback: number): number {
+  if (value === null || value === undefined || value === '') return fallback;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(Math.trunc(parsed), PRACTICE_QUESTION_MIN), PRACTICE_QUESTION_LIMIT);
+}
+
+/**
+ * Pushes every heading of a markdown body down by `levels`, so a lesson that
+ * uses `##` inside the chapter summary nests under the section it belongs to
+ * instead of breaking out of it.
+ */
+function demoteHeadings(markdown: string, levels = 1): string {
+  return markdown.replace(/^(#{1,5})(\s+)/gm, (_match, hashes: string, space: string) => {
+    const next = '#'.repeat(Math.min(6, hashes.length + levels));
+    return `${next}${space}`;
+  });
+}
+
+
+const LEADERBOARD_PERIOD_DAYS: Record<string, number | null> = {
+  weekly: 7,
+  monthly: 30,
+  all: null,
+  alltime: null,
+  'all-time': null,
+};
+
+/** Start of the current calendar week (Monday, local time) - "This Week" means this week. */
+function startOfCurrentWeek(reference = new Date()): Date {
+  const start = new Date(reference);
+  start.setHours(0, 0, 0, 0);
+  const day = start.getDay();
+  const diff = day === 0 ? 6 : day - 1; // Monday-based
+  start.setDate(start.getDate() - diff);
+  return start;
+}
 
 @Injectable()
 export class LearningService {
@@ -320,16 +386,15 @@ export class LearningService {
     }
 
     const conceptIds = chapter.topics.flatMap((t) => t.concepts.map((c) => c.id));
-    const allContent = await this.prisma.contentItem.findMany({
-      where: this.consumerWhere(user, { chapterId }),
-      select: { id: true, conceptId: true },
-    });
 
-    const chapterContent = await this.prisma.contentItem.findMany({
-      where: this.consumerWhere(user, { chapterId, conceptId: null }),
+    // Every content item of the chapter: the chapter-scoped ones and the ones
+    // that hang off its concepts.
+    const items = await this.prisma.contentItem.findMany({
+      where: this.consumerWhere(user, { chapterId }),
       orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
       select: {
         id: true,
+        conceptId: true,
         type: true,
         title: true,
         description: true,
@@ -338,19 +403,27 @@ export class LearningService {
         thumbnailUrl: true,
         durationSeconds: true,
         order: true,
+        segments: true,
       },
     });
 
+    const chapterContent = items.filter((item) => item.conceptId === null);
+
     const contentByConcept = new Map<string, number>();
+    const itemsByConcept = new Map<string, typeof items>();
+    const videoConceptIds = new Set<string>();
     const allContentIds: string[] = [];
-    for (const item of allContent) {
+    for (const item of items) {
       allContentIds.push(item.id);
-      if (item.conceptId) {
-        contentByConcept.set(
-          item.conceptId,
-          (contentByConcept.get(item.conceptId) ?? 0) + 1,
-        );
-      }
+      if (!item.conceptId) continue;
+      contentByConcept.set(
+        item.conceptId,
+        (contentByConcept.get(item.conceptId) ?? 0) + 1,
+      );
+      const bucket = itemsByConcept.get(item.conceptId);
+      if (bucket) bucket.push(item);
+      else itemsByConcept.set(item.conceptId, [item]);
+      if (canonicalContentType(item.type) === 'VIDEO') videoConceptIds.add(item.conceptId);
     }
 
     const student = await this.identity.resolveForUser(user);
@@ -369,7 +442,7 @@ export class LearningService {
           select: { contentId: true },
         });
         const completedSet = new Set(completed.map((c) => c.contentId));
-        for (const item of allContent) {
+        for (const item of items) {
           if (item.conceptId && completedSet.has(item.id)) {
             completedByConcept.set(
               item.conceptId,
@@ -390,6 +463,51 @@ export class LearningService {
       }
     }
 
+    const concepts = chapter.topics.flatMap((t) =>
+      t.concepts.map((c) => {
+        const total = contentByConcept.get(c.id) ?? 0;
+        const completed = completedByConcept.get(c.id) ?? 0;
+        const status = total > 0 && completed >= total ? 'COMPLETED' : completed > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
+        return {
+          id: c.id,
+          name: c.name,
+          order: c.order,
+          description: c.description,
+          topicId: t.id,
+          topicName: t.name,
+          totalContent: total,
+          completedContent: completed,
+          mastery: masteryMap.get(c.id) ?? null,
+          hasVideo: videoConceptIds.has(c.id),
+          status,
+        };
+      }),
+    );
+
+    const videos = items
+      .filter((item) => canonicalContentType(item.type) === 'VIDEO')
+      .map((item) => {
+        const videoId = item.videoId ?? parseYouTubeVideoId(item.url ?? '');
+        return {
+          contentId: item.id,
+          conceptId: item.conceptId,
+          title: item.title,
+          videoId,
+          url: item.url ?? (videoId ? `https://www.youtube.com/embed/${videoId}` : null),
+          thumbnailUrl: item.thumbnailUrl ?? (videoId ? youtubeThumbnailUrl(videoId) : null),
+          durationSeconds: item.durationSeconds,
+          segments: normalizeChapterSegments(item.segments),
+        };
+      });
+
+    const questionCount = conceptIds.length
+      ? await this.prisma.question.count({
+          where: { conceptId: { in: conceptIds }, status: 'APPROVED' },
+        })
+      : 0;
+
+    const mastered = concepts.filter((c) => c.mastery && MASTERED_LEVELS.has(c.mastery.level)).length;
+
     return {
       id: chapter.id,
       name: chapter.name,
@@ -397,27 +515,87 @@ export class LearningService {
       grade: chapter.grade,
       order: chapter.order,
       description: chapter.description,
-      subject: chapter.subject,
+      // The subject NAME, so a client can print it directly ("Science - Class 10").
+      // The structured subject stays available under `subjectInfo`.
+      subject: chapter.subject.name,
+      subjectInfo: chapter.subject,
+      subjectName: chapter.subject.name,
+      summary: this.buildChapterSummary(chapter, items, concepts, itemsByConcept, masteryMap),
+      pdfUrl: chapterPdfPath(chapter.code) ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf` : null,
       chapterContent,
+      concepts,
+      videos,
+      progress: {
+        concepts: concepts.length,
+        mastered,
+        videos: videos.length,
+        percent: concepts.length > 0 ? Math.round((mastered / concepts.length) * 100) : 0,
+      },
+      practice: {
+        questionCount,
+        available: questionCount > 0,
+      },
       topics: chapter.topics.map((t) => ({
         id: t.id,
         name: t.name,
         order: t.order,
         concepts: t.concepts.map((c) => {
-          const total = contentByConcept.get(c.id) ?? 0;
-          const completed = completedByConcept.get(c.id) ?? 0;
+          const concept = concepts.find((entry) => entry.id === c.id);
           return {
             id: c.id,
             name: c.name,
             order: c.order,
             description: c.description,
-            totalContent: total,
-            completedContent: completed,
+            totalContent: concept?.totalContent ?? 0,
+            completedContent: concept?.completedContent ?? 0,
             mastery: masteryMap.get(c.id) ?? null,
           };
         }),
       })),
     };
+  }
+
+  /**
+   * The chapter notes: the chapter description plus the markdown of every NOTES
+   * lesson of the chapter and of its concepts (one section per concept, with
+   * the student's mastery on it). `null` when the chapter has no notes at all.
+   */
+  private buildChapterSummary(
+    chapter: { description: string | null },
+    chapterItems: Array<{ type: string; title: string; description: string | null; conceptId: string | null }>,
+    concepts: Array<{ id: string; name: string }>,
+    itemsByConcept: Map<string, Array<{ type: string; title: string; description: string | null }>>,
+    masteryMap: Map<string, { score: number; level: string; attempts: number; correct: number }>,
+  ): string | null {
+    const blocks: string[] = [];
+
+    if (chapter.description?.trim()) blocks.push(chapter.description.trim());
+
+    const chapterNotes = chapterItems.filter(
+      (item) => !item.conceptId && canonicalContentType(item.type) === 'NOTES' && item.description?.trim(),
+    );
+    for (const note of chapterNotes) {
+      blocks.push(`## ${note.title}\n\n${demoteHeadings(note.description!.trim())}`);
+    }
+
+    for (const concept of concepts) {
+      const items = itemsByConcept.get(concept.id) ?? [];
+      const notes = items.filter(
+        (item) => canonicalContentType(item.type) === 'NOTES' && item.description?.trim(),
+      );
+      if (notes.length === 0) continue;
+
+      const mastery = masteryMap.get(concept.id);
+      const level = mastery ? mastery.level.replace(/_/g, ' ').toLowerCase() : 'not started';
+      const score = mastery ? ` (${mastery.score}%)` : '';
+      blocks.push(`## ${concept.name} — mastery: ${level}${score}`);
+      for (const note of notes) {
+        blocks.push(`### ${note.title}\n\n${demoteHeadings(note.description!.trim(), 2)}`);
+      }
+    }
+
+    if (blocks.length === 0) return null;
+    return blocks.join('\n\n');
   }
 
 async getConceptDetail(user: RequestUser, conceptId: string) {
@@ -453,7 +631,9 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
         durationSeconds: true,
         thumbnailUrl: true,
         url: true,
+        videoId: true,
         language: true,
+        segments: true,
       },
     });
 
@@ -519,6 +699,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       chapter: concept.topic.chapter,
       content: contentItems.map((item) => ({
         ...item,
+        segments: normalizeChapterSegments(item.segments),
         progress: progressMap.get(item.id) ?? { state: 'NOT_STARTED', secondsWatched: null, completedAt: null },
       })),
       mastery,
@@ -891,10 +1072,11 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     const concept = await this.prisma.concept.findUnique({ where: { id: conceptId } });
     if (!concept) throw new NotFoundException('Concept not found');
 
+    const take = clampQuestionCount(questionCount, DEFAULT_PRACTICE_QUESTIONS);
     const questions = await this.prisma.question.findMany({
       where: { conceptId, status: 'APPROVED' },
       orderBy: { createdAt: 'desc' },
-      take: questionCount,
+      take,
       select: {
         id: true,
         text: true,
@@ -932,6 +1114,106 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
         options: q.options.map((o) => ({ id: o.id, text: o.text, order: o.order })),
       })),
     };
+  }
+
+  /**
+   * A practice set that covers every concept of a chapter (the "practice the
+   * whole chapter" button of the chapter hub).
+   */
+  async startChapterPractice(user: RequestUser, chapterId: string, questionCount: number) {
+    this.tenant.requireInstitution(user);
+
+    const student = await this.identity.resolveForUser(user);
+    if (!student) throw new ForbiddenException('Only students can practice');
+
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      include: { topics: { select: { concepts: { select: { id: true } } } } },
+    });
+    if (!chapter) throw new NotFoundException('Chapter not found');
+
+    // A student may only practise their own grade.
+    if (student.grade && chapter.grade !== student.grade) {
+      throw new ForbiddenException('You can only access content for your assigned grade');
+    }
+
+    const conceptIds = chapter.topics.flatMap((t) => t.concepts.map((c) => c.id));
+    if (conceptIds.length === 0) {
+      throw new BadRequestException('This chapter has no concepts to practise yet');
+    }
+
+    const take = clampQuestionCount(questionCount, DEFAULT_CHAPTER_PRACTICE_QUESTIONS);
+    const questions = await this.prisma.question.findMany({
+      where: { conceptId: { in: conceptIds }, status: 'APPROVED' },
+      orderBy: { createdAt: 'desc' },
+      take,
+      select: {
+        id: true,
+        conceptId: true,
+        text: true,
+        type: true,
+        marks: true,
+        options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
+      },
+    });
+
+    if (questions.length === 0) {
+      throw new BadRequestException('No practice questions available for this chapter');
+    }
+
+    const shuffled = [...questions].sort(() => Math.random() - 0.5);
+
+    const practiceSet = await this.prisma.practiceSet.create({
+      data: {
+        studentId: student.id,
+        conceptId: null,
+        conceptIds,
+        questionIds: shuffled.map((q) => q.id),
+        status: 'IN_PROGRESS',
+        total: shuffled.length,
+        startedAt: new Date(),
+      },
+    });
+
+    return {
+      practiceId: practiceSet.id,
+      chapterId: chapter.id,
+      questionCount: shuffled.length,
+      questions: shuffled.map((q) => ({
+        id: q.id,
+        conceptId: q.conceptId,
+        text: q.text,
+        type: q.type,
+        marks: q.marks ?? 1,
+        options: q.options.map((o) => ({ id: o.id, text: o.text, order: o.order })),
+      })),
+    };
+  }
+
+  /**
+   * The NCERT PDF of a chapter, when the book is on disk. `null` means the
+   * client must show its "not available" state.
+   */
+  async getChapterPdf(user: RequestUser, chapterId: string): Promise<{ path: string; fileName: string } | null> {
+    this.requireBrowseContext(user);
+
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      select: { id: true, name: true, code: true, grade: true },
+    });
+    if (!chapter) throw new NotFoundException('Chapter not found');
+
+    // The same grade check the other learning routes use for students.
+    if (user.role === 'STUDENT') {
+      const student = await this.identity.resolveForUser(user);
+      if (student?.grade && student.grade !== chapter.grade) {
+        throw new ForbiddenException('You can only access content for your assigned grade');
+      }
+    }
+
+    const path = chapterPdfPath(chapter.code);
+    if (!path) return null;
+    return { path, fileName: chapterPdfFileName(chapter.name, chapter.code) };
   }
 
   async getPractice(user: RequestUser, practiceId: string) {
@@ -1007,10 +1289,14 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     let isCorrect: boolean | null = null;
     let correctAnswer: string | undefined;
 
+    // The graded answer is the option text; a client that sends the option id is
+    // resolved here so a correct answer can never be marked wrong.
+    const gradedAnswer = normaliseAnswerToOptionText(question, answer);
+
     if (this.mastery.isObjectiveType(question.type)) {
       const graded = this.mastery.gradeAssessmentQuestion(
         { id: question.id, type: question.type, marks: question.marks ?? 1, answer: question.answer, options: question.options },
-        answer,
+        gradedAnswer,
       );
       isCorrect = graded?.correct ?? false;
       correctAnswer = question.answer;
@@ -1018,8 +1304,8 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     await this.prisma.practiceAnswer.upsert({
       where: { practiceSetId_questionId: { practiceSetId: practiceId, questionId } },
-      create: { practiceSetId: practiceId, questionId, answer, isCorrect },
-      update: { answer, isCorrect },
+      create: { practiceSetId: practiceId, questionId, answer: gradedAnswer, isCorrect },
+      update: { answer: gradedAnswer, isCorrect },
     });
 
     return { correct: isCorrect, correctAnswer };
@@ -1039,9 +1325,36 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     if (practiceSet.studentId !== student.id) throw new ForbiddenException('Not your practice set');
     if (practiceSet.status !== 'IN_PROGRESS') throw new ConflictException('Practice set is already completed');
 
-    const totalQuestions = (practiceSet.questionIds as string[]).length;
-    const correctAnswers = practiceSet.answers.filter((a) => a.isCorrect === true).length;
-    const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+    const questionIds = (practiceSet.questionIds as string[]) ?? [];
+    const totalQuestions = questionIds.length;
+
+    // Which questions can be graded at all?  A written answer is never
+    // auto-graded, so it is neither right nor wrong: it is not in the score and
+    // not in the mastery evidence (the assessment path works the same way).
+    const questionRows = await this.prisma.question.findMany({
+      where: { id: { in: questionIds } },
+      select: { id: true, conceptId: true, type: true },
+    });
+    const gradableIds = new Set(
+      questionRows.filter((q) => this.mastery.isObjectiveType(q.type)).map((q) => q.id),
+    );
+
+    // An answer counts as given when it is not empty.
+    const answeredIds = new Set(
+      practiceSet.answers
+        .filter((a) => typeof a.answer === 'string' && a.answer.trim().length > 0)
+        .map((a) => a.questionId),
+    );
+    const gradedIds = new Set([...answeredIds].filter((id) => gradableIds.has(id)));
+    const correctIds = new Set(
+      practiceSet.answers.filter((a) => a.isCorrect === true).map((a) => a.questionId),
+    );
+
+    const gradedQuestions = gradedIds.size;
+    const answeredQuestions = answeredIds.size;
+    const pendingGrading = [...answeredIds].filter((id) => !gradableIds.has(id)).length;
+    const correctAnswers = [...gradedIds].filter((id) => correctIds.has(id)).length;
+    const score = gradedQuestions > 0 ? Math.round((correctAnswers / gradedQuestions) * 100) : 0;
 
     await this.prisma.practiceSet.update({
       where: { id: practiceId },
@@ -1054,21 +1367,77 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
 
     let masteryUpdate = null;
+    let masteryUpdates: Array<{ conceptId: string; level: string; score: number }> = [];
     if (practiceSet.conceptId) {
       const conceptId = practiceSet.conceptId;
       const conceptEvidence = [{
         conceptId,
-        questions: totalQuestions,
+        questions: gradedQuestions,
         correct: correctAnswers,
       }];
 
-      const results = await this.mastery.applyAttemptEvidence(student.id, practiceId, conceptEvidence);
+      const results = await this.mastery.applyAttemptEvidence(student.id, { practiceSetId: practiceId }, conceptEvidence);
       if (results.length > 0) {
         masteryUpdate = { level: results[0].level, score: results[0].score };
+        masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.score }));
+      }
+    } else {
+      // A chapter practice spans several concepts, so the evidence is split per
+      // concept - otherwise one chapter run would be credited to no concept.
+      const conceptIds = Array.isArray(practiceSet.conceptIds)
+        ? (practiceSet.conceptIds as string[])
+        : [];
+      if (conceptIds.length > 0) {
+        const perConcept = new Map<string, { questions: number; correct: number }>();
+        for (const conceptId of conceptIds) {
+          perConcept.set(conceptId, { questions: 0, correct: 0 });
+        }
+        for (const question of questionRows) {
+          if (!question.conceptId) continue;
+          const bucket = perConcept.get(question.conceptId);
+          if (!bucket) continue;
+          // Only the graded, answered questions are evidence.
+          if (!gradedIds.has(question.id)) continue;
+          bucket.questions += 1;
+          if (correctIds.has(question.id)) bucket.correct += 1;
+        }
+        const conceptEvidence = [...perConcept.entries()]
+          .filter(([, value]) => value.questions > 0)
+          .map(([conceptId, value]) => ({ conceptId, questions: value.questions, correct: value.correct }));
+
+        const results = await this.mastery.applyAttemptEvidence(
+          student.id,
+          { practiceSetId: practiceId },
+          conceptEvidence,
+        );
+        masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.score }));
+        const weakest = [...masteryUpdates].sort((a, b) => a.score - b.score)[0];
+        if (weakest) masteryUpdate = { level: weakest.level, score: weakest.score };
       }
     }
 
-    return { score, totalQuestions, correctAnswers, masteryUpdate };
+    // Practice is the main learning activity, so it earns XP like an assessment
+    // does. The XP ledger stays the single source of truth for the leaderboard.
+    // The completion bonus is only paid when the student actually answered
+    // something - otherwise a set could be started and submitted over and over
+    // to farm the bonus (and the streak) without doing any work.
+    const xpEarned =
+      correctAnswers * XP_PER_PRACTICE_CORRECT + (answeredQuestions > 0 ? XP_PRACTICE_COMPLETION : 0);
+    await awardStudentXp(this.prisma, student.id, xpEarned, 'PRACTICE_COMPLETED');
+
+    return {
+      score,
+      totalQuestions,
+      correctAnswers,
+      masteryUpdate,
+      masteryUpdates,
+      xpEarned,
+      // How the score was reached: only graded, answered questions count.
+      gradedQuestions,
+      answeredQuestions,
+      // Written answers that are waiting for a teacher to look at them.
+      pendingGrading,
+    };
   }
 
   async getGamificationProfile(user: RequestUser) {
@@ -1138,9 +1507,60 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     };
   }
 
-  async getLeaderboard(user: RequestUser, period: string) {
+  /** Groups the caller may rank within: their class (student), their classes (teacher),
+   *  every class (admin). Leaderboards that compare you with peers you recognise are the
+   *  ones that stay motivating; a single global board for everyone is much weaker. */
+  private async leaderboardScopes(user: RequestUser, institutionFilter: Record<string, unknown>) {
+    if (user.role === 'STUDENT') {
+      const memberships = await this.prisma.groupMembership.findMany({
+        where: { student: { userId: user.sub }, leftAt: null },
+        select: { groupId: true },
+      });
+      const ids = [...new Set(memberships.map((m) => m.groupId))];
+      if (!ids.length) return [];
+      return this.prisma.group.findMany({
+        where: { id: { in: ids }, ...institutionFilter },
+        select: { id: true, name: true, grade: true },
+        orderBy: { name: 'asc' },
+      });
+    }
+    if (user.role === 'TEACHER') {
+      const teacherGroups = await this.prisma.teacherGroup.findMany({
+        where: { teacher: { userId: user.sub } },
+        select: { groupId: true },
+      });
+      const ids = [...new Set(teacherGroups.map((t) => t.groupId))];
+      if (!ids.length) return [];
+      return this.prisma.group.findMany({
+        where: { id: { in: ids }, ...institutionFilter },
+        select: { id: true, name: true, grade: true },
+        orderBy: { name: 'asc' },
+      });
+    }
+    return this.prisma.group.findMany({
+      where: { ...institutionFilter, status: 'ACTIVE' },
+      select: { id: true, name: true, grade: true },
+      orderBy: [{ grade: 'asc' }, { name: 'asc' }],
+    });
+  }
+
+  async getLeaderboard(user: RequestUser, period: string, groupId?: string) {
     const institutionId = this.tenant.assertInstitutionAccess(user);
     const institutionFilter = institutionId ? { institutionId } : {};
+
+    const scopes = await this.leaderboardScopes(user, institutionFilter);
+
+    let scopedStudentIds: string[] | null = null;
+    if (groupId) {
+      if (!scopes.some((g) => g.id === groupId)) {
+        throw new ForbiddenException('You cannot view that class leaderboard');
+      }
+      const memberships = await this.prisma.groupMembership.findMany({
+        where: { groupId, leftAt: null },
+        select: { studentId: true },
+      });
+      scopedStudentIds = memberships.map((m) => m.studentId);
+    }
 
     const members = await this.prisma.institutionMember.findMany({
       where: { ...institutionFilter, role: 'STUDENT', status: 'ACTIVE' },
@@ -1149,7 +1569,11 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     const userIds = members.map((m) => m.userId);
 
     const students = await this.prisma.student.findMany({
-      where: { userId: { in: userIds }, ...institutionFilter },
+      where: {
+        userId: { in: userIds },
+        ...institutionFilter,
+        ...(scopedStudentIds ? { id: { in: scopedStudentIds } } : {}),
+      },
       select: { id: true, userId: true, name: true },
     });
 
@@ -1160,25 +1584,65 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
 
     const profileMap = new Map(profiles.map((p) => [p.studentId, p]));
+
+    // A window is read from the XP ledger, the lifetime from the profile
+    // counter: the counter is the lifetime, the ledger is what happened inside
+    // the window.
+    const periodKey = period.toLowerCase();
+    const windowDays = periodKey in LEADERBOARD_PERIOD_DAYS ? LEADERBOARD_PERIOD_DAYS[periodKey] : 7;
+    // "This week" must mean the calendar week, not a rolling 7x24h window - otherwise
+    // Monday's XP counts into last week and the label lies.
+    const from = windowDays
+      ? periodKey === 'weekly'
+        ? startOfCurrentWeek()
+        : new Date(Date.now() - windowDays * 86400000)
+      : null;
+
+    // The window is filtered in the database: the ledger grows by one row per
+    // activity per student, so loading every row on every request does not
+    // scale.
+    const windowXp = new Map<string, number>();
+    if (from) {
+      const rows = await this.prisma.xpEvent.groupBy({
+        by: ['studentId'],
+        where: { studentId: { in: studentIds }, createdAt: { gte: from } },
+        _sum: { xp: true },
+      });
+      for (const row of rows) windowXp.set(row.studentId, row._sum.xp ?? 0);
+    }
+
     const entries = students
       .map((s) => {
         const p = profileMap.get(s.id);
+        // The lifetime counter is the lifetime.
+        const lifetime = p?.xp ?? 0;
+        // A window is what the ledger says. A profile that predates the ledger
+        // has no events in the window, so it contributes 0 there - never its
+        // lifetime XP, which would be a lie ("This Week" is not "All time").
+        const xp = from ? (windowXp.get(s.id) ?? 0) : lifetime;
         return {
           userId: s.userId,
           name: s.name,
-          xp: p?.xp ?? 0,
-          level: Math.floor((p?.xp ?? 0) / 500) + 1,
+          xp,
+          totalXp: lifetime,
+          level: Math.floor(lifetime / 500) + 1,
           streakDays: p?.streakDays ?? 0,
         };
       })
-      .sort((a, b) => b.xp - a.xp)
+      .sort((a, b) => b.xp - a.xp || b.totalXp - a.totalXp)
       .slice(0, 20)
       .map((e, i) => ({ ...e, rank: i + 1 }));
 
     const myEntry = entries.find((e) => e.userId === user.sub);
     const myRank = myEntry?.rank ?? 0;
 
-    return { entries, myRank, period };
+    return {
+      entries,
+      myRank,
+      period,
+      groupId: groupId ?? null,
+      groups: scopes.map((g) => ({ id: g.id, name: g.name, grade: g.grade })),
+    };
   }
 
   async getAchievements(user: RequestUser) {

@@ -174,7 +174,7 @@ const AR_SEED: ArSeedDefinition[] = [
     title: 'Atom - Subatomic Structure',
     grade: '8',
     subject: 'Science',
-    chapterName: 'Matter and its Properties',
+    chapterName: 'The Invisible Living World: Beyond Our Naked Eye',
     conceptName: 'Subatomic Particles',
     description: 'Explore a simplified atomic model with a nucleus and electron orbits to visualise subatomic particles.',
     learningObjective: 'Identify the nucleus and electron orbits within a simplified atomic model.',

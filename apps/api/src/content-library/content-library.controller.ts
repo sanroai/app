@@ -7,7 +7,7 @@ import { Roles } from '../common/decorators/auth.decorators';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { RequestUser } from '../common/types/auth-context';
 
-const ContentTypes = ['VIDEO', 'NOTES', 'PDF', 'QUIZ', 'MODEL_3D', 'AR', 'GAME', 'PRACTICE_SET', 'ARTICLE', 'IMAGE', 'WORKSHEET', 'REVISION', 'FLASHCARDS', 'INTERACTIVE', 'EXAMPLE', 'READING', 'OTHER'] as const;
+const ContentTypes = ['VIDEO', 'NOTES', 'WORKSHEET', 'INTERACTIVE', 'EXAMPLE', 'OTHER'] as const;
 const ContentStatuses = ['DRAFT', 'REVIEW', 'APPROVED', 'PUBLISHED', 'ARCHIVED'] as const;
 
 const ContentQuerySchema = z.object({

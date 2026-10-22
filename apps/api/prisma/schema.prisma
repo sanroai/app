@@ -645,6 +645,7 @@ model Student {
   practiceSets PracticeSet[]
   contentProgress ContentProgress[]
   gamification GamificationProfile?
+  xpEvents     XpEvent[]
   achievements StudentAchievement[]
   assessmentAssignments AssessmentAssignment[]
   flashcardRatings FlashcardRating[]
@@ -806,6 +807,8 @@ model ContentItem {
   title           String
   description     String?
   durationSeconds Int?
+  /// Chapter markers of a video lesson: [{ "title": "Total Surface Area", "startSeconds": 2558 }]
+  segments       Json?
   thumbnailUrl    String?
   url             String?
   order           Int           @default(0)
@@ -1243,6 +1246,7 @@ model DiagnosticResult {
   studentId   String      @db.Uuid
   conceptId   String      @db.Uuid
   attemptId   String?     @db.Uuid
+  practiceSetId String?   @db.Uuid
   score       Int
   attempts    Int
   correct     Int
@@ -1253,10 +1257,12 @@ model DiagnosticResult {
   student Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   concept Concept          @relation(fields: [conceptId], references: [id], onDelete: Cascade)
   attempt AssessmentAttempt? @relation(fields: [attemptId], references: [id])
+  practiceSet PracticeSet?  @relation(fields: [practiceSetId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([conceptId, level])
   @@index([attemptId])
+  @@index([practiceSetId])
 }
 
 model RemediationPlan {
@@ -1309,6 +1315,7 @@ model PracticeSet {
   student Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
   concept Concept?          @relation(fields: [conceptId], references: [id])
   answers PracticeAnswer[]
+  diagnosticResults DiagnosticResult[]
 
   @@index([studentId])
   @@index([conceptId])
@@ -1363,6 +1370,18 @@ model GamificationProfile {
   student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId])
+}
+
+model XpEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  studentId String   @db.Uuid
+  xp        Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
 }
 
 model StudentAchievement {

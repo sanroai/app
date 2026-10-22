@@ -218,7 +218,6 @@ describe('Learning path & student retest (e2e)', () => {
       });
       if (!stray || stray.institutionId === null) return;
       const teacherMembership = await prisma.institutionMember.findFirst({
-        where: { userId: { not: null } },
         select: { institutionId: true },
       });
       if (!teacherMembership || teacherMembership.institutionId === stray.institutionId) return;

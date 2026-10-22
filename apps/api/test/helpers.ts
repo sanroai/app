@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { AppModule } from '../src/app.module';
 
-export const QA_PASSWORD = 'Sanro@123';
+export { DEMO_PASSWORD as QA_PASSWORD } from '../src/common/demo-password';
 export const BASE = '/api/v1';
 
 export async function startTestApp(): Promise<INestApplication> {

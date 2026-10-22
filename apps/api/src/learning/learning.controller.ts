@@ -1,11 +1,13 @@
-import { Controller, Get, NotFoundException, Param, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Post, Body, Query, UseGuards, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { LearningService } from './learning.service';
+import { LearningService, clampQuestionCount } from './learning.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
 import { ParentContentGuard, PARENT_RESTRICTED_KEY } from '../common/guards/parent-content.guard';
 import { SetMetadata } from '@nestjs/common';
+import { Response } from 'express';
+import { readFileSync } from 'node:fs';
 
 @ApiTags('learning')
 @Controller('learning')
@@ -44,6 +46,32 @@ export class LearningController {
     return this.service.getChapterDetail(user, chapterId);
   }
 
+  /**
+   * The NCERT PDF of a chapter. 404 when the book is not on disk, so the
+   * client can show a graceful "not available" state.
+   */
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Get('chapters/:chapterId/pdf')
+  async chapterPdf(
+    @CurrentUser() user: RequestUser,
+    @Param('chapterId') chapterId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    this.uuidOrBadRequest(chapterId);
+    const pdf = await this.service.getChapterPdf(user, chapterId);
+    if (!pdf) {
+      throw new NotFoundException('Chapter PDF not available');
+    }
+    const data = readFileSync(pdf.path);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Length': String(data.length),
+      'Content-Disposition': `inline; filename="${pdf.fileName}"`,
+      'Cache-Control': 'private, max-age=3600',
+    });
+    res.end(data);
+  }
+
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('concepts/:conceptId')
   conceptDetail(@CurrentUser() user: RequestUser, @Param('conceptId') conceptId: string) {
@@ -74,9 +102,24 @@ export class LearningController {
   @Post('practice/start')
   startPractice(
     @CurrentUser() user: RequestUser,
-    @Body() body: { conceptId: string; questionCount?: number },
+    @Body() body: { conceptId?: string; chapterId?: string; questionCount?: number },
   ) {
-    return this.service.startPractice(user, body.conceptId, body.questionCount ?? 5);
+    if (body?.chapterId) {
+      this.uuidOrBadRequest(body.chapterId);
+      return this.service.startChapterPractice(
+        user,
+        body.chapterId,
+        clampQuestionCount(body.questionCount, 10),
+      );
+    }
+    if (!body?.conceptId) {
+      throw new BadRequestException('conceptId or chapterId is required');
+    }
+    return this.service.startPractice(
+      user,
+      body.conceptId,
+      clampQuestionCount(body.questionCount, 5),
+    );
   }
 
   @Roles('STUDENT')
@@ -124,8 +167,12 @@ export class LearningController {
   }
 
   @Get('gamification/leaderboard')
-  leaderboard(@CurrentUser() user: RequestUser, @Query('period') period?: string) {
-    return this.service.getLeaderboard(user, period ?? 'weekly');
+  leaderboard(
+    @CurrentUser() user: RequestUser,
+    @Query('period') period?: string,
+    @Query('groupId') groupId?: string,
+  ) {
+    return this.service.getLeaderboard(user, period ?? 'weekly', groupId);
   }
 
   @Get('gamification/achievements')

@@ -3,6 +3,11 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { ContentScopeService, STUDENT_VISIBLE_STATUSES } from '../common/content/content-scope.service';
+import {
+  canonicalContentType,
+  canonicalTypeMembers,
+  mergeCanonicalCounts,
+} from '../common/content/content-types';
 import { ContentStatus, Visibility, Prisma, ContentType } from '@prisma/client';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 
@@ -89,7 +94,7 @@ export class ContentService {
     } = {},
   ) {
     const ands: Prisma.ContentItemWhereInput[] = [this.visibleWhere(user)];
-    if (query.type) ands.push({ type: query.type as ContentType });
+    if (query.type) ands.push({ type: { in: canonicalTypeMembers(query.type) } });
     if (query.subjectId) ands.push({ subjectId: query.subjectId });
     if (query.chapterId) ands.push({ chapterId: query.chapterId });
     if (query.conceptId) ands.push({ conceptId: query.conceptId });
@@ -162,7 +167,7 @@ export class ContentService {
       pageSize,
       pageCount: Math.max(Math.ceil(total / pageSize), 1),
       facets: {
-        byType: Object.fromEntries(byType.map((t) => [t.type, t._count._all])),
+        byType: mergeCanonicalCounts(byType.map((t) => [t.type, t._count._all] as [string, number])),
         byChapter: byChapter
           .filter((c) => c.chapterId)
           .map((c) => ({
@@ -180,7 +185,7 @@ export class ContentService {
 
   async list(user: RequestUser, query: Record<string, string | undefined> = {}) {
     const ands: Prisma.ContentItemWhereInput[] = [this.visibleWhere(user)];
-    if (query.type) ands.push({ type: query.type as ContentType });
+    if (query.type) ands.push({ type: { in: canonicalTypeMembers(query.type) } });
     if (query.subjectId) ands.push({ subjectId: query.subjectId });
     if (query.chapterId) ands.push({ chapterId: query.chapterId });
     if (query.conceptId) ands.push({ conceptId: query.conceptId });
@@ -572,7 +577,8 @@ export class ContentService {
       contentCounts
         .filter((c) => c.chapterId === ch.id && c.status !== 'DRAFT' && c.status !== 'ARCHIVED')
         .forEach((c) => {
-          contentByType[c.type] = (contentByType[c.type] || 0) + c._count;
+          const key = canonicalContentType(c.type);
+          contentByType[key] = (contentByType[key] || 0) + c._count;
         });
 
       return {
@@ -636,7 +642,7 @@ export class ContentService {
     return {
       total,
       byStatus: Object.fromEntries(byStatus.map((s) => [s.status, s._count])),
-      byType: Object.fromEntries(byType.map((t) => [t.type, t._count])),
+      byType: mergeCanonicalCounts(byType.map((t) => [t.type, t._count] as [string, number])),
       recentlyUpdated,
       qualityIssues: {
         withoutDescription,

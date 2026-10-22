@@ -12,7 +12,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
-import { MasteryService } from '../diagnosis/mastery.service';
+import { MasteryService, normaliseAnswerToOptionText } from '../diagnosis/mastery.service';
+import { awardStudentXp } from '../common/xp';
 import { RemediationService } from '../remediation/remediation.service';
 import { snapshotQuestions } from './assessment.snapshot';
 
@@ -446,9 +447,15 @@ export class AssessmentsService {
         continue;
       }
 
+      // The graded answer is the option text; resolve an option id sent by a client
+      // so a correct answer can never be marked wrong.
+      const gradedAnswer = normaliseAnswerToOptionText(
+        { options: (aq.options ?? []) as Array<{ id: string; text: string }> },
+        studentAns.answer,
+      );
       const graded = this.mastery.gradeAssessmentQuestion(
         { id: aq.id, type: aq.type, marks: aq.marks, answer: aq.answer, options: aq.options },
-        studentAns.answer,
+        gradedAnswer,
       );
       const isCorrect = graded?.correct ?? false;
       const marksAwarded = isCorrect ? aq.marks : 0;
@@ -470,7 +477,7 @@ export class AssessmentsService {
     }
 
     const maxScore = attempt.assessment.totalMarks;
-    const diagnosis = await this.mastery.applyAttemptEvidence(student.id, attempt.id, [...conceptEvidence.values()]);
+    const diagnosis = await this.mastery.applyAttemptEvidence(student.id, { attemptId: attempt.id }, [...conceptEvidence.values()]);
 
     const weak = diagnosis.filter((d) => d.weak).map((d) => ({ conceptId: d.conceptId }));
     if (weak.length > 0) {
@@ -493,22 +500,9 @@ export class AssessmentsService {
       },
     });
 
-    const profile = await this.prisma.gamificationProfile.upsert({
-      where: { studentId: student.id },
-      create: { studentId: student.id, xp: 0, streakDays: 1, lastActiveAt: new Date() },
-      update: {},
-    });
-    const isConsecutiveDay =
-      profile.lastActiveAt !== null &&
-      new Date(profile.lastActiveAt.getTime() + 86400000).toDateString() === new Date().toDateString();
-    await this.prisma.gamificationProfile.update({
-      where: { studentId: student.id },
-      data: {
-        xp: { increment: score },
-        streakDays: isConsecutiveDay ? { increment: 1 } : 1,
-        lastActiveAt: new Date(),
-      },
-    });
+    // one implementation of the XP + streak rules (the old inline copy reset the
+    // streak to 1 whenever a student did a second activity on the same day)
+    await awardStudentXp(this.prisma, student.id, score, 'ASSESSMENT_COMPLETED');
 
     if (student.userId) {
       await this.notifications.create({
@@ -560,7 +554,12 @@ export class AssessmentsService {
   async attemptDetail(user: RequestUser, attemptId: string) {
     const resolvedId = this.tenant.assertInstitutionAccess(user);
     const attemptWhere: Prisma.AssessmentAttemptWhereInput = { id: attemptId };
-    if (resolvedId) {
+    // Only staff may read another user's attempt. Students (and any non-staff
+    // role) are scoped to attempts whose Student row is linked to their own
+    // account — the previous `OR student.institutionId` clause let any
+    // same-tenant student read a classmate's attempt, name and roll number.
+    const isStaff = user.role === 'INSTITUTION_ADMIN' || user.role === 'TEACHER' || user.role === 'SUPER_ADMIN';
+    if (isStaff && resolvedId) {
       attemptWhere.OR = [{ student: { institutionId: resolvedId } }, { student: { userId: user.sub } }];
     } else {
       attemptWhere.student = { userId: user.sub };
@@ -670,7 +669,7 @@ export class AssessmentsService {
     });
 
     if (answerRow.question.conceptId && answerRow.answer) {
-      await this.mastery.applyAttemptEvidence(attempt.studentId, attempt.id, [
+      await this.mastery.applyAttemptEvidence(attempt.studentId, { attemptId: attempt.id }, [
         {
           conceptId: answerRow.question.conceptId,
           questions: 1,

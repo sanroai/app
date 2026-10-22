@@ -367,7 +367,7 @@ export class ContentPipelineService implements OnModuleInit {
     });
 
     const contentType =
-      kb.sourceType === 'YOUTUBE' || kb.sourceType === 'VIDEO' ? 'VIDEO' : kb.sourceType === 'PDF_BOOK' ? 'PDF' : 'NOTES';
+      kb.sourceType === 'YOUTUBE' || kb.sourceType === 'VIDEO' ? 'VIDEO' : 'NOTES';
 
     const item = await this.prisma.contentItem.create({
       data: {

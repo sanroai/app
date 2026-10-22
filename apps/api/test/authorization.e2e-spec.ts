@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { QA_PASSWORD } from './helpers';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
@@ -26,7 +27,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'parent@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'parent@sanroai.com', password: QA_PASSWORD });
       parentToken = res.body.accessToken;
     });
 
@@ -73,7 +74,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'student@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'student@sanroai.com', password: QA_PASSWORD });
       studentToken = res.body.accessToken;
     });
 
@@ -100,7 +101,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'student@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'student@sanroai.com', password: QA_PASSWORD });
       studentToken = res.body.accessToken;
     });
 
@@ -125,7 +126,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'admin@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'admin@sanroai.com', password: QA_PASSWORD });
       superAdminToken = res.body.accessToken;
     });
 
