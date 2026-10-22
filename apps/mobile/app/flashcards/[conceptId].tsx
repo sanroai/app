@@ -1,24 +1,58 @@
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { useConceptDetail } from '../../lib/hooks';
+import { useConceptDetail, type ConceptDetail } from '../../lib/hooks';
+import {
+  useRateFlashcard,
+  recalledPercent,
+  type FlashcardRating,
+  type RateFlashcardInput,
+} from '../../lib/parity-hooks';
+import { OfflineError } from '../../lib/api';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
-const RATINGS = [
-  { label: 'Again' as const, icon: 'sad-outline' as const, color: Colors.error },
-  { label: 'Hard' as const, icon: 'thumbs-down-outline' as const, color: Colors.warning },
-  { label: 'Good' as const, icon: 'sunny-outline' as const, color: Colors.success },
-  { label: 'Easy' as const, icon: 'flame' as const, color: Colors.info },
+type RatingLabel = 'Again' | 'Hard' | 'Good' | 'Easy';
+
+const RATINGS: Array<{
+  label: RatingLabel;
+  rating: FlashcardRating;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+}> = [
+  { label: 'Again', rating: 'AGAIN', icon: 'sad-outline', color: Colors.error },
+  { label: 'Hard', rating: 'HARD', icon: 'thumbs-down-outline', color: Colors.warning },
+  { label: 'Good', rating: 'GOOD', icon: 'sunny-outline', color: Colors.success },
+  { label: 'Easy', rating: 'EASY', icon: 'flame', color: Colors.info },
 ];
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'queued' | 'failed';
+
+interface SaveState {
+  status: SaveStatus;
+  failed: RateFlashcardInput[];
+  pending: number;
+}
+
+const INITIAL_SAVE: SaveState = { status: 'idle', failed: [], pending: 0 };
 
 export default function FlashcardsScreen() {
   const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
   const { data, isLoading } = useConceptDetail(conceptId);
+  const rateFlashcard = useRateFlashcard();
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [ratings, setRatings] = useState<Array<'Again' | 'Hard' | 'Good' | 'Easy'>>([]);
+  const [ratings, setRatings] = useState<FlashcardRating[]>([]);
   const [done, setDone] = useState(false);
+  const [save, setSave] = useState<SaveState>(INITIAL_SAVE);
+
+  useEffect(() => {
+    if (save.status !== 'saved') return;
+    const timer = setTimeout(() => {
+      setSave((prev) => (prev.status === 'saved' ? { ...prev, status: 'idle' } : prev));
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [save.status]);
 
   if (isLoading) {
     return (
@@ -48,9 +82,47 @@ export default function FlashcardsScreen() {
     return 'Think about the answer, then tap to reveal.';
   };
 
-  const rate = (r: 'Again' | 'Hard' | 'Good' | 'Easy') => {
-    const next = [...ratings, r];
-    setRatings(next);
+  /**
+   * The rating is written server-side (the same call the web makes), so the
+   * learner keeps the recall history between sessions. The card flips straight
+   * away - the network never blocks the learner - and a failed save is kept
+   * for an explicit retry instead of being dropped.
+   */
+  const postRating = async (input: RateFlashcardInput) => {
+    setSave((prev) => ({ ...prev, status: 'saving', pending: prev.pending + 1 }));
+    try {
+      await rateFlashcard.mutateAsync(input);
+      setSave((prev) => {
+        const pending = Math.max(0, prev.pending - 1);
+        const failed = prev.failed.filter((f) => f.questionId !== input.questionId);
+        const status: SaveStatus = failed.length > 0 ? 'failed' : pending > 0 ? 'saving' : 'saved';
+        return { pending, failed, status };
+      });
+    } catch (err: unknown) {
+      if (err instanceof OfflineError) {
+        // apiAuthed queued the rating - it syncs when the device is back online.
+        setSave((prev) => ({
+          ...prev,
+          pending: Math.max(0, prev.pending - 1),
+          status: prev.failed.length > 0 ? 'failed' : 'queued',
+        }));
+        return;
+      }
+      setSave((prev) => {
+        const pending = Math.max(0, prev.pending - 1);
+        const failed = prev.failed.some((f) => f.questionId === input.questionId)
+          ? prev.failed
+          : [...prev.failed, input];
+        return { pending, failed, status: 'failed' };
+      });
+    }
+  };
+
+  const rate = (choice: (typeof RATINGS)[number]) => {
+    const card = cards[index];
+    if (!card) return;
+    setRatings((prev) => [...prev, choice.rating]);
+    void postRating({ questionId: card.id, rating: choice.rating });
     if (index >= cards.length - 1) {
       setDone(true);
     } else {
@@ -59,9 +131,59 @@ export default function FlashcardsScreen() {
     }
   };
 
+  const retryFailed = () => {
+    const pending = save.failed;
+    pending.forEach((input) => {
+      void postRating(input);
+    });
+  };
+
+  const saveBanner = (() => {
+    if (save.status === 'idle') return null;
+    if (save.status === 'saving') {
+      return (
+        <View style={styles.saveRow}>
+          <ActivityIndicator size="small" color={Colors.primary} />
+          <Text style={styles.saveText}>Saving rating…</Text>
+        </View>
+      );
+    }
+    if (save.status === 'saved') {
+      return (
+        <View style={styles.saveRow}>
+          <Ionicons name="checkmark-circle" size={15} color={Colors.success} />
+          <Text style={[styles.saveText, { color: Colors.success }]}>Saved</Text>
+        </View>
+      );
+    }
+    if (save.status === 'queued') {
+      return (
+        <View style={styles.saveRow}>
+          <Ionicons name="cloud-offline-outline" size={15} color={Colors.warning} />
+          <Text style={[styles.saveText, { color: Colors.warning }]}>
+            Saved offline — will sync when you are back online
+          </Text>
+        </View>
+      );
+    }
+    return (
+      <View style={styles.saveRow}>
+        <Ionicons name="alert-circle" size={15} color={Colors.error} />
+        <Text style={[styles.saveText, { color: Colors.error }]}>Rating not saved</Text>
+        <TouchableOpacity
+          onPress={retryFailed}
+          accessibilityRole="button"
+          accessibilityLabel="Retry saving the rating"
+          style={styles.retryBtn}
+        >
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  })();
+
   if (done) {
-    const good = ratings.filter((r) => r === 'Good' || r === 'Easy').length;
-    const pct = Math.round((good / ratings.length) * 100);
+    const pct = recalledPercent(ratings);
     return (
       <View style={styles.resultWrap}>
         <View style={styles.resultIcon}>
@@ -73,7 +195,17 @@ export default function FlashcardsScreen() {
           <Text style={styles.resultPct}>{pct}%</Text>
           <Text style={styles.resultLabel}>recalled well</Text>
         </View>
-        <TouchableOpacity style={styles.againBtn} onPress={() => { setIndex(0); setRatings([]); setDone(false); setFlipped(false); }}>
+        {saveBanner}
+        <TouchableOpacity
+          style={styles.againBtn}
+          onPress={() => {
+            setIndex(0);
+            setRatings([]);
+            setDone(false);
+            setFlipped(false);
+            setSave(INITIAL_SAVE);
+          }}
+        >
           <Ionicons name="refresh" size={16} color={Colors.white} />
           <Text style={styles.againText}>Restart</Text>
         </TouchableOpacity>
@@ -82,6 +214,8 @@ export default function FlashcardsScreen() {
   }
 
   const card = cards[index];
+  const detail = data as (ConceptDetail & { flashcardRatings?: Record<string, string> }) | undefined;
+  const previousRating = detail?.flashcardRatings?.[card.id];
 
   return (
     <View style={styles.container}>
@@ -96,6 +230,9 @@ export default function FlashcardsScreen() {
 
       <TouchableOpacity style={[styles.flashcard, flipped && styles.flashcardFlipped]} activeOpacity={0.95} onPress={() => setFlipped(!flipped)} accessibilityLabel={flipped ? 'Answer side. Tap to flip back to question.' : 'Question side. Tap to reveal answer.'} accessibilityRole="button">
         <View style={styles.cardBadge}>
+          {previousRating ? (
+            <Text style={styles.previousRating}>{previousRating}</Text>
+          ) : null}
           <Text style={styles.cardBadgeText}>{flipped ? 'ANSWER' : 'QUESTION'}</Text>
         </View>
         {flipped ? (
@@ -112,7 +249,7 @@ export default function FlashcardsScreen() {
             <TouchableOpacity
               key={r.label}
               style={[styles.rateBtn, { backgroundColor: r.color + '18', borderColor: r.color + '55' }]}
-              onPress={() => rate(r.label)}
+              onPress={() => rate(r)}
               accessibilityLabel={`Rate as ${r.label}`}
               accessibilityRole="button"
             >
@@ -122,6 +259,8 @@ export default function FlashcardsScreen() {
           ))}
         </View>
       )}
+
+      {saveBanner}
 
       {!flipped && (
         <View style={styles.navRow}>
@@ -159,7 +298,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   flashcardFlipped: { borderColor: Colors.primary },
-  cardBadge: { position: 'absolute', top: Spacing.lg, right: Spacing.lg },
+  cardBadge: { position: 'absolute', top: Spacing.lg, right: Spacing.lg, alignItems: 'flex-end' },
+  previousRating: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: Colors.textSecondary,
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
   cardBadgeText: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
   cardText: { fontSize: 20, fontWeight: '600', color: Colors.text, textAlign: 'center', lineHeight: 28 },
   cardTextAnswer: { fontSize: 17, fontWeight: '500', color: Colors.text, textAlign: 'center', lineHeight: 26 },
@@ -167,6 +318,22 @@ const styles = StyleSheet.create({
   ratings: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
   rateBtn: { flex: 1, borderRadius: BorderRadius.md, borderWidth: 1, paddingVertical: 12, alignItems: 'center', gap: 4 },
   rateText: { fontSize: 12, fontWeight: '700' },
+  saveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Spacing.md,
+  },
+  saveText: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
+  retryBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.error,
+  },
+  retryText: { color: Colors.error, fontSize: 12, fontWeight: '700' },
   navRow: { marginTop: Spacing.lg, alignItems: 'center' },
   navBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 8 },
   navDisabled: { opacity: 0.4 },

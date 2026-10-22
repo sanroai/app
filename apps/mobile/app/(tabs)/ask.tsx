@@ -2,13 +2,23 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAskAI } from '../../lib/hooks';
-import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { Icon3D } from '../../components/Icon3D';
+import { Colors, Spacing, BorderRadius, Shadow, Pastel } from '../../constants/theme';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   text: string;
 }
+
+const SUGGESTIONS = [
+  'Explain the reactivity series simply',
+  'Why is methane a covalent compound?',
+  'How do I balance chemical equations?',
+  'Give me 5 questions on acids and bases',
+  'What is Ohms law with a real example?',
+  'Summarise the chapter on life processes',
+];
 
 export default function AskScreen() {
   const [input, setInput] = useState('');
@@ -44,9 +54,28 @@ export default function AskScreen() {
 
       {messages.length === 0 ? (
         <View style={styles.emptyWrap}>
-          <Ionicons name="chatbubble-ellipses-outline" size={56} color={Colors.textMuted} />
+          <View style={styles.heroTile}>
+            <Icon3D name="sparkles" size={64} />
+          </View>
           <Text style={styles.emptyTitle}>Ask anything</Text>
           <Text style={styles.emptySub}>Get instant help with concepts, formulas, or practice questions.</Text>
+
+          <Text style={styles.suggestLabel}>TRY ASKING</Text>
+          <View style={styles.suggestGrid}>
+            {SUGGESTIONS.map((s) => (
+              <TouchableOpacity
+                key={s}
+                style={styles.suggestChip}
+                activeOpacity={0.85}
+                onPress={() => setInput(s)}
+              >
+                <Ionicons name="sparkles-outline" size={13} color={Colors.primary} />
+                <Text style={styles.suggestText} numberOfLines={3}>
+                  {s}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
       ) : (
         <FlatList
@@ -75,7 +104,11 @@ export default function AskScreen() {
           disabled={!input.trim() || askAI.isPending}
           onPress={handleSend}
         >
-          <Ionicons name="arrow-up" size={22} color={Colors.white} />
+          <Ionicons
+            name="arrow-up"
+            size={22}
+            color={!input.trim() || askAI.isPending ? Colors.textMuted : Colors.white}
+          />
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -86,9 +119,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: { backgroundColor: Colors.primary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.lg, gap: Spacing.sm, borderBottomLeftRadius: BorderRadius.xxl, borderBottomRightRadius: BorderRadius.xxl },
   headerTitle: { color: Colors.white, fontSize: 22, fontWeight: '700' },
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xxl },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: Colors.text, marginTop: Spacing.lg },
-  emptySub: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', marginTop: Spacing.sm },
+  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: Spacing.xl },
+  heroTile: { width: 96, height: 96, borderRadius: BorderRadius.xl, backgroundColor: Pastel.violet, alignItems: 'center', justifyContent: 'center', ...Shadow.md },
+  emptyTitle: { fontSize: 22, fontWeight: '800', color: Colors.text, marginTop: Spacing.lg, letterSpacing: -0.3 },
+  emptySub: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', marginTop: Spacing.sm, lineHeight: 20 },
+  suggestLabel: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '800', color: Colors.textMuted, letterSpacing: 1, marginTop: Spacing.xxl },
+  suggestGrid: { alignSelf: 'stretch', flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.md },
+  suggestChip: { width: '47.5%', flexGrow: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 6, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, borderWidth: 1, borderColor: Colors.border, ...Shadow.sm },
+  suggestText: { flex: 1, fontSize: 13, color: Colors.text, lineHeight: 18, fontWeight: '500' },
   list: { padding: Spacing.lg, paddingBottom: Spacing.md },
   bubble: { maxWidth: '80%', borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm },
   userBubble: { alignSelf: 'flex-end', backgroundColor: Colors.primary },
@@ -99,5 +137,5 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.md, gap: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border },
   input: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: 14, color: Colors.text, maxHeight: 100 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
-  sendBtnDisabled: { opacity: 0.4 },
+  sendBtnDisabled: { backgroundColor: '#e3ddd3' },
 });

@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Keyboa
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { useConceptDetail, useAskAI } from '../../lib/hooks';
+import { useConceptDetail, useAskAI, useChapterHub } from '../../lib/hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 interface Message {
@@ -11,8 +11,11 @@ interface Message {
 }
 
 export default function AskScreen() {
-  const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
+  const { conceptId = '', chapterId } = useLocalSearchParams<{ conceptId: string; chapterId?: string }>();
   const { data: concept } = useConceptDetail(conceptId);
+  // When the student comes from the chapter hub the tutor should know which
+  // chapter they are asking about.
+  const { data: chapter } = useChapterHub(chapterId ?? '');
   const askAI = useAskAI();
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -55,14 +58,18 @@ export default function AskScreen() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Ask Sanro AI</Text>
-          <Text style={styles.headerSub}>Context-aware tutor</Text>
+          <Text style={styles.headerSub} numberOfLines={1}>
+            {chapter?.name ? `About ${chapter.name}` : 'Context-aware tutor'}
+          </Text>
         </View>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.msgList}>
         {messages.length === 0 && (
           <View style={styles.suggest}>
-            <Text style={styles.suggestTitle}>Ask anything about {concept?.name ?? 'this concept'}</Text>
+            <Text style={styles.suggestTitle}>
+              {chapter?.name ? `Ask anything about ${chapter.name}` : `Ask anything about ${concept?.name ?? 'this concept'}`}
+            </Text>
             {suggestions.map((s, i) => (
               <TouchableOpacity key={i} style={styles.suggestBtn} onPress={() => send(s)} disabled={waiting}>
                 <Ionicons name="sparkles" size={14} color={Colors.primary} />

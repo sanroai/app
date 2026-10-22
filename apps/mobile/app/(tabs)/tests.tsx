@@ -44,25 +44,27 @@ export default function AssessmentsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Assessments</Text>
-        <Text style={styles.headerSub}>Your path and tests</Text>
-      </View>
+      <View style={styles.headerWrap}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Assessments</Text>
+          <Text style={styles.headerSub}>Your path and tests</Text>
+        </View>
 
-      <View style={styles.segment}>
-        {(['path', 'tests'] as Segment[]).map((s) => (
-          <TouchableOpacity
-            key={s}
-            style={[styles.segmentBtn, segment === s && styles.segmentBtnActive]}
-            onPress={() => setSegment(s)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: segment === s }}
-          >
-            <Text style={[styles.segmentText, segment === s && styles.segmentTextActive]}>
-              {s === 'path' ? 'Path' : 'Tests'}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.segment}>
+          {(['path', 'tests'] as Segment[]).map((s) => (
+            <TouchableOpacity
+              key={s}
+              style={[styles.segmentBtn, segment === s && styles.segmentBtnActive]}
+              onPress={() => setSegment(s)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: segment === s }}
+            >
+              <Text style={[styles.segmentText, segment === s && styles.segmentTextActive]}>
+                {s === 'path' ? 'Path' : 'Tests'}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
       <ScrollView
@@ -204,6 +206,9 @@ function PathView({ router, setSegment }: { router: ReturnType<typeof useRouter>
                   {f.plan.completedSteps}/{f.plan.totalSteps} study steps complete
                 </Text>
               ) : null}
+              {f.practiceQuestionCount === 0 ? (
+                <Text style={styles.noQuestionsHint}>No practice questions yet — take a test to unlock practice.</Text>
+              ) : null}
               <View style={styles.weakActions}>
                 <TouchableOpacity
                   style={[styles.skillBtn, { flex: 1 }, (busyNow || f.practiceQuestionCount === 0) && styles.skillBtnDisabled]}
@@ -214,7 +219,7 @@ function PathView({ router, setSegment }: { router: ReturnType<typeof useRouter>
                   <Text style={styles.skillBtnText}>{busy === f.conceptId ? 'Starting…' : 'Practice'}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.retestBtn, (busyNow || f.practiceQuestionCount === 0) && styles.skillBtnDisabled]}
+                  style={[styles.retestBtn, (busyNow || f.practiceQuestionCount === 0) && styles.retestBtnDisabled]}
                   disabled={busyNow || f.practiceQuestionCount === 0}
                   onPress={() => handleRetest(f.conceptId)}
                 >
@@ -399,10 +404,11 @@ function TestsView({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md, borderBottomLeftRadius: BorderRadius.xxl, borderBottomRightRadius: BorderRadius.xxl },
+  headerWrap: { backgroundColor: Colors.primary, borderBottomLeftRadius: BorderRadius.xxl, borderBottomRightRadius: BorderRadius.xxl, paddingBottom: Spacing.xs },
+  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.md },
   headerTitle: { color: Colors.white, fontSize: 26, fontWeight: '700' },
   headerSub: { color: Colors.primaryLight, fontSize: 13, marginTop: 2 },
-  segment: { flexDirection: 'row', backgroundColor: Colors.primary, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, gap: Spacing.sm },
+  segment: { flexDirection: 'row', paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md, gap: Spacing.sm },
   segmentBtn: { flex: 1, paddingVertical: 9, borderRadius: BorderRadius.md, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.15)' },
   segmentBtnActive: { backgroundColor: Colors.white },
   segmentText: { color: Colors.white, fontSize: 14, fontWeight: '600' },
@@ -435,10 +441,12 @@ const styles = StyleSheet.create({
   planMeta: { fontSize: 11, color: Colors.textMuted, marginTop: 6 },
   weakActions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md },
   skillBtn: { flexDirection: 'row', backgroundColor: Colors.primary, borderRadius: BorderRadius.md, paddingVertical: 10, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  skillBtnDisabled: { opacity: 0.5 },
+  skillBtnDisabled: { opacity: 0.55, backgroundColor: '#a8a29e' },
   skillBtnText: { color: Colors.white, fontSize: 13, fontWeight: '600' },
-  retestBtn: { flexDirection: 'row', borderWidth: 1, borderColor: Colors.primary, borderRadius: BorderRadius.md, paddingVertical: 10, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  retestBtn: { flexDirection: 'row', borderWidth: 1.5, borderColor: Colors.primary, borderRadius: BorderRadius.md, paddingVertical: 10, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center', gap: 6 },
+  retestBtnDisabled: { opacity: 0.55, borderColor: '#a8a29e' },
   retestBtnText: { color: Colors.primary, fontSize: 13, fontWeight: '600' },
+  noQuestionsHint: { fontSize: 11, color: Colors.textMuted, marginTop: 6, fontStyle: 'italic' },
   retestRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm },
   retestGo: { backgroundColor: Colors.primary, borderRadius: BorderRadius.md, paddingHorizontal: 14, paddingVertical: 8 },
   retestGoText: { color: Colors.white, fontSize: 13, fontWeight: '600' },

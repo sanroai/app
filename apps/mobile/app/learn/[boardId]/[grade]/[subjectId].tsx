@@ -30,7 +30,7 @@ export default function SubjectChaptersScreen() {
             const mastered = ch.averageMastery >= 75;
             return (
               <Card key={ch.id} style={styles.chapterCard}>
-                <TouchableOpacity onPress={() => router.push({ pathname: '/learn/chapter/[chapterId]', params: { chapterId: ch.id } })}>
+                <TouchableOpacity onPress={() => router.push({ pathname: '/chapter/[chapterId]', params: { chapterId: ch.id } })}>
                   <View style={styles.chapterRow}>
                     <View style={[styles.chapterNum, mastered && { backgroundColor: Colors.success + '20' }]}>
                       <Text style={[styles.chapterNumText, mastered && { color: Colors.success }]}>{ch.order}</Text>
