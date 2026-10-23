@@ -239,4 +239,135 @@ describe('Subscription & Access Control Across Modules (e2e)', () => {
     const ok4 = await mkStudent(`limit4${randomSuffix()}@qa.test`);
     expect([200, 201]).toContain(ok4.status);
   });
+
+  describe('Seat limit edge cases: parent seats, link-parent, reactivation', () => {
+    // Same rule as SubscriptionAccessService.countBillableUsers.
+    const billableUsage = async () => {
+      const [students, teachers, parents, admins] = await Promise.all([
+        prisma.student.count({ where: { institutionId: instId, status: 'ACTIVE' } }),
+        prisma.teacher.count({ where: { institutionId: instId, status: 'ACTIVE' } }),
+        prisma.parent.count({ where: { institutionId: instId } }),
+        prisma.institutionMember.count({
+          where: { institutionId: instId, status: 'ACTIVE', role: 'INSTITUTION_ADMIN' },
+        }),
+      ]);
+      return students + teachers + parents + admins;
+    };
+
+    const setSeatLimit = async (seatLimit: number) => {
+      const res = await api(app, 'post', `/admin/institutions/${instId}/subscription`, superAdminToken, {
+        planKey,
+        status: 'ACTIVE',
+        seatLimit,
+      });
+      expect([200, 201]).toContain(res.status);
+      subAccess.invalidate(instId);
+    };
+
+    it('counts a parent created with the student and blocks link-parent and reactivation at the limit', async () => {
+      const usage = await billableUsage();
+      const parentEmail = `seatparent${randomSuffix()}@qa.test`;
+      emailsToCleanup.push(parentEmail);
+
+      // Exactly two free seats: a student with parent fields must consume both.
+      await setSeatLimit(usage + 2);
+
+      const withParentEmail = `seatwithparent${randomSuffix()}@qa.test`;
+      emailsToCleanup.push(withParentEmail);
+      const created = await api(app, 'post', '/students', adminToken, {
+        academicYearId: yearId,
+        name: 'QA Seat Parent Student',
+        email: withParentEmail,
+        grade: '8',
+        parentName: 'QA Seat Parent',
+        parentEmail,
+      });
+      expect([200, 201]).toContain(created.status);
+      expect(await billableUsage()).toBe(usage + 2);
+
+      // Seats are now full.
+      const plain = await api(app, 'post', '/students', adminToken, {
+        academicYearId: yearId,
+        name: 'QA Seat Overflow',
+        email: `seatoverflow${randomSuffix()}@qa.test`,
+        grade: '8',
+      });
+      expect([400, 409]).toContain(plain.status);
+      expect(plain.body.code).toBe('USER_LIMIT_REACHED');
+
+      // A brand-new parent costs a seat, so link-parent is rejected too.
+      const newParentEmail = `seatlinkparent${randomSuffix()}@qa.test`;
+      emailsToCleanup.push(newParentEmail);
+      const linkBlocked = await api(app, 'post', `/students/${created.body.id}/link-parent`, adminToken, {
+        name: 'QA Seat Linked Parent',
+        email: newParentEmail,
+      });
+      expect([400, 409]).toContain(linkBlocked.status);
+      expect(linkBlocked.body.code).toBe('USER_LIMIT_REACHED');
+
+      // Reusing the parent that already exists consumes no seat - allowed at the limit.
+      const relink = await api(app, 'post', `/students/${created.body.id}/link-parent`, adminToken, {
+        name: 'QA Seat Parent',
+        email: parentEmail,
+      });
+      expect([200, 201]).toContain(relink.status);
+
+      // Free one seat by deactivating a student, then refill it: usage == limit again.
+      const victim = await prisma.student.findFirst({
+        where: { institutionId: instId, status: 'ACTIVE', id: { not: created.body.id } },
+        select: { id: true },
+      });
+      expect(victim).toBeTruthy();
+      const deactivate = await api(app, 'post', `/students/${victim!.id}/deactivate`, adminToken);
+      expect([200, 201]).toContain(deactivate.status);
+      const refill = await api(app, 'post', '/students', adminToken, {
+        academicYearId: yearId,
+        name: 'QA Seat Refill',
+        email: `seatrefill${randomSuffix()}@qa.test`,
+        grade: '8',
+      });
+      expect([200, 201]).toContain(refill.status);
+      expect(await billableUsage()).toBe(usage + 2);
+
+      // Reactivating at the limit must be rejected (it makes the student billable again).
+      const reactivateBlocked = await api(app, 'post', `/students/${victim!.id}/activate`, adminToken);
+      expect([400, 409]).toContain(reactivateBlocked.status);
+      expect(reactivateBlocked.body.code).toBe('USER_LIMIT_REACHED');
+
+      // Raising the limit by one seat lets the same reactivation through.
+      await setSeatLimit(usage + 3);
+      const reactivate = await api(app, 'post', `/students/${victim!.id}/activate`, adminToken);
+      expect([200, 201]).toContain(reactivate.status);
+      expect(await billableUsage()).toBe(usage + 3);
+    });
+
+    it('blocks reactivating a deactivated teacher when no seat remains', async () => {
+      const usage = await billableUsage();
+      await setSeatLimit(usage + 1);
+
+      const teacherEmail = `seatteacher${randomSuffix()}@qa.test`;
+      emailsToCleanup.push(teacherEmail);
+      const created = await api(app, 'post', '/teachers', adminToken, {
+        name: 'QA Seat Teacher',
+        email: teacherEmail,
+        phone: '9876500000',
+      });
+      expect([200, 201]).toContain(created.status);
+      expect(await billableUsage()).toBe(usage + 1);
+
+      const deactivate = await api(app, 'post', `/teachers/${created.body.id}/deactivate`, adminToken);
+      expect([200, 201]).toContain(deactivate.status);
+
+      // usage is now one below the limit, so raise the limit down to usage:
+      // the seat is gone, reactivation must be rejected.
+      await setSeatLimit(await billableUsage());
+      const blocked = await api(app, 'post', `/teachers/${created.body.id}/activate`, adminToken);
+      expect([400, 409]).toContain(blocked.status);
+      expect(blocked.body.code).toBe('USER_LIMIT_REACHED');
+
+      await setSeatLimit((await billableUsage()) + 1);
+      const allowed = await api(app, 'post', `/teachers/${created.body.id}/activate`, adminToken);
+      expect([200, 201]).toContain(allowed.status);
+    });
+  });
 });

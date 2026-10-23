@@ -225,6 +225,20 @@ creation time — `registerInstitution` seeds the trial subscription with
   your SANRO administrator to increase your subscription limit.', details: { current,
   requested, available, limit } }`. The older `enforceSeatLimit` /
   `SEAT_LIMIT_REACHED` student path no longer exists.
+- **Parent seats (2026-10-23)**: every parent row is billable, so the checks now also cover
+  the paths that used to slip past the allowance:
+  - `createStudent` with `parentName`/`parentEmail`/`parentPhone` asserts **2** seats when the
+    parent contact resolves to a *new* parent (1 when one already exists) — it used to assert 1
+    and could overshoot the limit by one.
+  - `POST /students/:id/link-parent` (`students.service.linkParent`) asserts 1 immediately
+    before creating a **new** parent; re-linking an existing parent stays seat-free.
+  - Reactivating a deactivated/archived student or teacher (`POST .../:id/activate` →
+    `setStatus`) asserts 1 when the record was not already `ACTIVE`, because reactivation
+    makes the record billable again.
+- **Super-admin exemption (deliberate)**: `admin/admin-people` create/transfer routes run as
+  `SUPER_ADMIN`, who can already raise the seat limit via `PATCH .../subscription` — gating
+  them would add friction without adding a control, so they are intentionally not seat-checked.
+  Tenant-facing roles (`INSTITUTION_ADMIN`, `TEACHER`) are fully checked.
 - **Bulk import**: `seatAvailability()` (the non-throwing variant returning
   `{ current, available, requested, allowed, limit }`) gates
   `imports.service.commit` **before** the transaction opens, for
@@ -450,8 +464,8 @@ Set subscription (request → response):
 
 | Code | HTTP | Raised by | Notes |
 |---|---|---|---|
-| `USER_LIMIT_REACHED` | 400 | `SubscriptionAccessService.assertSeatAvailable` | Defined, **not yet wired** to any route |
-| `SEAT_LIMIT_REACHED` | 400 | `StudentsService.enforceSeatLimit` | Wired into student create |
+| `USER_LIMIT_REACHED` | 400 | `SubscriptionAccessService.assertSeatAvailable` | Wired to student/teacher/parent create, student-with-parent create (2 seats), `link-parent` (new parent), person reactivation and bulk import |
+| `SEAT_LIMIT_REACHED` | 400 | *(legacy)* | **No longer raised** — superseded by `USER_LIMIT_REACHED` |
 | `Unknown plan "<key>"` | 400 | `setSubscriptionPlan` | BadRequest message (no `code`) |
 | `Institution not found` | 400/404 | `setSubscriptionPlan` (404 in `getInstitution`) | Different HTTP codes per method |
 | `USER_DISABLED` | 403 | login (disabled user); `assertCanAccess` | |

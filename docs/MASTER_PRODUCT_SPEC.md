@@ -336,9 +336,11 @@ Reference: docs/INSTITUTION_MANAGEMENT.md §2; docs/PEOPLE_MANAGEMENT.md §4.
 
 Billable seats = ACTIVE students + ACTIVE teachers + all parents + ACTIVE
 institution-admin memberships. Effective limit = subscription.seatLimit else
-institution.seatLimit. Student create enforced (`SEAT_LIMIT_REACHED`);
-`USER_LIMIT_REACHED` helper defined; imports not yet seat-checked. Reference:
-docs/INSTITUTION_MANAGEMENT.md §3.
+institution.seatLimit. Enforced by `USER_LIMIT_REACHED` on person create,
+student-with-parent create (2 seats), `link-parent`, reactivation and bulk
+import (2026-10-23 sweep); `SEAT_LIMIT_REACHED` is legacy and no longer
+raised. Super-admin (`admin/people`) routes are deliberately exempt.
+Reference: docs/INSTITUTION_MANAGEMENT.md §3.
 
 ## 42. Subscription Life-cycle Ops — IMPLEMENTED (partial)
 

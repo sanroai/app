@@ -292,8 +292,9 @@ docs/PEOPLE_MANAGEMENT.md, migration `20260920120000_people_direct_sanro`):
   (`AccountBlockState`). Web `/app/account-blocked` and mobile `/expired` screens
   are pending (contract ready).
 - **Seat limits**: billable seats = ACTIVE students + ACTIVE teachers + all parents +
-  ACTIVE institution-admin memberships; student create enforces `SEAT_LIMIT_REACHED`;
-  `assertSeatAvailable` (`USER_LIMIT_REACHED`) defined but not yet wired to routes.
+  ACTIVE institution-admin memberships; `assertSeatAvailable` (`USER_LIMIT_REACHED`)
+  enforces person create, student-with-parent create (2 seats), `link-parent`,
+  reactivation and bulk import (fully wired 2026-10-23).
 - **Admin surfaces**: `POST /admin/institutions`, `PATCH …/status`,
   `PATCH …/subscription` (replaces ACTIVE/TRIAL, ~30-day end), curriculum CRUD,
   `GET /admin/audit`, `GET /admin/subscriptions`, `GET /admin/leads`.

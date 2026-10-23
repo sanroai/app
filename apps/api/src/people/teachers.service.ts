@@ -133,6 +133,10 @@ export class TeachersService {
     this.assertAllowed(user);
     const teacher = await this.prisma.teacher.findFirst({ where: { id, institutionId } });
     if (!teacher) throw new NotFoundException('Teacher not found');
+    // Reactivating a deactivated teacher makes them billable again.
+    if (status === 'ACTIVE' && teacher.status !== 'ACTIVE') {
+      await this.subscription.assertSeatAvailable(institutionId, 1);
+    }
     await this.prisma.teacher.update({
       where: { id },
       data: { status: status as 'ACTIVE' | 'DEACTIVATED', deactivatedAt: status === 'DEACTIVATED' ? new Date() : null },
