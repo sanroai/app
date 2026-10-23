@@ -620,22 +620,37 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       }
     }
 
-    const contentItems = await this.prisma.contentItem.findMany({
+    const contentSelect = {
+      id: true,
+      type: true,
+      title: true,
+      description: true,
+      durationSeconds: true,
+      thumbnailUrl: true,
+      url: true,
+      videoId: true,
+      language: true,
+      segments: true,
+    } as const;
+
+    let contentSource: 'concept' | 'chapter' = 'concept';
+    let contentItems = await this.prisma.contentItem.findMany({
       where: this.consumerWhere(user, { conceptId }),
       orderBy: { createdAt: 'asc' },
-      select: {
-        id: true,
-        type: true,
-        title: true,
-        description: true,
-        durationSeconds: true,
-        thumbnailUrl: true,
-        url: true,
-        videoId: true,
-        language: true,
-        segments: true,
-      },
+      select: contentSelect,
     });
+
+    // A concept with no lesson of its own must not render an empty Learn tab:
+    // fall back to the chapter's lessons (the same videos and notes the chapter
+    // hub shows) and say that the content is chapter-level.
+    if (contentItems.length === 0) {
+      contentItems = await this.prisma.contentItem.findMany({
+        where: this.consumerWhere(user, { chapterId: concept.topic.chapter.id }),
+        orderBy: { createdAt: 'asc' },
+        select: contentSelect,
+      });
+      if (contentItems.length > 0) contentSource = 'chapter';
+    }
 
     const student = await this.identity.resolveForUser(user);
 
@@ -697,6 +712,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       order: concept.order,
       topic: { id: concept.topic.id, name: concept.topic.name },
       chapter: concept.topic.chapter,
+      contentSource,
       content: contentItems.map((item) => ({
         ...item,
         segments: normalizeChapterSegments(item.segments),
@@ -1073,30 +1089,69 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     if (!concept) throw new NotFoundException('Concept not found');
 
     const take = clampQuestionCount(questionCount, DEFAULT_PRACTICE_QUESTIONS);
-    const questions = await this.prisma.question.findMany({
+    const questionSelect = {
+      id: true,
+      text: true,
+      type: true,
+      marks: true,
+      conceptId: true,
+      options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
+    } as const;
+
+    // Fetch a wider pool than we hand out: a practice set that happens to be all
+    // written answers cannot be auto-graded, so it would score 0/100 even when
+    // every answer was right. Auto-gradable questions are preferred, and written
+    // ones only fill the remaining slots.
+    const poolSize = Math.min(take * 4, 40);
+    let questions = await this.prisma.question.findMany({
       where: { conceptId, status: 'APPROVED' },
       orderBy: { createdAt: 'desc' },
-      take,
-      select: {
-        id: true,
-        text: true,
-        type: true,
-        marks: true,
-        options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
-      },
+      take: poolSize,
+      select: questionSelect,
     });
+
+    // A concept that has no questions of its own still has to be practisable:
+    // draw the pool from its chapter and credit each question to its own concept
+    // (the submit path splits the evidence per concept when conceptIds has more
+    // than one entry).
+    let fromChapter = false;
+    if (questions.length === 0) {
+      const chapterId = (
+        await this.prisma.concept.findUnique({
+          where: { id: conceptId },
+          select: { topic: { select: { chapterId: true } } },
+        })
+      )?.topic.chapterId;
+      if (chapterId) {
+        questions = await this.prisma.question.findMany({
+          where: { chapterId, status: 'APPROVED' },
+          orderBy: { createdAt: 'desc' },
+          take: poolSize,
+          select: questionSelect,
+        });
+        fromChapter = questions.length > 0;
+      }
+    }
 
     if (questions.length === 0) {
       throw new BadRequestException('No practice questions available for this concept');
     }
 
-    const shuffled = [...questions].sort(() => Math.random() - 0.5);
+    const shuffle = (list: typeof questions) => [...list].sort(() => Math.random() - 0.5);
+    const autoGradable = shuffle(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
+    const written = shuffle(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
+    const chosen = [...autoGradable, ...written].slice(0, take);
+
+    const sessionConceptIds = [
+      ...new Set(chosen.map((q) => q.conceptId).filter((id): id is string => Boolean(id))),
+    ];
+    const shuffled = shuffle(chosen);
 
     const practiceSet = await this.prisma.practiceSet.create({
       data: {
         studentId: student.id,
         conceptId,
-        conceptIds: [conceptId],
+        conceptIds: sessionConceptIds.length > 0 ? sessionConceptIds : [conceptId],
         questionIds: shuffled.map((q) => q.id),
         status: 'IN_PROGRESS',
         total: shuffled.length,
@@ -1106,6 +1161,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     return {
       practiceId: practiceSet.id,
+      fromChapter,
       questions: shuffled.map((q) => ({
         id: q.id,
         text: q.text,
@@ -1143,10 +1199,13 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     }
 
     const take = clampQuestionCount(questionCount, DEFAULT_CHAPTER_PRACTICE_QUESTIONS);
+    // Same rule as the concept-level practice: a set made only of written answers
+    // cannot be auto-graded and would score 0/100, so a wider pool is drawn and
+    // auto-gradable questions fill the session first.
     const questions = await this.prisma.question.findMany({
       where: { conceptId: { in: conceptIds }, status: 'APPROVED' },
       orderBy: { createdAt: 'desc' },
-      take,
+      take: Math.min(take * 4, 60),
       select: {
         id: true,
         conceptId: true,
@@ -1161,7 +1220,10 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       throw new BadRequestException('No practice questions available for this chapter');
     }
 
-    const shuffled = [...questions].sort(() => Math.random() - 0.5);
+    const shuffleList = <T>(list: T[]) => [...list].sort(() => Math.random() - 0.5);
+    const gradable = shuffleList(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
+    const written = shuffleList(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
+    const shuffled = shuffleList([...gradable, ...written].slice(0, take));
 
     const practiceSet = await this.prisma.practiceSet.create({
       data: {
@@ -1368,7 +1430,10 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     let masteryUpdate = null;
     let masteryUpdates: Array<{ conceptId: string; level: string; score: number }> = [];
-    if (practiceSet.conceptId) {
+    const sessionConceptIds = Array.isArray(practiceSet.conceptIds)
+      ? (practiceSet.conceptIds as string[])
+      : [];
+    if (practiceSet.conceptId && sessionConceptIds.length <= 1) {
       const conceptId = practiceSet.conceptId;
       const conceptEvidence = [{
         conceptId,
@@ -1382,11 +1447,10 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
         masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.score }));
       }
     } else {
-      // A chapter practice spans several concepts, so the evidence is split per
-      // concept - otherwise one chapter run would be credited to no concept.
-      const conceptIds = Array.isArray(practiceSet.conceptIds)
-        ? (practiceSet.conceptIds as string[])
-        : [];
+      // A chapter practice (or a concept whose questions come from the chapter)
+      // spans several concepts, so the evidence is split per concept - otherwise
+      // one run would be credited to no concept.
+      const conceptIds = sessionConceptIds;
       if (conceptIds.length > 0) {
         const perConcept = new Map<string, { questions: number; correct: number }>();
         for (const conceptId of conceptIds) {

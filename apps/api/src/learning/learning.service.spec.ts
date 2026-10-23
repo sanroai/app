@@ -115,10 +115,17 @@ describe('LearningService question–concept isolation', () => {
   it('startPractice only assembles practice questions from the requested concept', async () => {
     const { service, db } = buildService();
     const started = await service.startPractice(studentUser, CONCEPT_A, 2);
-    expect(started.questions.map((s: any) => s.id).sort()).toEqual(['q-a1', 'q-a2']);
+    const ids = started.questions.map((s: any) => s.id);
+    // A wider pool is shuffled into the session, so the exact pair varies — what
+    // must never vary is that every question belongs to the requested concept.
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every((id: string) => id.startsWith('q-a'))).toBe(true);
     const created = db.created[0];
     expect(created.conceptId).toBe(CONCEPT_A);
-    expect([...(created.questionIds as string[])].sort()).toEqual(['q-a1', 'q-a2']);
+    const createdIds = [...(created.questionIds as string[])];
+    expect(createdIds).toHaveLength(2);
+    expect(createdIds.every((id: string) => id.startsWith('q-a'))).toBe(true);
   });
 
   it('startPractice rejects when the concept has no approved questions', async () => {
