@@ -76,7 +76,7 @@ export default function ProfilePage() {
   const isStudent = user?.role === 'STUDENT';
   const { data: gamification } = useGamificationProfile({ enabled: isStudent });
   const { data: progress } = useLearningProgress({ enabled: isStudent });
-  const { data: achievements } = useAchievements();
+  const { data: achievements } = useAchievements({ enabled: isStudent });
 
   const {
     register,
@@ -232,34 +232,36 @@ export default function ProfilePage() {
             </Card>
           ) : null}
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <CardTitle className="text-base">Achievements</CardTitle>
-                  <CardDescription>
-                    {(achievements?.earned.length ?? 0)} earned ·{' '}
-                    {(achievements?.locked.length ?? 0)} remaining
-                  </CardDescription>
+          {isStudent ? (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base">Achievements</CardTitle>
+                    <CardDescription>
+                      {(achievements?.earned.length ?? 0)} earned ·{' '}
+                      {(achievements?.locked.length ?? 0)} remaining
+                    </CardDescription>
+                  </div>
+                  <Link
+                    href="/app/gamification/achievements"
+                    className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700"
+                  >
+                    See all
+                  </Link>
                 </div>
-                <Link
-                  href="/app/gamification/achievements"
-                  className="text-sm font-medium text-brand-600 transition-colors hover:text-brand-700"
-                >
-                  See all
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {(achievements?.earned.length ?? 0) > 0 ? (
-                <BadgeGrid achievements={achievements?.earned ?? []} />
-              ) : (
-                <p className="py-2 text-sm text-surface-500">
-                  Complete learning activities to earn achievements.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                {(achievements?.earned.length ?? 0) > 0 ? (
+                  <BadgeGrid achievements={achievements?.earned ?? []} />
+                ) : (
+                  <p className="py-2 text-sm text-surface-500">
+                    Complete learning activities to earn achievements.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card>
             <CardContent className="flex items-center gap-4 p-5">

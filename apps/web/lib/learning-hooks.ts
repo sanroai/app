@@ -272,12 +272,12 @@ export function useLeaderboard(period: string, groupId?: string | null) {
   });
 }
 
-export function useAchievements() {
+export function useAchievements({ enabled = true }: { enabled?: boolean } = {}) {
   const token = useToken();
   return useQuery<AchievementsResponse>({
     queryKey: ['gamification', 'achievements'],
     queryFn: () => api<AchievementsResponse>('/learning/gamification/achievements', { token }),
-    enabled: !!token,
+    enabled: !!token && enabled,
   });
 }
 

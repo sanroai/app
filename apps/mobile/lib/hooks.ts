@@ -65,12 +65,12 @@ export interface LearningHome {
   boards: Board[];
 }
 
-export function useLearningHome() {
+export function useLearningHome({ enabled = true }: { enabled?: boolean } = {}) {
   const token = useAuthStore((s) => s.token);
   return useQuery<LearningHome>({
     queryKey: ['learning', 'home'],
     queryFn: () => apiAuthed<LearningHome>('/learning/home'),
-    enabled: !!token,
+    enabled: !!token && enabled,
   });
 }
 
@@ -239,10 +239,11 @@ export interface GamificationProfile {
   recentAchievements: Achievement[];
 }
 
-export function useGamificationProfile() {
+export function useGamificationProfile({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<GamificationProfile>({
     queryKey: ['gamification', 'profile'],
     queryFn: () => apiAuthed<GamificationProfile>('/learning/gamification/profile'),
+    enabled,
   });
 }
 
@@ -259,10 +260,11 @@ export interface AchievementsResponse {
   locked: Achievement[];
 }
 
-export function useAchievements() {
+export function useAchievements({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<AchievementsResponse>({
     queryKey: ['gamification', 'achievements'],
     queryFn: () => apiAuthed<AchievementsResponse>('/learning/gamification/achievements'),
+    enabled,
   });
 }
 
@@ -299,10 +301,11 @@ export interface LearningProgress {
   recentActivity: Array<{ id: string; title: string; type: string; completedAt: string }>;
 }
 
-export function useLearningProgress() {
+export function useLearningProgress({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<LearningProgress>({
     queryKey: ['learning', 'progress'],
     queryFn: () => apiAuthed<LearningProgress>('/learning/progress'),
+    enabled,
   });
 }
 
@@ -426,10 +429,11 @@ export interface MyAssessments {
   assignments: AssignmentRow[];
 }
 
-export function useMyAssessments() {
+export function useMyAssessments({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<MyAssessments>({
     queryKey: ['assessments', 'my'],
     queryFn: () => apiAuthed<MyAssessments>('/assessments/my'),
+    enabled,
   });
 }
 
@@ -550,7 +554,7 @@ export interface MyDiagnosisResponse {
 
 const WEAK_LEVELS = new Set(['WEAK', 'NEEDS_INTERVENTION']);
 
-export function useMyDiagnosis() {
+export function useMyDiagnosis({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<{ weakConcepts: WeakConcept[]; averageScore: number }>({
     queryKey: ['diagnosis', 'my'],
     queryFn: async () => {
@@ -570,6 +574,7 @@ export function useMyDiagnosis() {
         }));
       return { weakConcepts, averageScore: data?.averageScore ?? 0 };
     },
+    enabled,
   });
 }
 

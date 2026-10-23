@@ -16,12 +16,20 @@ export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const roleLabel = useUserDisplayRole();
   const theme = useRoleTheme();
-  const { data: home, refetch: refetchHome, isFetching: homeLoading } = useLearningHome();
-  const { data: diagnosis } = useMyDiagnosis();
-  const { data: assessments, refetch: refetchAssess, isFetching: assessLoading } = useMyAssessments();
-  const { data: gamification } = useGamificationProfile();
-  const { data: progress } = useLearningProgress();
-  const { data: achievements } = useAchievements();
+  const role = user?.role ?? 'STUDENT';
+  const isStudent = role === 'STUDENT';
+  const isTeacher = role === 'TEACHER';
+  const isParent = role === 'PARENT';
+  const isAdmin = role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
+  // Every one of these endpoints is student-only; a parent or a teacher opening
+  // Home would otherwise fire five requests that answer 403 (the web dashboard
+  // avoids this by mounting StudentContent only for a student).
+  const { data: home, refetch: refetchHome, isFetching: homeLoading } = useLearningHome({ enabled: isStudent });
+  const { data: diagnosis } = useMyDiagnosis({ enabled: isStudent });
+  const { data: assessments, refetch: refetchAssess, isFetching: assessLoading } = useMyAssessments({ enabled: isStudent });
+  const { data: gamification } = useGamificationProfile({ enabled: isStudent });
+  const { data: progress } = useLearningProgress({ enabled: isStudent });
+  const { data: achievements } = useAchievements({ enabled: isStudent });
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -29,12 +37,6 @@ export default function HomeScreen() {
     await Promise.all([refetchHome(), refetchAssess()]);
     setRefreshing(false);
   }, [refetchHome, refetchAssess]);
-
-  const role = user?.role ?? 'STUDENT';
-  const isStudent = role === 'STUDENT';
-  const isTeacher = role === 'TEACHER';
-  const isParent = role === 'PARENT';
-  const isAdmin = role === 'INSTITUTION_ADMIN' || role === 'SUPER_ADMIN';
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'Student';
 

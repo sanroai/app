@@ -16,9 +16,10 @@ export default function MeScreen() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const roleLabel = useUserDisplayRole();
-  const { data: gamification, refetch } = useGamificationProfile();
-  const { data: achievements } = useAchievements();
-  const { data: progress, refetch: refetchProgress } = useLearningProgress();
+  const isStudent = user?.role === 'STUDENT';
+  const { data: gamification, refetch } = useGamificationProfile({ enabled: isStudent });
+  const { data: achievements } = useAchievements({ enabled: isStudent });
+  const { data: progress, refetch: refetchProgress } = useLearningProgress({ enabled: isStudent });
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -55,47 +56,52 @@ export default function MeScreen() {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
-      {/* Progress summary */}
-      <View style={styles.statsRow}>
-        <StatTile icon="star" label="Total XP" value={String(xp)} tint={Pastel.sand} />
-        <StatTile icon="fire" label="Day streak" value={String(streak)} tint={Pastel.peach} />
-        <StatTile icon="chart" label="Mastery" value={`${Math.round(avgMastery)}%`} tint={Pastel.mint} />
-      </View>
+      {/* Progress summary - gamification and learning progress are student-only,
+          exactly as on the web profile page */}
+      {isStudent ? (
+        <>
+          <View style={styles.statsRow}>
+            <StatTile icon="star" label="Total XP" value={String(xp)} tint={Pastel.sand} />
+            <StatTile icon="fire" label="Day streak" value={String(streak)} tint={Pastel.peach} />
+            <StatTile icon="chart" label="Mastery" value={`${Math.round(avgMastery)}%`} tint={Pastel.mint} />
+          </View>
 
-      {/* Learning progress */}
-      {progress ? (
-        <Card style={styles.block}>
-          <Text style={styles.blockTitle}>Learning progress</Text>
-          <ProgressBar label="Content completed" value={progress.contentProgress.completedContent} max={Math.max(progress.contentProgress.totalContent, 1)} />
-          <ProgressBar label="Concepts mastered" value={masteredCount} max={Math.max(progress.mastery.totalConcepts, 1)} color={Colors.success} />
-          <ProgressBar label="Average mastery" value={progress.mastery.averageScore} color={Colors.accent} />
-        </Card>
+          {/* Learning progress */}
+          {progress ? (
+            <Card style={styles.block}>
+              <Text style={styles.blockTitle}>Learning progress</Text>
+              <ProgressBar label="Content completed" value={progress.contentProgress.completedContent} max={Math.max(progress.contentProgress.totalContent, 1)} />
+              <ProgressBar label="Concepts mastered" value={masteredCount} max={Math.max(progress.mastery.totalConcepts, 1)} color={Colors.success} />
+              <ProgressBar label="Average mastery" value={progress.mastery.averageScore} color={Colors.accent} />
+            </Card>
+          ) : null}
+
+          {/* Achievements */}
+          <Text style={styles.sectionTitle}>Achievements</Text>
+          {achievementList.length > 0 ? (
+            <View style={styles.achGrid}>
+              {achievementList.map((ach: { id: string; name: string; icon: string; description: string; unlockedAt?: string | null }) => {
+                const unlocked = ach.unlockedAt != null;
+                const badge = resolveAchievement(ach.icon);
+                return (
+                  <View key={ach.id} style={[styles.achCard, !unlocked && { opacity: 0.5 }]}>
+                    <View style={[styles.achIconWrap, { backgroundColor: badge.bg }]}>
+                      <Icon3D name={badge.icon} size={36} />
+                    </View>
+                    <Text style={styles.achName}>{ach.name}</Text>
+                    <Text style={styles.achDesc} numberOfLines={2}>{ach.description}</Text>
+                    {unlocked ? null : <Text style={styles.achLocked}>Locked</Text>}
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <Card style={styles.block}>
+              <Text style={styles.mutedText}>Complete learning activities to earn achievements.</Text>
+            </Card>
+          )}
+        </>
       ) : null}
-
-      {/* Achievements */}
-      <Text style={styles.sectionTitle}>Achievements</Text>
-      {achievementList.length > 0 ? (
-        <View style={styles.achGrid}>
-          {achievementList.map((ach: { id: string; name: string; icon: string; description: string; unlockedAt?: string | null }) => {
-            const unlocked = ach.unlockedAt != null;
-            const badge = resolveAchievement(ach.icon);
-            return (
-              <View key={ach.id} style={[styles.achCard, !unlocked && { opacity: 0.5 }]}>
-                <View style={[styles.achIconWrap, { backgroundColor: badge.bg }]}>
-                  <Icon3D name={badge.icon} size={36} />
-                </View>
-                <Text style={styles.achName}>{ach.name}</Text>
-                <Text style={styles.achDesc} numberOfLines={2}>{ach.description}</Text>
-                {unlocked ? null : <Text style={styles.achLocked}>Locked</Text>}
-              </View>
-            );
-          })}
-        </View>
-      ) : (
-        <Card style={styles.block}>
-          <Text style={styles.mutedText}>Complete learning activities to earn achievements.</Text>
-        </Card>
-      )}
 
       {/* Leaderboard shortcut */}
       <TouchableOpacity style={styles.menuRow} onPress={() => router.push('/leaderboard')}>
