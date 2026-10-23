@@ -37,6 +37,29 @@ fails when that number is wrong.
   chapter fails).
 - `node scripts/qa/audit-web-mobile-parity.mjs` — a student capability that
   exists on one platform only fails the build.
+- `node scripts/qa/prune-stale-lessons.mjs [--apply]` — the database vs the
+  seed. A renamed or re-scoped chapter leaves its old lessons behind (the seed
+  only upserts); PLATFORM-owned rows that are not in `contentNodes` are listed,
+  and deleted with `--apply`. A teacher's own content is never touched.
+- `node scripts/qa/audit-question-coverage.mjs` — which chapters can actually be
+  practised (a chapter with no question answers 400).
+- `node scripts/qa/export-question-outline.mjs` — the chapters with no
+  questions plus the exact concept names an authored question must map to
+  (`artifacts/qa/<date>/brief-<subject>.md` for the authoring agents).
+- `node scripts/qa/validate-question-fragments.mjs --dir artifacts/qa/<date>` —
+  checks authored questions against the live curriculum **before** they are
+  merged: the chapter exists at that grade, the concept belongs to that chapter,
+  an MCQ has four options with exactly one correct and an `answer` equal to that
+  option's text, and no text is duplicated.
+- `node scripts/qa/merge-question-fragments.mjs --dir artifacts/qa/<date>` —
+  merges `questions-*.json` fragments into the seed's question array **and**
+  the `QUESTION_CONCEPT` map (the seed throws on an unmapped question), then
+  the seed must be re-run; idempotent by question text.
+- `node scripts/qa/probe-practice-scoring.mjs [db] [--email student8@sanroai.com]` — starts
+  a practice set as a demo student, answers every auto-graded question with the option the
+  database marks correct, and asserts the server reports 100 (and 0 when the set has no
+  auto-graded questions). Run it for all three grades (`student@` class 10, `student8@`,
+  `student9@`) — this is the end-to-end check that a chapter can be practised, not just read.
 - `node scripts/qa/probe-chapter-hub.mjs` — the chapter hub contract
   (payload, PDF, practice, 404s).
 - `powershell -ExecutionPolicy Bypass -File scripts/qa/verify-release.ps1` —

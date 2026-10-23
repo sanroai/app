@@ -40,19 +40,18 @@ console.log(`chapter markers for ${markerCount} videos (from ${chaptersPath})`);
 /* ---------- 1. the seed: a videoSegments map next to videoUrls ---------- */
 if (!dbOnly) {
   const SEED = 'apps/api/prisma/seed.ts';
-  const seed = fs.readFileSync(SEED, 'utf8');
+  const lines = fs.readFileSync(SEED, 'utf8').split('\n');
   const urlRe = /'((?:[^'\\]|\\.)*)':\s*'https:\/\/www\.youtube\.com\/embed\/([A-Za-z0-9_-]{6,20})'/g;
   const seedEntries = [];
   let m;
+  const seed = lines.join('\n');
   while ((m = urlRe.exec(seed)) !== null) seedEntries.push({ title: m[1].replace(/\\'/g, "'"), videoId: m[2] });
 
   const segmentsFor = seedEntries
     .map((entry) => ({ title: entry.title, chapters: byVideoId.get(entry.videoId) }))
     .filter((entry) => entry.chapters);
 
-  const block = [
-    '',
-    '// Chapter markers of the lesson videos (a long lesson split by time).',
+  const blockLines = [
     'const videoSegments: Record<string, Array<{ title: string; startSeconds: number }>> = {',
     ...segmentsFor.map((entry) => {
       const key = entry.title.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -62,17 +61,28 @@ if (!dbOnly) {
       return `  '${key}': [${items}],`;
     }),
     '};',
-    '',
-  ].join('\n');
+  ];
 
-  if (!seed.includes('const videoSegments')) {
-    const anchor = seed.indexOf('const videoUrls');
-    const end = seed.indexOf('};', anchor);
-    const insertAt = end + 3;
-    fs.writeFileSync(SEED, seed.slice(0, insertAt) + block + seed.slice(insertAt));
+  // The map is rebuilt wholesale so a re-run never leaves the seed behind the DB
+  // (the DB carries the markers of every video that has them).
+  const decl = lines.findIndex((line) => /^\s*const videoSegments\b/.test(line));
+  if (decl < 0) {
+    const anchor = lines.findIndex((line) => /^\s*const videoUrls\b/.test(line));
+    const close = lines.findIndex((line, i) => i > anchor && /^\s*\};?\s*$/.test(line));
+    lines.splice(
+      close + 1,
+      0,
+      '',
+      '// Chapter markers of the lesson videos (a long lesson split by time).',
+      ...blockLines,
+    );
+    fs.writeFileSync(SEED, lines.join('\n'));
     console.log(`seed: wrote ${segmentsFor.length} chapter-marker entries`);
   } else {
-    console.log('seed: videoSegments map already present - left untouched');
+    const close = lines.findIndex((line, i) => i > decl && /^\s*\};?\s*$/.test(line));
+    lines.splice(decl, close - decl + 1, ...blockLines);
+    fs.writeFileSync(SEED, lines.join('\n'));
+    console.log(`seed: rebuilt ${segmentsFor.length} chapter-marker entries`);
   }
 }
 

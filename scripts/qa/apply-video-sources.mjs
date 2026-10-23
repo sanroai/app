@@ -16,7 +16,7 @@ const SEED = 'apps/api/prisma/seed.ts';
 const seed = fs.readFileSync(SEED, 'utf8');
 let rewritten = 0;
 const missing = [];
-const newSeed = seed.split('\n').map((line) => {
+let newSeed = seed.split('\n').map((line) => {
   const m = line.match(/^(\s*)'(.*)':\s*'https:\/\/www\.youtube\.com\/embed\/[A-Za-z0-9_-]+'(,?)\s*$/);
   if (!m) return line;
   const title = m[2].replace(/\\'/g, "'");
@@ -24,8 +24,27 @@ const newSeed = seed.split('\n').map((line) => {
   if (!hit) { missing.push(title); return line; }
   rewritten++;
   return `${m[1]}'${m[2]}': 'https://www.youtube.com/embed/${hit.id}'${m[3]}`;
-}).join('\n');
-fs.writeFileSync(SEED, newSeed);
+});
+
+// a lesson that is new to the seed (a new chapter) has no videoUrls line yet: add it,
+// otherwise the sourced video would never reach the content item
+const absent = Object.keys(sources).filter(
+  (title) => !newSeed.some((line) => line.trimStart().startsWith(`'${title.replace(/'/g, "\\'")}':`)),
+);
+if (absent.length) {
+  const start = newSeed.findIndex((line) => /^\s*const videoUrls\b/.test(line));
+  const close = newSeed.findIndex((line, i) => i > start && /^\s*\};?\s*$/.test(line));
+  if (start < 0 || close < 0) {
+    console.log('  ERROR: videoUrls map not found in the seed');
+    process.exit(1);
+  }
+  const additions = absent.map((title) => `  '${title.replace(/'/g, "\\'")}': 'https://www.youtube.com/embed/${sources[title].id}',`);
+  const previous = newSeed[close - 1].replace(/\s+$/, '');
+  if (!previous.endsWith(',')) newSeed[close - 1] = `${previous},`;
+  newSeed = [...newSeed.slice(0, close), ...additions, ...newSeed.slice(close)];
+  console.log(`seed: added ${absent.length} new video URL(s)`);
+}
+fs.writeFileSync(SEED, newSeed.join('\n'));
 console.log(`seed: rewrote ${rewritten} video URLs` + (missing.length ? ` | no source for: ${missing.join(', ')}` : ''));
 
 // 2. database update (matched by title, because several lessons shared one old id)
@@ -48,7 +67,7 @@ try {
 
 // 3. verification
 const ids = new Set();
-for (const line of newSeed.split('\n')) {
+for (const line of newSeed) {
   const m = line.match(/^(\s*)'(.*)':\s*'https:\/\/www\.youtube\.com\/embed\/([A-Za-z0-9_-]+)'/);
   if (m) ids.add(m[3]);
 }

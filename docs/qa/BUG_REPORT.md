@@ -1058,3 +1058,62 @@ while the deck walked every question; the flashcard flip target was a `<div onCl
 no keyboard access; the leaderboard loaded the whole XP ledger on every request; a
 pre-ledger profile showed its **lifetime** XP under "This Week"; and the student's "mark
 complete" action on the web remediation page called a staff-only endpoint (403).
+
+### BUG-AA (P0) - the class-8/9 curriculum merge produced a computed property key
+The fragment merge inserted the new chapter arrays as `[SCIENCE, { ...new chapters }]: [ ... ]`.
+That is a *computed key*: it evaluates to the string `"[object Object]"`, so the class block had
+no `Science` property at all. Consequences: `CURRICULUM['8'].Science` was `undefined` (the seed
+crashed on class 8), and the six new class-8 chapters plus their lessons existed in the file but
+never in the data. Found by reading the curriculum back rather than by diffing the seed.
+`scripts/qa/merge-seed-fragments.mjs` now opens the array at the bracket *after* the constant
+(`subjectStart + '[SCIENCE]: ['.length - 1`) and appends inside it.
+
+### BUG-AB (P0) - one stray comma made the seed die at runtime
+A merged line left `,` alone on its own line inside `contentNodes`. In an array literal that is
+an *elision*: `arr.length` was 289 while the array had 288 own entries, so the seed's
+`for (const c of contentNodes)` yielded `undefined` and threw
+`TypeError: Cannot read properties of undefined (reading 'grade')`. **The file parses** - this is
+a semantic hole, not a syntax error - so a parse check (which is what the merge and the class-9
+agent both ran) could not catch it. The seed is now executed in the release gate; a diagnostic
+that walks `arr.entries()` names the index.
+
+### BUG-AC (P1) - class-10 mathematics pointed at the wrong textbook PDF
+The 2026 class-10 maths book has 14 chapters (*Constructions* was rationalised out), but the seed
+still had 15 codes: `MAT-10-12` "Areas Related to Circles" resolved to `jemh112.pdf`, which is
+*Surface Areas and Volumes*. A student clicking "textbook" on *Areas Related to Circles* read the
+wrong chapter. The codes are realigned with the book
+(`scripts/qa/align-class10-maths.mjs`); *Constructions* became `MAT-10-15` and is the one chapter
+without a PDF (the route answers 404 and the hub hides the button).
+
+### BUG-AD (P1) - a demo assessment title was double-encoded, visible on the dashboard
+`Matter in Our Surroundings ÃƒÆ’Ã†â€™Ãƒâ€ ...` - UTF-8 bytes decoded as Latin-1 in the seed source.
+The seed also created a second row every time the title changed (the title was its idempotency
+key), so the database held two copies. The title is now the chapter's own name, the existing row
+is renamed in place, and `scripts/qa/clean-garbled-assessments.mjs` removed the garbled/stale
+duplicates.
+
+### BUG-AE (P2) - renamed chapters kept their old lessons in the library
+The seed only upserts, so the 87 lessons of the 15 renamed chapters stayed: the class-9 chapter
+*Cell: The Building Block of Life* listed "Rutherford's Gold Foil Experiment Explained", and
+*A Square and A Cube* listed four rational-numbers videos. `scripts/qa/prune-stale-lessons.mjs`
+compares the database with the seed's `contentNodes` (PLATFORM-owned rows only, so a teacher's
+content is never touched) and the database now holds exactly 144 + 144 lessons.
+
+### BUG-AF (P2) - the AR set silently skipped a renamed chapter
+`seed-ar.ts` named the class-8 chapter `Matter and its Properties`; after the rename the 3D model
+was skipped on every run ("chapter not found"). The reference now uses the book's title and the
+AR seed reports 8/8 instead of 7 updated + 1 skipped.
+
+### BUG-AG (P2) - the profile page offered student-only gamification to parents and teachers
+`/app/profile` rendered the XP / day-streak / mastery tiles, the learning-progress card and the
+Achievements card for *every* role, and `useAchievements()` had no guard, so a parent's profile
+fired `GET /learning/gamification/achievements` and got a 403 - the walkthrough had been filing
+that as "EXPECTED RBAC", but the card it left behind ("0 earned - 0 remaining, complete learning
+activities to earn achievements") is not an expected state, it is a broken one. Gamification is
+student-only; the dashboard already knew that (it lives in `StudentContent`), the profile page did
+not. `useAchievements` now takes `{ enabled }`, the card is rendered inside `isStudent ? ... : null`
+next to the XP tiles, and the mobile Me tab - which showed the same three blocks to every role,
+with zeroed numbers - is gated the same way. The mobile Home tab also fired five student-only
+queries for a parent (`/learning/home`, `/assessments/my`, `/diagnosis/my`, the gamification
+profile and learning progress); they now take `{ enabled: isStudent }` too, so a parent opening
+the app makes no request that answers 403.

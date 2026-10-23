@@ -1,4 +1,4 @@
-// Source a real, embeddable, curriculum-aligned YouTube video for every VIDEO lesson
+﻿// Source a real, embeddable, curriculum-aligned YouTube video for every VIDEO lesson
 // in the seed (the current map points 64 lessons at 24 fabricated IDs).
 //
 // Pipeline per lesson: YouTube search -> candidate ids -> oEmbed (exists + embeddable)
@@ -11,7 +11,7 @@ const OUT = `artifacts/qa/${new Date().toISOString().slice(0, 10)}/video-sources
 
 const src = fs.readFileSync(SEED, 'utf8');
 
-const lessonRe = /\{\s*ch:\s*'([^']+)',\s*subjectName:\s*([A-Z_]+),\s*grade:\s*'(\d+)',\s*concept:\s*'((?:[^'\\]|\\')*)',\s*type:\s*'([A-Z_]+)',\s*title:\s*'((?:[^'\\]|\\')*)',\s*duration:\s*(\d+)\s*\}/g;
+const lessonRe = /\{\s*ch:\s*'((?:[^'\\]|\\.)*)',\s*subjectName:\s*([A-Z_]+),\s*grade:\s*'(\d+)',\s*concept:\s*'((?:[^'\\]|\\')*)',\s*type:\s*'([A-Z_]+)',\s*title:\s*'((?:[^'\\]|\\')*)',\s*duration:\s*(\d+)\s*\}/g;
 const lessons = [];
 let m;
 while ((m = lessonRe.exec(src))) {

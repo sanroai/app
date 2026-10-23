@@ -1,66 +1,58 @@
-// Writes the REAL duration of every lesson video into the seed and the database.
+// Write the real YouTube length of every lesson video into the seed.
 //
-// The seed carried invented durations (every video looked like 5-8 minutes), which
-// showed up in the UI as a wrong length on the lesson card. The audit reads the real
-// length from YouTube, this applies it.
+//   node scripts/qa/apply-video-durations.mjs [video-durations.json] [--dry]
 //
-//   node scripts/qa/apply-video-durations.mjs [artifacts/qa/<date>/video-durations.json]
+// audit-video-durations.mjs measures the real length of every seeded video and writes it
+// to artifacts/qa/<date>/video-durations.json. The content node's `duration` is what the
+// library shows, so it must be that same number - never a guess.
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
+import path from 'node:path';
 
-const require = createRequire(new URL('../../apps/api/package.json', import.meta.url));
-const { PrismaClient } = require('@prisma/client');
+const argv = process.argv.slice(2);
+const DRY = argv.includes('--dry');
+const file =
+  argv.find((a) => !a.startsWith('--') && /\.json$/i.test(a)) ??
+  path.join('artifacts', 'qa', new Date().toISOString().slice(0, 10), 'video-durations.json');
+const SEED = 'apps/api/prisma/seed.ts';
 
-const date = new Date().toISOString().slice(0, 10);
-const durationsPath = process.argv[2] ?? `artifacts/qa/${date}/video-durations.json`;
-if (!fs.existsSync(durationsPath)) {
-  console.error(`missing ${durationsPath} - run scripts/qa/audit-video-durations.mjs first`);
+if (!fs.existsSync(file)) {
+  console.log(`  no durations file at ${file}`);
   process.exit(1);
 }
+const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+const results = Array.isArray(data) ? data : data.results ?? [];
 
-const payload = JSON.parse(fs.readFileSync(durationsPath, 'utf8'));
+/** the same escaping the seed uses inside a single-quoted string */
+const escapeTitle = (t) => t.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
 const byTitle = new Map();
-for (const r of payload.results) {
-  if (r.seconds !== null && r.seconds > 0) byTitle.set(r.lesson, r.seconds);
+for (const r of results) {
+  if (typeof r.seconds === 'number' && r.seconds > 0) byTitle.set(r.lesson, r.seconds);
 }
-console.log(`durations known for ${byTitle.size} lessons`);
 
-// 1. seed: replace `duration: N` on the VIDEO lesson line that carries the title
-const SEED = 'apps/api/prisma/seed.ts';
-const seed = fs.readFileSync(SEED, 'utf8');
-let patched = 0;
-const newSeed = seed
-  .split('\n')
-  .map((line) => {
-    if (!line.includes("type: 'VIDEO'")) return line;
-    const titleMatch = line.match(/title: '((?:[^'\\]|\\.)*)'/);
-    if (!titleMatch) return line;
-    const title = titleMatch[1].replace(/\\'/g, "'");
-    const seconds = byTitle.get(title);
-    if (!seconds) return line;
-    if (!/duration: \d+/.test(line)) return line;
-    patched++;
-    return line.replace(/duration: \d+/, `duration: ${seconds}`);
-  })
-  .join('\n');
-fs.writeFileSync(SEED, newSeed);
-console.log(`seed: wrote ${patched} real durations`);
-
-// 2. database
-const prisma = new PrismaClient();
-try {
-  const videos = await prisma.contentItem.findMany({
-    where: { type: 'VIDEO' },
-    select: { id: true, title: true, durationSeconds: true },
-  });
-  let updated = 0;
-  for (const v of videos) {
-    const seconds = byTitle.get(v.title);
-    if (!seconds || v.durationSeconds === seconds) continue;
-    await prisma.contentItem.update({ where: { id: v.id }, data: { durationSeconds: seconds } });
-    updated++;
+const lines = fs.readFileSync(SEED, 'utf8').split('\n');
+let changed = 0;
+const missing = [];
+for (const [lesson, seconds] of byTitle) {
+  const needle = `title: '${escapeTitle(lesson)}'`;
+  const index = lines.findIndex((line) => line.includes(needle) && line.includes('duration:'));
+  if (index < 0) {
+    missing.push(lesson);
+    continue;
   }
-  console.log(`db: updated ${updated} of ${videos.length} VIDEO rows`);
-} finally {
-  await prisma.$disconnect();
+  const next = lines[index].replace(/duration: \d+/, `duration: ${seconds}`);
+  if (next !== lines[index]) {
+    lines[index] = next;
+    changed += 1;
+  }
+}
+
+console.log(`  durations read : ${byTitle.size}`);
+console.log(`  seed lines set : ${changed}`);
+if (missing.length) console.log(`  not in the seed: ${missing.length} (${missing.slice(0, 3).join(' | ')}${missing.length > 3 ? ' ...' : ''})`);
+if (DRY) {
+  console.log('  dry run - seed not written');
+} else {
+  fs.writeFileSync(SEED, lines.join('\n'));
+  console.log('  seed written');
 }

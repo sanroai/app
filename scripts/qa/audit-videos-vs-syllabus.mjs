@@ -1,4 +1,4 @@
-// Audits the sourced lesson videos against the authoritative NCERT syllabus in `books/`.
+﻿// Audits the sourced lesson videos against the authoritative NCERT syllabus in `books/`.
 // For every VIDEO lesson it finds the matching textbook chapter, extracts that chapter's
 // key terms (from the study notes for science, from the PDF text for mathematics) and
 // scores the currently-sourced video against them. Lessons whose video does not talk
@@ -12,7 +12,7 @@ const BOOKS = path.join(ROOT, 'books/cbse/class-10');
 
 // ---------------------------------------------------------------- seed lessons
 const seed = fs.readFileSync(SEED, 'utf8');
-const lessonRe = /\{\s*ch:\s*'([^']+)',\s*subjectName:\s*([A-Z_]+),\s*grade:\s*'(\d+)',\s*concept:\s*'((?:[^'\\]|\\')*)',\s*type:\s*'([A-Z_]+)',\s*title:\s*'((?:[^'\\]|\\')*)',\s*duration:\s*(\d+)\s*\}/g;
+const lessonRe = /\{\s*ch:\s*'((?:[^'\\]|\\.)*)',\s*subjectName:\s*([A-Z_]+),\s*grade:\s*'(\d+)',\s*concept:\s*'((?:[^'\\]|\\')*)',\s*type:\s*'([A-Z_]+)',\s*title:\s*'((?:[^'\\]|\\')*)',\s*duration:\s*(\d+)\s*\}/g;
 const lessons = [];
 let m;
 while ((m = lessonRe.exec(seed))) {
@@ -33,7 +33,7 @@ if (fs.existsSync(notesDir)) {
   for (const name of fs.readdirSync(notesDir)) {
     if (!name.endsWith('.md')) continue;
     const text = fs.readFileSync(path.join(notesDir, name), 'utf8');
-    for (const cm of text.matchAll(/^#{1,4}\s*CHAPTER\s*(\d+)\s*[-–—:. ]*\s*(.*)$/gmi)) {
+    for (const cm of text.matchAll(/^#{1,4}\s*CHAPTER\s*(\d+)\s*[-â€“â€”:. ]*\s*(.*)$/gmi)) {
       scienceNotes.set(Number(cm[1]), { title: cm[2].trim(), text });
     }
   }

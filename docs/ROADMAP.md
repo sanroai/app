@@ -407,3 +407,24 @@ that, timestamps in the description. `scripts/qa/source-video-chapters.mjs` read
 The extraction pipeline is subject- and class-aware (`--subject science|english|mathematics
 --class 8|9|10`), so every NCERT book the product ships with can be turned into text, page
 screenshots, figures, an OCR cross-check and a readable index - the same bar for every class.
+
+### 10.5 The curriculum the books now drive
+
+The seed follows the books, chapter for chapter (see `artifacts` and
+`scripts/qa/audit-book-alignment.mjs`): **132 chapters, 605 concepts, 144 video + 144 notes
+lessons** - class 8 (13 Science + 14 Maths across the two volumes + 5 English), class 9 (13 + 8
++ 8), class 10 (13 + 15 + 9), classes 1-7 structure only.
+
+Class 10 mathematics is the one place the platform and the 2026 book disagree by design:
+*Constructions* was rationalised out of the book, so it is `MAT-10-15` and has no PDF, while
+`MAT-10-1..14` are the book's own 14 chapters.
+
+**What this unlocks.** Every chapter opens a hub with a real video (125 of 144 carry chapter
+markers), real notes, the textbook chapter as a PDF (97 of the 98 book chapters on disk) and a
+practice set. Classes 8, 9 and 10 are fully practisable: **310 questions cover 98 of 98 chapters**
+(every chapter of every seeded class has at least four - two MCQs, one application MCQ and one
+two-mark written answer, authored from the chapter's own textbook text and validated against the
+live curriculum by `scripts/qa/validate-question-fragments.mjs` before they were merged). A
+practice session that answers every auto-graded question correctly scores 100
+(`scripts/qa/probe-practice-scoring.mjs`). Classes 1-7 remain structure only - no video, no
+notes, no questions.

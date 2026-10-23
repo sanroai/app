@@ -9,11 +9,18 @@ const SEED = 'apps/api/prisma/seed.ts';
 
 /** the same book prefixes the API uses (apps/api/src/common/books/chapter-pdf.ts) */
 const BOOKS = {
+  '5': { SCI: ['eeev1', 'world'], MAT: ['eemm1', 'math'], ENG: ['eesa1', 'english'] },
+  '6': { SCI: ['fecu1', 'science'], MAT: ['fegp1', 'math'], ENG: ['fepr1', 'english'] },
+  '7': { SCI: ['gecu1', 'science'], MAT: ['gegp1', 'math 1'], ENG: ['gepr1', 'english'] },
   '8': { SCI: ['hecu1', 'science'], MAT: ['hegp1', 'math part 1'], ENG: ['hepr1', 'english'] },
   '9': { SCI: ['iesc1', 'science'], MAT: ['iemh1', 'math'], ENG: ['iebe1', 'english'] },
   '10': { SCI: ['jesc1', 'science'], MAT: ['jemh1', 'mathematics'], ENG: ['jeff1', 'english'] },
 };
-const PART_BOOKS = { MAT: ['hegp2', 'math part 2'] };
+/** the second volume of a split book, per class */
+const PART_BOOKS = {
+  '7': { MAT: ['gegp2', 'math 2'] },
+  '8': { MAT: ['hegp2', 'math part 2'] },
+};
 
 function findBooksRoot() {
   let dir = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\//, '')), '../..');
@@ -37,6 +44,7 @@ if (!root) {
 
 let ok = 0;
 let noBook = 0;
+const beyond = [];
 const missing = [];
 for (const code of codes) {
   const part = /^([A-Z]+)-(\d{1,2})P(\d)-(\d+)$/.exec(code);
@@ -47,13 +55,13 @@ for (const code of codes) {
   let book;
   if (part) {
     [, subject, grade, , number] = part;
-    book = PART_BOOKS[subject];
+    book = PART_BOOKS[grade]?.[subject];
   } else if (plain) {
     [, subject, grade, number] = plain;
     book = BOOKS[grade]?.[subject];
   }
   if (!book) {
-    // classes 1-7 have no extracted book yet - not a failure
+    // a chapter of a class with no extracted book - not a failure
     noBook += 1;
     continue;
   }
@@ -61,13 +69,27 @@ for (const code of codes) {
   const file = `${prefix}${String(Number(number)).padStart(2, '0')}.pdf`;
   const classDir = path.join(root, `class-${grade}`, folder);
   const candidates = [path.join(classDir, 'source', file), path.join(classDir, file)];
-  if (candidates.some((c) => fs.existsSync(c))) ok += 1;
+  if (candidates.some((c) => fs.existsSync(c))) {
+    ok += 1;
+    continue;
+  }
+  // a number past the book's last chapter is a platform-only chapter (the book
+  // dropped it) - the PDF route answers 404 and the UI hides the button
+  const prefixPattern = new RegExp(`^${prefix}(\\d{2})\\.pdf$`);
+  const numbers = fs
+    .readdirSync(fs.existsSync(path.join(classDir, 'source')) ? path.join(classDir, 'source') : classDir)
+    .map((n) => prefixPattern.exec(n)?.[1])
+    .filter(Boolean)
+    .map(Number);
+  if (numbers.length && Number(number) > Math.max(...numbers)) beyond.push(`${code} ${file}`);
   else missing.push(`${code} -> ${file} (not in books/cbse/class-${grade}/${folder})`);
 }
 
 console.log(`  chapter codes in the seed : ${codes.length}`);
 console.log(`  with a PDF on disk         : ${ok}`);
-console.log(`  without a book (classes 1-7): ${noBook}`);
+console.log(`  without a book (classes 1-4): ${noBook}`);
+console.log(`  past the book's last chapter: ${beyond.length}`);
+for (const b of beyond) console.log('    beyond:', b);
 console.log(`  without a PDF              : ${missing.length}`);
 for (const m of missing) console.log('    missing:', m);
 if (missing.length) process.exitCode = 1;

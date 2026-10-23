@@ -3,9 +3,10 @@
 
     powershell -ExecutionPolicy Bypass -File scripts/qa/verify-release.ps1
 
-  Runs the four gates (typecheck, lint, build, the three test suites) and the
-  product-level probes (web/mobile parity, the chapter hub, video liveness and
-  duration, curriculum coverage). Exits 1 with the list of failures.
+  Runs the gates (typecheck, lint, the three test suites) and the product-level
+  probes (web/mobile parity, the chapter hub, practice scoring, video liveness and
+  duration, curriculum coverage, chapter PDFs, book alignment). Exits 1 with the
+  list of failures.
 #>
 $ErrorActionPreference = 'Continue'
 $repo = Resolve-Path (Join-Path $PSScriptRoot '..\..')
@@ -41,10 +42,17 @@ Run-Step 'web tests'      'pnpm --filter @sanro/web test'      'Tests .*passed'
 Run-Step 'mobile tests'   'pnpm --filter @sanro/mobile test'   'Tests:'
 Run-Step 'parity sweep'   'node scripts/qa/audit-web-mobile-parity.mjs'  'PARITY: PASS'
 Run-Step 'chapter hub'    'node scripts/qa/probe-chapter-hub.mjs'       '9/9 PASS'
+Run-Step 'practice scoring' 'node scripts/qa/probe-practice-scoring.mjs sanro_dev'  'PRACTICE SCORING: PASS'
+Run-Step 'practice scoring (5)' 'node scripts/qa/probe-practice-scoring.mjs sanro_dev --email student5@sanroai.com'  'PRACTICE SCORING: PASS'
+Run-Step 'practice scoring (6)' 'node scripts/qa/probe-practice-scoring.mjs sanro_dev --email student6@sanroai.com'  'PRACTICE SCORING: PASS'
+Run-Step 'practice scoring (7)' 'node scripts/qa/probe-practice-scoring.mjs sanro_dev --email student7@sanroai.com'  'PRACTICE SCORING: PASS'
+Run-Step 'practice scoring (8)' 'node scripts/qa/probe-practice-scoring.mjs sanro_dev --email student8@sanroai.com'  'PRACTICE SCORING: PASS'
+Run-Step 'practice scoring (9)' 'node scripts/qa/probe-practice-scoring.mjs sanro_dev --email student9@sanroai.com'  'PRACTICE SCORING: PASS'
 Run-Step 'video liveness' 'node scripts/qa/verify-video-liveness.mjs sanro_dev'  'thumbnail'
 Run-Step 'video lengths'  'node scripts/qa/audit-video-durations.mjs --min 120'  'TOO SHORT: 0'
 Run-Step 'curriculum'     'node scripts/qa/audit-curriculum-coverage.mjs'   'VIDEO lessons without a URL in the map: 0'
 Run-Step 'chapter PDFs'   'node scripts/qa/audit-chapter-pdfs.mjs'          'without a PDF              : 0'
+Run-Step 'book alignment' 'node scripts/qa/audit-book-alignment.mjs'       'missing from the seed : 0'
 
 Write-Output ""
 Write-Output "=== VERIFICATION SUMMARY ==="

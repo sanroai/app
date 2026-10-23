@@ -1,4 +1,4 @@
-// Re-sources specific lessons with curriculum-informed queries and only swaps the video
+﻿// Re-sources specific lessons with curriculum-informed queries and only swaps the video
 // when the candidate is demonstrably better (concept terms + textbook-chapter terms).
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,7 +15,7 @@ const TARGETS = {
 };
 
 const seed = fs.readFileSync(path.join(ROOT, 'apps/api/prisma/seed.ts'), 'utf8');
-const lessonRe = /\{\s*ch:\s*'([^']+)',\s*subjectName:\s*([A-Z_]+),\s*grade:\s*'(\d+)',\s*concept:\s*'((?:[^'\\]|\\')*)',\s*type:\s*'([A-Z_]+)',\s*title:\s*'((?:[^'\\]|\\')*)'/g;
+const lessonRe = /\{\s*ch:\s*'((?:[^'\\]|\\.)*)',\s*subjectName:\s*([A-Z_]+),\s*grade:\s*'(\d+)',\s*concept:\s*'((?:[^'\\]|\\')*)',\s*type:\s*'([A-Z_]+)',\s*title:\s*'((?:[^'\\]|\\')*)'/g;
 const lessons = new Map();
 let m;
 while ((m = lessonRe.exec(seed))) {

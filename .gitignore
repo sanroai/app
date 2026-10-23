@@ -72,6 +72,11 @@ screenshots/
 
 # local AI assistant working notes (paste-into-ChatGPT briefing, never commit)
 CHAT.md
+chatgpt.md
+chatgpt.md.bak-*
+
+# QA/authoring outputs (regenerate via scripts/qa/*; can reach ~100 MB)
+/artifacts/
 
 # MCP scratch output
 .playwright-mcp/

@@ -46,6 +46,13 @@ node scripts/qa/apply-video-chapters.mjs     # Writes the markers into the seed 
 node scripts/qa/audit-video-durations.mjs     # Real duration of every seeded video (rejects clips < 2 min)
 node scripts/qa/audit-curriculum-coverage.mjs # Which chapters have a video and which lessons have a URL
 node scripts/qa/audit-chapter-pdfs.mjs        # Every chapter code -> the NCERT PDF that is on disk
+node scripts/qa/audit-book-alignment.mjs       # Every seeded chapter title vs the book's own title
+node scripts/qa/audit-question-coverage.mjs    # Which chapters have practice questions (and which cannot be practised)
+node scripts/qa/prune-stale-lessons.mjs        # Database vs seed: lessons left behind by a chapter rename (--apply deletes)
+node scripts/qa/export-question-outline.mjs    # Chapters with no questions + their exact concept names (agent briefs)
+node scripts/qa/validate-question-fragments.mjs --dir artifacts/qa/<date>  # Checks authored questions against the live curriculum
+node scripts/qa/merge-question-fragments.mjs --dir artifacts/qa/<date>  # Merge questions-*.json into the seed + concept map
+node scripts/qa/probe-practice-scoring.mjs     # Starts a practice set, answers it correctly, checks the server scores 100
 node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths codes with the 2026 book (14 chapters)
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
 node scripts/qa/audit-web-mobile-parity.mjs  # Fails when a student capability exists on one side only
@@ -261,7 +268,9 @@ value, so rotating it is a one-line `.env` change.
 - `admin@sanroai.com` (SUPER_ADMIN)
 - `principal@sanroai.com` (INSTITUTION_ADMIN)
 - `teacher@sanroai.com` (TEACHER)
-- `student@sanroai.com` (STUDENT)
+- `student@sanroai.com` (STUDENT, class 10)
+- `student8@sanroai.com` / `student9@sanroai.com` (STUDENT, classes 8 and 9 — content is
+  grade-scoped, so without these two nobody can open the class-8/9 curriculum)
 - `parent@sanroai.com` (PARENT)
 
 ## Design Language
@@ -367,8 +376,10 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
-- Seeded: **132 chapters**, **605 concepts** and **185 video + 190 notes lessons**
-  - Class 10: 13 Science + 15 Math + 9 English chapters
+- Seeded: **132 chapters**, **605 concepts** and **144 video + 144 notes lessons**
+  - Class 10: 13 Science + 15 Math + 9 English chapters (the 2026 maths book has **14**
+    chapters - *Constructions* was rationalised out - so `MAT-10-1..14` follow the book and
+    *Constructions* is `MAT-10-15`, the one chapter with no textbook PDF)
   - Class 9: 13 Science + 8 Math + 8 English chapters (Science has 13: 1-13; the class-9
     **English book (Kaveri) is seeded**)
   - Class 8: 13 Science + 14 Math (7 + 7 across the two volumes) + 5 English chapters
@@ -377,6 +388,9 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
     not populated)
 - **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
   the seed are the real YouTube lengths.
+- Classes 8, 9 and 10 are **practisable**: 310 questions cover every one of their chapters
+  (32/32, 29/29, 37/37) - four per chapter, authored from the chapter's own textbook text.
+  Classes 1-7 are structure only: no video, no notes, no questions.
 - The NCERT **books** for classes 8, 9 and 10 are all extracted (see the section above) and their
   chapters are seeded; adding a class means adding its chapters, topics, concepts and lessons to
   `seed.ts`.

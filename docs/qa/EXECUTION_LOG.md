@@ -891,3 +891,151 @@ because a re-seed reset the counter but left the practice ledger rows. The seed 
 whole ledger for the demo student, and the demo-XP script creates the profile when it is
 missing - so `xp` and `totalXp` can never disagree again, which is the whole point of the
 ledger.
+
+### Phase P17 - classes 8 and 9 seeded from the 2026 books (2026-10-22)
+
+**Why this phase existed.** The class-8 and class-9 books were extracted but the curriculum
+still held the *old syllabus*: 3 Science + 3 Maths class-8 chapters and 5 Science + 4 Maths
+class-9 chapters, every one of them with an old title, old topics, old videos and old notes. The
+class-9 English book was not seeded at all. A student of class 8 opened "Materials in Daily Life"
+- a chapter that does not exist in Curiosity.
+
+**What the seed holds now.** 132 chapters, 605 concepts, 144 video lessons and 144 notes lessons:
+
+| Class | Science | Mathematics | English |
+|---|---|---|---|
+| 8 | 13 (Curiosity) | 14 (Ganita Prakash, 7 + 7 across the two volumes) | 5 (Poorvi) |
+| 9 | 13 (Exploration) | 8 (Ganita Manjari) | 8 (Kaveri) |
+| 10 | 13 | 15 (14 book chapters + Constructions) | 9 |
+
+Every chapter has a video lesson; 0 lessons are under two minutes; 125 of the 144 videos carry
+real chapter markers; every class-8/9/10 chapter code resolves to the chapter of its own PDF
+except *Constructions* (rationalised out of the 2026 book, so the PDF route answers 404 and the
+hub hides the button).
+
+**What was broken along the way, and what fixed it.**
+
+- **The merge wrote a computed property key.** The class-8/9 chapters were merged as
+  `[SCIENCE, { ...new chapters }]: [ ...old chapters ]`, so the key evaluated to
+  `"[object Object]"` and `CURRICULUM['8'].Science` was `undefined` - the seed crashed on class
+  8 and the six new chapters were silently absent. The merge now opens the array at the second
+  bracket (`[SCIENCE]: [`) and appends inside it; the repair is verified by reading the
+  curriculum back, not by looking at the diff.
+- **A stray comma made an array hole.** One merged line left a `,` alone on its own line, which
+  elides an element: `contentNodes` had `length 289` and 288 entries, so `for (const c of
+  contentNodes)` produced `undefined` and the seed died with
+  `Cannot read properties of undefined (reading 'grade')`. A parse check cannot see this - the
+  file is valid TypeScript - so the seed is now *run* in the gate, not just parsed.
+- **Class-10 mathematics was off by one.** The 2026 book dropped *Constructions*, so
+  `MAT-10-12` "Areas Related to Circles" opened the PDF of *Surface Areas and Volumes*. The
+  codes now follow the book (`scripts/qa/align-class10-maths.mjs`), and
+  `scripts/qa/audit-book-alignment.mjs` fails when a code points at a different chapter than
+  the book's own title.
+- **A demo assessment title was double-encoded** (`Matter in Our Surroundings ÃƒÆ’...`), visible
+  on the student dashboard. The seed now names it after its chapter and renames the existing
+  row in place; `scripts/qa/clean-garbled-assessments.mjs` removed the duplicate.
+- **87 old-syllabus lessons stayed in the database** after the renames (the seed only upserts).
+  They sat under the new chapter names - "Rutherford's Gold Foil Experiment Explained" under
+  *Cell: The Building Block of Life*. `scripts/qa/prune-stale-lessons.mjs` removed them; the
+  database now holds exactly 144 + 144, the numbers in the seed.
+- **The AR seed pointed at a renamed chapter** (`Matter and its Properties`), so the 3D model
+  was skipped on every seed run. Fixed, and the AR set now seeds 8/8.
+
+**New gates.** `audit-chapter-pdfs.mjs` (every code -> a PDF on disk, or a documented
+"beyond the book"), `audit-book-alignment.mjs` (the book's own chapter titles),
+`audit-question-coverage.mjs` (which chapters can actually be practised),
+`prune-stale-lessons.mjs` (the database vs the seed), all wired into
+`scripts/qa/verify-release.ps1`.
+
+**Still open.** 74 questions cover 39 of the 132 chapters, so most chapters show "No practice
+questions for this chapter yet" (the API answers 400 and both clients handle it). Classes 1-7
+are structure only. The class-10 science chapter *Heredity and Evolution* is still called that
+although the 2026 book calls it *Heredity* - the PDF is the right one.
+
+### Phase P18 - classes 8, 9 and 10 are practisable (2026-10-22)
+
+**Why this phase existed.** P17 gave every chapter a video, notes and a textbook page, so a
+chapter could be *read*. Only 74 questions covered 39 of the 132 chapters, so 93 chapters
+answered "No practice questions for this chapter yet" - the ASSESS edge of the loop - and the
+practice scoring path was never exercised against fresh content.
+
+**What the seed holds now.** 310 questions, and every chapter of every seeded class has four
+(two MCQs, one application/HOTS MCQ, one two-mark written answer):
+
+| Class | Chapters with questions | Questions |
+|---|---|---|
+| 8 | 32 / 32 | 122 |
+| 9 | 29 / 29 | 109 |
+| 10 | 37 / 37 | 79 |
+
+The 74 pre-existing questions are kept; 236 were authored this phase from each chapter's own
+textbook text (`books/cbse/class-8|9|10/**/chapters/<slug>/text.merged.txt`).
+
+**How it was done, and why that way.** Three authoring agents ran in parallel and each wrote a
+JSON *fragment* rather than editing `seed.ts`, so they could not conflict: science (72), English
+(52), mathematics (60), class 10 (52). Every fragment was checked against the live curriculum
+before anything was merged - `validate-question-fragments.mjs` proves the chapter exists at that
+grade, the concept belongs to that chapter, an MCQ has four options with exactly one correct and
+an `answer` identical to that option's text, and that no text is duplicated - and it reported
+**0 problems for 236 questions**. `merge-question-fragments.mjs` then writes each question into
+the seed's array *and* into the `QUESTION_CONCEPT` map (the seed throws on an unmapped question),
+idempotently by text; two of the four fragments were already merged, and the second run correctly
+skipped 124 and added 112.
+
+**The scoring path is now a gate.** `probe-practice-scoring.mjs` logs in as a demo student,
+starts a practice set on the three chapters with the newest questions, answers every auto-graded
+question with the option the *database* marks correct (the API deliberately strips `isCorrect`
+from the payload), submits, and asserts the server reports **100** - and **0** when a set has no
+auto-graded questions, because a written answer is neither right nor wrong. It caught nothing
+broken, which is the point: it now proves it on every release, for **all three grades**.
+
+**A class-8/9 curriculum nobody could open.** Content is grade-scoped (a class-10 student is
+answered 403 for a class-8 chapter), and the demo held only class-10 students - so two thirds of
+the seeded curriculum was unreachable in the demo. `db:seed:demo` now also creates
+`student8@sanroai.com` (class 8, "Class 8 - A") and `student9@sanroai.com` (class 9,
+"Class 9 - A"), each with a gamification profile and a ledger entry that matches its counter,
+exactly like the class-10 student. The probes then confirm the whole path in every grade:
+
+```
+class 8  MAT-8P2-7 Area                                4 questions, score 100/100
+class 9  MAT-9-8 Predicting What Comes Next             4 questions, score 100/100
+class 10 MAT-10-9 Applications of Trigonometry          4 questions, score 100/100
+```
+
+**Two things were wrong and are fixed.**
+- `/app/profile` offered XP, streak, mastery, learning progress and achievements to *every* role.
+  A parent's profile fired a student-only endpoint and rendered a 403 as an empty Achievements
+  card; the walkthrough had been calling that "EXPECTED RBAC". Gamification is student-only, so
+  `useAchievements` takes `{ enabled }` and the cards sit inside `isStudent ? ... : null` - and
+  the mobile Me tab, which showed the same blocks with zeroed numbers, is gated identically.
+- The mobile Home tab fired five student-only queries for parents and teachers (home,
+  assessments, diagnosis, gamification, progress). They now take `{ enabled: isStudent }`, the
+  same separation the web gets by mounting `StudentContent` only for a student.
+
+**Content quality.** The questions were reviewed by sampling: the science items are correct
+(angle of incidence = angle of reflection; a concave mirror burns paper at the focus), the
+mathematics items were re-derived (Heron 13-14-15 = 84 cm^2, sector 60 deg of r = 21 = 231 cm^2,
+AP 5, 9, 13, ... term 65 = 16th term), and the literature items are answerable only from the
+chapter's own text.
+
+**Verification of this phase.**
+
+| Gate | Result |
+|---|---|
+| `pnpm -r typecheck` | 6/6 tasks |
+| `pnpm -r lint` | 0 errors (web 78 + mobile 17 warnings, unchanged) |
+| `pnpm build` | 6/6 tasks, 1m19s (dev servers stopped first, restarted after) |
+| API / web / mobile tests | 596 / 51 / 82 passed |
+| `verify-release.ps1` | **PASS, 15 steps** |
+| web walkthrough | 69 pages: 62 PASS, 7 EXPECTED (RBAC), 0 console errors, 0 failed requests |
+| class 8 + 9 in the browser | dashboard, library, chapter hub, concept: 0 console errors, 0 failed requests |
+
+The 15 gate steps now include the two grade-scoped practice probes, so a chapter that loses its
+questions - or a student whose grade stops matching the content - fails the release rather than
+shipping. The walkthrough's "EXPECTED RBAC" list lost the parent-profile achievements 403 because
+that call no longer happens, and a fresh class-8 chapter hub renders its own textbook notes, its
+16-minute video, its four concepts and a practice set of four questions.
+
+Still open after this phase: classes 1-7 are structure only (no video, notes or questions), the
+on-device checks could not run (no phone and no emulator attached), and the production smoke test
+still cannot reach `api.sanroai.com`.

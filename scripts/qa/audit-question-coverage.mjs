@@ -31,13 +31,14 @@ const chapters = [...seed.matchAll(/name:\s*'((?:[^'\\]|\\.)*)',\s*\n\s*code:\s*
 const SUBJECT_OF = { SCI: 'SCIENCE', MAT: 'MATHS', ENG: 'ENGLISH' };
 
 console.log(`  questions in the seed  : ${calls.length}`);
-for (const grade of ['8', '9', '10']) {
+for (const grade of ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']) {
   const list = chapters.filter((c) => c.grade === grade);
   if (!list.length) continue;
   const withQ = list.filter(
     (c) => (counts.get(`${grade}|${SUBJECT_OF[c.code.split('-')[0]]}|${c.name}`) || 0) > 0,
   );
   console.log(`  class ${grade}: ${withQ.length} / ${list.length} chapters have questions`);
+  if (withQ.length === 0) continue;
   for (const c of list) {
     const n = counts.get(`${grade}|${SUBJECT_OF[c.code.split('-')[0]]}|${c.name}`) || 0;
     if (!n) console.log(`      none: ${c.code} ${c.name}`);
