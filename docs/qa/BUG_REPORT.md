@@ -1117,3 +1117,96 @@ with zeroed numbers - is gated the same way. The mobile Home tab also fired five
 queries for a parent (`/learning/home`, `/assessments/my`, `/diagnosis/my`, the gamification
 profile and learning progress); they now take `{ enabled: isStudent }` too, so a parent opening
 the app makes no request that answers 403.
+
+### BUG-AH (P0) - the seed and the database carried double-encoded UTF-8, so students read "â€™" for "’"
+The same class of defect as BUG-AD, but at scale: `seed.ts` held 188 lines of CP1252 mojibake
+(`â€™` for `’`, `Ã¢â‚¬â€œ` for `–`, `â€œ` for `“`), and every re-seed copied it into the database -
+**19 concept names, 39 question texts, 7 question options, 19 question answers and 30 lesson
+descriptions**. It was visible to students: a class-9 concept read *"Zero, the Bakhshali
+Manuscript and Brahmaguptaâ€™s Rules"*, a class-10 English question offered *"A personâ€™s work
+expresses who they are"*, and a science option read *"Erwin SchrA?dinger"*.
+`scripts/qa/fix-encoding.mjs` repairs it properly: the text is re-encoded to CP1252 bytes and
+decoded as UTF-8, a string is only touched when that round-trip is exact and reduces the
+mojibake, and the pass repeats for double-encoded rows. Concept names are unique per topic, so a
+repaired name that collides with an existing concept is **merged** into it (questions repointed)
+instead of renamed. A sweep of every text/varchar column in the schema (143 columns) now returns 0
+mojibake rows; that sweep is the regression check. `--apply` also writes the repaired seed.
+
+### BUG-AI (P1) - stale concepts outlived their chapter realignment (duplicates in the same topic)
+`prune-stale-topics.mjs` (BUG-AE's sibling) removes whole topics the curriculum spec no longer has,
+but a chapter that kept its topic while an old topic merged into it left two concept rows with the
+same meaning in one topic - the mojibake duplicate of BUG-AH and the correctly spelled row.
+`scripts/qa/prune-stale-concepts.mjs` compares every concept against the spec key
+`${grade}|${chapter}|${topic}|${concept}`, repoints the questions of a stale row to the same-named
+concept when exactly one exists, then deletes it; a concept still referenced by progress rows is
+kept rather than forced out. Class-9 mathematics went from 118 to 116 concepts and the platform
+from 1028 to 1009, with 0 stale rows left and 0 questions orphaned.
+
+### BUG-AJ (P2) - the AR 3D "atom" model pointed at a concept that no longer existed (and the wrong chapter)
+`seed-ar.ts` attached `Atom - Subatomic Structure` to the class-8 biology chapter *The Invisible
+Living World* under the concept *Subatomic Particles*, which is not in the 2026 book. The seed
+printed `1 skipped (missing curriculum)` on every run - the model was invisible to every student -
+and the item was mismatched even when it did resolve. It now targets class-9 Science, *Journey
+Inside the Atom*, concept *Atomic Number and Mass Number*: `AR content seed: 0 created, 8 updated,
+0 skipped`. A skipped AR item is a silent failure; that run line is the only signal.
+
+### BUG-AK (P2) - the walkthrough failed a public page whenever `next dev` compiled it cold
+`page.goto` resolves with a `null` response when the dev server aborts the first navigation while
+it compiles the route, and the walkthrough treated `httpStatus === null` as a hard FAIL - `/login`
+failed on the first run against a fresh dev server while the same page answered 200 to
+`Invoke-WebRequest` and to a second Playwright navigation. The harness now retries a
+null-response navigation twice before recording it, on both the public and the role passes, so a
+cold compile can no longer masquerade as a broken page.
+
+### BUG-AL (P1) - the practice result card paired the cumulative mastery level with the attempt score
+The card renders one standing as `"<level> — <score>%"`, but the two numbers came from different
+places: `applyAttemptEvidence` returns `score` = this attempt (`correct / questions`) and
+`level` = the level for the **cumulative** mastery, and `learning.service.ts` built
+`masteryUpdate` from exactly that pair. A student who had 2 of 7 questions right (29%,
+`NEEDS_INTERVENTION`) answered one question correctly and read **"NEEDS INTERVENTION — 100%"** —
+on the phone and on the web, because both render `masteryUpdate`. The evidence was right
+(`ConceptMastery.score` = 29); only the card was lying. `applyAttemptEvidence` now also returns
+`combinedScore` (the number it persists), and `masteryUpdate` / `masteryUpdates` carry that, so
+the level and the percentage always describe the same standing; the attempt score stays where it
+belongs, in `score` / `accuracy`. The label reads `— N% overall` on both platforms to say which
+number is which. Locked by `practice-flow.e2e-spec.ts` → *"reports the cumulative standing beside
+the mastery level, not the attempt score"*, which asserts the payload equals the stored row.
+
+### BUG-AM (P2) - the on-device harnesses deep-linked to a concept the curriculum no longer had
+`device-tab-check.ps1` and `device-video-play.ps1` hard-coded
+`ConceptId = 0a375db4-4f29-4d26-89e6-2d8850d75b58`. That concept was deleted by the class-10
+realignment, so the deep link opened a 404 screen: the tab check reported *"the concept page never
+rendered its mode bar"* and the video check had nothing to play — a failure that looked like an
+app regression but was a stale fixture. Both scripts now resolve the demo student's weakest
+concept from `GET /learning/path` (`next.conceptId`, the same concept the Home tab offers as
+"Fix This") and still accept `-ConceptId` to pin one. With that, all three device checks pass on a
+physical Android 10 device: smoke (app launches, student Home renders), tab check (Learn /
+Practice / Ask Sanro AI labels all 53 px, none compressed) and video play (taps "Play Physical
+Properties of Metals", no player configuration error).
+
+### BUG-AN (P2) - the premium 3D icons never loaded on the web dashboard
+`Icon3D` used `next/image` for 40 px icons served from `/public/icons`. Next emitted
+`loading="lazy"`, and inside the dashboard stat grid Chromium **never issued the request at
+all** - Playwright reported `complete: false` with `naturalWidth 0` and zero entries in the
+network log, while the same PNG returned `200 image/png` when requested directly. The stat
+cards therefore rendered without their icons until the student scrolled, and a screenshot
+at rest showed empty cards. `Icon3D` now renders a plain eager `<img>` (`loading="eager"`,
+`decoding="async"`): these are 20 KB local assets, so the optimiser buys nothing and the
+lazy heuristic demonstrably misfires here. Verified: `complete: true`, 40x40, icons visible
+in `artifacts/qa/2026-10-24/shot-main.png`.
+
+### BUG-AO (P2) - white heading text on white artwork (unreadable hero)
+Both the dashboard hero and the chapter hub hero placed white text over the banner image
+behind `bg-gradient-to-r from-surface-950/90 ...`. `surface-950` **does not exist** in
+`tailwind.config.ts` (the palette stops at `surface-900`), and Tailwind emits no rule for an
+unknown token rather than failing, so there was no scrim at all. The dashboard greeting was
+white-on-white and effectively invisible. Both heroes now use explicit stops
+(`from-[#0b0614]/92 via-[#0b0614]/65 to-[#0b0614]/10`), which cannot silently disappear;
+`docs/UX_REVAMP.md` records the rule.
+
+### Observation (not a defect) - "duplicated" page in stitched screenshots
+Full-viewport Playwright screenshots over the sticky header (`backdrop-filter: blur(16px)`)
+render the page twice with an offset ghost. The DOM is single (`1 header`, `1 main`, `1 h1`,
+11 cards) and element screenshots (`main`) plus the on-device captures are clean, so this is
+a headless compositor artifact. QA captures should use element screenshots or a viewport
+without the sticky blur; do not "fix" the UI for it.

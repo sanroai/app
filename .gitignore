@@ -80,3 +80,7 @@ chatgpt.md.bak-*
 
 # MCP scratch output
 .playwright-mcp/
+
+# local one-off QA scratch (probes worth keeping are named probe-*.mjs / audit-*.mjs)
+scripts/qa/tmp-*
+apps/api/src/routes-for-sweep.txt

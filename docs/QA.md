@@ -31,7 +31,21 @@ fails when that number is wrong.
 - `node scripts/qa/verify-video-liveness.mjs sanro_dev` — every video id is
   alive and embeddable.
 - `node scripts/qa/audit-chapter-pdfs.mjs` — every chapter code resolves to an
-  NCERT PDF that is on disk (classes 1-7 have no extracted book yet).
+  NCERT PDF that is on disk (classes 1-4 have no extracted book; classes 5-10 do,
+  and `MAT-10-15` is the one class-10 chapter without a PDF).
+- `node scripts/qa/fix-encoding.mjs [--apply]` — repairs double-encoded UTF-8
+  (`â€™` for `’`) in the seed and in every text column of the database, merging a
+  repaired concept name into the existing row instead of colliding with it. A
+  sweep of all text columns must report 0 mojibake rows.
+- `node scripts/qa/prune-stale-topics.mjs [--apply]` — topics the spec no longer
+  has; their questions are repointed to the owning concept before the topic goes.
+- `node scripts/qa/prune-stale-concepts.mjs [--apply]` — concepts the curriculum
+  spec no longer has (an old topic merged into a kept chapter, an encoding
+  duplicate); questions are repointed to the same-named concept first.
+- `node scripts/qa/export-concept-descriptions.mjs` — writes a
+  `concept-descriptions-<grade>-<subject>.json` skeleton for the concepts that
+  still have no description; `merge-concept-descriptions.mjs --dir <dir> --apply`
+  writes them into the seed's `conceptDescriptions` map (then re-seed).
 - `node scripts/qa/audit-book-alignment.mjs` — every seeded chapter matches the
   book's own chapter title (a different wording is reported, a different
   chapter fails).
@@ -51,6 +65,10 @@ fails when that number is wrong.
   merged: the chapter exists at that grade, the concept belongs to that chapter,
   an MCQ has four options with exactly one correct and an `answer` equal to that
   option's text, and no text is duplicated.
+- `node scripts/qa/reconcile-question-fragments.mjs --dir artifacts/qa/<date> [--apply] [--drop-unknown]`
+  — rewrites a question's `chapter` to the chapter that actually owns its concept
+  (an authoring agent may have read the database before a realignment), and
+  `--drop-unknown` drops questions whose concept no longer exists at all.
 - `node scripts/qa/merge-question-fragments.mjs --dir artifacts/qa/<date>` —
   merges `questions-*.json` fragments into the seed's question array **and**
   the `QUESTION_CONCEPT` map (the seed throws on an unmapped question), then

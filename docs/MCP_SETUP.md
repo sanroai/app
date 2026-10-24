@@ -136,3 +136,25 @@ now closed for everything except `unsplash`: postgres, context7, exa, deepwiki a
 shadcn are all callable from `execute` as of this update. A server missing from the
 catalog but present in `opencode.jsonc` is a harness limitation, not a config failure -
 check the log line (`mcp connected` / `mcp connect failed`) for the truth.
+
+---
+
+## Image generation: requested, evaluated, blocked (2026-10-24)
+
+The product ask was "connect an MCP that can generate AI images and use it wherever
+required". Three routes were evaluated before shipping composed artwork instead.
+
+| Route | Result | Why |
+|---|---|---|
+| **Gemini image models** (via the existing `AI_API_KEY`, not an MCP) | **BLOCKED** | `gemini-2.5-flash-image`, `gemini-3-pro-image`, `gemini-3.1-flash-image`, `gemini-3.1-flash-lite-image` all return **HTTP 429 quota exceeded** on this free-tier key. Text works (20 requests/day); images are not provisioned at all. |
+| **Keyless generation** (pollinations.ai / flux, no key) | **REJECTED** | Tested output is washed out and watermarked - not shippable next to the premium 3D icon set. |
+| **A dedicated image MCP server** | **NOT INSTALLED** | Every maintained option (Replicate, fal.ai, Stability, OpenAI-images) needs a funded provider key. Installing a server that can only 429 would add a failure surface for no capability. |
+
+What shipped instead: `scripts/qa/build-brand-art.mjs` composes the banners offline
+(SVG gradient field + the subject's 3D icon + faint geometry, rasterised with sharp) into
+`apps/web/public/art/` and `apps/mobile/assets/art/`. Deterministic, no key, ~40 KB each.
+
+**To enable AI imagery later:** add a funded key, then either
+`node scripts/qa/generate-subject-art.mjs` (already written, same filenames) or register an
+image MCP in `opencode.jsonc`. No component change is needed - the UI resolves art through
+`subjectArt()` / `subjectBanner()`. Full detail: `docs/AI_PROVIDER.md`.

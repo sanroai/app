@@ -1039,3 +1039,216 @@ that call no longer happens, and a fresh class-8 chapter hub renders its own tex
 Still open after this phase: classes 1-7 are structure only (no video, notes or questions), the
 on-device checks could not run (no phone and no emulator attached), and the production smoke test
 still cannot reach `api.sanroai.com`.
+
+---
+
+## Phase P15 (2026-10-24) - "all videos, all questions, all edge cases": content integrity + full probe sweep
+
+This phase answered "check all videos, add the missing ones, add more questions and notes,
+check every edge case". The video and question work is data work, so it was verified with the
+audits rather than by reading the seed.
+
+### Videos (221 lesson rows)
+
+| Check | Result |
+|---|---|
+| `verify-video-liveness.mjs sanro_dev` | **221 rows, 219 distinct ids, 219 alive, 219 thumbnails** |
+| `audit-video-durations.mjs --min 120` | **221 ok, 0 too short, 0 unknown** (shortest 179 s, median 1015 s, longest 16398 s) |
+| `audit-curriculum-coverage.mjs` | **209 / 209 chapters have a video**, 0 URLs without a lesson, 0 unknown chapters |
+| chapter markers | 86 of the 221 videos carry real YouTube chapter markers (creator list or description timestamps); no marker is synthesised |
+
+The 94 videos that were dead or missing at the start of the wave were re-sourced, checked with
+oEmbed, and applied to the seed *and* the database; `Number Play - Video Lesson` (class 8) was
+restored. Two rows share one URL (the same lesson is the canonical video for two chapters) -
+`videoId` itself has no duplicates.
+
+### Questions and content (the "add more" part)
+
+| Measure | Before | After |
+|---|---|---|
+| Questions | 753 | **1045** (+292) |
+| Chapters with questions | 209 / 209 | **209 / 209** |
+| Concepts | 1028 | **1009** (19 duplicate/stale rows merged) |
+| Content items | 442 | 442 (221 video + 221 notes) |
+| Question defects | - | **0** MCQs with !=4 options, 0 with !=1 correct, 0 answers that are not an option, 0 duplicate texts, 0 without a concept |
+
+The 292 new questions came from authored fragments for classes 5-10 (mathematics, science and
+English); every fragment went through `reconcile-question-fragments.mjs` (rewrite the chapter to
+the concept's real owner) and `validate-question-fragments.mjs` (four options, one correct, answer
+equals the option text, no duplicates) **before** the merge. Questions whose concept no longer
+exists in the 2026 books (old-syllabus `Plotting Points`, `Substitution`, `Elimination`,
+`Euclid's Postulates`, `Undefined Lines`) were dropped, and the ones whose concept survives under
+the book's own fuller name were re-authored (`Degree` -> *Linear Polynomials and the Degree of a
+Polynomial*, and so on).
+
+### Defects found and fixed in this phase
+
+- **BUG-AH** - the seed and the database carried double-encoded UTF-8 (`â€™` for `’`) in 19
+  concept names, 39 question texts, 7 options, 19 answers and 30 lesson descriptions. Repaired
+  with `fix-encoding.mjs`; a sweep of all 143 text columns now reports 0 mojibake rows.
+- **BUG-AI** - 19 stale concepts survived the chapter realignment (duplicates inside one topic).
+  `prune-stale-concepts.mjs` merges them and repoints their questions; 0 stale rows remain.
+- **BUG-AJ** - the AR "atom" model pointed at a concept that no longer existed (and at a biology
+  chapter). Retargeted to class-9 *Journey Inside the Atom*; the seed now reports 8/8, 0 skipped.
+- **BUG-AK** - the walkthrough failed `/login` when `next dev` compiled it cold (a null response
+  from `page.goto`). The harness now retries a null navigation twice.
+- **Probe defect** - `probe-ar-activity-loop.mjs` carried a hard-coded concept id that the AR
+  retarget invalidated. It now resolves the concept from the published AR list, so it cannot go
+  stale again; result 5/5 (2 activity POSTs, model loaded).
+
+### Gates (all run, all green)
+
+| Gate | Result |
+|---|---|
+| `pnpm -r typecheck` | **6/6 packages** |
+| `pnpm -r lint` | **0 errors** (web 78 warnings, pre-existing) |
+| `pnpm build` | **6/6 tasks** (dev servers stopped first, restarted after) |
+| API tests | **598 / 598** |
+| Web tests | **51 / 51** |
+| Mobile tests | **82 / 82** (12 suites) |
+| `verify-release.ps1` | **PASS, 18 steps** |
+| web walkthrough | **69 pages: 61 PASS, 8 EXPECTED (RBAC), 0 FAIL**, 0 console errors, 0 failed requests |
+
+### Probe sweep (the edge cases)
+
+| Probe | Result |
+|---|---|
+| `probe-auth-security.mjs` | **10/10** (enum-safe login, no raw reset token, CORS allowlist, no stack traces) |
+| `fuzz-write-path.mjs` | **11/11** (no 2xx/5xx on unauth/wrong-role/malformed writes, no leaks) |
+| `probe-files-proxy.mjs` | **9/9** (pass-through, 404, traversal blocked, range, HEAD, query string) |
+| `probe-ai-surface.mjs` | **12/12** (injection never reflected, parent blocked, no tenant leak) |
+| `sweep-authz.mjs` | **123 routes, 0 5xx for any role** (route list regenerated from the OpenAPI document) |
+| `probe-rate-limit.mjs` | **5/5** (login 10/min, forgot 3/min, register 5/min, contact 3/min, clean 429 + Retry-After) |
+| `probe-papers-guard.mts` | **5/5** (staff-only route guards) |
+| `probe-chapter-hub.mjs` | **9/9** (payload, PDF, practice start, 404s) |
+| `probe-practice-scoring.mjs` | **PASS for classes 5, 6, 7, 8, 9, 10** (server score 100/100 on every set) |
+| `probe-ar-activity-loop.mjs` | **5/5** (2 activity POSTs, no 429 storm, model-viewer loaded) |
+| `audit-web-mobile-parity.mjs` | **22/22 capabilities in sync**, 34 web-only admin groups by design |
+
+### Still open (unchanged or newly recorded)
+
+- **Concept descriptions are still empty**: `Concept.description` is null for all 1009 concepts,
+  so the concept page's "Quick Revision" card shows the generic revision line plus the chapter's
+  note links. The pipeline is ready (`export-concept-descriptions.mjs` ->
+  `concept-descriptions-<grade>-<subject>.json` -> `merge-concept-descriptions.mjs --apply` ->
+  re-seed); only the writing is outstanding. Class 9-10 science + mathematics is the highest-value
+  first batch.
+- **On-device checks could not run** - no phone and no emulator attached (`adb devices` empty).
+- **Production smoke test** still cannot reach `api.sanroai.com` (the gateway answers 404 for
+  `/api/v1/*`), so nothing in this phase was validated against production.
+- **Classes 1-4** hold one video, one notes lesson and four questions per chapter - real content,
+  but thin compared with classes 5-10.
+- `AI_API_KEY` and `HF_TOKEN` are absent, so the AI surface is exercised with its mock provider.
+
+## Phase P16 (2026-10-24) - "run on phone": physical-device verification
+
+A phone was attached (Honor JSN-L42, Android 10, `THC3Y19429006728`), so the three device scripts
+that had been blocked since Phase P14 were finally run against real hardware, plus a desktop-grade
+walkthrough of the student loop driven by `adb` + `uiautomator` rather than Playwright.
+
+### What was run
+
+| Step | Result |
+|---|---|
+| `adb reverse` 4000 / 8081 / 3000 + Metro (`expo start`) | bundle served, 1410 modules, first paint ~69 s (cold) |
+| `device-smoke.ps1 -Label launch` | **PASS** - `com.sanro.ai` launches, focus stays on `MainActivity` |
+| Student Home on the device | `Good morning, Aarav`, 7-day streak, 420 XP, 74% mastery, Level 1, focus card (2 weak concepts + 2 retests), Continue learning, 5-tab bar |
+| Concept page (deep link) | header + mastery badge, 3 mode pills, video lesson with the YouTube embed rendering, study notes, Quick Revision |
+| `device-tab-check.ps1` | **PASS** - Learn / Practice / Ask Sanro AI labels measure **53 px**, none compressed |
+| `device-video-play.ps1` | **PASS** - tapped "Play Physical Properties of Metals", no player configuration error (153) |
+| Practice loop on the device | Start Quiz → answered "Sulphur" (correct) → **Score 100, Accuracy 100%**, mastery card updated, XP awarded |
+
+### Defects found and fixed in this phase
+
+- **BUG-AL** - the practice result card paired the **cumulative** mastery level with the
+  **single-attempt** score (`"NEEDS INTERVENTION — 100%"` while the stored mastery was 29%).
+  `masteryUpdate` now carries `combinedScore`, so the level and the percentage are one standing;
+  both platforms label it `— N% overall`. New e2e test asserts the payload equals the stored row.
+- **BUG-AM** - `device-tab-check.ps1` / `device-video-play.ps1` deep-linked to a hard-coded concept
+  id that the class-10 realignment had deleted, so both reported an app failure that was really a
+  stale fixture. They now resolve `GET /learning/path` → `next.conceptId`.
+
+### Gates re-run after the change
+
+| Gate | Result |
+|---|---|
+| `pnpm -r typecheck` | **6/6 packages** |
+| `pnpm -r lint` | **0 errors** (api 213, web 78, mobile 17 warnings - pre-existing) |
+| API tests | **599 / 599** (31 files; +1 new practice-mastery test) |
+| Web tests | **51 / 51** |
+| Mobile tests | **82 / 82** (12 suites) |
+
+### Notes
+
+- Screenshots taken with `adb shell screencap` on this EMUI build show a **compositing artifact**
+  (UI text tiled across the frame). The accessibility tree (`uiautomator dump`) shows exactly one
+  node per element, and `adb exec-out screencap` captures the same screen cleanly, so it is a
+  capture artifact of the device, not a rendering bug.
+- The remaining opens from P15 are unchanged: concept descriptions (0/1009), production smoke
+  (gateway 404), classes 1-4 depth, and the absent `AI_API_KEY` / `HF_TOKEN`.
+
+---
+
+## Phase 16 - UX revamp, AI provider, video sections, question bank (2026-10-24)
+
+### Goal
+
+Finish the user-facing polish and close two functional gaps: "the YouTube video is
+not split concept-wise" and "more questions per concept and per chapter".
+
+### What shipped
+
+| Area | Change | Doc |
+|---|---|---|
+| Dashboard | Badges strip, pending-assessment duplicate, second Recurrent Activity and the Level card removed; hero artwork with greeting; 3 numbers (XP+level, streak, mastery) | `docs/UX_REVAMP.md` |
+| Icons | 34 premium 3D PNGs used app-wide (web `Icon3D`, mobile registry); emoji removed from copy | `docs/UX_REVAMP.md` |
+| Artwork | Subject banners on `/app/library/subjects`; chapter header banner on web + mobile | `docs/UX_REVAMP.md` |
+| Video sections | Real creator chapters where they exist, derived concept split otherwise, labelled "approximate"; markers clipped to the runtime | `docs/VIDEO_CHAPTER_MARKERS.md` |
+| Question bank | 1045 -> 1229 (+184 curated grade-10 questions, validator 0 problems); AI generator ready | `docs/QUESTION_BANK_GROWTH.md` |
+| AI | Gemini live (7/7 probe); image generation blocked by free-tier 429; composed art shipped instead | `docs/AI_PROVIDER.md` |
+
+### Two defects found and fixed
+
+- **BUG-AN** - `next/image` marked the dashboard 3D icons `loading="lazy"`; Chromium
+  never issued the request (`complete: false`, zero network entries), so the stat
+  cards rendered without icons until a scroll. `Icon3D` now renders a plain eager
+  `<img>`.
+- **BUG-AO** - the hero/chapter gradients used `from-surface-950/*`, a palette token
+  that does not exist in `tailwind.config.ts`, so Tailwind emitted nothing and white
+  text sat on light artwork (unreadable). Both heroes now use explicit
+  `from-[#0b0614]/...` stops.
+
+### Gates after the change
+
+| Gate | Result |
+|---|---|
+| `pnpm -r typecheck` | 6/6 packages |
+| `pnpm -r lint` | **0 errors** (api 213, web 78, mobile 22 warnings - pre-existing) |
+| API tests | **609 / 609** (32 files; +10 new `chapter-segments.spec.ts`) |
+| Web tests | **51 / 51** |
+| Mobile tests | **82 / 82** |
+| `web-walkthrough.mts` | **63 PASS / 6 EXPECTED / 0 PARTIAL / 0 FAIL** (69 pages) |
+| `probe-chapter-hub.mjs` | 9/9 PASS |
+| `probe-practice-scoring.mjs` | PASS (chapters now serve 9-10 questions, was 5) |
+| `probe-video-segments.mjs` (grades 10 / 9 / 8) | PASS - 49 / 29 / 32 videos, all navigable |
+| `audit-web-mobile-parity.mjs` | 22/22 capabilities in sync |
+| `validate-question-fragments.mjs` | 185 questions, 0 problems (1 already seeded) |
+| `audit-question-coverage.mjs` | 1229 questions, 209/209 chapters |
+| `verify-roles.mts student` | 8/8 pages clean |
+| On-device | Home renders the decluttered dashboard (2 stat tiles + level card); chapter hub shows the banner header and "10 questions across every concept" |
+
+### Notes
+
+- The first walkthrough of this pass reported one **PARTIAL** on `/forgot-password`
+  (a React hydration attribute warning). It did not reproduce in two isolated
+  Playwright loads and disappeared on a re-run once no files were being recompiled
+  - a dev-server recompile artifact, not an app defect (final run: 63 PASS /
+  6 EXPECTED / **0 PARTIAL**). Re-run the walkthrough when no edits are in flight
+  before treating a PARTIAL as real.
+- The free Gemini key is limited to **20 text requests/day** and **0 image
+  requests**; both limits are recorded with reset mechanics in
+  `docs/AI_PROVIDER.md` so nobody debugs a "broken" AI feature that is only
+  throttled.
+- Screenshot doubling over the sticky blurred header is a capture artifact: the
+  DOM reports one `header`, one `main`, one `h1`, 11 cards. Element screenshots
+  (`main`) and the device capture are clean.

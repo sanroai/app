@@ -166,12 +166,24 @@ types were leaking in.
 
 ## 5. Next actions
 
-1. Run `pnpm -r typecheck` + full API/web/mobile suites after the taxonomy change.
-2. Optional (later, reviewed): prod `ContentItem` cleanup migration to canonical —
-   **not required for correctness** (runtime folding already handles legacy rows).
-3. Ship P0 items in §2 order.
+*Superseded 2026-10-24 (Phase P15). The typecheck/suite item below is done and the release gate
+runs it every time; these are the open items in priority order.*
 
----
+1. **Concept descriptions** - `Concept.description` is null for all 1009 concepts, so the concept
+   page's "Quick Revision" card shows only the generic revision line plus the chapter's note
+   links. Author them with `export-concept-descriptions.mjs` ->
+   `concept-descriptions-<grade>-<subject>.json` -> `merge-concept-descriptions.mjs --dir <dir>`
+   -> re-seed. Start with class 9-10 science and mathematics (264 concepts), where the demo
+   students live.
+2. **On-device verification** - `adb devices` is empty, so `device-smoke.ps1`,
+   `device-tab-check.ps1` and `device-video-play.ps1` cannot run. Needs a phone or an emulator.
+3. **Production smoke test** - `api.sanroai.com` answers 404 for `/api/v1/*`; nothing can be
+   validated against production until the gateway routes are live (see `docs/DEPLOYMENT.md`).
+4. **Classes 1-4 depth** - one video, one notes lesson and four questions per chapter.
+   Structurally complete, thin in content compared with classes 5-10.
+5. Optional (later, reviewed): prod `ContentItem` cleanup migration to canonical types -
+   **not required for correctness** (runtime folding already handles legacy rows).
+6. Ship P0 items in A2 order.
 
 ## 6. Gamification & content-quality decisions (2026-10-21)
 

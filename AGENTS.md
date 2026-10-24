@@ -7,11 +7,15 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 - `docs/ROADMAP.md` — current plan (P0/P1/P2/CUT), research-grounded; authoritative over any roadmap text elsewhere.
 - `docs/MCP_SETUP.md` — MCP server decision matrix + which servers need an OpenCode restart.
 - `docs/MASTER_PRODUCT_SPEC.md` — frozen reference spec; never delete or gut.
+- `docs/UX_REVAMP.md` — why the dashboard/art/icon changes look the way they do (and the capture artifacts that are *not* bugs).
+- `docs/VIDEO_CHAPTER_MARKERS.md` — real creator chapters vs the derived concept split, and the probe that guards it.
+- `docs/AI_PROVIDER.md` — Gemini wiring, measured latencies, free-tier limits (20 text/day, 0 images).
+- `docs/QUESTION_BANK_GROWTH.md` — the author → validate → merge → reseed pipeline and current counts.
 
 ## Commands
 ```bash
 pnpm -r typecheck              # Typecheck all packages (6 tasks)
-pnpm --filter @sanro/api test  # Run Vitest (569 tests, 28 files) — migrates + seeds sanro_test first
+pnpm --filter @sanro/api test  # Run Vitest (599 tests, 31 files) — migrates + seeds sanro_test first
 pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 pnpm --filter @sanro/mobile dev     # Expo dev server (mobile)
@@ -57,6 +61,9 @@ node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths code
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
 node scripts/qa/audit-web-mobile-parity.mjs  # Fails when a student capability exists on one side only
 node scripts/qa/probe-chapter-hub.mjs        # Probes the chapter hub contract (payload, PDF, practice, 404s)
+node scripts/qa/probe-video-segments.mjs      # Every lesson video exposes jumpable markers (real or derived); --grade 8|9
+node scripts/qa/generate-concept-questions.mjs --grades 10 --target 4 --batch 5   # AI-assisted authoring (see docs/QUESTION_BANK_GROWTH.md)
+node scripts/qa/build-brand-art.mjs           # Regenerate subject/chapter/dashboard artwork -> web public/art + mobile assets/art
 ```
 
 Lint works: `pnpm -r lint` (ESLint 9 flat config: `eslint.config.mjs` in
@@ -108,6 +115,14 @@ chapter) -> **Ask** (Ask SANRO AI about this chapter). The API is
 description timestamps) and applied by `scripts/qa/apply-video-chapters.mjs` (seed + database).
 The web and the mobile both render the markers under the player and seek on tap
 (`postMessage` -> \`seekTo\`).
+
+**Only 86 of the 221 lesson videos actually have creator chapters** (YouTube has none for
+the rest - re-scanning does not create them). Both the concept page and the chapter hub
+therefore fall back to `deriveConceptSegments` (even split across the chapter's concepts,
+requires >= 2 concepts, >= 120 s runtime, >= 20 s per slice), flagged `derived: true` and
+labelled **"Sections · approximate"** in both clients. Markers that start past the stored
+runtime are clipped (`clipSegmentsToDuration`). Guard: `node scripts/qa/probe-video-segments.mjs`.
+Full reasoning: `docs/VIDEO_CHAPTER_MARKERS.md`.
 
 **Chapter -> textbook PDF** is resolved from the chapter code: \`SCI-10-4\` ->
 \`books/cbse/class-10/science/source/jesc104.pdf\`, \`MAT-9-3\` -> \`class-9/math/iemh103.pdf\`,
@@ -376,7 +391,9 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
-- Seeded: **132 chapters**, **605 concepts** and **144 video + 144 notes lessons**
+- Seeded: **209 chapters**, **1009 concepts**, **503 topics**, **221 video + 221 notes lessons**
+  and **1229 practice questions**. Every chapter in every class carries at least one video, one
+  notes lesson and three questions.
   - Class 10: 13 Science + 15 Math + 9 English chapters (the 2026 maths book has **14**
     chapters - *Constructions* was rationalised out - so `MAT-10-1..14` follow the book and
     *Constructions* is `MAT-10-15`, the one chapter with no textbook PDF)
@@ -384,13 +401,19 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
     **English book (Kaveri) is seeded**)
   - Class 8: 13 Science + 14 Math (7 + 7 across the two volumes) + 5 English chapters
     (the new class-8 books - Curiosity, Ganita Prakash, Poorvi - are seeded)
-  - Classes 1-7: 2-3 chapters each, Science + Mathematics only (structure ready, content
-    not populated)
+  - Classes 5-7: Science + Mathematics + English (5: 10 + 15 + 10, 6: 12 + 10 + 5,
+    7: 12 + 15 + 5 chapters)
+  - Classes 1-4: 2 Science + 2 Mathematics chapters each (class 3 Science has 3), one video, one
+    notes lesson and four questions per chapter
 - **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
-  the seed are the real YouTube lengths.
-- Classes 8, 9 and 10 are **practisable**: 310 questions cover every one of their chapters
-  (32/32, 29/29, 37/37) - four per chapter, authored from the chapter's own textbook text.
-  Classes 1-7 are structure only: no video, no notes, no questions.
+  the seed are the real YouTube lengths, enforced by `audit-video-durations.mjs --min 120`.
+- All ten classes are **practisable**: 1229 questions cover every chapter (class 1-4: 16/16/20/16,
+  class 5: 180, class 6: 152, class 7: 148, class 8: 122, class 9: 152, class 10: 407), authored
+  from the chapter's own textbook text where a book exists. The chapter-coverage audit
+  (`audit-question-coverage.mjs`) fails when any chapter loses its questions. Class 10 carries
+  >= 2 questions on every concept (a curated +184 batch: one MCQ per concept, one written question
+  per chapter); the rest of the bank is being topped up through
+  `scripts/qa/generate-concept-questions.mjs` — see `docs/QUESTION_BANK_GROWTH.md`.
 - The NCERT **books** for classes 8, 9 and 10 are all extracted (see the section above) and their
   chapters are seeded; adding a class means adding its chapters, topics, concepts and lessons to
   `seed.ts`.
