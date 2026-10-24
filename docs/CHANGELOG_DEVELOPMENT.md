@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-10-25 — UX revamp, Gemini provider, video sections, question bank growth
+
+| Field | Detail |
+|---|---|
+| Date | 2026-10-25 |
+| Task | Ship the user-facing polish batch and close two functional gaps ("the video is not split concept-wise", "more questions per concept"), committing the in-flight P15/P16 work |
+| Reason | The dashboard asked too many questions, the chapter hub video strip appeared on only 86 of 221 lessons, and the bank was thin per concept; the AI wiring was undocumented |
+| Entities affected | API: `ai/ai.service.ts` (+ `.env.example`), `common/books/chapter-segments.ts` (+ spec), `diagnosis/mastery.service.ts`, `learning/learning.service.ts`, `prisma/seed.ts`, `prisma/seed-ar.ts`, `test/practice-flow.e2e-spec.ts`. Web: dashboard, library/subjects, chapter hub, practice, papers, public home, `components/{icon-3d,prefetch-link,video-segments}`, `lib/{chapter-hooks,learning-hooks,library-hooks,prefetch,subject-art,video-segments}`, `public/art`, `public/icons`. Mobile: tabs, chapter hub, practice, `components/ChapterMarkerStrip`, `lib/{chapter-hub,subject-art}`, `assets/art`. Scripts: brand art, AI probe, concept-question authoring, video-segment probe, stale-concept prune, encoding repair. Docs: `AI_PROVIDER.md`, `UX_REVAMP.md`, `VIDEO_CHAPTER_MARKERS.md`, `QUESTION_BANK_GROWTH.md`, `EXECUTION_LOG.md`, `BUG_REPORT.md`, `ROADMAP.md`, `MCP_SETUP.md`, `QA.md`, `AGENTS.md` |
+| Database changes | Seed and DB text repaired from double-encoded UTF-8 (`fix-encoding.mjs --apply`: 2 seed lines written; 0 concept/question/option/content/topic rows needed repair on `sanro_dev`). No schema change |
+| API changes | Chapter hub returns `segments` (real creator chapters or derived concept split, flagged `derived`); practice pools widened; AI provider configurable via `AI_PROVIDER`/`AI_API_KEY`/`AI_MODEL`/`AI_BASE_URL` |
+| Frontend changes | Dashboard answers "what should I do today?" (hero art + 3 numbers, duplicate/secondary cards removed); 34 3D icons replace emoji; subject/chapter artwork; route prefetch; video markers seek on tap and are labelled "Sections · approximate" when derived; `Icon3D` renders an eager `<img>` and heroes use explicit gradient stops (BUG-AN, BUG-AO) |
+| Seed/import changes | Encoding repair touched only corrupted strings; AR demo set now reports 8/8, 0 skipped (BUG-AJ) |
+| Migration | `none — data/text only; no migration file added` |
+| Verification | `pnpm -r typecheck` 6/6; `pnpm -r lint` 0 errors (pre-existing warnings only); `pnpm build` 6/6; `pnpm --filter @sanro/api test` **609/609** (32 files); web tests 51/51; mobile tests 82/82; `web-walkthrough.mts` 63 PASS / 6 EXPECTED / 0 FAIL; `probe-video-segments.mjs` grades 10/9/8 PASS; `audit-question-coverage.mjs` 1229 questions, 209/209 chapters |
+| Known issues | Concept descriptions still null for all 1009 concepts; production `api.sanroai.com` gateway answers 404 for `/api/v1/*` so production smoke is blocked; on-device checks need an attached phone; `AI_API_KEY`/`HF_TOKEN` absent locally so AI runs mock |
+
 ### 2026-09-29 — Production deploy: Vercel web + Railway API, preDeploy seed blocker fixed
 
 | Field | Detail |
