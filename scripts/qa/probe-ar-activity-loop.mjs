@@ -11,9 +11,29 @@ import { QA_PASSWORD } from './_env.mjs';
 const WEB = 'http://localhost:3000';
 const API = 'http://localhost:4000/api/v1';
 const PW = QA_PASSWORD;
-const CONCEPT = process.env.AR_CONCEPT_ID ?? '0a375db4-4f29-4d26-89e6-2d8850d75b58';
+const CONCEPT = process.env.AR_CONCEPT_ID ?? null;
 const MAX_POSTS = 3;
 const WATCH_MS = 12000;
+
+// The hard-coded concept id this probe used to carry went stale when the AR set was
+// re-pointed at the 2026 curriculum (the old concept no longer exists), which made the
+// probe fail with "no 3D viewer card" instead of testing the loop. Resolve the concept
+// from the published AR list the student can actually see.
+async function resolveConcept() {
+  if (CONCEPT) return CONCEPT;
+  const login = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'student@sanroai.com', password: PW }),
+  }).catch(() => null);
+  const body = login ? await login.json().catch(() => ({})) : {};
+  if (!login?.ok || !body.accessToken) return null;
+  const list = await fetch(`${API}/ar`, { headers: { authorization: `Bearer ${body.accessToken}` } }).catch(() => null);
+  if (!list?.ok) return null;
+  const items = await list.json().catch(() => []);
+  const rows = Array.isArray(items) ? items : items.items ?? [];
+  return rows.find((r) => r.conceptId)?.conceptId ?? null;
+}
 
 function check(id, ok, detail) {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${id.padEnd(30)} ${detail}`);
@@ -56,7 +76,14 @@ async function main() {
   ]);
   await page.waitForTimeout(2000);
 
-  await page.goto(`${WEB}/app/learn/concepts/${CONCEPT}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const conceptId = await resolveConcept();
+  if (!conceptId) {
+    console.log('FAIL  AR-00 no published AR content for a demo student');
+    await browser.close();
+    process.exit(1);
+  }
+
+  await page.goto(`${WEB}/app/learn/concepts/${conceptId}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(2500);
 
   // the 3D viewer is opened from the Learn tab (it is lesson content, not a mode)

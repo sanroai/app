@@ -16,7 +16,7 @@ param(
   [string]$Package = 'com.sanro.ai',
   [string]$Activity = 'com.sanro.ai.MainActivity',
   [string]$Scheme = 'sanro-ai',
-  [string]$ConceptId = '0a375db4-4f29-4d26-89e6-2d8850d75b58',
+  [string]$ConceptId = '',
   [int]$WaitSeconds = 12,
   [int]$PlayWaitSeconds = 10,
   [string]$Label = 'video-play',
@@ -53,6 +53,31 @@ function Get-Bounds {
 }
 
 Write-Output "[video-play] device    : $(& $Adb devices | Select-Object -Skip 1 | Where-Object { $_ -match "`tdevice$" })"
+
+# A hard-coded concept id went stale when the curriculum was realigned (the deep link
+# then opened a 404 page with no player). Resolve the demo student's weakest concept so
+# the check always lands on a real lesson.
+if (-not $ConceptId) {
+  $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  $envFile = Join-Path $repoRoot 'apps\api\.env'
+  $pw = $null
+  if (Test-Path $envFile) {
+    foreach ($line in Get-Content $envFile) {
+      if ($line -match '^\s*SEED_DEMO_PASSWORD\s*=\s*(.+?)\s*$') { $pw = $matches[1].Trim().Trim('"').Trim("'") }
+    }
+  }
+  if ($pw) {
+    try {
+      $login = Invoke-RestMethod -Uri 'http://localhost:4000/api/v1/auth/login' -Method Post -ContentType 'application/json' `
+        -Body (@{ email = 'student@sanroai.com'; password = $pw } | ConvertTo-Json) -TimeoutSec 20
+      $path = Invoke-RestMethod -Uri 'http://localhost:4000/api/v1/learning/path' -Headers @{ Authorization = "Bearer $($login.accessToken)" } -TimeoutSec 20
+      $ConceptId = $path.next.conceptId
+    } catch { $ConceptId = $null }
+  }
+  if (-not $ConceptId) { Write-Output "[video-play] FAIL: could not resolve a concept (is the API on :4000?)"; exit 1 }
+}
+
+foreach ($port in @(4000, 8081, 3000)) { & $Adb reverse "tcp:$port" "tcp:$port" 2>&1 | Out-Null }
 Write-Output "[video-play] concept   : $ConceptId"
 
 & $Adb shell am force-stop $Package 2>&1 | Out-Null

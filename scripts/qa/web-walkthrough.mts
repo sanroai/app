@@ -140,7 +140,13 @@ async function runRole(role: string, email: string, routes: string[], viewport: 
     consoleErrors.length = 0; failedRequests.length = 0; expectedErrors.length = 0; knownErrors.length = 0;
     let status: number | null = null;
     try {
-      const resp = await gotoWithRetry(page, `${WEB}${route}`);
+      let resp = await gotoWithRetry(page, `${WEB}${route}`);
+      // Same cold-compile guard as the public pass: retry a navigation that
+      // resolved without a response before calling the route a failure.
+      for (let i = 0; resp === null && i < 2; i++) {
+        await page.waitForTimeout(2000);
+        resp = await gotoWithRetry(page, `${WEB}${route}`);
+      }
       status = resp?.status() ?? null;
       await page.waitForTimeout(3000);
       finalUrl = page.url();
@@ -212,7 +218,13 @@ async function runPublic(routes: string[]) {
     consoleErrors.length = 0; failed.length = 0; expectedErrors.length = 0; knownErrors.length = 0;
     let status: number | null = null;
     try {
-      const resp = await gotoWithRetry(page, `${WEB}${route}`);
+      let resp = await gotoWithRetry(page, `${WEB}${route}`);
+      // A cold `next dev` compile can abort the first navigation and resolve with
+      // no response; retry before treating the route as a failure.
+      for (let i = 0; resp === null && i < 2; i++) {
+        await page.waitForTimeout(2000);
+        resp = await gotoWithRetry(page, `${WEB}${route}`);
+      }
       status = resp?.status() ?? null;
       await page.waitForTimeout(2000);
       const safe = route.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'landing';

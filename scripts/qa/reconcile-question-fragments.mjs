@@ -20,6 +20,7 @@ const arg = (name, def) => {
 };
 const dir = arg('--dir', path.join('artifacts', 'qa', new Date().toISOString().slice(0, 10)));
 const apply = argv.includes('--apply');
+const dropUnknown = argv.includes('--drop-unknown');
 const positional = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--dir');
 const db = positional.find((a) => /^(sanro|postgres)[a-z0-9_]*$/i.test(a)) ?? 'sanro_dev';
 process.env.DATABASE_URL = `postgresql://postgres:postgres@localhost:5432/${db}`;
@@ -58,36 +59,52 @@ try {
 
   let total = 0;
   let rewritten = 0;
+  let dropped = 0;
   const problems = [];
+  const droppedList = [];
   for (const file of files) {
     const full = path.join(dir, file);
     const payload = JSON.parse(fs.readFileSync(full, 'utf8').replace(/^\uFEFF/, ''));
     let changed = 0;
+    const kept = [];
     for (const q of payload.questions ?? []) {
       total += 1;
       const key = `${q.grade}|${String(q.subject ?? '').toLowerCase()}`;
       const known = chapterNames.get(key);
       if (!known || !known.has(q.chapter)) {
         problems.push(`${file}: no class-${q.grade} ${q.subject} chapter "${q.chapter}"`);
+        kept.push(q);
         continue;
       }
       const map = owners.get(key) ?? new Map();
       const homes = map.get(q.concept);
       if (!homes) {
+        if (dropUnknown) {
+          dropped += 1;
+          droppedList.push(`${file}: ${q.concept} - ${String(q.text).slice(0, 60)}`);
+          continue;
+        }
         problems.push(`${file}: unknown concept "${q.concept}" (class ${q.grade} ${q.subject})`);
+        kept.push(q);
         continue;
       }
-      if (homes.has(q.chapter)) continue;
+      if (homes.has(q.chapter)) {
+        kept.push(q);
+        continue;
+      }
       if (homes.size !== 1) {
         problems.push(`${file}: "${q.concept}" lives in ${homes.size} chapters (${[...homes].join(', ')}), chapter left as "${q.chapter}"`);
+        kept.push(q);
         continue;
       }
       const target = [...homes][0];
       q.chapter = target;
       changed += 1;
+      kept.push(q);
       console.log(`    ${file}: ${q.concept} -> ${target}`);
     }
-    if (changed) {
+    payload.questions = kept;
+    if (changed || payload.questions.length !== total) {
       rewritten += changed;
       if (apply) fs.writeFileSync(full, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
     }
@@ -97,9 +114,11 @@ try {
   console.log(`  fragments     : ${files.length}`);
   console.log(`  questions     : ${total}`);
   console.log(`  rewritten     : ${rewritten}`);
+  console.log(`  dropped       : ${dropped}`);
+  for (const d of droppedList.slice(0, 12)) console.log(`    - ${d}`);
   console.log(`  problems      : ${problems.length}`);
   for (const p of problems.slice(0, 20)) console.log(`    FAIL ${p}`);
-  if (!apply && rewritten) console.log('  dry run - re-run with --apply to write the fragments');
+  if (!apply && (rewritten || dropped)) console.log('  dry run - re-run with --apply to write the fragments');
 } finally {
   await prisma.$disconnect();
 }

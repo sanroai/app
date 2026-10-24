@@ -18,7 +18,7 @@
 param(
   [string]$Package = 'com.sanro.ai',
   [string]$Scheme = 'sanro-ai',
-  [string]$ConceptId = '0a375db4-4f29-4d26-89e6-2d8850d75b58',
+  [string]$ConceptId = '',
   [int]$MinLabelHeight = 34,
   [int]$SettleSeconds = 7,
   [string[]]$Modes = @('Learn', 'Practice', 'Ask Sanro AI'),
@@ -39,6 +39,31 @@ if (-not $adb) { throw 'adb not found' }
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $outDir = Join-Path $repoRoot "artifacts\qa\$(Get-Date -Format 'yyyy-MM-dd')\screenshots"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+
+# The concept used to be hard-coded, which broke the check as soon as a curriculum
+# realignment deleted that concept (the deep link opened a 404 and the mode bar never
+# rendered). Resolve the student's weakest concept from the learning path instead, so
+# the check always opens a concept the demo student can actually see.
+function Resolve-ConceptId {
+  param([string]$ApiBase = 'http://localhost:4000/api/v1')
+  if ($ConceptId) { return $ConceptId }
+  $envFile = Join-Path $repoRoot 'apps\api\.env'
+  $pw = $null
+  if (Test-Path $envFile) {
+    foreach ($line in Get-Content $envFile) {
+      if ($line -match '^\s*SEED_DEMO_PASSWORD\s*=\s*(.+?)\s*$') { $pw = $matches[1].Trim().Trim('"').Trim("'") }
+    }
+  }
+  if (-not $pw) { return $null }
+  try {
+    $login = Invoke-RestMethod -Uri "$ApiBase/auth/login" -Method Post -ContentType 'application/json' `
+      -Body (@{ email = 'student@sanroai.com'; password = $pw } | ConvertTo-Json) -TimeoutSec 20
+    $path = Invoke-RestMethod -Uri "$ApiBase/learning/path" -Headers @{ Authorization = "Bearer $($login.accessToken)" } -TimeoutSec 20
+    return $path.next.conceptId
+  } catch {
+    return $null
+  }
+}
 
 function Get-Ui {
   & $adb shell uiautomator dump /sdcard/ui.xml 2>&1 | Out-Null
@@ -72,6 +97,13 @@ function Save-Screen {
 }
 
 foreach ($port in @(4000, 8081, 3000)) { & $adb reverse "tcp:$port" "tcp:$port" 2>&1 | Out-Null }
+
+$ConceptId = Resolve-ConceptId
+if (-not $ConceptId) {
+  Write-Output "[tab-check] FAIL: could not resolve a concept for the demo student (is the API on :4000?)"
+  exit 1
+}
+Write-Output "[tab-check] concept: $ConceptId"
 
 # landscape is the harshest case: the least vertical space for header + tab bar
 & $adb shell settings put system accelerometer_rotation 0 2>&1 | Out-Null
