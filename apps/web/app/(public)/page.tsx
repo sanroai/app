@@ -24,6 +24,7 @@ import {
   Eye,
   Heart,
 } from 'lucide-react';
+import { Icon3D } from '@/components/icon-3d';
 
 const steps = [
   {
@@ -229,21 +230,21 @@ export default function HomePage() {
           <div className="grid md:grid-cols-3 gap-8">
             <div className="rounded-3xl bg-white p-8 shadow-card border border-surface-100 text-center">
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 mb-4">
-                <span className="text-2xl">📋</span>
+                <Icon3D name="clipboard" size={30} />
               </div>
               <h3 className="text-lg font-bold text-surface-900 mb-2">Traditional Testing</h3>
               <p className="text-sm text-surface-600">Students get marks. Teachers get a list. Nobody knows what to fix.</p>
             </div>
             <div className="rounded-3xl bg-white p-8 shadow-card border border-surface-100 text-center">
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 mb-4">
-                <span className="text-2xl">🔍</span>
+                <Icon3D name="magnifier" size={30} />
               </div>
               <h3 className="text-lg font-bold text-surface-900 mb-2">Without Diagnosis</h3>
               <p className="text-sm text-surface-600">Students study everything again. No targeted fix. No measurable improvement.</p>
             </div>
             <div className="rounded-3xl bg-white p-8 shadow-card border border-violet-200 text-center ring-2 ring-violet-100">
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 mb-4">
-                <span className="text-2xl">🎯</span>
+                <Icon3D name="target" size={30} />
               </div>
               <h3 className="text-lg font-bold text-surface-900 mb-2">With SANRO</h3>
               <p className="text-sm text-surface-600">Assess. Diagnose the exact gap. Fix it. Retest. Prove improvement.</p>

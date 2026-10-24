@@ -10,6 +10,8 @@
 export interface VideoSegment {
   title: string;
   startSeconds: number;
+  /** Derived from the chapter's concepts because the video has no creator chapters. */
+  derived?: boolean;
 }
 
 export interface ChapterConcept {
@@ -83,7 +85,11 @@ export function normalizeSegments(segments?: VideoSegment[] | null): VideoSegmen
       (s): s is VideoSegment =>
         !!s && typeof s.startSeconds === 'number' && Number.isFinite(s.startSeconds) && s.startSeconds >= 0,
     )
-    .map((s) => ({ title: (s.title ?? '').trim() || 'Marker', startSeconds: Math.floor(s.startSeconds) }))
+    .map((s) => ({
+      title: (s.title ?? '').trim() || 'Marker',
+      startSeconds: Math.floor(s.startSeconds),
+      ...(s.derived === true ? { derived: true } : {}),
+    }))
     .sort((a, b) => a.startSeconds - b.startSeconds);
 }
 

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useChapterHub, useStartPractice } from '../../lib/hooks';
+import { subjectBanner } from '../../lib/subject-art';
 import { absoluteApiUrl } from '../../lib/api';
 import {
   conceptStatusLabel,
@@ -113,6 +115,8 @@ export default function ChapterHubScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <Image source={subjectBanner(chapter.subject, chapter.code)} style={styles.headerBanner} />
+        <View style={styles.headerOverlay} />
         <Text style={styles.headerEyebrow}>
           {[chapter.subject, chapter.grade ? `Class ${chapter.grade}` : null].filter(Boolean).join(' • ')}
         </Text>
@@ -398,6 +402,16 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.lg,
     borderBottomLeftRadius: BorderRadius.xxl,
     borderBottomRightRadius: BorderRadius.xxl,
+    overflow: 'hidden',
+  },
+  headerBanner: {
+    ...StyleSheet.absoluteFillObject,
+    width: undefined,
+    height: undefined,
+  },
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(23, 12, 60, 0.62)',
   },
   headerEyebrow: { color: Colors.primaryLight, fontSize: 12, fontWeight: '600' },
   headerTitle: { color: Colors.white, fontSize: 22, fontWeight: '700', marginTop: 2 },

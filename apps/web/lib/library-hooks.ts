@@ -62,15 +62,25 @@ export interface LibraryFilters {
   sort?: string;
 }
 
-export function useLibrary(filters: LibraryFilters = {}) {
-  const token = useToken();
+export function libraryQueryString(filters: LibraryFilters = {}) {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(filters)) {
     if (value !== undefined && value !== null && value !== '') params.set(key, String(value));
   }
-  const qs = params.toString();
+  return params.toString();
+}
+
+/** The browse screen's first paint, so it can be prefetched by key. */
+export const libraryKeys = {
+  list: (qs: string) => ['library', qs] as const,
+  item: (id: string) => ['library', 'item', id] as const,
+};
+
+export function useLibrary(filters: LibraryFilters = {}) {
+  const token = useToken();
+  const qs = libraryQueryString(filters);
   return useQuery<LibraryResponse>({
-    queryKey: ['library', qs],
+    queryKey: libraryKeys.list(qs),
     queryFn: () => api<LibraryResponse>(`/content/browse${qs ? `?${qs}` : ''}`, { token }),
     enabled: !!token,
     placeholderData: (prev) => prev,
@@ -85,7 +95,7 @@ export interface LibraryItemDetail extends LibraryItem {
 export function useLibraryItem(id: string | null) {
   const token = useToken();
   return useQuery<LibraryItemDetail>({
-    queryKey: ['library', 'item', id ?? ''],
+    queryKey: libraryKeys.item(id ?? ''),
     queryFn: () => api<LibraryItemDetail>(`/content/${id}`, { token }),
     enabled: !!id && !!token,
   });

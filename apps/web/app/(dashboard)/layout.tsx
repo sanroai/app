@@ -8,34 +8,20 @@ import { blockedRoute } from '@/lib/blocked-state';
 import { useRoleTheme, useRole } from '@/lib/role-theme';
 import {
   LogOut,
-  LayoutDashboard,
-  FileText,
-  BarChart2,
   GraduationCap,
-  Trophy,
-  BookOpen,
-  Users,
-  UserCheck,
-  HeartHandshake,
   Settings,
   Search,
   Menu,
   X,
-  HelpCircle,
-  MessageCircle,
-  Upload,
-  Lightbulb,
   UserCircle2,
-  Layers,
-  Database,
-  Boxes,
   ShieldX,
-  Film,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notification-bell';
+import { Icon3D } from '@/components/icon-3d';
+import { ICONS, type IconKey } from '@/lib/subject-art';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -66,7 +52,20 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-type NavLink = { href: string; label: string; icon: LucideIcon; alias?: string[] };
+/**
+ * Every navigation item carries a premium 3D icon (`art`) from the shared set;
+ * `icon` is only a fallback for items added later that have no artwork yet.
+ * The user rejected both emoji and the flat lucide glyphs in the menu, so the
+ * menu is the one place where the 3D set is mandatory rather than decorative.
+ */
+type NavLink = { href: string; label: string; art: IconKey; icon?: LucideIcon; alias?: string[] };
+
+function NavIcon({ link, size, className }: { link: NavLink; size: number; className?: string }) {
+  if (link.art) return <Icon3D src={ICONS[link.art]} size={size} className={cn('shrink-0', className)} />;
+  const Icon = link.icon;
+  if (!Icon) return null;
+  return <Icon className={cn('shrink-0', className)} style={{ width: size, height: size }} />;
+}
 
 function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -79,32 +78,32 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const superAdminLinks: NavLink[] = isSuperAdmin
     ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
+        { href: '/app', label: 'Dashboard', art: 'glowingStar' },
+        { href: '/app/institutions', label: 'Institutions', art: 'graduationCap' },
       ]
     : [];
 
   const studentLinks: NavLink[] = role === 'STUDENT'
     ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/library', label: 'Library', icon: BookOpen, alias: ['/app/learn'] },
-        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
-        { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
-        { href: '/app/gamification', label: 'Progress', icon: Trophy },
+        { href: '/app', label: 'Dashboard', art: 'glowingStar' },
+        { href: '/app/library', label: 'Library', art: 'bookshelf', alias: ['/app/learn'] },
+        { href: '/app/assessments', label: 'Assessments', art: 'clipboard' },
+        { href: '/app/chat', label: 'Ask Sanro AI', art: 'speechBalloon' },
+        { href: '/app/gamification', label: 'Progress', art: 'trophy' },
       ]
     : [];
 
   const parentLinks: NavLink[] = role === 'PARENT'
     ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/children', label: 'Children', icon: Users },
+        { href: '/app', label: 'Dashboard', art: 'glowingStar' },
+        { href: '/app/children', label: 'Children', art: 'crayon' },
       ]
     : [];
 
   const staffLinks: NavLink[] = staff && !isSuperAdmin
     ? [
-        { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/library', label: 'Library', icon: BookOpen },
+        { href: '/app', label: 'Dashboard', art: 'glowingStar' },
+        { href: '/app/library', label: 'Library', art: 'bookshelf' },
       ]
     : [];
 
@@ -112,18 +111,18 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const peopleLinks: NavLink[] = isSuperAdmin
     ? [
-        { href: '/app/people/students', label: 'Students', icon: Users },
-        { href: '/app/people/teachers', label: 'Teachers', icon: UserCheck },
-        { href: '/app/people/parents', label: 'Parents', icon: HeartHandshake },
+        { href: '/app/people/students', label: 'Students', art: 'graduationCap' },
+        { href: '/app/people/teachers', label: 'Teachers', art: 'pencil' },
+        { href: '/app/people/parents', label: 'Parents', art: 'wavingHand' },
       ]
     : [];
 
   const managementLinks: NavLink[] = staff && !isSuperAdmin
     ? [
-        { href: '/app/students', label: 'Students', icon: Users },
-        { href: '/app/teachers', label: 'Teachers', icon: UserCheck },
-        { href: '/app/parents', label: 'Parents', icon: HeartHandshake },
-        ...(isAdmin ? [{ href: '/app/import', label: 'Import', icon: Upload }] : []),
+        { href: '/app/students', label: 'Students', art: 'graduationCap' },
+        { href: '/app/teachers', label: 'Teachers', art: 'pencil' },
+        { href: '/app/parents', label: 'Parents', art: 'wavingHand' },
+        ...(isAdmin ? [{ href: '/app/import', label: 'Import', art: 'rocket' as IconKey }] : []),
       ]
     : [];
 
@@ -134,27 +133,27 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         // Curriculum is a SUPER_ADMIN management console (the page calls
         // GET /admin/curriculum, @Roles(SUPER_ADMIN) only) — gating the nav link to the
         // same role prevents TEACHER/IA from hitting a 403 error banner. See BUG-I.
-        ...(isSuperAdmin ? [{ href: '/app/curriculum', label: 'Curriculum', icon: Layers }] : []),
-        { href: '/app/questions', label: 'Question Bank', icon: HelpCircle },
-        { href: '/app/papers', label: 'Question Papers', icon: FileText },
-        ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),
-        ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FileText }] : []),
-        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
-        { href: '/app/content/videos', label: 'Chapter Videos', icon: Film },
-        { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
+        ...(isSuperAdmin ? [{ href: '/app/curriculum', label: 'Curriculum', art: 'book' as IconKey }] : []),
+        { href: '/app/questions', label: 'Question Bank', art: 'magnifier' },
+        { href: '/app/papers', label: 'Question Papers', art: 'pencil' },
+        ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', art: 'bookshelf' as IconKey }] : []),
+        ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', art: 'pencil' as IconKey }] : []),
+        { href: '/app/content/ingest', label: 'Content Ingest', art: 'openBook' },
+        { href: '/app/content/videos', label: 'Chapter Videos', art: 'palette' },
+        { href: '/app/ar', label: 'AR / 3D', art: 'rocket' },
       ]
     : [];
 
   const analyticsLinks: NavLink[] = staff
     ? [
-        { href: '/app/reports', label: 'Reports', icon: BarChart2 },
-        ...(isSuperAdmin ? [{ href: '/app/gamification', label: 'Gamification', icon: Trophy }] : []),
-        ...(staff && !isSuperAdmin ? [{ href: '/app/remediation', label: 'Remediation', icon: Lightbulb }] : []),
+        { href: '/app/reports', label: 'Reports', art: 'chart' },
+        ...(isSuperAdmin ? [{ href: '/app/gamification', label: 'Gamification', art: 'trophy' as IconKey }] : []),
+        ...(staff && !isSuperAdmin ? [{ href: '/app/remediation', label: 'Remediation', art: 'lightbulb' as IconKey }] : []),
       ]
     : [];
 
   const settingsLinks: NavLink[] = [
-    { href: '/app/settings', label: 'Settings', icon: Settings },
+    { href: '/app/settings', label: 'Settings', art: 'puzzle' },
   ];
 
   const activeFor = (l: NavLink) =>
@@ -168,43 +167,57 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
         href={l.href}
         aria-current={active ? 'page' : undefined}
         className={cn(
-          'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+          'inline-flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
           active
             ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
             : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
         )}
       >
-        <l.icon className="h-4 w-4" />
+        <span
+          className={cn(
+            'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] transition-colors',
+            active ? 'bg-white/20' : 'bg-surface-100'
+          )}
+        >
+          <NavIcon link={l} size={24} />
+        </span>
         {l.label}
       </Link>
     );
   };
 
-  const renderDropdown = (label: string, Icon: LucideIcon, links: NavLink[]) => {
+  const renderDropdown = (label: string, art: IconKey, links: NavLink[]) => {
     const active = links.some((l) => activeFor(l));
     return (
       <DropdownMenu key={label}>
         <DropdownMenuTrigger asChild>
           <button
             className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+              'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
               active
                 ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
                 : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
             )}
           >
-            <Icon className="h-4 w-4" />
+            <span
+              className={cn(
+                'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] transition-colors',
+                active ? 'bg-white/20' : 'bg-surface-100'
+              )}
+            >
+              <Icon3D src={ICONS[art]} size={24} className="shrink-0" />
+            </span>
             {label}
             <svg className="h-3 w-3 text-current opacity-70" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
+        <DropdownMenuContent align="start" className="w-52">
           {links.map((l) => (
             <DropdownMenuItem key={l.href} asChild>
-              <Link href={l.href} className="flex items-center gap-2">
-                <l.icon className="h-4 w-4" />
+              <Link href={l.href} className="flex items-center gap-2.5 py-1">
+                <NavIcon link={l} size={24} />
                 {l.label}
               </Link>
             </DropdownMenuItem>
@@ -229,7 +242,14 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
             : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-100'
         )}
       >
-        <l.icon className="h-5 w-5" />
+        <span
+          className={cn(
+            'grid h-9 w-9 shrink-0 place-items-center rounded-xl',
+            active ? 'bg-white/20' : 'bg-surface-100 dark:bg-surface-800'
+          )}
+        >
+          <NavIcon link={l} size={26} />
+        </span>
         {l.label}
       </Link>
     );
@@ -239,7 +259,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     const sections = [
       { label: 'People', links: peopleDropdownLinks },
       { label: 'Academic', links: academicLinks },
-      ...(staff ? [{ label: 'Assessments', links: [{ href: '/app/assessments', label: 'Assessments', icon: BarChart2 }] as NavLink[] }] : []),
+      ...(staff ? [{ label: 'Assessments', links: [{ href: '/app/assessments', label: 'Assessments', art: 'clipboard' as IconKey }] as NavLink[] }] : []),
       { label: 'Analytics', links: analyticsLinks },
       { label: 'Settings', links: settingsLinks },
     ];
@@ -265,31 +285,31 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
       {peopleDropdownLinks.length > 0 && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderDropdown('People', Users, peopleDropdownLinks)}
+          {renderDropdown('People', 'wavingHand', peopleDropdownLinks)}
         </>
       )}
       {academicLinks.length > 0 && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderDropdown('Academic', Layers, academicLinks)}
+          {renderDropdown('Academic', 'book', academicLinks)}
         </>
       )}
       {staff && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderLink({ href: '/app/assessments', label: 'Assessments', icon: BarChart2 })}
+          {renderLink({ href: '/app/assessments', label: 'Assessments', art: 'clipboard' })}
         </>
       )}
       {analyticsLinks.length > 0 && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderDropdown('Analytics', BarChart2, analyticsLinks)}
+          {renderDropdown('Analytics', 'chart', analyticsLinks)}
         </>
       )}
       {settingsLinks.length > 0 && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderDropdown('Settings', Settings, settingsLinks)}
+          {renderDropdown('Settings', 'puzzle', settingsLinks)}
         </>
       )}
     </nav>

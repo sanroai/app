@@ -339,7 +339,7 @@ export default function PracticePage() {
                   <div>
                     <p className="text-sm font-medium text-surface-700">Mastery Updated</p>
                     <p className="text-xs text-surface-500">
-                      Your concept mastery has been updated based on this practice.
+                      Your overall concept mastery after this practice.
                     </p>
                   </div>
                   <Badge
@@ -351,7 +351,7 @@ export default function PracticePage() {
                         : 'bg-red-100 text-red-700',
                     )}
                   >
-                    {results.masteryUpdate.level} — {results.masteryUpdate.score}%
+                    {results.masteryUpdate.level} — {results.masteryUpdate.score}% overall
                   </Badge>
                 </div>
               </div>

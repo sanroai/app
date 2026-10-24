@@ -18,15 +18,20 @@ interface Props {
  * video lesson. Each chip is a point the video is split at, so a student can
  * jump straight to "Total Surface Area" instead of scrubbing 40 minutes.
  */
-export function ChapterMarkerStrip({ segments, onSelect, activeStartSeconds, label = 'Chapter markers' }: Props) {
+export function ChapterMarkerStrip({ segments, onSelect, activeStartSeconds, label = 'Sections' }: Props) {
   const markers = normalizeSegments(segments);
   if (markers.length === 0) return null;
+
+  // Derived markers come from the chapter's concept list, not from the creator,
+  // so the heading says "approximate" instead of implying published chapters.
+  const approximate = markers.every((marker) => marker.derived === true);
+  const heading = approximate ? `${label} · approximate` : label;
 
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
         <Ionicons name="list" size={12} color={Colors.textSecondary} />
-        <Text style={styles.headerText}>{label}</Text>
+        <Text style={styles.headerText}>{heading}</Text>
       </View>
       <ScrollView
         horizontal

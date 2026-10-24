@@ -145,7 +145,7 @@ export default function PracticeScreen() {
           <View style={styles.masteryBox}>
             <Text style={styles.masteryTitle}>Mastery updated</Text>
             <Text style={styles.masteryText}>
-              {result.masteryUpdate.level.replace(/_/g, ' ')} — {result.masteryUpdate.score}%
+              {result.masteryUpdate.level.replace(/_/g, ' ')} — {result.masteryUpdate.score}% overall
             </Text>
           </View>
         ) : null}

@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/lib/auth-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +15,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ErrorBanner } from '@/components/ui';
 import { Markdown } from '@/components/markdown';
 import { VideoWithSegments } from '@/components/video-segments';
+import { Icon3D } from '@/components/icon-3d';
+import { PrefetchLink } from '@/components/prefetch-link';
+import { prefetchConcept } from '@/lib/prefetch';
+import { subjectArt } from '@/lib/subject-art';
 import { useChapterHub, useChapterPdf, useStartChapterPractice } from '@/lib/chapter-hooks';
 import {
   AlertCircle,
@@ -64,6 +71,8 @@ export default function ChapterHubPage() {
   const { data: chapter, isLoading, error } = useChapterHub(chapterId);
   const startPractice = useStartChapterPractice();
   const pdf = useChapterPdf();
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
 
   const nextConcept = useMemo(() => {
     if (!chapter) return null;
@@ -112,6 +121,8 @@ export default function ChapterHubPage() {
     );
   }
 
+  const art = subjectArt(chapter.subject, chapter.code);
+
   const { progress, practice } = chapter;
   const practiceError = startPractice.error ? (startPractice.error as Error).message : null;
 
@@ -138,31 +149,50 @@ export default function ChapterHubPage() {
         <span className="truncate font-medium text-surface-600">{chapter.name}</span>
       </nav>
 
-      {/* Header */}
-      <div className="flex items-start gap-3">
-        <Link
-          href="/app/library"
-          aria-label="Go back to Library"
-          className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </Link>
-        <div className="min-w-0 flex-1">
-          {chapter.code ? (
-            <Badge variant="secondary" className="mb-2 text-[10px]">
-              {chapter.code}
-            </Badge>
-          ) : null}
-          <h1 className="text-2xl font-bold text-surface-900">{chapter.name}</h1>
-          <p className="mt-1 text-sm text-surface-500">
-            {chapter.subject}
-            {chapter.grade ? ` · Class ${chapter.grade}` : ''}
-            {` · ${progress.concepts} concept${progress.concepts === 1 ? '' : 's'}`}
-          </p>
-        </div>
-        <div className="hidden rounded-2xl bg-brand-50 px-4 py-2 text-center sm:block">
-          <p className="text-2xl font-bold text-brand-600">{progress.percent}%</p>
-          <p className="text-[10px] font-medium text-surface-400">MASTERED</p>
+      {/* Header - the subject's own artwork, so opening a chapter feels like
+          opening a book rather than reading a table row. */}
+      <div className="relative overflow-hidden rounded-3xl bg-surface-950 shadow-card">
+        <Image
+          src={art.banner}
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 1100px"
+          className="object-cover opacity-80"
+        />
+        <div
+          className="absolute inset-0 mix-blend-soft-light"
+          style={{ background: `linear-gradient(120deg, ${art.accent}, ${art.accent2})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0614]/92 via-[#0b0614]/72 to-[#0b0614]/30" />
+        <div className="relative flex items-start gap-3 p-5 sm:p-7">
+          <Link
+            href="/app/library"
+            aria-label="Go back to Library"
+            className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur transition-all hover:bg-white/25"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Link>
+          <span className="mt-0.5 hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/90 shadow-md sm:flex">
+            <Icon3D src={art.icon} size={32} />
+          </span>
+          <div className="min-w-0 flex-1">
+            {chapter.code ? (
+              <span className="mb-2 inline-flex rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-white/90 backdrop-blur">
+                {chapter.code}
+              </span>
+            ) : null}
+            <h1 className="text-xl font-bold text-white sm:text-2xl">{chapter.name}</h1>
+            <p className="mt-1 text-sm text-white/70">
+              {chapter.subject}
+              {chapter.grade ? ` · Class ${chapter.grade}` : ''}
+              {` · ${progress.concepts} concept${progress.concepts === 1 ? '' : 's'}`}
+            </p>
+          </div>
+          <div className="hidden shrink-0 rounded-2xl bg-white/15 px-4 py-2 text-center backdrop-blur sm:block">
+            <p className="text-2xl font-bold text-white">{progress.percent}%</p>
+            <p className="text-[10px] font-medium text-white/70">MASTERED</p>
+          </div>
         </div>
       </div>
 
@@ -198,6 +228,8 @@ export default function ChapterHubPage() {
       <div className="flex flex-wrap items-center gap-2">
         {nextConcept ? (
           <Button
+            onMouseEnter={() => prefetchConcept(queryClient, nextConcept.id, token)}
+            onFocus={() => prefetchConcept(queryClient, nextConcept.id, token)}
             onClick={() => router.push(`/app/learn/concepts/${nextConcept.id}`)}
             className="rounded-xl bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700"
           >
@@ -328,9 +360,10 @@ export default function ChapterHubPage() {
             {chapter.concepts.map((concept) => {
               const badge = masteryBadge(concept.mastery);
               return (
-                <Link
+                <PrefetchLink
                   key={concept.id}
                   href={`/app/learn/concepts/${concept.id}`}
+                  prefetchData={() => prefetchConcept(queryClient, concept.id, token)}
                   className="block"
                 >
                   <Card className="transition-all hover:shadow-md">
@@ -358,7 +391,7 @@ export default function ChapterHubPage() {
                       <ChevronRight className="h-4 w-4 shrink-0 text-surface-300" />
                     </CardContent>
                   </Card>
-                </Link>
+                </PrefetchLink>
               );
             })}
           </div>

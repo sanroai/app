@@ -1,0 +1,46 @@
+{
+  "builtBy": "scripts/qa/build-brand-art.mjs",
+  "note": "Composed gradient art over the premium 3D icon set; regenerated offline, no API key.",
+  "assets": [
+    {
+      "key": "subject-science",
+      "file": "subject-science.jpg",
+      "width": 1600,
+      "height": 640,
+      "accent": "#06b6d4",
+      "bytes": 118585
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics.jpg",
+      "width": 1600,
+      "height": 640,
+      "accent": "#10b981",
+      "bytes": 287548
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english.jpg",
+      "width": 1600,
+      "height": 640,
+      "accent": "#f59e0b",
+      "bytes": 135625
+    },
+    {
+      "key": "chapter-banner",
+      "file": "chapter-banner.jpg",
+      "width": 1600,
+      "height": 420,
+      "accent": "#8b5cf6",
+      "bytes": 83146
+    },
+    {
+      "key": "dashboard-hero",
+      "file": "dashboard-hero.jpg",
+      "width": 1600,
+      "height": 480,
+      "accent": "#a855f7",
+      "bytes": 100609
+    }
+  ]
+}

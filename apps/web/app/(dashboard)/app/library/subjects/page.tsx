@@ -1,16 +1,21 @@
 'use client';
 
-import Link from 'next/link';
+import Image from 'next/image';
 import { useLearningHome } from '@/lib/learning-hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Spinner, ErrorBanner } from '@/components/ui';
+import { subjectArt } from '@/lib/subject-art';
 import { BookOpen, GraduationCap, ChevronRight, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
+import { useAuthStore } from '@/lib/auth-store';
+import { PrefetchLink } from '@/components/prefetch-link';
+import { prefetchChapters } from '@/lib/prefetch';
 
 function SkeletonCard() {
   return (
@@ -26,6 +31,8 @@ function SkeletonCard() {
 export default function LibrarySubjectsPage() {
   const { data, isLoading, error } = useLearningHome();
   const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
 
   if (isLoading) {
     return (
@@ -120,29 +127,56 @@ export default function LibrarySubjectsPage() {
                   </h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredSubjects.map((subject) => {
+                      const art = subjectArt(subject.name, subject.code);
                       const pct =
                         subject.totalContent > 0
                           ? Math.round((subject.completedContent / subject.totalContent) * 100)
                           : 0;
 
                       return (
-                        <Link
+                        <PrefetchLink
                           key={subject.id}
                           href={`/app/learn/${board.id}/${grade.grade}/${subject.id}/chapters`}
+                          prefetchData={() =>
+                            prefetchChapters(
+                              queryClient,
+                              { boardId: board.id, grade: grade.grade, subjectId: subject.id },
+                              token,
+                            )
+                          }
                         >
-                        <Card className="group cursor-pointer border-surface-200 hover:border-brand-300 hover:shadow-md transition-all">
+                        <Card className="group cursor-pointer overflow-hidden border-surface-200 hover:border-brand-300 hover:shadow-lg transition-all">
                           <CardContent className="p-0">
-                            <div className="flex items-start justify-between gap-3 p-6 pb-3">
-                              <div className="min-w-0">
-                                <h4 className="font-bold text-surface-900 group-hover:text-brand-700 transition-colors">
-                                  {subject.name}
-                                </h4>
-                                <p className="mt-0.5 text-xs text-surface-400">{subject.code}</p>
+                            {/* Subject banner: the cover art plus the subject's own 3D
+                                icon, so a student recognises the subject before
+                                reading the name. */}
+                            <div className="relative h-28 w-full overflow-hidden bg-surface-900">
+                              <Image
+                                src={art.banner}
+                                alt=""
+                                fill
+                                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                              />
+                              <div
+                                className="absolute inset-0 mix-blend-soft-light"
+                                style={{ background: `linear-gradient(135deg, ${art.accent}, ${art.accent2})` }}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+                              <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-4">
+                                <div className="min-w-0">
+                                  <h4 className="truncate font-bold text-white drop-shadow">
+                                    {subject.name}
+                                  </h4>
+                                  <p className="truncate text-[11px] font-medium text-white/75">
+                                    {subject.code}
+                                  </p>
+                                </div>
                               </div>
-                              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-surface-300 group-hover:text-brand-600 transition-colors" />
+                              <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-white/80 transition-transform group-hover:translate-x-0.5" />
                             </div>
 
-                            <div className="px-6 pb-6">
+                            <div className="px-4 py-4">
                               <Progress value={pct} className="h-2" />
                               <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
                                 <span>
@@ -173,7 +207,7 @@ export default function LibrarySubjectsPage() {
                               )}
                           </CardContent>
                         </Card>
-                      </Link>
+                      </PrefetchLink>
                     );
                   })}
                 </div>

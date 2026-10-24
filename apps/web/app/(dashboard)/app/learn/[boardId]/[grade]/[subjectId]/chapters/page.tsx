@@ -8,6 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Spinner, ErrorBanner } from '@/components/ui';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/lib/auth-store';
+import { PrefetchLink } from '@/components/prefetch-link';
+import { prefetchChapterHub } from '@/lib/prefetch';
 import {
   ChevronRight,
   ChevronLeft,
@@ -34,6 +38,8 @@ export default function ChaptersPage() {
   const subjectId = params.subjectId as string;
 
   const { data: chapterData, isLoading, error } = useChapters(boardId, grade, subjectId);
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
 
   if (isLoading) {
     return (
@@ -106,9 +112,10 @@ export default function ChaptersPage() {
                 : 0;
 
             return (
-              <Link
+              <PrefetchLink
                 key={chapter.id}
                 href={`/app/learn/chapters/${chapter.id}`}
+                prefetchData={() => prefetchChapterHub(queryClient, chapter.id, token)}
               >
                 <Card className="group cursor-pointer">
                   <CardContent className="p-0">
@@ -154,7 +161,7 @@ export default function ChaptersPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </Link>
+              </PrefetchLink>
             );
           })}
         </div>

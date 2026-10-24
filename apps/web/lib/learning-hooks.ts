@@ -8,6 +8,21 @@ function useToken() {
   return useAuthStore((s) => s.token);
 }
 
+/**
+ * Query keys live in one object so a route that *prefetches* a screen and the
+ * screen that *reads* it can never drift apart. Prefetching is what makes the
+ * library drill-down feel instant (see `lib/prefetch.ts`).
+ */
+export const learningKeys = {
+  all: ['learning'] as const,
+  home: ['learning', 'home'] as const,
+  chapters: (boardId: string, grade: string, subjectId: string) =>
+    ['learning', 'chapters', boardId, grade, subjectId] as const,
+  chapter: (chapterId: string) => ['learning', 'chapter', chapterId] as const,
+  concept: (conceptId: string) => ['learning', 'concept', conceptId] as const,
+  progress: ['learning', 'progress'] as const,
+};
+
 export interface Board {
   id: string;
   name: string;
@@ -152,7 +167,7 @@ export interface GamificationProfile {
 export function useLearningHome() {
   const token = useToken();
   return useQuery<LearningHome>({
-    queryKey: ['learning', 'home'],
+    queryKey: learningKeys.home,
     queryFn: () => api<LearningHome>('/learning/home', { token }),
     enabled: !!token,
   });
@@ -167,7 +182,7 @@ interface ChaptersResponse {
 export function useChapters(boardId: string, grade: string, subjectId: string) {
   const token = useToken();
   return useQuery<ChaptersResponse>({
-    queryKey: ['learning', 'chapters', boardId, grade, subjectId],
+    queryKey: learningKeys.chapters(boardId, grade, subjectId),
     queryFn: () =>
       api<ChaptersResponse>(
         `/learning/boards/${boardId}/grades/${grade}/subjects/${subjectId}/chapters`,
@@ -180,7 +195,7 @@ export function useChapters(boardId: string, grade: string, subjectId: string) {
 export function useChapterDetail(chapterId: string) {
   const token = useToken();
   return useQuery<any>({
-    queryKey: ['learning', 'chapter', chapterId],
+    queryKey: learningKeys.chapter(chapterId),
     queryFn: () => api<any>(`/learning/chapters/${chapterId}`, { token }),
     enabled: !!token && !!chapterId,
   });
@@ -189,7 +204,7 @@ export function useChapterDetail(chapterId: string) {
 export function useConceptDetail(conceptId: string) {
   const token = useToken();
   return useQuery<ConceptDetail>({
-    queryKey: ['learning', 'concept', conceptId],
+    queryKey: learningKeys.concept(conceptId),
     queryFn: () => api<ConceptDetail>(`/learning/concepts/${conceptId}`, { token }),
     enabled: !!token && !!conceptId,
   });
@@ -226,7 +241,7 @@ export function useRateFlashcard() {
 export function useLearningProgress(options?: { enabled?: boolean }) {
   const token = useToken();
   return useQuery<LearningProgress>({
-    queryKey: ['learning', 'progress'],
+    queryKey: learningKeys.progress,
     queryFn: () => api<LearningProgress>('/learning/progress', { token }),
     enabled: !!token && (options?.enabled ?? true),
   });

@@ -44,7 +44,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <div className="text-sm text-white/70">Board Mapped</div>
             </div>
             <div>
-              <div className="text-3xl font-bold">5★</div>
+              <div className="text-3xl font-bold">4.9/5</div>
               <div className="text-sm text-white/70">Rating</div>
             </div>
           </div>

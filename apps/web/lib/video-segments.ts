@@ -1,6 +1,8 @@
 export interface VideoSegment {
   title: string;
   startSeconds: number;
+  /** Derived from the chapter's concepts because the video has no creator chapters. */
+  derived?: boolean;
 }
 
 export function formatTimestamp(seconds: number): string {
@@ -26,7 +28,7 @@ export function normalizeSegments(raw: unknown): VideoSegment[] {
       typeof record.title === 'string' && record.title.trim()
         ? record.title.trim()
         : `Marker at ${formatTimestamp(startSeconds)}`;
-    byStart.set(startSeconds, { title, startSeconds });
+    byStart.set(startSeconds, { title, startSeconds, derived: record.derived === true });
   }
   return [...byStart.values()].sort((a, b) => a.startSeconds - b.startSeconds);
 }

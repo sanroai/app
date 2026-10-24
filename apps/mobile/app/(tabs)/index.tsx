@@ -1,14 +1,15 @@
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, RefreshControl, Image } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUserDisplayRole } from '../../lib/hooks';
-import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile, useLearningProgress, useAchievements } from '../../lib/hooks';
+import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile, useLearningProgress } from '../../lib/hooks';
 import { useRoleTheme } from '../../lib/role-theme';
 import { Card } from '../../components/Card';
 import { Icon3D } from '../../components/Icon3D';
-import { SubjectCard, StatTile, SectionHeader, ProgressBar, resolveAchievement } from '../../components/visuals';
+import { SubjectCard, StatTile, SectionHeader, ProgressBar } from '../../components/visuals';
+import { SUBJECT_ART } from '../../lib/subject-art';
 import { Colors, Spacing, BorderRadius, Shadow, Pastel } from '../../constants/theme';
 
 export default function HomeScreen() {
@@ -29,7 +30,6 @@ export default function HomeScreen() {
   const { data: assessments, refetch: refetchAssess, isFetching: assessLoading } = useMyAssessments({ enabled: isStudent });
   const { data: gamification } = useGamificationProfile({ enabled: isStudent });
   const { data: progress } = useLearningProgress({ enabled: isStudent });
-  const { data: achievements } = useAchievements({ enabled: isStudent });
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -54,7 +54,6 @@ export default function HomeScreen() {
         g.subjects.map((s) => ({ key: `${b.id}-${g.grade}-${s.id}`, boardId: b.id, grade: g.grade, ...s })),
       ),
     ) ?? [];
-  const badges = achievements?.earned ?? [];
 
   const greeting = () => {
     const h = new Date().getHours();
@@ -166,6 +165,8 @@ export default function HomeScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <View style={[styles.header, { backgroundColor: theme.primary }]}>
+        <Image source={SUBJECT_ART.dashboard} style={styles.headerBanner} resizeMode="cover" />
+        <View style={styles.headerOverlay} />
         <View style={styles.headerTop}>
           <View style={styles.greetingWrap}>
             <Text style={styles.greetingSmall}>{greeting()},</Text>
@@ -191,7 +192,6 @@ export default function HomeScreen() {
       <View style={styles.statsRow}>
         <StatTile icon="star" label="Total XP" value={String(xp)} tint={Pastel.sand} />
         <StatTile icon="chart" label="Mastery" value={`${Math.round(mastery)}%`} tint={Pastel.mint} />
-        <StatTile icon="target" label="Level" value={String(gamification?.level ?? 1)} tint={Pastel.violet} />
       </View>
 
       <View style={styles.levelCard}>
@@ -302,26 +302,6 @@ export default function HomeScreen() {
         </Card>
       )}
 
-      {badges.length > 0 ? (
-        <>
-          <SectionHeader title="Badges earned" actionLabel="See all" onAction={() => router.push('/(tabs)/me')} />
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.badgeRow}>
-            {badges.map((b, i) => {
-              const r = resolveAchievement(b.icon, i);
-              return (
-                <View key={b.id} style={styles.badgeItem}>
-                  <View style={[styles.badgeIcon, { backgroundColor: r.bg }]}>
-                    <Icon3D name={r.icon} size={34} />
-                  </View>
-                  <Text style={styles.badgeName} numberOfLines={2}>
-                    {b.name}
-                  </Text>
-                </View>
-              );
-            })}
-          </ScrollView>
-        </>
-      ) : null}
     </ScrollView>
   );
 }
@@ -336,6 +316,16 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     borderBottomLeftRadius: BorderRadius.xxl,
     borderBottomRightRadius: BorderRadius.xxl,
+    overflow: 'hidden',
+  },
+  headerBanner: {
+    ...StyleSheet.absoluteFillObject,
+    width: undefined,
+    height: undefined,
+  },
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(31, 14, 71, 0.62)',
   },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   greetingWrap: {},

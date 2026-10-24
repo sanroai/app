@@ -21,15 +21,21 @@ export function VideoSegments({
 }) {
   if (!segments.length) return null;
 
+  // Every marker being derived means the video has no creator chapters and the
+  // split was computed from the chapter's concepts - say so instead of implying
+  // these are published timestamps.
+  const approximate = segments.every((segment) => segment.derived === true);
+  const heading = approximate ? `${label} · approximate` : label;
+
   return (
     <div className={className}>
       <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-surface-400">
         <ListVideo className="h-3.5 w-3.5" />
-        {label}
+        {heading}
       </div>
       <div
         role="group"
-        aria-label={label}
+        aria-label={heading}
         className="mt-2 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]"
       >
         {segments.map((segment) => {
@@ -67,6 +73,7 @@ export function VideoWithSegments({
   durationSeconds,
   segments,
   className,
+  label = 'Sections',
 }: {
   url?: string | null;
   videoId?: string | null;
@@ -75,6 +82,7 @@ export function VideoWithSegments({
   durationSeconds?: number | null;
   segments: VideoSegment[];
   className?: string;
+  label?: string;
 }) {
   const playerRef = useRef<YouTubePlayerHandle>(null);
   const [activeStart, setActiveStart] = useState<number | null>(null);
@@ -99,6 +107,7 @@ export function VideoWithSegments({
         onSeek={handleSeek}
         activeStartSeconds={activeStart}
         className="px-4 pt-3"
+        label={label}
       />
     </div>
   );

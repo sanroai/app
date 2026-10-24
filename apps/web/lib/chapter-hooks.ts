@@ -10,6 +10,11 @@ function useToken() {
   return useAuthStore((s) => s.token);
 }
 
+/** Single source of truth for the chapter-hub cache key (used by prefetching too). */
+export const chapterKeys = {
+  hub: (chapterId: string) => ['learning', 'chapter-hub', chapterId] as const,
+};
+
 export interface ChapterConcept {
   id: string;
   name: string;
@@ -222,7 +227,7 @@ export function useChapterHub(
 ) {
   const token = useToken();
   return useQuery<ChapterHub>({
-    queryKey: ['learning', 'chapter-hub', chapterId ?? ''],
+    queryKey: chapterKeys.hub(chapterId ?? ''),
     queryFn: () =>
       api<unknown>(`/learning/chapters/${chapterId}`, { token }).then(normalizeChapterHub),
     enabled: !!token && !!chapterId && (options?.enabled ?? true),
