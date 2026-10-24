@@ -318,4 +318,43 @@ describe('Practice flow (e2e)', () => {
     expect(saved?.answer).toBe(correctOption!.text);
     expect(saved?.isCorrect).toBe(true);
   });
+
+  it('reports the cumulative standing beside the mastery level, not the attempt score', async () => {
+    const path = await api(app, 'get', '/learning/path', token);
+    const conceptId = path.body.next?.conceptId ?? path.body.track?.[0]?.conceptId;
+
+    const start = await api(app, 'post', '/learning/practice/start', token, { conceptId, questionCount: 5 });
+    const practiceId = start.body.practiceId as string;
+    const questions = start.body.questions as Array<{ id: string; options?: Array<{ text: string }> }>;
+    const question = questions.find((q) => (q.options?.length ?? 0) > 0);
+    expect(question).toBeTruthy();
+
+    const stored = await prisma.question.findUnique({
+      where: { id: question!.id },
+      include: { options: { orderBy: { order: 'asc' } } },
+    });
+    const correctOption = stored?.options.find((o) => o.text === stored.answer) ?? stored?.options[0];
+    const answered = await api(app, 'post', `/learning/practice/${practiceId}/answer`, token, {
+      questionId: question!.id,
+      answer: correctOption!.text,
+    });
+    expect(answered.body.correct).toBe(true);
+
+    const submit = await api(app, 'post', `/learning/practice/${practiceId}/submit`, token, {});
+    expect(submit.status).toBe(201);
+    expect(submit.body.score).toBe(100);
+
+    // The result card renders "<level> - <score>%" as one standing. The level comes
+    // from the cumulative evidence, so the number beside it must be the same
+    // cumulative score - the card used to pair the cumulative level with the
+    // single-attempt score ("NEEDS INTERVENTION - 100%" while the student was at 29%).
+    const mastery = await prisma.conceptMastery.findUnique({
+      where: { studentId_conceptId: { studentId, conceptId } },
+    });
+    expect(mastery).toBeTruthy();
+    expect(submit.body.masteryUpdate).toEqual({ level: mastery!.level, score: mastery!.score });
+    expect(submit.body.masteryUpdates).toEqual([
+      { conceptId, level: mastery!.level, score: mastery!.score },
+    ]);
+  });
 });

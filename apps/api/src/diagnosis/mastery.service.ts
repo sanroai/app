@@ -114,8 +114,8 @@ export class MasteryService {
     studentId: string,
     source: { attemptId?: string | null; practiceSetId?: string | null },
     conceptEvidence: Array<{ conceptId: string; questions: number; correct: number }>,
-  ): Promise<Array<{ conceptId: string; score: number; level: MasteryLevel; weak: boolean; evidenceCount: number }>> {
-    const results: Array<{ conceptId: string; score: number; level: MasteryLevel; weak: boolean; evidenceCount: number }> = [];
+  ): Promise<Array<{ conceptId: string; score: number; combinedScore: number; level: MasteryLevel; weak: boolean; evidenceCount: number }>> {
+    const results: Array<{ conceptId: string; score: number; combinedScore: number; level: MasteryLevel; weak: boolean; evidenceCount: number }> = [];
 
     for (const ev of conceptEvidence) {
       if (!ev.conceptId || ev.questions <= 0) continue;
@@ -164,7 +164,7 @@ export class MasteryService {
         },
       });
 
-      results.push({ conceptId: ev.conceptId, score, level, weak: isWeakLevel(level), evidenceCount: combinedAttempts });
+      results.push({ conceptId: ev.conceptId, score, combinedScore, level, weak: isWeakLevel(level), evidenceCount: combinedAttempts });
     }
     return results;
   }

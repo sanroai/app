@@ -6,7 +6,7 @@ import { MasteryService, normaliseAnswerToOptionText } from '../diagnosis/master
 import { StudentIdentityService } from '../common/services/student-identity.service';
 import { ContentScopeService } from '../common/content/content-scope.service';
 import { canonicalContentType } from '../common/content/content-types';
-import { normalizeChapterSegments } from '../common/books/chapter-segments';
+import { normalizeChapterSegments, deriveConceptSegments, clipSegmentsToDuration } from '../common/books/chapter-segments';
 import { chapterPdfPath, chapterPdfFileName } from '../common/books/chapter-pdf';
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
@@ -488,6 +488,7 @@ export class LearningService {
       .filter((item) => canonicalContentType(item.type) === 'VIDEO')
       .map((item) => {
         const videoId = item.videoId ?? parseYouTubeVideoId(item.url ?? '');
+        const stored = normalizeChapterSegments(item.segments);
         return {
           contentId: item.id,
           conceptId: item.conceptId,
@@ -496,7 +497,17 @@ export class LearningService {
           url: item.url ?? (videoId ? `https://www.youtube.com/embed/${videoId}` : null),
           thumbnailUrl: item.thumbnailUrl ?? (videoId ? youtubeThumbnailUrl(videoId) : null),
           durationSeconds: item.durationSeconds,
-          segments: normalizeChapterSegments(item.segments),
+          // Real creator chapters win; otherwise the chapter's concepts give the
+          // student a way to jump, flagged as derived.
+          segments: clipSegmentsToDuration(
+            stored.length > 0
+              ? stored
+              : deriveConceptSegments(
+                  concepts.map((c) => c.name),
+                  item.durationSeconds,
+                ),
+            item.durationSeconds,
+          ),
         };
       });
 
@@ -705,6 +716,24 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       flashcardRatings = Object.fromEntries(ratings.map((r) => [r.questionId, r.rating]));
     }
 
+    // A lesson video rarely carries creator chapters, so the concept split is
+    // derived from the chapter's concepts. Only queried when a video actually
+    // needs it, so the happy path costs nothing.
+    const needsDerivedSplit = contentItems.some(
+      (item) =>
+        canonicalContentType(item.type) === 'VIDEO' &&
+        normalizeChapterSegments(item.segments).length === 0,
+    );
+    const chapterConceptNames = needsDerivedSplit
+      ? (
+          await this.prisma.topic.findMany({
+            where: { chapterId: concept.topic.chapter.id },
+            orderBy: { order: 'asc' },
+            select: { concepts: { orderBy: { order: 'asc' }, select: { name: true } } },
+          })
+        ).flatMap((topic) => topic.concepts.map((c) => c.name))
+      : [];
+
     return {
       id: concept.id,
       name: concept.name,
@@ -713,11 +742,21 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       topic: { id: concept.topic.id, name: concept.topic.name },
       chapter: concept.topic.chapter,
       contentSource,
-      content: contentItems.map((item) => ({
-        ...item,
-        segments: normalizeChapterSegments(item.segments),
-        progress: progressMap.get(item.id) ?? { state: 'NOT_STARTED', secondsWatched: null, completedAt: null },
-      })),
+      content: contentItems.map((item) => {
+        const stored = normalizeChapterSegments(item.segments);
+        return {
+          ...item,
+          segments: clipSegmentsToDuration(
+            stored.length > 0
+              ? stored
+              : canonicalContentType(item.type) === 'VIDEO'
+                ? deriveConceptSegments(chapterConceptNames, item.durationSeconds)
+                : [],
+            item.durationSeconds,
+          ),
+          progress: progressMap.get(item.id) ?? { state: 'NOT_STARTED', secondsWatched: null, completedAt: null },
+        };
+      }),
       mastery,
       practiceQuestions,
       flashcardRatings,
@@ -1443,8 +1482,8 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
       const results = await this.mastery.applyAttemptEvidence(student.id, { practiceSetId: practiceId }, conceptEvidence);
       if (results.length > 0) {
-        masteryUpdate = { level: results[0].level, score: results[0].score };
-        masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.score }));
+        masteryUpdate = { level: results[0].level, score: results[0].combinedScore };
+        masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.combinedScore }));
       }
     } else {
       // A chapter practice (or a concept whose questions come from the chapter)
@@ -1474,7 +1513,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
           { practiceSetId: practiceId },
           conceptEvidence,
         );
-        masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.score }));
+        masteryUpdates = results.map((r) => ({ conceptId: r.conceptId, level: r.level, score: r.combinedScore }));
         const weakest = [...masteryUpdates].sort((a, b) => a.score - b.score)[0];
         if (weakest) masteryUpdate = { level: weakest.level, score: weakest.score };
       }
