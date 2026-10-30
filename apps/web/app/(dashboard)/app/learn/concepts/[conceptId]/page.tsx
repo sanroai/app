@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, useRateFlashcard, type ContentItem, type ConceptDetail } from '@/lib/learning-hooks';
+import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, type ContentItem, type ConceptDetail } from '@/lib/learning-hooks';
 import { useConceptAr } from '@/lib/ar-hooks';
 import { ConceptArPanel } from '@/components/ar/ConceptArPanel';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,7 +36,6 @@ import {
   Sparkles,
   Lightbulb,
   Target,
-  RotateCcw,
   Check,
   X,
   ArrowRight,
@@ -56,15 +55,15 @@ const MASTERY_STYLE: Record<string, { badge: string; color: string; bg: string }
 
 // The concept page has three modes, each backed by different server data:
 //   learn    - the content (video lessons, notes, revision, the 3D model)
-//   practice - the study surface, with two formats: a graded quiz (records mastery)
-//               and self-rated flashcards
+//   practice - one graded quiz session (records mastery evidence and XP)
 //   ask      - the contextual AI tutor
 //
 // "Quick Quiz" and "Challenge" were cut: both replayed the same question pool as
 // Practice (Challenge even routed to the same screen), and their XP promises were
 // never actually awarded. AR / 3D moved into Learn, where it belongs - it is lesson
-// content, not a peer activity. Flashcards moved inside Practice: a student does not
-// think of a quiz and a flashcard deck as different activities.
+// content, not a peer activity. Flashcards were cut as well: the deck replayed the
+// same questions, wrote no mastery evidence and awarded no XP, so it could not move
+// a student along ASSESS -> DIAGNOSE -> FIX -> RETEST.
 const TABS = [
   { id: 'learn', label: 'Learn', icon: BookOpen, color: 'text-blue-600' },
   { id: 'practice', label: 'Practice', icon: Target, color: 'text-purple-600' },
@@ -83,10 +82,7 @@ export default function ConceptDetailPage() {
   const startAt = Number.isFinite(requestedStart) && requestedStart > 0 ? requestedStart : 0;
   const videoParam = searchParams.get('video');
   const [fromStart, setFromStart] = useState(false);
-  const [activeTab, setActiveTab] = useState('learn');
-  const [practiceFormat, setPracticeFormat] = useState<'quiz' | 'cards'>('quiz');
-  const [flashcardIndex, setFlashcardIndex] = useState(0);
-  const [flipped, setFlipped] = useState(false);
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'practice' ? 'practice' : 'learn');
   const [openNotes, setOpenNotes] = useState<string[]>([]);
   const [arOpen, setArOpen] = useState(false);
 
@@ -94,7 +90,6 @@ export default function ConceptDetailPage() {
   const completeContent = useCompleteContent();
   const uncompleteContent = useUncompleteContent();
   const startPractice = useStartPractice();
-  const rateFlashcard = useRateFlashcard();
   const { data: arItems } = useConceptAr(conceptId);
 
   const conceptContent = concept?.content ?? [];
@@ -555,33 +550,6 @@ export default function ConceptDetailPage() {
       )}
 
       {activeTab === 'practice' && (
-        <div className="flex gap-1 rounded-xl bg-surface-100 p-1">
-            {[
-              { id: 'quiz', label: 'Quiz', icon: Target },
-              { id: 'cards', label: 'Flashcards', icon: RotateCcw },
-            ].map((f) => {
-              const Icon = f.icon;
-              const active = practiceFormat === f.id;
-              return (
-                <button
-                  key={f.id}
-                  type="button"
-                  onClick={() => setPracticeFormat(f.id as 'quiz' | 'cards')}
-                  aria-pressed={active}
-                  className={cn(
-                    'flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all',
-                    active ? 'bg-white text-surface-900 shadow-sm' : 'text-surface-500 hover:text-surface-700',
-                  )}
-                >
-                  <Icon className={cn('h-4 w-4', active && 'text-brand-600')} />
-                  {f.label}
-                </button>
-              );
-            })}
-        </div>
-      )}
-
-      {activeTab === 'practice' && practiceFormat === 'quiz' && (
         <div role="tabpanel" id="panel-practice" aria-labelledby="tab-practice" className="space-y-6">
           <Card>
             <CardContent className="p-6">
@@ -652,98 +620,6 @@ export default function ConceptDetailPage() {
               </CardContent>
             </Card>
           )}
-        </div>
-      )}
-
-
-      {activeTab === 'practice' && practiceFormat === 'cards' && (
-        <div role="tabpanel" id="panel-flashcards" aria-labelledby="tab-practice" className="space-y-4">
-          <Card className="border-pink-200 bg-gradient-to-r from-pink-50 to-rose-50">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <RotateCcw className="h-6 w-6 text-pink-600" />
-                <div>
-                  <h3 className="font-bold text-surface-900">Flashcards</h3>
-                  <p className="text-sm text-surface-500">{questions.length > 0 ? `Card ${flashcardIndex + 1} of ${questions.length}` : 'No cards available'}</p>
-                </div>
-              </div>
-              {questions.length === 0 ? (
-                <p className="text-sm text-surface-500 text-center py-4">No flashcards available for this concept yet.</p>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    aria-pressed={flipped}
-                    className="relative min-h-[200px] w-full rounded-2xl bg-white border-2 border-pink-200 p-6 text-left transition-all hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-                    onClick={() => setFlipped(!flipped)}
-                  >
-                    <div className="absolute top-3 right-3 flex items-center gap-2">
-                      {concept.flashcardRatings?.[questions[flashcardIndex]?.id] && (
-                        <Badge variant="secondary" className="text-[10px]">
-                          {concept.flashcardRatings[questions[flashcardIndex].id]}
-                        </Badge>
-                      )}
-                      <Badge variant="secondary" className="text-[10px]">{flipped ? 'ANSWER' : 'QUESTION'}</Badge>
-                    </div>
-                    <span className="block text-lg font-medium text-surface-900 mt-4">
-                      {flipped
-                        ? (questions[flashcardIndex]?.explanation ?? questions[flashcardIndex]?.answer ?? 'Answer will appear here')
-                        : questions[flashcardIndex]?.text ?? 'Question'
-                      }
-                    </span>
-                    <span className="block text-xs text-surface-400 mt-4">Click or press Enter to flip</span>
-                  </button>
-                  {flipped && (
-                    <div className="mt-4 flex gap-2">
-                      {[
-                        { label: 'Again', rating: 'AGAIN', color: 'bg-red-100 text-red-700 hover:bg-red-200' },
-                        { label: 'Hard', rating: 'HARD', color: 'bg-amber-100 text-amber-700 hover:bg-amber-200' },
-                        { label: 'Good', rating: 'GOOD', color: 'bg-green-100 text-green-700 hover:bg-green-200' },
-                        { label: 'Easy', rating: 'EASY', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-                      ].map((btn) => (
-                        <Button
-                          key={btn.label}
-                          variant="ghost"
-                          className={cn('flex-1 rounded-xl px-3 py-2 text-sm font-medium transition-all', btn.color)}
-                          onClick={() => {
-                            const current = questions[flashcardIndex];
-                            if (current) rateFlashcard.mutate({ questionId: current.id, rating: btn.rating });
-                            setFlashcardIndex(Math.min(questions.length - 1, flashcardIndex + 1));
-                            setFlipped(false);
-                          }}
-                        >
-                          {btn.label}
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                  {flashcardIndex >= questions.length - 1 ? (
-                    <div className="mt-4 rounded-xl bg-green-50 border border-green-200 p-4 text-center">
-                      <CheckCircle2 className="mx-auto h-8 w-8 text-green-600 mb-2" />
-                      <p className="font-semibold text-green-800">Deck complete!</p>
-                      <p className="text-sm text-green-600 mt-1">You&apos;ve reviewed all flashcards for this concept.</p>
-                      <Button
-                        variant="outline"
-                        className="mt-3 rounded-xl"
-                        onClick={() => { setFlashcardIndex(0); setFlipped(false); }}
-                      >
-                        <RotateCcw className="h-4 w-4 mr-2" /> Start Over
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2 mt-4">
-                      <Button variant="outline" className="flex-1 rounded-xl" aria-label="Previous card" onClick={() => { setFlashcardIndex(Math.max(0, flashcardIndex - 1)); setFlipped(false); }} disabled={flashcardIndex === 0}>
-                        <ChevronLeft className="h-4 w-4 mr-1" /> Previous
-                      </Button>
-                      <Button variant="outline" className="flex-1 rounded-xl" aria-label="Next card" onClick={() => { setFlashcardIndex(Math.min(questions.length - 1, flashcardIndex + 1)); setFlipped(false); }} disabled={flashcardIndex >= questions.length - 1}>
-                        Next <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
         </div>
       )}
 

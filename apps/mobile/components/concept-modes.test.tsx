@@ -1,10 +1,4 @@
-import {
-  CONCEPT_MODES,
-  PRACTICE_FORMATS,
-  conceptModeIds,
-  type ConceptModeId,
-  type PracticeFormat,
-} from './concept-modes';
+import { CONCEPT_MODES, conceptModeIds, type ConceptModeId } from './concept-modes';
 
 describe('concept modes (mobile concept page)', () => {
   it('offers exactly three modes', () => {
@@ -26,9 +20,10 @@ describe('concept modes (mobile concept page)', () => {
     expect(conceptModeIds()).not.toContain('ar');
   });
 
-  it('offers the two practice formats inside one mode', () => {
-    expect(PRACTICE_FORMATS.map((f) => f.id)).toEqual<PracticeFormat[]>(['quiz', 'cards']);
-    expect(PRACTICE_FORMATS.map((f) => f.label)).toEqual(['Quiz', 'Flashcards']);
+  it('offers one practice action instead of quiz/flashcard formats', () => {
+    const practice = CONCEPT_MODES.find((m) => m.id === 'practice');
+    expect(practice?.label).toBe('Practice');
+    expect(CONCEPT_MODES.some((m) => /card|flash/i.test(m.label))).toBe(false);
   });
 
   it('gives every mode a label and an icon', () => {

@@ -81,6 +81,7 @@ export function SubjectProgressGrid({ subjects }: { subjects: SubjectProgressIte
               <CardContent className="flex flex-1 flex-col p-0">
                 <SubjectBanner
                   name={subject.name}
+                  grade={subject.grade}
                   subtitle={`Class ${subject.grade} · ${subject.totalContent} topics`}
                   sizes="(max-width: 640px) 100vw, 320px"
                 />

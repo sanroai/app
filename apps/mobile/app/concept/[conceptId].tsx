@@ -10,23 +10,24 @@ import { Colors, Spacing, BorderRadius, Pastel } from '../../constants/theme';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ArConceptPanel } from '../../components/ArConceptPanel';
-import { CONCEPT_MODES, PRACTICE_FORMATS, type PracticeFormat } from '../../components/concept-modes';
+import { CONCEPT_MODES } from '../../components/concept-modes';
 import { YouTubePlayer } from '../../components/YouTubePlayer';
 import { Markdown } from '../../components/Markdown';
 
 const TABS = CONCEPT_MODES;
 
 export default function ConceptDetailScreen() {
-  const { conceptId = '', t, video: videoParam } = useLocalSearchParams<{
+  const { conceptId = '', t, video: videoParam, tab: tabParam } = useLocalSearchParams<{
     conceptId: string;
     t?: string;
     video?: string;
+    tab?: string;
   }>();
   const parsedStart = Number.parseInt(t ?? '', 10);
   const startAt = Number.isFinite(parsedStart) && parsedStart > 0 ? parsedStart : 0;
   const [fromStart, setFromStart] = useState(false);
   const router = useRouter();
-  const [tab, setTab] = useState('learn');
+  const [tab, setTab] = useState(tabParam === 'practice' || tabParam === 'ask' ? tabParam : 'learn');
   const [openNote, setOpenNote] = useState<string | null>(null);
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
@@ -35,7 +36,6 @@ export default function ConceptDetailScreen() {
   const { data: arItems } = useConceptAr(conceptId);
   const arContent = arItems ?? [];
   const [arOpen, setArOpen] = useState(false);
-  const [practiceFormat, setPracticeFormat] = useState<PracticeFormat>('quiz');
 
   // The chapter hub owns the chapter markers (the points a video lesson is
   // split at). The concept screen borrows them for the videos it shows.
@@ -392,48 +392,20 @@ export default function ConceptDetailScreen() {
               Earn 5 XP per correct answer plus 10 XP for finishing. Your result updates your mastery and the
               leaderboard.
             </Text>
-            {/* One Practice mode, two formats: a graded quiz and self-rated flashcards */}
-            <View style={styles.formatRow}>
-              {PRACTICE_FORMATS.map((f) => {
-                const active = practiceFormat === f.id;
-                return (
-                  <TouchableOpacity
-                    key={f.id}
-                    style={[styles.formatChip, active && styles.formatChipActive]}
-                    onPress={() => setPracticeFormat(f.id)}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                  >
-                    <Text style={[styles.formatChipText, active && styles.formatChipTextActive]}>{f.label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            {practiceFormat === 'quiz' ? (
-              <TouchableOpacity
-                style={styles.primaryBtn}
-                onPress={() => startMode(Math.min(questions.length, 10))}
-                disabled={startPractice.isPending}
-              >
-                {startPractice.isPending ? (
-                  <ActivityIndicator color={Colors.white} />
-                ) : (
-                  <>
-                    <Ionicons name="play" size={18} color={Colors.white} />
-                    <Text style={styles.primaryBtnText}>Start Quiz</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.primaryBtn, { backgroundColor: Colors.pink }]}
-                onPress={() => router.push({ pathname: '/flashcards/[conceptId]', params: { conceptId } })}
-                disabled={questions.length === 0}
-              >
-                <Ionicons name="sync" size={18} color={Colors.white} />
-                <Text style={styles.primaryBtnText}>Start Flashcards</Text>
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={styles.primaryBtn}
+              onPress={() => startMode(Math.min(questions.length, 10))}
+              disabled={startPractice.isPending || questions.length === 0}
+            >
+              {startPractice.isPending ? (
+                <ActivityIndicator color={Colors.white} />
+              ) : (
+                <>
+                  <Ionicons name="play" size={18} color={Colors.white} />
+                  <Text style={styles.primaryBtnText}>Start practice</Text>
+                </>
+              )}
+            </TouchableOpacity>
             {questions.length === 0 && (
               <Text style={styles.noQText}>No questions available for this concept yet.</Text>
             )}
@@ -557,11 +529,6 @@ const styles = StyleSheet.create({
   primaryBtnDisabled: { backgroundColor: '#a8a29e' },
   primaryBtnText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   noQText: { color: Colors.textSecondary, fontSize: 13, marginTop: Spacing.md, textAlign: 'center' },
-  formatRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.lg },
-  formatChip: { flex: 1, paddingVertical: 9, borderRadius: BorderRadius.full, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
-  formatChipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  formatChipText: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
-  formatChipTextActive: { color: Colors.white },
   arEntry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
   arModalRoot: { flex: 1, backgroundColor: Colors.background },
   arModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },

@@ -7,6 +7,13 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/app/learn', destination: '/app/library', permanent: false },
+      // Flashcards were cut (2026-10-30). Old links land on the concept page with
+      // Practice selected instead of a dead route.
+      {
+        source: '/app/flashcards/:conceptId',
+        destination: '/app/learn/concepts/:conceptId?tab=practice',
+        permanent: false,
+      },
     ];
   },
   async rewrites() {

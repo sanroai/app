@@ -25,9 +25,9 @@ const FEATURES = [
   ['chapter textbook', 'learn/chapters/[chapterId]/page.tsx', 'textbook/[chapterId].tsx'],
   ['concept', 'learn/concepts/[conceptId]/page.tsx', 'concept/[conceptId].tsx'],
   ['practice session', 'learn/practice/[practiceId]/page.tsx', 'practice/[practiceId].tsx'],
-  // the web offers flashcards as a format inside the concept page, mobile as its own
-  // screen - the capability exists on both, the shape differs
-  ['flashcards', 'flashcards/[conceptId]/page.tsx', 'flashcards/[conceptId].tsx'],
+  // Flashcards were cut on both platforms (2026-10-30): `/flashcards/:id` is a
+  // redirect to the concept page's Practice tab on web and mobile alike, so it is
+  // no longer a capability to audit.
   ['assessment list', 'assessments/page.tsx', '(tabs)/assessments.tsx'],
   ['learning path', 'assessments/page.tsx', '(tabs)/tests.tsx'],
   ['assessment attempt', 'assessments/attempt/[attemptId]/page.tsx', 'attempt/[attemptId].tsx'],

@@ -105,13 +105,13 @@ export default function MeScreen() {
 
       {/* Leaderboard shortcut */}
       <TouchableOpacity style={styles.menuRow} onPress={() => router.push('/leaderboard')}>
-        <Icon3D name="trophy" size={24} />
+        <Ionicons name="trophy-outline" size={20} color={Colors.textSecondary} />
         <Text style={styles.menuLabel}>Leaderboard</Text>
         <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.menuRow} onPress={() => router.push('/profile-edit')}>
-        <Icon3D name="pencil" size={24} />
+        <Ionicons name="create-outline" size={20} color={Colors.textSecondary} />
         <Text style={styles.menuLabel}>Edit Profile</Text>
         <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
       </TouchableOpacity>

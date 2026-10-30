@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+﻿import { QueryClient } from '@tanstack/react-query';
 
 const mockApiAuthed = jest.fn();
 
@@ -6,13 +6,7 @@ jest.mock('./api', () => ({
   apiAuthed: (...args: unknown[]) => mockApiAuthed(...args),
 }));
 
-import {
-  FLASHCARD_RATINGS,
-  parentDashboardQuery,
-  parentInstitutionQuery,
-  rateFlashcardMutation,
-  recalledPercent,
-} from './parity-hooks';
+import { parentDashboardQuery, parentInstitutionQuery } from './parity-hooks';
 
 const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
 
@@ -65,26 +59,3 @@ describe('parity hooks - parent children', () => {
   });
 });
 
-describe('parity hooks - flashcard rating', () => {
-  it('posts the rating to the endpoint the web uses', async () => {
-    mockApiAuthed.mockResolvedValue({ ok: true, rating: 'GOOD' });
-
-    const result = await rateFlashcardMutation.mutationFn({ questionId: 'q1', rating: 'GOOD' });
-
-    expect(mockApiAuthed).toHaveBeenCalledWith('/learning/flashcards/q1/rate', {
-      method: 'POST',
-      body: { rating: 'GOOD' },
-    });
-    expect(result.rating).toBe('GOOD');
-  });
-
-  it('offers exactly the four ratings the API accepts', () => {
-    expect([...FLASHCARD_RATINGS]).toEqual(['AGAIN', 'HARD', 'GOOD', 'EASY']);
-  });
-
-  it('scores a session by the share of Good or Easy', () => {
-    expect(recalledPercent([])).toBe(0);
-    expect(recalledPercent(['GOOD', 'EASY', 'AGAIN', 'HARD'])).toBe(50);
-    expect(recalledPercent(['GOOD', 'EASY'])).toBe(100);
-  });
-});

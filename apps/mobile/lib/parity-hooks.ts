@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { apiAuthed } from './api';
 import { useAuthStore } from './auth-store';
 
@@ -10,7 +10,7 @@ import { useAuthStore } from './auth-store';
  * platforms show the same numbers - never a second, mobile-only endpoint.
  */
 
-// ─── Parent: children (GET /dashboard/parent) ─────────────────────────────
+// â”€â”€â”€ Parent: children (GET /dashboard/parent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 //
 // The web parent dashboard (`app/(dashboard)/app/children/page.tsx`) reads
 // `GET /dashboard/parent`. The mobile screen used to read
@@ -119,49 +119,4 @@ export function parentInstitutionQuery(institutionId: string | null) {
 export function useParentInstitution() {
   const institutionId = useAuthStore((s) => s.user?.institutionId ?? null);
   return useQuery<ParentInstitution | null>(parentInstitutionQuery(institutionId));
-}
-
-// ─── Flashcards (POST /learning/flashcards/:questionId/rate) ──────────────
-//
-// The web posts the rating to `/learning/flashcards/:questionId/rate` so the
-// learner keeps the record between sessions. The mobile screen only updated
-// local state, so the recall history was lost on every device change.
-
-export type FlashcardRating = 'AGAIN' | 'HARD' | 'GOOD' | 'EASY';
-
-export const FLASHCARD_RATINGS: readonly FlashcardRating[] = ['AGAIN', 'HARD', 'GOOD', 'EASY'];
-
-/** The share of a session that was recalled well (Good or Easy). */
-export function recalledPercent(ratings: readonly FlashcardRating[]): number {
-  if (ratings.length === 0) return 0;
-  const recalled = ratings.filter((rating) => rating === 'GOOD' || rating === 'EASY').length;
-  return Math.round((recalled / ratings.length) * 100);
-}
-
-export interface RateFlashcardInput {
-  questionId: string;
-  rating: FlashcardRating;
-}
-
-export interface RateFlashcardResult {
-  ok: boolean;
-  rating: string;
-}
-
-export const rateFlashcardMutation = {
-  mutationFn: ({ questionId, rating }: RateFlashcardInput) =>
-    apiAuthed<RateFlashcardResult>(`/learning/flashcards/${questionId}/rate`, {
-      method: 'POST',
-      body: { rating },
-    }),
-};
-
-export function useRateFlashcard() {
-  const queryClient = useQueryClient();
-  return useMutation<RateFlashcardResult, unknown, RateFlashcardInput>({
-    ...rateFlashcardMutation,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['learning', 'concept'] });
-    },
-  });
 }

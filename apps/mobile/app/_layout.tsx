@@ -94,7 +94,7 @@ export default function RootLayout() {
             <Stack.Screen name="remediation" options={{ headerShown: false }} />
             <Stack.Screen name="practice/[practiceId]" options={{ headerShown: true, title: 'Practice', headerTintColor: Colors.primary }} />
             <Stack.Screen name="attempt/[attemptId]" options={{ headerShown: true, title: 'Assessment', headerTintColor: Colors.primary }} />
-            <Stack.Screen name="flashcards/[conceptId]" options={{ headerShown: true, title: 'Flashcards', headerTintColor: Colors.primary }} />
+            <Stack.Screen name="flashcards/[conceptId]" options={{ headerShown: true, title: 'Practice', headerTintColor: Colors.primary }} />
             <Stack.Screen name="ask/[conceptId]" options={{ headerShown: true, title: 'Ask Sanro AI', headerTintColor: Colors.primary }} />
             <Stack.Screen name="leaderboard" options={{ headerShown: true, title: 'Leaderboard', headerTintColor: Colors.primary }} />
             <Stack.Screen name="profile-edit" options={{ headerShown: true, title: 'Edit Profile', headerTintColor: Colors.primary }} />

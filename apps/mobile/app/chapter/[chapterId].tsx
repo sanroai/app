@@ -143,7 +143,7 @@ export default function ChapterHubScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image source={subjectBanner(chapter.subject, chapter.code)} style={styles.headerBanner} />
+        <Image source={subjectBanner(chapter.subject, chapter.code, chapter.grade)} style={styles.headerBanner} />
         <View style={styles.headerOverlay} />
         <Text style={styles.headerEyebrow}>
           {[

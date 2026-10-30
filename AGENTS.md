@@ -118,7 +118,7 @@ goes through one service, `apps/api/src/common/services/student-grade-access.ser
 | student with `Student.allGrades = true` | every class |
 
 `GradeAccess.allows/assert` replaced the nine scattered `student.grade !== chapter.grade`
-comparisons (home, chapter list, chapter hub, concept, flashcard, path, chapter practice,
+comparisons (home, chapter list, chapter hub, concept, path, chapter practice,
 concept practice, content completion, chat, AR). Reads are filtered with
 `{ grade: { in: access.grades } }` **only when `unrestricted` is false** — an empty `in: []`
 would hide the whole curriculum from an unrestricted account.
@@ -263,7 +263,7 @@ re-resolution can never leave the Prisma client un-generated.
 
 ## Mobile App (apps/mobile)
 - Expo SDK 53 / React Native 0.79.6 / expo-router 5 / React 18.3.1 — primary student experience (P0)
-- 5-tab shell: Home / Library / Assessments / Ask Sanro AI / Me; concept page has **3 modes** (Learn, Practice, Ask Sanro AI) - AR / 3D lives inside Learn as an "Interactive 3D Model" card, and Flashcards is a *format* inside Practice (Quiz | Flashcards), not a mode of its own
+- 5-tab shell: Home / Library / Assessments / Ask Sanro AI / Me; concept page has **3 modes** (Learn, Practice, Ask Sanro AI) - AR / 3D lives inside Learn as an "Interactive 3D Model" card, and Practice is a single graded quiz (Flashcards were cut 2026-10-30), not a mode of its own
 - **Every pushed screen has a visible back arrow.** `concept/[conceptId]` and `ask/[conceptId]` used to set `headerShown: false` while `chapter`, `textbook`, `practice` and `attempt` showed the native stack header; they now show it too (title `Concept` / `Ask Sanro AI`), so a student inside a concept can always go back
 - **Multi-role tabs**: student (Library/Assessments/Ask), teacher/admin (Classes/Assess), parent (Children)
 - Stack: TypeScript strict, Zod, Zustand, TanStack Query 5, expo-secure-store
@@ -390,19 +390,28 @@ The concept detail page (`/app/learn/concepts/[conceptId]`) has a **3-mode** int
 1. **Learn** - video lessons (YouTube, plays inline, captions off), study notes, quick revision,
    and the **Interactive 3D Model** card (opens the viewer in a dialog/modal - it is lesson
    content, not a peer mode, and the heavy viewer only mounts on demand)
-2. **Practice** - the study surface with **two formats**:
-   - *Quiz* - a server-side session (`POST /learning/practice/start` ->
-     `/learning/practice/[practiceId]`) with a per-question timer. Submitting records mastery
-     evidence and XP - this is the ASSESS -> DIAGNOSE edge
-   - *Flashcards* - self-rated recall (Again / Hard / Good / Easy), written server-side
+2. **Practice** - one action, a server-side quiz session (`POST /learning/practice/start` ->
+   `/learning/practice/[practiceId]`) with a per-question timer. Submitting records mastery
+   evidence and XP - this is the ASSESS -> DIAGNOSE edge. The page honours `?tab=practice`
+   (the chapter hub and the old flashcard links use it)
 3. **Ask Sanro AI** - context-aware tutor for the concept
 
 **Cut (2026-10-21):** *Quick Quiz* and *Challenge* (both replayed the same
 `practiceQuestions` pool as Practice - Challenge even routed to the same screen - and their
 XP promises were never awarded; the orphaned mobile `/quiz/[conceptId]` and
-`/challenge/[conceptId]` screens were deleted) and *Flashcards as a mode of its own* (a
-student does not think of a quiz and a flashcard deck as different activities - it is a
-format inside Practice).
+`/challenge/[conceptId]` screens were deleted).
+
+**Cut (2026-10-30):** *Flashcards* end to end. The deck replayed the same
+`practiceQuestions` pool as the quiz, wrote no mastery evidence and awarded no XP, so it
+could not move a student along ASSESS -> DIAGNOSE -> FIX -> RETEST - it only added a second
+button to Practice and a second screen to maintain on both platforms.
+`POST /learning/flashcards/:questionId/rate`, the `flashcardRatings` field on
+`GET /learning/concepts/:id`, `apps/web/lib/flashcards.ts` and the mobile flashcards screen
+are gone; the `FlashcardRating` table is kept (no destructive migration) but nothing reads or
+writes it from the student flow. Old `/app/flashcards/:id` links redirect to
+`/app/learn/concepts/:id?tab=practice` (web `next.config.mjs` redirect, mobile a
+`<Redirect>` route). The knowledge-base *generate flashcards* authoring endpoint is
+unrelated and still exists.
 
 **The graded answer is the option TEXT** (that is what `question.answer` holds). Clients must
 send the text; the API also resolves an option id for robustness

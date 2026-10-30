@@ -284,6 +284,7 @@ export default function HomeScreen() {
             <SubjectCard
               key={s.key}
               name={s.name}
+              grade={s.grade}
               subtitle={`Class ${s.grade} · ${s.totalContent} topics`}
               progress={s.totalContent > 0 ? (s.completedContent / s.totalContent) * 100 : 0}
               style={styles.subjectGridItem}

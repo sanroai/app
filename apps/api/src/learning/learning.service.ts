@@ -856,15 +856,6 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       },
     });
 
-    let flashcardRatings: Record<string, string> = {};
-    if (student && practiceQuestions.length > 0) {
-      const ratings = await this.prisma.flashcardRating.findMany({
-        where: { studentId: student.id, questionId: { in: practiceQuestions.map((q) => q.id) } },
-        select: { questionId: true, rating: true },
-      });
-      flashcardRatings = Object.fromEntries(ratings.map((r) => [r.questionId, r.rating]));
-    }
-
     // A lesson video rarely carries creator chapters, so the concept split is
     // derived from the chapter's concepts. Only queried when a video actually
     // needs it, so the happy path costs nothing.
@@ -908,34 +899,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       }),
       mastery,
       practiceQuestions,
-      flashcardRatings,
     };
-  }
-
-  async rateFlashcard(user: RequestUser, questionId: string, rating: string) {
-    this.tenant.requireInstitution(user);
-
-    const allowed = ['AGAIN', 'HARD', 'GOOD', 'EASY'];
-    if (!allowed.includes(rating)) throw new BadRequestException('Invalid flashcard rating');
-
-    const student = await this.identity.resolveForUser(user);
-    if (!student) throw new ForbiddenException('Only students can rate flashcards');
-
-    const question = await this.prisma.question.findUnique({
-      where: { id: questionId },
-      select: { id: true, conceptId: true, institutionId: true, grade: true },
-    });
-    if (!question) throw new NotFoundException('Question not found');
-
-    this.gradeAccess.assert(await this.gradeAccess.forUser(user), question.grade);
-
-    const result = await this.prisma.flashcardRating.upsert({
-      where: { studentId_questionId: { studentId: student.id, questionId } },
-      create: { studentId: student.id, questionId, conceptId: question.conceptId, rating },
-      update: { rating },
-    });
-
-    return { ok: true, rating: result.rating };
   }
 
   async completeContent(user: RequestUser, contentId: string) {

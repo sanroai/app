@@ -132,7 +132,6 @@ export interface ConceptDetail {
     explanation?: string;
     options?: Array<{ id: string; text: string; order: number; isCorrect?: boolean }>;
   }>;
-  flashcardRatings?: Record<string, string>;
 }
 
 /**
@@ -238,22 +237,6 @@ export function useUncompleteContent() {
       api(`/learning/content/${contentId}/complete`, { method: 'DELETE', token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['learning'] });
-    },
-  });
-}
-
-export function useRateFlashcard() {
-  const queryClient = useQueryClient();
-  const token = useToken();
-  return useMutation({
-    mutationFn: (data: { questionId: string; rating: string }) =>
-      api(`/learning/flashcards/${data.questionId}/rate`, {
-        method: 'POST',
-        token,
-        body: { rating: data.rating },
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['learning', 'concept'] });
     },
   });
 }

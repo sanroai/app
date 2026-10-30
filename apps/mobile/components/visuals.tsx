@@ -80,6 +80,7 @@ export function SubjectCard({
   subtitle,
   progress,
   code,
+  grade,
   onPress,
   style,
 }: {
@@ -87,6 +88,7 @@ export function SubjectCard({
   subtitle?: string;
   progress?: number;
   code?: string;
+  grade?: string | number;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
@@ -95,13 +97,20 @@ export function SubjectCard({
     <TouchableOpacity style={[styles.subjectCard, { backgroundColor: v.bg }, style]} onPress={onPress} activeOpacity={0.85}>
       {/* The same photograph the web subject card uses, cropped to the same
           16:9 box so every card in the grid is exactly the same size. The
-          subject is identified by a typographic monogram, not a glossy icon. */}
+          subject is identified by a typographic monogram, not a glossy icon;
+          the class gets its own framing + numeral so ten classes do not look
+          like one repeated card. */}
       <View style={styles.subjectBannerWrap}>
-        <Image source={subjectBanner(name, code)} style={styles.subjectBanner} resizeMode="cover" />
+        <Image source={subjectBanner(name, code, grade)} style={styles.subjectBanner} resizeMode="cover" />
         <View style={[styles.subjectBannerTint, { backgroundColor: v.ink }]} />
         <View style={styles.subjectMonogram}>
           <Text style={styles.subjectMonogramText}>{subjectMonogram(name, code)}</Text>
         </View>
+        {grade !== undefined && grade !== null ? (
+          <Text style={styles.subjectGrade} accessibilityElementsHidden importantForAccessibility="no">
+            {grade}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.subjectBody}>
         <Text style={styles.subjectTitle} numberOfLines={1}>
@@ -229,6 +238,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   subjectMonogramText: { color: '#ffffff', fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  subjectGrade: {
+    position: 'absolute',
+    right: 10,
+    bottom: 4,
+    fontSize: 34,
+    fontWeight: '900',
+    color: 'rgba(255,255,255,0.3)',
+  },
   subjectBody: { flex: 1, minHeight: 104, padding: Spacing.md },
   subjectTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
   subjectSub: { fontSize: 11, color: Colors.textSecondary, marginTop: 2, lineHeight: 15 },

@@ -20,7 +20,7 @@ import { subjectMonogram } from '@/components/subject-banner';
 import { PrefetchLink } from '@/components/prefetch-link';
 import { prefetchConcept } from '@/lib/prefetch';
 import { useIdlePrefetch } from '@/lib/use-idle-prefetch';
-import { subjectArt } from '@/lib/subject-art';
+import { subjectArt, subjectBannerFor } from '@/lib/subject-art';
 import {
   resolveApiPath,
   useChapterHub,
@@ -139,6 +139,7 @@ export default function ChapterHubPage() {
   }
 
   const art = subjectArt(chapter.subject, chapter.code);
+  const bannerSrc = subjectBannerFor(art, chapter.grade);
 
   const { progress, practice } = chapter;
   const practiceError = startPractice.error ? (startPractice.error as Error).message : null;
@@ -172,7 +173,7 @@ export default function ChapterHubPage() {
           opening a book rather than reading a table row. */}
       <div className="relative overflow-hidden rounded-3xl shadow-card" style={{ backgroundColor: '#0b0614' }}>
         <Image
-          src={art.banner}
+          src={bannerSrc}
           alt=""
           fill
           priority

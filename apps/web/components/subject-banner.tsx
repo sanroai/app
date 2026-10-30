@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
-import { subjectArt } from '@/lib/subject-art';
+import { subjectArt, subjectBannerFor } from '@/lib/subject-art';
 
 /**
  * Three letters that stand for a subject ("SCI", "MAT", "ENG").
@@ -25,6 +25,8 @@ export function subjectMonogram(name: string, code?: string): string {
 interface SubjectBannerProps {
   name: string;
   code?: string;
+  /** The class this tile belongs to; each class gets its own framing + numeral. */
+  grade?: string | number;
   /** The line under the name ("Class 10 · 40 lessons"). */
   subtitle?: string;
   sizes?: string;
@@ -32,12 +34,12 @@ interface SubjectBannerProps {
 }
 
 /** The shared subject thumbnail: photograph, accent wash, monogram, name. */
-export function SubjectBanner({ name, code, subtitle, sizes, showChevron = true }: SubjectBannerProps) {
+export function SubjectBanner({ name, code, grade, subtitle, sizes, showChevron = true }: SubjectBannerProps) {
   const art = subjectArt(name, code);
   return (
     <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-900">
       <Image
-        src={art.banner}
+        src={subjectBannerFor(art, grade)}
         alt=""
         fill
         sizes={sizes ?? '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px'}
@@ -51,7 +53,7 @@ export function SubjectBanner({ name, code, subtitle, sizes, showChevron = true 
       <span className="absolute left-4 top-4 inline-flex h-11 min-w-11 items-center justify-center rounded-2xl border border-white/35 bg-white/15 px-2 text-[13px] font-extrabold tracking-[0.08em] text-white backdrop-blur-sm">
         {subjectMonogram(name, code)}
       </span>
-      <div className="absolute inset-x-0 bottom-0 p-4">
+      <div className="absolute inset-x-0 bottom-0 p-4 pr-14">
         <h4 className="truncate font-display text-[17px] font-bold leading-tight text-white drop-shadow">
           {name}
         </h4>
@@ -59,6 +61,14 @@ export function SubjectBanner({ name, code, subtitle, sizes, showChevron = true 
           <p className="mt-0.5 truncate text-[11px] font-medium text-white/75">{subtitle}</p>
         ) : null}
       </div>
+      {grade !== undefined && grade !== null ? (
+        <span
+          aria-hidden="true"
+          className="absolute bottom-2 right-3 select-none font-display text-[38px] font-black leading-none text-white/25"
+        >
+          {grade}
+        </span>
+      ) : null}
       {showChevron ? (
         <ChevronRight className="absolute right-3 top-4 h-4 w-4 text-white/80 transition-transform group-hover:translate-x-0.5" />
       ) : null}

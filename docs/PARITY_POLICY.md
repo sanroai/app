@@ -18,7 +18,7 @@ that is a deliberate scope decision, not a gap.
 
 | Layer | Web | Mobile | Rule |
 |---|---|---|---|
-| Learning (library, chapters, concepts, practice, flashcards, assessments, attempts) | yes | yes | **must be identical** |
+| Learning (library, chapters, concepts, practice, assessments, attempts) | yes | yes | **must be identical** |
 | Gamification (XP, streak, mastery, achievements, leaderboard + its scope/period switch) | yes | yes | **must be identical** |
 | Progress and diagnosis (learning path, remediation, reports) | yes | yes | **must be identical** |
 | AI (chat for a concept / a chapter) | yes | yes | **must be identical** |
@@ -46,7 +46,7 @@ Keep this table current. It is the acceptance checklist for a release.
 | Chapter hub | `app/(dashboard)/app/learn/chapters/[chapterId]` | `app/chapter/[chapterId]` (the old `app/learn/chapter/[chapterId]` redirects to it) |
 | Concept (Learn / Practice / Ask) | `app/(dashboard)/app/learn/concepts/[conceptId]` | `app/concept/[conceptId]` |
 | Practice session | `app/(dashboard)/app/learn/practice/[practiceId]` | `app/practice/[practiceId]` |
-| Flashcards | `app/(dashboard)/app/flashcards/[conceptId]` (also a format inside the concept page) | `app/flashcards/[conceptId]` |
+| Flashcards (cut) | `app/flashcards/[conceptId]` redirects to the concept page's Practice tab | `app/flashcards/[conceptId]` is a `<Redirect>` to the same place |
 | Assessment list | `app/(dashboard)/app/assessments` | `app/(tabs)/assessments.tsx` |
 | Learning path | `app/(dashboard)/app/assessments` (path tab) | `app/(tabs)/tests.tsx` |
 | Assessment attempt | `app/(dashboard)/app/assessments/attempt/[attemptId]` | `app/attempt/[attemptId]` |

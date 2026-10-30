@@ -12,8 +12,10 @@
  */
 
 export type SubjectArt = {
-  /** Banner under `public/art/`. */
+  /** Banner under `public/art/` (the first framing; use `subjectBannerFor`). */
   banner: string;
+  /** Every framing of the subject photograph, if the subject has more than one. */
+  banners?: string[];
   /** 3D icon under `public/icons/`. */
   icon: string;
   /** Primary accent (hex) used for tints and rings. */
@@ -23,21 +25,36 @@ export type SubjectArt = {
 };
 
 const SCIENCE: SubjectArt = {
-  banner: '/art/subject-science.jpg',
+  banner: '/art/subject-science-a.jpg',
+  banners: [
+    '/art/subject-science-a.jpg',
+    '/art/subject-science-b.jpg',
+    '/art/subject-science-c.jpg',
+  ],
   icon: '/icons/microscope.png',
   accent: '#06b6d4',
   accent2: '#10b981',
 };
 
 const MATHEMATICS: SubjectArt = {
-  banner: '/art/subject-mathematics.jpg',
+  banner: '/art/subject-mathematics-a.jpg',
+  banners: [
+    '/art/subject-mathematics-a.jpg',
+    '/art/subject-mathematics-b.jpg',
+    '/art/subject-mathematics-c.jpg',
+  ],
   icon: '/icons/abacus.png',
   accent: '#10b981',
   accent2: '#6366f1',
 };
 
 const ENGLISH: SubjectArt = {
-  banner: '/art/subject-english.jpg',
+  banner: '/art/subject-english-a.jpg',
+  banners: [
+    '/art/subject-english-a.jpg',
+    '/art/subject-english-b.jpg',
+    '/art/subject-english-c.jpg',
+  ],
   icon: '/icons/open-book.png',
   accent: '#f59e0b',
   accent2: '#8b5cf6',
@@ -72,6 +89,29 @@ export function subjectArt(name?: string | null, code?: string | null): SubjectA
     if (pattern.test(haystack)) return art;
   }
   return FALLBACK;
+}
+
+/**
+ * Which framing of the subject photograph a class gets.
+ *
+ * A subject repeats in every class ("Class 1 Science" … "Class 10 Science"), so a
+ * single banner made ten cards look like one card. Each class takes a different
+ * slice of the same photograph: the subject identity (photo, accent, monogram)
+ * stays, the grid stops repeating itself. Deterministic, so the same class always
+ * shows the same framing (no flicker between renders or between the two clients).
+ */
+export function classSubjectVariant(grade?: string | number | null): number {
+  const value = Number.parseInt(String(grade ?? ''), 10);
+  if (!Number.isFinite(value)) return 0;
+  return ((value - 1) % 3 + 3) % 3;
+}
+
+/**
+ * The banner for one subject in one class. Falls back to the subject's single
+ * banner (and then to the chapter banner) when the subject has no framings.
+ */
+export function subjectBannerFor(art: SubjectArt, grade?: string | number | null): string {
+  return art.banners?.[classSubjectVariant(grade)] ?? art.banner;
 }
 
 /** The icon set exposed to the UI, so components never hard-code a path. */

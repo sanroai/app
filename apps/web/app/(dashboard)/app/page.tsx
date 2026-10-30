@@ -894,9 +894,9 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {weak.conceptId ? (
-                    <Link href={`/app/flashcards/${weak.conceptId}`}>
+                    <Link href={`/app/learn/concepts/${weak.conceptId}?tab=practice`}>
                       <Button size="sm" variant="ghost" className="rounded-xl text-brand-600 hover:bg-brand-50">
-                        Flashcards
+                        Practise
                       </Button>
                     </Link>
                   ) : null}

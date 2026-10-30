@@ -80,10 +80,6 @@ function buildService() {
       },
     },
     practiceAnswer: { upsert: async () => ({}) },
-    flashcardRating: {
-      findMany: async () => [],
-      upsert: async (args: any) => ({ ...args.update, ...args.create }),
-    },
   };
 
   const tenant: any = { requireInstitution: () => 'inst-1' };
@@ -150,26 +146,13 @@ describe('LearningService question–concept isolation', () => {
     );
   });
 
-  it('getConceptDetail exposes answer and explanation for flashcards', async () => {
+  it('getConceptDetail exposes answer and explanation for the practice payload', async () => {
     const { service } = buildService();
     const detail = await service.getConceptDetail(studentUser, CONCEPT_A);
     expect(detail.practiceQuestions[0]).toMatchObject({
       answer: 'A',
       explanation: 'Because A is correct',
     });
-    expect(detail.flashcardRatings).toEqual({});
-  });
-
-  it('rateFlashcard rejects an invalid rating', async () => {
-    const { service } = buildService();
-    await expect(service.rateFlashcard(studentUser, 'q-a1', 'MAYBE')).rejects.toThrow(
-      'Invalid flashcard rating',
-    );
-  });
-
-  it('rateFlashcard persists a valid rating for the student', async () => {
-    const { service } = buildService();
-    const result = await service.rateFlashcard(studentUser, 'q-a1', 'GOOD');
-    expect(result).toEqual({ ok: true, rating: 'GOOD' });
+    expect('flashcardRatings' in detail).toBe(false);
   });
 });

@@ -60,6 +60,7 @@ export default function LearnScreen() {
                     key={subject.id}
                     name={subject.name}
                     code={subject.code}
+                    grade={grade.grade}
                     subtitle={`${subject.completedContent}/${subject.totalContent} topics done`}
                     progress={subject.totalContent > 0 ? (subject.completedContent / subject.totalContent) * 100 : 0}
                     style={styles.subjectGridItem}

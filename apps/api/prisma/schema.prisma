@@ -1359,6 +1359,10 @@ model PracticeAnswer {
   @@index([practiceSetId])
 }
 
+/// Retired 2026-10-30: the student flashcard deck was removed (it replayed the
+/// quiz pool without writing mastery evidence or XP). The table is kept so no
+/// destructive migration is needed, and `generate-flashcards` authoring still
+/// documents what it produced; nothing reads or writes it from the student flow.
 model FlashcardRating {
   id         String   @id @default(uuid()) @db.Uuid
   studentId  String   @db.Uuid

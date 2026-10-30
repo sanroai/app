@@ -46,7 +46,15 @@ const INDIGO = '#4f46e5';
  * typographic monogram (`SCI` / `MAT` / `ENG`) over the photograph, and a second
  * rendered object behind it read as a sticker. The chapter and dashboard
  * banners keep theirs.
+ *
+ * A subject also ships **three framings of its photograph** (`-a`, `-b`, `-c`).
+ * The same subject repeats in every class ("Class 1 Science", "Class 2
+ * Science"), so one image made ten cards look like the same card; each class
+ * picks a different slice (`classSubjectVariant`), which keeps the subject
+ * identity (photo, accent, monogram) while the grid stops repeating itself.
  */
+const VARIANT_SUFFIXES = ['a', 'b', 'c'];
+
 const BANNERS = [
   {
     key: 'subject-science',
@@ -55,6 +63,7 @@ const BANNERS = [
     accent: '#06b6d4',
     accent2: '#10b981',
     motif: 'orbits',
+    variants: ['left', 'centre', 'right'],
   },
   {
     key: 'subject-mathematics',
@@ -63,6 +72,7 @@ const BANNERS = [
     accent: '#10b981',
     accent2: '#6366f1',
     motif: 'grid',
+    variants: ['left', 'centre', 'right'],
   },
   {
     key: 'subject-english',
@@ -71,6 +81,7 @@ const BANNERS = [
     accent: '#f59e0b',
     accent2: '#8b5cf6',
     motif: 'lines',
+    variants: ['left', 'centre', 'right'],
   },
   {
     key: 'chapter-banner',
@@ -184,81 +195,112 @@ function backgroundSvg(spec, iconDataUri, iconSize, hasPhoto) {
 </svg>`;
 }
 
+/**
+ * One framing of a subject photograph: the source is already banner-sized, so a
+ * plain cover-resize would return the same pixels for every variant. Each framing
+ * zooms to a different depth and picks a different window (and one is mirrored),
+ * so ten classes of the same subject read as ten different pictures: a wide view,
+ * a mirrored closer view, then a close-up.
+ */
+const FRAMINGS = {
+  left: { zoom: 1.3, x: 0, y: 0.5, flip: false },
+  centre: { zoom: 1.75, x: 0.5, y: 0.2, flip: true },
+  right: { zoom: 2.1, x: 1, y: 0.8, flip: false },
+};
+
+async function photoSlice(photoPath, width, height, slice) {
+  const framing = FRAMINGS[slice] ?? FRAMINGS.left;
+  const zoomedWidth = Math.round(width * framing.zoom);
+  const zoomedHeight = Math.round(height * framing.zoom);
+  let pipeline = sharp(photoPath).resize(zoomedWidth, zoomedHeight, { fit: 'cover' });
+  if (framing.flip) pipeline = pipeline.flop();
+  const zoomed = await pipeline.toBuffer();
+  const left = Math.round((zoomedWidth - width) * framing.x);
+  const top = Math.round((zoomedHeight - height) * framing.y);
+  return sharp(zoomed).extract({ left, top, width, height }).toBuffer();
+}
+
 async function main() {
-  const check = process.argv.includes('--check');
-  fs.mkdirSync(WEB_OUT, { recursive: true });
+  const check = process.argv.includes('--check');  fs.mkdirSync(WEB_OUT, { recursive: true });
   fs.mkdirSync(MOBILE_OUT, { recursive: true });
 
   const manifest = [];
   let missing = 0;
 
   for (const spec of BANNERS) {
-    const file = `${spec.key}.jpg`;
-    const webPath = path.join(WEB_OUT, file);
+    const slices = spec.variants ?? [null];
 
-    if (check) {
-      const okWeb = fs.existsSync(webPath);
-      const okMobile = fs.existsSync(path.join(MOBILE_OUT, file));
-      if (!okWeb || !okMobile) {
-        missing += 1;
-        console.error(`  MISSING ${spec.key} (web=${okWeb} mobile=${okMobile})`);
-      }
-      continue;
-    }
+    for (const [index, slice] of slices.entries()) {
+      const file = slice ? `${spec.key}-${VARIANT_SUFFIXES[index]}.jpg` : `${spec.key}.jpg`;
+      const webPath = path.join(WEB_OUT, file);
 
-    let iconDataUri;
-    if (spec.icon) {
-      const iconPath = path.join(ICONS, spec.icon);
-      if (!fs.existsSync(iconPath)) {
-        throw new Error(`icon not found: ${path.relative(ROOT, iconPath)}`);
+      if (check) {
+        const okWeb = fs.existsSync(webPath);
+        const okMobile = fs.existsSync(path.join(MOBILE_OUT, file));
+        if (!okWeb || !okMobile) {
+          missing += 1;
+          console.error(`  MISSING ${file} (web=${okWeb} mobile=${okMobile})`);
+        }
+        continue;
       }
-      const iconSize = Math.round(spec.height * 0.62);
-      const resized = await sharp(iconPath)
-        .resize(iconSize, iconSize, { fit: 'contain' })
+
+      let iconDataUri;
+      if (spec.icon) {
+        const iconPath = path.join(ICONS, spec.icon);
+        if (!fs.existsSync(iconPath)) {
+          throw new Error(`icon not found: ${path.relative(ROOT, iconPath)}`);
+        }
+        const iconSize = Math.round(spec.height * 0.62);
+        const resized = await sharp(iconPath)
+          .resize(iconSize, iconSize, { fit: 'contain' })
+          .png()
+          .toBuffer();
+        iconDataUri = `data:image/png;base64,${resized.toString('base64')}`;
+      }
+
+      const photoPath = path.join(PHOTOS, `${spec.key}.jpg`);
+      const hasPhoto = fs.existsSync(photoPath);
+      const svg = backgroundSvg(spec, iconDataUri, Math.round(spec.height * 0.62), hasPhoto);
+      // A photo is composited at the banner's own pixel size, so the overlay is
+      // rasterised 1:1; the photo-less path keeps the higher 2x density.
+      const overlay = await sharp(Buffer.from(svg), hasPhoto ? {} : { density: 144 })
         .png()
         .toBuffer();
-      iconDataUri = `data:image/png;base64,${resized.toString('base64')}`;
-    }
 
-    const photoPath = path.join(PHOTOS, `${spec.key}.jpg`);
-    const hasPhoto = fs.existsSync(photoPath);
-    const svg = backgroundSvg(spec, iconDataUri, Math.round(spec.height * 0.62), hasPhoto);
-    // A photo is composited at the banner's own pixel size, so the overlay is
-    // rasterised 1:1; the photo-less path keeps the higher 2x density.
-    const overlay = await sharp(Buffer.from(svg), hasPhoto ? {} : { density: 144 })
-      .png()
-      .toBuffer();
+      let pipeline;
+      if (hasPhoto) {
+        const base = slice
+          ? await photoSlice(photoPath, spec.width, spec.height, slice)
+          : await sharp(photoPath)
+              .resize(spec.width, spec.height, { fit: 'cover', position: 'attention' })
+              .toBuffer();
+        pipeline = sharp(base).composite([{ input: overlay, top: 0, left: 0 }]);
+      } else {
+        pipeline = sharp(overlay);
+      }
 
-    let pipeline;
-    if (hasPhoto) {
-      const base = await sharp(photoPath)
-        .resize(spec.width, spec.height, { fit: 'cover', position: 'attention' })
+      const jpg = await pipeline
+        .jpeg({ quality: 88, mozjpeg: true, chromaSubsampling: '4:4:4' })
         .toBuffer();
-      pipeline = sharp(base).composite([{ input: overlay, top: 0, left: 0 }]);
-    } else {
-      pipeline = sharp(overlay);
+
+      fs.writeFileSync(webPath, jpg);
+      fs.writeFileSync(path.join(MOBILE_OUT, file), jpg);
+      manifest.push({
+        key: spec.key,
+        file,
+        variant: slice,
+        width: spec.width,
+        height: spec.height,
+        accent: spec.accent,
+        photo: hasPhoto ? `photos/${spec.key}.jpg` : null,
+        bytes: jpg.length,
+      });
+      console.log(
+        `  OK  ${file}  ${spec.width}x${spec.height}  ${(jpg.length / 1024).toFixed(0)} KB${
+          hasPhoto ? `  (photo${slice ? `, ${slice}` : ''})` : ''
+        }`,
+      );
     }
-
-    const jpg = await pipeline
-      .jpeg({ quality: 88, mozjpeg: true, chromaSubsampling: '4:4:4' })
-      .toBuffer();
-
-    fs.writeFileSync(webPath, jpg);
-    fs.writeFileSync(path.join(MOBILE_OUT, file), jpg);
-    manifest.push({
-      key: spec.key,
-      file,
-      width: spec.width,
-      height: spec.height,
-      accent: spec.accent,
-      photo: hasPhoto ? `photos/${spec.key}.jpg` : null,
-      bytes: jpg.length,
-    });
-    console.log(
-      `  OK  ${spec.key}  ${spec.width}x${spec.height}  ${(jpg.length / 1024).toFixed(0)} KB${
-        hasPhoto ? '  (photo)' : ''
-      }`,
-    );
   }
 
   if (check) {

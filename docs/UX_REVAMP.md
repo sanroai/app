@@ -33,7 +33,7 @@ gradient. Rules learned the hard way:
 - Keep the subject/object motif on the **right** of the frame: the text column is
   on the left on every screen size.
 
-## 3. Premium 3D icons replace emoji everywhere
+## 3. 3D art for content, one vector set for navigation
 
 Source of truth: **34 PNGs** in `apps/mobile/assets/icons/` (Fluent-style 3D art),
 copied to `apps/web/public/icons/`.
@@ -42,6 +42,13 @@ copied to `apps/web/public/icons/`.
 - Mobile: `components/Icon3D.tsx` (same keys).
 - No emoji in UI copy. Where a glyph is still needed (chevrons, play), use the
   icon library, not an emoji.
+- **Not in the navigation (2026-10-30).** A row of small glossy objects reads as a
+  row of emoji, which is exactly what the user rejected: the mobile tab bar now uses
+  Ionicons (outline idle / filled active, tinted by the role theme) and the web menu
+  uses one lucide glyph per item at one weight and size inside a tinted chip (the
+  active item inverts the chip). `Icon3D` stays on content — lessons, AR, subject and
+  chapter banners, achievements, dashboard stats — where it illustrates a thing
+  rather than standing in for a menu item.
 
 `Icon3D` is a **plain `<img>`** on web, deliberately: `next/image` emitted
 `loading="lazy"` for these 20 KB local PNGs inside the dashboard grid, and
@@ -53,8 +60,15 @@ are correct here.
 
 - **Subject cards** (`/app/library/subjects`): a 16:9 banner per subject (science,
   mathematics, english, plus a neutral fallback), name and code over the dark
-  bottom band. The banner art already contains the subject's 3D icon, so the card
-  does **not** repeat it.
+  bottom band. The subject banner carries **no** 3D icon anymore — the card sets a
+  typographic monogram (`SCI` / `MAT` / `ENG`) instead, because a sentence-case
+  subject name next to a small glossy object read as a sticker.
+- **Every class gets its own framing** (2026-10-30). A subject repeats in ten
+  classes, so one photograph made ten identical cards. Each subject now ships three
+  framings (`-a` wide / `-b` mirrored closer / `-c` close-up, produced by the same
+  script from the class's photo) and each class takes one deterministically
+  (`classSubjectVariant`, mirrored on web and mobile), plus a large ghost class
+  numeral on the banner. Same subject identity, different picture.
 - **Chapter hub** (web `/app/learn/chapters/[id]`, mobile `/chapter/[id]`): the
   same subject banner becomes the header, so opening a chapter feels like opening
   a book. Progress percentage sits in a translucent pill on the right.
@@ -67,8 +81,8 @@ are correct here.
 
 ## 5. Concept page stays three modes
 
-`Learn · Practice · Ask SANRO AI`. AR/3D is a card **inside Learn**; Flashcards is
-a **format inside Practice**. This is unchanged and documented in `AGENTS.md`.
+`Learn · Practice · Ask SANRO AI`. AR/3D is a card **inside Learn**; Practice is one
+graded quiz action (Flashcards were cut on 2026-10-30 - see `AGENTS.md`).
 
 ## 6. Video sections are labelled honestly
 

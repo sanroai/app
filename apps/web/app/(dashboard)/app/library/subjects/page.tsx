@@ -167,6 +167,7 @@ export default function LibrarySubjectsPage() {
                             <SubjectBanner
                               name={subject.name}
                               code={subject.code}
+                              grade={grade.grade}
                               subtitle={subject.code}
                               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
                             />
