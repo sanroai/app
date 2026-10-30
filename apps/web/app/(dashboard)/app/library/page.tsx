@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Spinner, ErrorBanner } from '@/components/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/cn';
+import { useIdlePrefetch } from '@/lib/use-idle-prefetch';
 import {
   Search,
   Film,
@@ -117,6 +118,10 @@ function LibraryView() {
   const router = useRouter();
   const params = useSearchParams();
   const [searchDraft, setSearchDraft] = useState(params.get('search') ?? '');
+
+  // "Browse by subject" is the next click from the library list, so its route is
+  // warmed during idle time.
+  useIdlePrefetch('/app/library/subjects');
 
   const type = params.get('type') ?? '';
   const chapterId = params.get('chapterId') ?? '';

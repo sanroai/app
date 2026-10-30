@@ -1,6 +1,7 @@
-import { Controller, Get, NotFoundException, Param, Post, Body, Query, UseGuards, Res, BadRequestException } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Post, Delete, Body, Query, UseGuards, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { LearningService, clampQuestionCount } from './learning.service';
+import { PdfTicketService } from './pdf-ticket.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
 import { RequestUser } from '../common/types/auth-context';
@@ -14,7 +15,10 @@ import { readFileSync } from 'node:fs';
 @UseGuards(ParentContentGuard)
 @SubscriptionRequired()
 export class LearningController {
-  constructor(private readonly service: LearningService) {}
+  constructor(
+    private readonly service: LearningService,
+    private readonly pdfTickets: PdfTicketService,
+  ) {}
 
   private uuidOrBadRequest(value: string): void {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) {
@@ -72,6 +76,49 @@ export class LearningController {
     res.end(data);
   }
 
+  /**
+   * A signed, ten-minute link to the same PDF.
+   *
+   * Browsers and the platform PDF viewer cannot send the bearer token, and
+   * Android's WebView cannot render PDFs, so the client asks for this link and
+   * opens it with the system viewer. Issuing it runs the same grade check as the
+   * direct download, and the link is bound to this chapter only.
+   */
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Post('chapters/:chapterId/pdf-link')
+  async chapterPdfLink(
+    @CurrentUser() user: RequestUser,
+    @Param('chapterId') chapterId: string,
+  ): Promise<{ path: string; expiresAt: string }> {
+    this.uuidOrBadRequest(chapterId);
+    const pdf = await this.service.getChapterPdf(user, chapterId);
+    if (!pdf) throw new NotFoundException('Chapter PDF not available');
+    return this.pdfTickets.issue(chapterId);
+  }
+
+  /**
+   * The rendered pages of this chapter's textbook.
+   *
+   * Clients read the book as images (a WebView cannot render PDF on Android, and
+   * a PDF link downloads). `pages` are short-lived signed image URLs, so an
+   * `<img>`/`<Image>` tag works without attaching the bearer token.
+   */
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Get('chapters/:chapterId/pages')
+  async chapterPages(
+    @CurrentUser() user: RequestUser,
+    @Param('chapterId') chapterId: string,
+  ): Promise<{ count: number; pages: Array<{ index: number; path: string }>; expiresAt: string }> {
+    this.uuidOrBadRequest(chapterId);
+    const { files } = await this.service.getChapterPages(user, chapterId);
+    const { paths, expiresAt } = this.pdfTickets.chapterPages(chapterId, files.length);
+    return {
+      count: files.length,
+      expiresAt,
+      pages: paths.map((path, index) => ({ index: index + 1, path })),
+    };
+  }
+
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('concepts/:conceptId')
   conceptDetail(@CurrentUser() user: RequestUser, @Param('conceptId') conceptId: string) {
@@ -83,6 +130,13 @@ export class LearningController {
   @Post('content/:contentId/complete')
   completeContent(@CurrentUser() user: RequestUser, @Param('contentId') contentId: string) {
     return this.service.completeContent(user, contentId);
+  }
+
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Delete('content/:contentId/complete')
+  uncompleteContent(@CurrentUser() user: RequestUser, @Param('contentId') contentId: string) {
+    this.uuidOrBadRequest(contentId);
+    return this.service.uncompleteContent(user, contentId);
   }
 
   @SetMetadata(PARENT_RESTRICTED_KEY, true)

@@ -92,7 +92,22 @@ function buildService() {
     resolveForUser: async () => db.students[0] ?? null,
     requireForUser: async () => db.students[0] ?? null,
   };
-  const service = new LearningService(prisma, tenant, mastery, identity, { buildContentWhere: () => ({}) });
+  const gradeAccess: any = {
+    forUser: async () => ({ unrestricted: true, grades: [] }),
+    forStudentId: async () => ({ unrestricted: true, grades: [] }),
+    allows: () => true,
+    assert: () => undefined,
+    setEnrolments: async () => undefined,
+    addEnrolment: async () => undefined,
+  };
+  const service = new LearningService(
+    prisma,
+    tenant,
+    mastery,
+    identity,
+    gradeAccess,
+    { buildContentWhere: () => ({}) },
+  );
   return { service, db };
 }
 

@@ -32,3 +32,28 @@ export function normalizeSegments(raw: unknown): VideoSegment[] {
   }
   return [...byStart.values()].sort((a, b) => a.startSeconds - b.startSeconds);
 }
+
+/** Marker titles and concept names match on words, not punctuation - same rule as the API. */
+export function normalizeSectionTitle(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/**
+ * Where this concept starts inside a video lesson that the chapter hub did not
+ * name. A chapter can carry more than one chapter-wide video (the hub picks the
+ * one the section times were computed for); when the concept page shows a
+ * different clip, its own markers decide - not the offset from the other video,
+ * which would drop the student in the middle of the previous concept.
+ *
+ * Returns `0` when nothing names the concept: start at the beginning rather
+ * than pretending to know.
+ */
+export function sectionStartForConcept(
+  segments: VideoSegment[],
+  conceptName: string,
+): number {
+  const key = normalizeSectionTitle(conceptName);
+  if (!key) return 0;
+  const hit = segments.find((segment) => normalizeSectionTitle(segment.title) === key);
+  return hit ? hit.startSeconds : 0;
+}

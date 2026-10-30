@@ -111,14 +111,28 @@ async function runRole(role: string, email: string, routes: string[], viewport: 
   try {
     const resp = await gotoWithRetry(page, `${WEB}/login`, 20000);
     httpStatus = resp?.status() ?? null;
-    await page.waitForTimeout(1500);
-    await page.fill('input[type="email"]', email);
-    await page.fill('input[type="password"]', PW);
-    const [resp2] = await Promise.all([
-      page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 20000 }).catch(() => null),
-      page.click('button[type="submit"]'),
-    ]);
-    await page.waitForTimeout(2500);
+    await page.waitForLoadState('networkidle').catch(() => null);
+    await page.waitForTimeout(1200);
+
+    // The form submits natively (GET /login?email=...&password=...) if anything is
+    // typed before React hydrates, so a failed attempt is retried once on a settled
+    // page instead of being reported as a role failure.
+    const submitLogin = async () => {
+      await page.fill('input[type="email"]', email);
+      await page.fill('input[type="password"]', PW);
+      const [response] = await Promise.all([
+        page.waitForURL((u) => !u.pathname.includes('/login'), { timeout: 20000 }).catch(() => null),
+        page.click('button[type="submit"]'),
+      ]);
+      await page.waitForTimeout(2500);
+      return response;
+    };
+    let resp2 = await submitLogin();
+    if (page.url().includes('/login') && page.url().includes('email=')) {
+      await page.goto(`${WEB}/login`, { waitUntil: 'networkidle', timeout: 60000 }).catch(() => null);
+      await page.waitForTimeout(1200);
+      resp2 = await submitLogin();
+    }
     finalUrl = page.url();
     const shot = join(SHOTS, `${role}-${viewport.name}-login.png`);
     await page.screenshot({ path: shot, fullPage: true });

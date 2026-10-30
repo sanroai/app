@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,21 +14,22 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useChapterHub, useStartPractice } from '../../lib/hooks';
 import { subjectBanner } from '../../lib/subject-art';
-import { absoluteApiUrl } from '../../lib/api';
+import { absoluteApiUrl, apiAuthed } from '../../lib/api';
 import {
   conceptStatusLabel,
+  formatTimestamp,
   isMasteredConcept,
   masteryLabel,
   masteryTone,
   pickContinueConcept,
   progressPercent,
   type ChapterConcept,
+  type ConceptSection,
 } from '../../lib/chapter-hub';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { Icon3D } from '../../components/Icon3D';
 import { Markdown } from '../../components/Markdown';
-import { ChapterPdfViewer } from '../../components/ChapterPdfViewer';
 import { YouTubePlayer } from '../../components/YouTubePlayer';
 import { Colors, Spacing, BorderRadius, Pastel } from '../../constants/theme';
 
@@ -36,7 +38,8 @@ export default function ChapterHubScreen() {
   const router = useRouter();
   const { data: chapter, isLoading, error, refetch } = useChapterHub(chapterId);
   const startPractice = useStartPractice();
-  const [pdfOpen, setPdfOpen] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
 
   const concepts = useMemo<ChapterConcept[]>(() => chapter?.concepts ?? [], [chapter]);
   const videos = useMemo(() => chapter?.videos ?? [], [chapter]);
@@ -45,8 +48,16 @@ export default function ChapterHubScreen() {
   const practice = chapter?.practice;
   const pdfUrl = chapter?.pdfUrl ?? null;
 
-  const openConcept = (conceptId: string) =>
-    router.push({ pathname: '/concept/[conceptId]', params: { conceptId } });
+  const openConcept = (conceptId: string, section?: ConceptSection | null) =>
+    router.push({
+      pathname: '/concept/[conceptId]',
+      params: {
+        conceptId,
+        ...(section
+          ? { t: String(section.startSeconds), video: section.contentId }
+          : {}),
+      },
+    });
 
   const startChapterPractice = () => {
     if (!practice?.available) {
@@ -80,12 +91,29 @@ export default function ChapterHubScreen() {
     router.push({ pathname: '/ask/[conceptId]', params: { conceptId: first.id, chapterId } });
   };
 
-  const openPdf = () => {
-    // The PDF endpoint is behind the JWT guard, so it is opened in the in-app
-    // viewer (which sends the bearer token) - the browser fallback lives in
-    // the viewer header.
-    if (!pdfUrl) return;
-    setPdfOpen(true);
+  const openPdf = async () => {
+    // The textbook is read as page images in the app: Android's WebView cannot
+    // render a PDF, and a plain link only downloads it. Chapters without rendered
+    // pages fall back to the signed PDF link opened by the platform viewer.
+    if (!pdfUrl || pdfBusy) return;
+    setPdfBusy(true);
+    try {
+      const pages = await apiAuthed<{ count: number }>(`/learning/chapters/${chapterId}/pages`);
+      if (pages.count > 0) {
+        router.push({ pathname: '/textbook/[chapterId]', params: { chapterId } });
+        return;
+      }
+      const link = await apiAuthed<{ path: string; expiresAt: string }>(
+        `/learning/chapters/${chapterId}/pdf-link`,
+        { method: 'POST', queueOffline: false },
+      );
+      await Linking.openURL(absoluteApiUrl(link.path));
+    } catch (err) {
+      const e = err as { message?: string };
+      Alert.alert('Textbook', e.message ?? 'Could not open the chapter textbook. Try again in a moment.');
+    } finally {
+      setPdfBusy(false);
+    }
   };
 
   if (isLoading && !chapter) {
@@ -118,45 +146,31 @@ export default function ChapterHubScreen() {
         <Image source={subjectBanner(chapter.subject, chapter.code)} style={styles.headerBanner} />
         <View style={styles.headerOverlay} />
         <Text style={styles.headerEyebrow}>
-          {[chapter.subject, chapter.grade ? `Class ${chapter.grade}` : null].filter(Boolean).join(' • ')}
+          {[
+            chapter.subject,
+            chapter.grade ? `Class ${chapter.grade}` : null,
+            Number.isFinite(chapter.order) ? `Chapter ${chapter.order}` : null,
+          ]
+            .filter(Boolean)
+            .join(' • ')}
         </Text>
         <Text style={styles.headerTitle}>{chapter.name}</Text>
-        {chapter.code ? (
-          <View style={styles.codeChip}>
-            <Text style={styles.codeText}>{chapter.code}</Text>
-          </View>
-        ) : null}
+        <View style={styles.headerChipRow}>
+          {Number.isFinite(chapter.order) ? (
+            <View style={styles.chapterChip}>
+              <Text style={styles.chapterChipText}>Chapter {chapter.order}</Text>
+            </View>
+          ) : null}
+          {chapter.code ? (
+            <View style={styles.codeChip}>
+              <Text style={styles.codeText}>{chapter.code}</Text>
+            </View>
+          ) : null}
+        </View>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        {/* Progress */}
-        <Card style={styles.progressCard}>
-          <View style={styles.progressTop}>
-            <Text style={styles.progressLabel}>Chapter progress</Text>
-            <Text style={styles.progressPct}>{percent}%</Text>
-          </View>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${percent}%` }]} />
-          </View>
-          <View style={styles.statRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{chapter.progress?.concepts ?? concepts.length}</Text>
-              <Text style={styles.statLabel}>Concepts</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={[styles.statValue, { color: Colors.success }]}>
-                {chapter.progress?.mastered ?? concepts.filter((c) => isMasteredConcept(c)).length}
-              </Text>
-              <Text style={styles.statLabel}>Mastered</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{chapter.progress?.videos ?? videos.length}</Text>
-              <Text style={styles.statLabel}>Videos</Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Continue where you left off */}
+        {/* Continue where you left off + chapter progress, one card */}
         {continueConcept ? (
           <Card style={styles.focusCard}>
             <View style={styles.focusHeader}>
@@ -170,6 +184,31 @@ export default function ChapterHubScreen() {
                 </Text>
               </View>
             </View>
+            <View style={styles.progressTop}>
+              <Text style={styles.progressLabel}>
+                {chapter.progress?.mastered ?? 0} of {chapter.progress?.concepts ?? concepts.length} concepts mastered
+              </Text>
+              <Text style={styles.progressPct}>{percent}%</Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${percent}%` }]} />
+            </View>
+            <View style={styles.statRow}>
+              <View style={styles.stat}>
+                <Text style={styles.statValue}>{chapter.progress?.concepts ?? concepts.length}</Text>
+                <Text style={styles.statLabel}>Concepts</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={[styles.statValue, { color: Colors.success }]}>
+                  {chapter.progress?.mastered ?? concepts.filter((c) => isMasteredConcept(c)).length}
+                </Text>
+                <Text style={styles.statLabel}>Mastered</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statValue}>{chapter.progress?.videos ?? videos.length}</Text>
+                <Text style={styles.statLabel}>Videos</Text>
+              </View>
+            </View>
             {continueConcept.mastery ? (
               <Text style={styles.focusMeta}>
                 Mastery {Math.round(continueConcept.mastery.score)}% · {masteryLabel(continueConcept.mastery.level)}
@@ -179,7 +218,7 @@ export default function ChapterHubScreen() {
             )}
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => openConcept(continueConcept.id)}
+              onPress={() => openConcept(continueConcept.id, continueConcept.section)}
               accessibilityRole="button"
               accessibilityLabel={`Continue with ${continueConcept.name}`}
             >
@@ -198,29 +237,160 @@ export default function ChapterHubScreen() {
                 <Text style={styles.focusSub}>Every concept in this chapter is mastered. Nice work.</Text>
               </View>
             </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: '100%' }]} />
+            </View>
           </Card>
         ) : null}
 
-        {/* Actions */}
+        {/* Contents - the chapter's map, in curriculum order */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Actions</Text>
+          <View style={styles.sectionHead}>
+            <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Contents</Text>
+            <Text style={styles.sectionCount}>
+              {concepts.length} concept{concepts.length === 1 ? '' : 's'}
+            </Text>
+          </View>
+          {concepts.length === 0 ? (
+            <View style={styles.emptyBlock}>
+              <Ionicons name="bulb-outline" size={22} color={Colors.textMuted} />
+              <Text style={styles.mutedText}>No concepts have been mapped to this chapter yet.</Text>
+            </View>
+          ) : (
+            concepts.map((concept, index) => {
+              const serial = Number.isFinite(concept.order) ? (concept.order as number) : index + 1;
+              const section = concept.section ?? null;
+              return (
+                <Card
+                  key={concept.id}
+                  style={styles.conceptCard}
+                  onPress={() => openConcept(concept.id, section)}
+                >
+                  <View style={styles.conceptRow}>
+                    <View style={styles.serialBadge}>
+                      <Text style={styles.serialText}>{String(serial).padStart(2, '0')}</Text>
+                    </View>
+                    <View style={styles.conceptBody}>
+                      <Text style={styles.conceptName} numberOfLines={2}>
+                        {concept.name}
+                      </Text>
+                      <View style={styles.conceptMetaRow}>
+                        <View style={styles.conceptMetaLeft}>
+                          <Text style={styles.conceptMeta} numberOfLines={1}>
+                            {`${
+                              section
+                                ? `${formatTimestamp(section.durationSeconds)} video`
+                                : concept.hasVideo
+                                  ? 'Video lesson'
+                                  : 'No video'
+                            }${concept.mastery ? '' : ` · ${conceptStatusLabel(concept.status)}`}`}
+                          </Text>
+                          {concept.mastery ? (
+                            <View
+                              style={[
+                                styles.masteryChip,
+                                { backgroundColor: toneColor(masteryTone(concept.mastery.level)) + '20' },
+                              ]}
+                            >
+                              <Text
+                                style={[styles.masteryChipText, { color: toneColor(masteryTone(concept.mastery.level)) }]}
+                              >
+                                {Math.round(concept.mastery.score)}%
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        {section ? (
+                          <Text style={styles.conceptRange}>
+                            {formatTimestamp(section.startSeconds)} – {formatTimestamp(section.endSeconds)}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+                  </View>
+                </Card>
+              );
+            })
+          )}
+        </View>
+
+        {/* Learn - the lesson itself and the textbook */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Learn</Text>
+          {videos.length > 0 ? (
+            videos.map((video) => (
+              <Card key={video.contentId || video.title} style={styles.videoCard}>
+                <Text style={styles.videoTitle}>{video.title}</Text>
+                <YouTubePlayer
+                  url={video.url}
+                  title={video.title}
+                  thumbnailUrl={video.thumbnailUrl}
+                  durationSeconds={video.durationSeconds}
+                  segments={video.segments}
+                  collapseMarkers
+                />
+                {video.segments && video.segments.length > 0 ? (
+                  <Text style={styles.videoMeta}>
+                    Tap a section to jump to that part
+                  </Text>
+                ) : null}
+              </Card>
+            ))
+          ) : (
+            <View style={styles.emptyBlock}>
+              <Ionicons name="film-outline" size={22} color={Colors.textMuted} />
+              <Text style={styles.mutedText}>No video lessons for this chapter yet.</Text>
+            </View>
+          )}
+
+          <Card style={styles.actionCard}>
+            <TouchableOpacity
+              style={[styles.actionRow, !pdfUrl && styles.actionRowDisabled]}
+              onPress={openPdf}
+              disabled={!pdfUrl || pdfBusy}
+              accessibilityRole="button"
+              accessibilityLabel="Open the chapter textbook"
+              accessibilityState={{ disabled: !pdfUrl || pdfBusy }}
+            >
+              <View style={[styles.actionIcon, { backgroundColor: Pastel.sky }]}>
+                <Ionicons name="book" size={18} color={Colors.info} />
+              </View>
+              <View style={styles.actionInfo}>
+                <Text style={styles.actionTitle}>Read the textbook</Text>
+                <Text style={styles.actionSub}>
+                  {pdfUrl
+                    ? pdfBusy
+                      ? 'Opening the textbook…'
+                      : 'The NCERT chapter, page by page in the app'
+                    : 'No textbook available for this chapter yet'}
+                </Text>
+              </View>
+              <Ionicons name="open-outline" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </Card>
+        </View>
+
+        {/* Practise - one session over the whole chapter */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Practise</Text>
           <Card style={styles.actionCard}>
             <TouchableOpacity
               style={[styles.actionRow, !practice?.available && styles.actionRowDisabled]}
               onPress={startChapterPractice}
               disabled={!practice?.available || startPractice.isPending}
               accessibilityRole="button"
-              accessibilityLabel="Practice the whole chapter"
+              accessibilityLabel="Practise the whole chapter"
               accessibilityState={{ disabled: !practice?.available }}
             >
               <View style={[styles.actionIcon, { backgroundColor: Pastel.lemon }]}>
                 <Ionicons name="clipboard" size={18} color={Colors.accent} />
               </View>
               <View style={styles.actionInfo}>
-                <Text style={styles.actionTitle}>Practice the whole chapter</Text>
+                <Text style={styles.actionTitle}>Practise the whole chapter</Text>
                 <Text style={styles.actionSub}>
                   {practice?.available
-                    ? `${practice.questionCount} question${practice.questionCount === 1 ? '' : 's'} across every concept`
+                    ? `${practice.questionCount} question${practice.questionCount === 1 ? '' : 's'} across every concept · 5 XP each`
                     : 'No questions available for this chapter yet'}
                 </Text>
               </View>
@@ -230,9 +400,15 @@ export default function ChapterHubScreen() {
                 <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
               )}
             </TouchableOpacity>
+          </Card>
+        </View>
 
+        {/* Ask - the tutor, scoped to this chapter */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ask</Text>
+          <Card style={styles.actionCard}>
             <TouchableOpacity
-              style={styles.actionRow}
+              style={[styles.actionRow, concepts.length === 0 && styles.actionRowDisabled]}
               onPress={askAboutChapter}
               disabled={concepts.length === 0}
               accessibilityRole="button"
@@ -243,136 +419,51 @@ export default function ChapterHubScreen() {
                 <Ionicons name="chatbubbles" size={18} color={Colors.primary} />
               </View>
               <View style={styles.actionInfo}>
-                <Text style={styles.actionTitle}>Ask SANRO AI about this chapter</Text>
+                <Text style={styles.actionTitle}>Ask Sanro AI about this chapter</Text>
                 <Text style={styles.actionSub}>
-                  {concepts.length > 0 ? 'Explanations, doubts and worked examples' : 'Available once the chapter has concepts'}
+                  {concepts.length > 0
+                    ? 'Explanations, doubts and worked examples'
+                    : 'Available once the chapter has concepts'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
             </TouchableOpacity>
+          </Card>
+        </View>
 
-            <TouchableOpacity
-              style={[styles.actionRow, !pdfUrl && styles.actionRowDisabled]}
-              onPress={openPdf}
-              disabled={!pdfUrl}
-              accessibilityRole="button"
-              accessibilityLabel="View the chapter PDF"
-              accessibilityState={{ disabled: !pdfUrl }}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: Pastel.sky }]}>
-                <Ionicons name="document-text" size={18} color={Colors.info} />
-              </View>
-              <View style={styles.actionInfo}>
-                <Text style={styles.actionTitle}>View chapter PDF</Text>
-                <Text style={styles.actionSub}>
-                  {pdfUrl ? 'The textbook chapter, read in the app' : 'No PDF available for this chapter yet'}
+        {/* Chapter notes - the reference sheet, one tap away */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.sectionHead}
+            onPress={() => setNotesOpen((open) => !open)}
+            accessibilityRole="button"
+            accessibilityLabel={notesOpen ? 'Hide chapter notes' : 'Show chapter notes'}
+            accessibilityState={{ expanded: notesOpen }}
+          >
+            <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Chapter notes</Text>
+            <View style={styles.notesToggle}>
+              <Text style={styles.notesToggleText}>{notesOpen ? 'Hide' : 'Show'}</Text>
+              <Ionicons name={notesOpen ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.primary} />
+            </View>
+          </TouchableOpacity>
+          {notesOpen ? (
+            <Card style={styles.notesCard}>
+              {chapter.summary ? (
+                <Markdown>{chapter.summary}</Markdown>
+              ) : (
+                <Text style={styles.mutedText}>
+                  The notes for this chapter are being prepared. The video lessons and concept summaries cover the
+                  same ground.
                 </Text>
-              </View>
-              <Ionicons name="open-outline" size={18} color={Colors.textMuted} />
-            </TouchableOpacity>
-          </Card>
-        </View>
-
-        {/* Overall chapter notes */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Chapter notes</Text>
-          <Card style={styles.notesCard}>
-            {chapter.summary ? (
-              <Markdown>{chapter.summary}</Markdown>
-            ) : (
-              <Text style={styles.mutedText}>
-                The notes for this chapter are being prepared. The video lessons and concept summaries below cover the
-                same ground.
-              </Text>
-            )}
-          </Card>
-        </View>
-
-        {/* Concepts */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Concepts</Text>
-          {concepts.length === 0 ? (
-            <View style={styles.emptyBlock}>
-              <Ionicons name="bulb-outline" size={22} color={Colors.textMuted} />
-              <Text style={styles.mutedText}>No concepts have been mapped to this chapter yet.</Text>
-            </View>
+              )}
+            </Card>
           ) : (
-            concepts.map((concept) => (
-              <Card
-                key={concept.id}
-                style={styles.conceptCard}
-                onPress={() => openConcept(concept.id)}
-              >
-                <View style={styles.conceptRow}>
-                  <View
-                    style={[
-                      styles.conceptDot,
-                      { backgroundColor: toneColor(masteryTone(concept.mastery?.level)) },
-                    ]}
-                  />
-                  <View style={styles.conceptBody}>
-                    <Text style={styles.conceptName}>{concept.name}</Text>
-                    <Text style={styles.conceptMeta}>
-                      {conceptStatusLabel(concept.status)}
-                      {concept.hasVideo ? ' • video lesson' : ''}
-                    </Text>
-                  </View>
-                  {concept.mastery ? (
-                    <View
-                      style={[
-                        styles.masteryChip,
-                        { backgroundColor: toneColor(masteryTone(concept.mastery.level)) + '20' },
-                      ]}
-                    >
-                      <Text
-                        style={[styles.masteryChipText, { color: toneColor(masteryTone(concept.mastery.level)) }]}
-                      >
-                        {Math.round(concept.mastery.score)}%
-                      </Text>
-                    </View>
-                  ) : null}
-                  <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
-                </View>
-              </Card>
-            ))
-          )}
-        </View>
-
-        {/* Video lessons */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Video lessons</Text>
-          {videos.length === 0 ? (
-            <View style={styles.emptyBlock}>
-              <Ionicons name="film-outline" size={22} color={Colors.textMuted} />
-              <Text style={styles.mutedText}>No video lessons for this chapter yet.</Text>
-            </View>
-          ) : (
-            videos.map((video) => (
-              <Card key={video.contentId || video.title} style={styles.videoCard}>
-                <YouTubePlayer
-                  url={video.url}
-                  title={video.title}
-                  thumbnailUrl={video.thumbnailUrl}
-                  durationSeconds={video.durationSeconds}
-                  segments={video.segments}
-                />
-                <Text style={styles.videoTitle}>{video.title}</Text>
-                {video.segments && video.segments.length > 0 ? (
-                  <Text style={styles.videoMeta}>
-                    {video.segments.length} chapter marker{video.segments.length === 1 ? '' : 's'} — tap one to jump
-                  </Text>
-                ) : null}
-              </Card>
-            ))
+            <Text style={styles.notesHint}>
+              The full revision sheet for this chapter · {chapter.summary ? 'tap to open' : 'coming soon'}
+            </Text>
           )}
         </View>
       </ScrollView>
-
-      <ChapterPdfViewer
-        visible={pdfOpen}
-        url={pdfUrl ? absoluteApiUrl(pdfUrl) : null}
-        onClose={() => setPdfOpen(false)}
-      />
     </View>
   );
 }
@@ -415,21 +506,36 @@ const styles = StyleSheet.create({
   },
   headerEyebrow: { color: Colors.primaryLight, fontSize: 12, fontWeight: '600' },
   headerTitle: { color: Colors.white, fontSize: 22, fontWeight: '700', marginTop: 2 },
-  codeChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  headerChipRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: Spacing.sm, marginTop: Spacing.sm },
+  chapterChip: {
+    backgroundColor: Colors.white,
     borderRadius: BorderRadius.full,
     paddingHorizontal: 10,
     paddingVertical: 3,
-    marginTop: Spacing.sm,
   },
-  codeText: { color: Colors.white, fontSize: 11, fontWeight: '700' },
+  chapterChipText: { color: Colors.primary, fontSize: 11, fontWeight: '800' },
+  codeChip: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  codeText: { color: Colors.white, fontSize: 10, fontWeight: '600', opacity: 0.85 },
   scroll: { flex: 1 },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   section: { marginTop: Spacing.xl },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
+  sectionTitleInline: { marginBottom: 0 },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+  },
+  sectionCount: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
   progressCard: { padding: Spacing.lg },
-  progressTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  progressTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.lg },
   progressLabel: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
   progressPct: { fontSize: 16, fontWeight: '800', color: Colors.primary },
   progressTrack: { height: 8, backgroundColor: Colors.surfaceSecondary, borderRadius: 4, marginTop: Spacing.sm, overflow: 'hidden' },
@@ -465,6 +571,9 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 14, fontWeight: '600', color: Colors.text },
   actionSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   notesCard: { padding: Spacing.lg },
+  notesHint: { fontSize: 12, color: Colors.textSecondary, paddingHorizontal: 2 },
+  notesToggle: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  notesToggleText: { fontSize: 12, fontWeight: '700', color: Colors.primary },
   mutedText: { fontSize: 13, color: Colors.textSecondary, lineHeight: 20 },
   emptyBlock: {
     flexDirection: 'row',
@@ -479,13 +588,37 @@ const styles = StyleSheet.create({
   conceptCard: { marginBottom: Spacing.sm, paddingVertical: Spacing.md },
   conceptRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   conceptDot: { width: 10, height: 10, borderRadius: 5 },
+  serialBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: Colors.primary + '12',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  serialText: { fontSize: 12, fontWeight: '800', color: Colors.primary },
   conceptBody: { flex: 1 },
   conceptName: { fontSize: 14, fontWeight: '600', color: Colors.text },
-  conceptMeta: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+  conceptMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    marginTop: 3,
+  },
+  conceptMetaLeft: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
+  conceptMeta: { flexShrink: 1, fontSize: 11, color: Colors.textSecondary },
+  conceptRange: {
+    flexShrink: 0,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.primary,
+    fontVariant: ['tabular-nums'],
+  },
   masteryChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: BorderRadius.full },
   masteryChipText: { fontSize: 11, fontWeight: '700' },
   videoCard: { marginBottom: Spacing.md, padding: Spacing.md },
-  videoTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm },
+  videoTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: Spacing.sm },
   videoMeta: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   retryBtn: {
     backgroundColor: Colors.primary,

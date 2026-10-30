@@ -8,6 +8,7 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 - `docs/MCP_SETUP.md` — MCP server decision matrix + which servers need an OpenCode restart.
 - `docs/MASTER_PRODUCT_SPEC.md` — frozen reference spec; never delete or gut.
 - `docs/UX_REVAMP.md` — why the dashboard/art/icon changes look the way they do (and the capture artifacts that are *not* bugs).
+- `docs/NAVIGATION_PERFORMANCE.md` — instant-navigation design (intent prefetch, idle prefetch of the next screen, route skeletons), measured numbers, and why Turbopack dev is parked.
 - `docs/VIDEO_CHAPTER_MARKERS.md` — real creator chapters vs the derived concept split, and the probe that guards it.
 - `docs/AI_PROVIDER.md` — Gemini wiring, measured latencies, free-tier limits (20 text/day, 0 images).
 - `docs/QUESTION_BANK_GROWTH.md` — the author → validate → merge → reseed pipeline and current counts.
@@ -27,6 +28,8 @@ npx tsx scripts/verify-roles.mts student  # Also: teacher | parent — login + v
 powershell -ExecutionPolicy Bypass -File scripts/qa/device-smoke.ps1 -Label ar-check   # On-device smoke: adb reverse 4000/8081/3000 -> launch com.sanro.ai -> screencap into artifacts/qa/<date>/screenshots/
 powershell -ExecutionPolicy Bypass -File scripts/qa/device-tab-check.ps1             # Drives all 3 concept modes on the phone and measures each rendered label (fails if a label is compressed)
 powershell -ExecutionPolicy Bypass -File scripts/qa/device-video-play.ps1            # Plays a concept video on the phone and fails if YouTube shows a player configuration error (153 / 152-4)
+node scripts/qa/device-find.mjs "Read the textbook"   # Tap targets on the phone: dumps the a11y tree and prints real x,y (screenshots are scaled, taps are not)
+node scripts/qa/device-find.mjs "Practice" --tap "Practice the whole chapter"   # ...and taps the first match
 node scripts/qa/mcp-postgres-check.mjs                                                # Verifies the postgres MCP end-to-end (read-only; never prints the DSN)
 node scripts/qa/probe-files-proxy.mjs                                                # Edge cases for the /api/v1/files proxy (traversal, range, HEAD, scope)
 node scripts/qa/verify-video-liveness.mjs sanro_dev                                    # Every VIDEO lesson must resolve to a live, embeddable video
@@ -61,6 +64,9 @@ node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths code
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
 node scripts/qa/audit-web-mobile-parity.mjs  # Fails when a student capability exists on one side only
 node scripts/qa/probe-chapter-hub.mjs        # Probes the chapter hub contract (payload, PDF, practice, 404s)
+node scripts/qa/probe-multi-class.mjs        # One student, several classes: home/chapters/pages/practice/chat + 403 for the class not enrolled
+node scripts/qa/probe-chapter-pages.mjs      # Textbook pages: signed list, PNG bytes, 404 past the last page, 401 forged
+npx tsx scripts/qa/probe-textbook-reader.mts # Web reader: "Read the textbook" opens the pages (naturalWidth > 0) + Download PDF
 node scripts/qa/probe-video-segments.mjs      # Every lesson video exposes jumpable markers (real or derived); --grade 8|9
 node scripts/qa/generate-concept-questions.mjs --grades 10 --target 4 --batch 5   # AI-assisted authoring (see docs/QUESTION_BANK_GROWTH.md)
 node scripts/qa/build-brand-art.mjs           # Regenerate subject/chapter/dashboard artwork -> web public/art + mobile assets/art
@@ -98,23 +104,97 @@ Shared spine: `Board → Grade → Subject → Chapter → Topic → Concept`.
 - Student content visibility is always filtered to
   `ContentStatus.APPROVED|PUBLISHED` via `ContentScopeService.buildContentWhere`.
 
+## Classes a student may read — multi-class enrolment
+A student is no longer tied to one class. `Student.grade` stays the **primary** class
+(roll lists, class groups, reports) and `StudentEnrolment { studentId, grade }`
+(`@@unique([studentId, grade])`) is the **set** of classes they may read. Every access check
+goes through one service, `apps/api/src/common/services/student-grade-access.service.ts`:
+
+| Account | Access |
+|---|---|
+| staff (any non-STUDENT role) | every class |
+| student with enrolments | union of `Student.grade` + enrolments |
+| student with no class on record (bulk imports) | every class — the historical behaviour |
+| student with `Student.allGrades = true` | every class |
+
+`GradeAccess.allows/assert` replaced the nine scattered `student.grade !== chapter.grade`
+comparisons (home, chapter list, chapter hub, concept, flashcard, path, chapter practice,
+concept practice, content completion, chat, AR). Reads are filtered with
+`{ grade: { in: access.grades } }` **only when `unrestricted` is false** — an empty `in: []`
+would hide the whole curriculum from an unrestricted account.
+
+Payloads carry `grades: string[]` + `allGrades: boolean` (`/learning/home`, `/learning/path`,
+`/learning/progress`, `/dashboard/student`, people list/detail); people `POST/PATCH /students`
+accept `grades: string[]` (the full set replaces the enrolments, a bare `grade` only adds one).
+The demo account `student@sanroai.com` is `allGrades: true` so one login can open classes 1-10.
+Staff edit the set from the school side: `/app/students/[id]` has a **Classes** card (badges,
+"Edit classes", the primary class pinned and non-removable) driven by
+`useUpdateStudentClasses` in `apps/web/lib/people-hooks.ts`. The class options come from
+`GET /learning/home` (staff are unrestricted), **not** `/curriculum/boards` - that list is
+super-admin only and is empty for an institution admin.
+Guard: `node scripts/qa/probe-multi-class.mjs`.
+
+Classes 1-7 carry chapters, concepts, one video lesson and questions but **no NCERT book**
+(only 8-10 are extracted), so their textbook routes return `pdfUrl: null` / `count: 0` and both
+clients say so instead of showing an empty reader.
+
+## Subject thumbnails — designed, never emoji
+A subject card is a real photograph + the subject's accent wash + a typographic **monogram**
+(`SCI` / `MAT` / `ENG`, `subjectMonogram` in `apps/web/components/subject-banner.tsx` and
+`apps/mobile/lib/subject-art.ts`) with the subject name set on the banner. There is no glossy
+3D/emoji icon in a subject or chapter thumbnail on either platform — a sentence-case subject
+name next to a small rendered object reads as a sticker. Both platforms render the same
+`SUBJECT_ART` banners and the same three letters, in the same 16:9 box. The banner artwork
+itself (`scripts/qa/build-brand-art.mjs`) carries **no icon** for `subject-*` — only the
+photo, the wash and the faint motif; `chapter-banner` and `dashboard-hero` still composite
+their own icon. Re-run `node scripts/qa/build-brand-art.mjs` after changing a photo.
+
 ## Chapter hub + chapter markers
 The concept page's parent is the **chapter hub** (`/app/learn/chapters/[chapterId]` web,
 `/chapter/[chapterId]` mobile). One scroll, five sections, in learning-loop order:
 **Continue** (the first unmastered concept) -> **Contents** (every concept with its mastery)
 -> **Learn** (the chapter's videos **split by time**, the overall chapter notes, and the
-**textbook chapter PDF viewable in the app**) -> **Practise** (one session over the whole
+**textbook chapter PDF**) -> **Practise** (one session over the whole
 chapter) -> **Ask** (Ask SANRO AI about this chapter). The API is
 `GET /learning/chapters/:chapterId` (hub payload) and
 `GET /learning/chapters/:chapterId/pdf` (the NCERT chapter, 404 when the book is not on disk).
 `POST /learning/practice/start` also accepts `{ chapterId }`.
+
+**The chapter PDF needs a signed link outside the web app.** The PDF route is behind the
+JWT guard, and neither a browser navigation nor Android's WebView can send the bearer
+token — a WebView that loads a PDF ends in Chrome's "Download unsuccessful". So
+`POST /learning/chapters/:chapterId/pdf-link` (authenticated, same grade check) mints
+`{ path, expiresAt }` and the public `GET /learning/pdf/:chapterId?exp&sig` serves the file
+to the platform viewer. The ticket is an HMAC-SHA256 over `chapterId.exp` with
+`AUTH_SECRET`, valid 10 minutes, bound to one chapter (forged/cross-chapter/expired links
+are all 401). Web keeps the in-app dialog (blob fetch + **Download PDF**); mobile opens the
+signed link with `Linking.openURL`. Covered by `test/chapter-pdf-link.e2e-spec.ts`.
+
+**The textbook is read as page images inside the app.** Chrome on Android only *downloads*
+a PDF, so both clients read the chapter instead of handing it off:
+`GET /learning/chapters/:chapterId/pages` (authenticated, same grade check) returns
+`{ count, pages: [{ index, path }], expiresAt }` where each `path` is a signed
+`/learning/pdf/:chapterId/pages/:page?exp&sig` URL (same signature as the PDF, 60-minute
+window — students scroll longer than they download). The public route serves
+`chapters/<slug>/screenshots/pNNN.png` (1240 px, ~450 KB/page) resolved from the chapter
+code by `common/books/chapter-pages.ts`, and validates the index against the files on disk
+so no path is ever taken from the request. It sends
+`Cross-Origin-Resource-Policy: cross-origin` — helmet defaults to `same-origin`, which makes
+Chrome refuse the image on another origin (`ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`; the web
+app and the API are always different origins). Web shows the pages stacked in the chapter-hub
+dialog with **Download PDF** beside them; mobile has `/textbook/[chapterId]`
+(`FlatList`, lazy pages, tap-to-retry) and falls back to the signed PDF when a chapter has no
+rendered pages. Guards: `scripts/qa/probe-chapter-pages.mjs`,
+`scripts/qa/probe-textbook-reader.mts`, `test/chapter-pages.e2e-spec.ts`.
 
 **Chapter markers (split by time)** live on `ContentItem.segments` (JSON
 `[{ title, startSeconds }]`, max 24). They are produced by
 `scripts/qa/source-video-chapters.mjs` (reads YouTube's own chapter list, then the
 description timestamps) and applied by `scripts/qa/apply-video-chapters.mjs` (seed + database).
 The web and the mobile both render the markers under the player and seek on tap
-(`postMessage` -> \`seekTo\`).
+(`postMessage` -> \`seekTo\`). They are a **vertical list** - one full-width row per
+section, timestamp first, no horizontal scroller and no truncated title (a section the
+student cannot see is a section they will not jump to).
 
 **Only 86 of the 221 lesson videos actually have creator chapters** (YouTube has none for
 the rest - re-scanning does not create them). Both the concept page and the chapter hub
@@ -184,13 +264,26 @@ re-resolution can never leave the Prisma client un-generated.
 ## Mobile App (apps/mobile)
 - Expo SDK 53 / React Native 0.79.6 / expo-router 5 / React 18.3.1 — primary student experience (P0)
 - 5-tab shell: Home / Library / Assessments / Ask Sanro AI / Me; concept page has **3 modes** (Learn, Practice, Ask Sanro AI) - AR / 3D lives inside Learn as an "Interactive 3D Model" card, and Flashcards is a *format* inside Practice (Quiz | Flashcards), not a mode of its own
+- **Every pushed screen has a visible back arrow.** `concept/[conceptId]` and `ask/[conceptId]` used to set `headerShown: false` while `chapter`, `textbook`, `practice` and `attempt` showed the native stack header; they now show it too (title `Concept` / `Ask Sanro AI`), so a student inside a concept can always go back
 - **Multi-role tabs**: student (Library/Assessments/Ask), teacher/admin (Classes/Assess), parent (Children)
 - Stack: TypeScript strict, Zod, Zustand, TanStack Query 5, expo-secure-store
 - Runtime is Expo (no native build step in turbo; `@sanro/mobile#build` is a stub)
 - Tokens in SecureStore keys `sanro-token` / `sanro-refresh` / `sanro-user`; API base default `https://api.sanroai.com/api/v1` (read `EXPO_PUBLIC_API_URL`; use `EXPO_PUBLIC_API_URL=http://localhost:4000/api/v1` for local dev)
 - SafeAreaProvider for notch/Dynamic Island
+- **`GestureHandlerRootView` wraps the root** in `app/_layout.tsx` - expo-router does not add
+  one itself, and any `GestureDetector` (the textbook page zoom in
+  `components/ZoomablePage.tsx`) throws "must be used as a descendant of
+  GestureHandlerRootView" without it. Panning needs 2 fingers so one-finger drags keep
+  scrolling the list.
 - Memberships persisted to SecureStore
 - ErrorBoundary wrapping app root
+- **Metro watches the workspace root** (`metro.config.js`: `watchFolders`), and pnpm writes/deletes
+  transient task-run state under `node_modules/.pnpm-task-run-state-v1` (`start.lock`,
+  `*.jsonl`). A file that vanishes mid-crawl crashes the watcher with
+  `ENOENT ... watch '...pnpm-task-run-state-v1\start.lock'` and the dev server exits — Metro then
+  serves nothing, the phone sits on the splash screen, and every screen looks "empty". The config
+  blocks that path; if Metro ever dies like this, restart it (`npx expo start --offline`) and
+  reload the app.
 - RN peer pulls `@types/react@18`; web uses `@types/react@19`. Do NOT try to unify these versions — web's tsconfig `paths` for `react`/`react-dom`/`jsx-runtime` keeps the two React type identities separate.
 - **Asset URLs**: `lib/ar-assets.ts` resolves relative `/api/v1/files/...` against `EXPO_PUBLIC_WEB_URL`, so the **web origin must proxy `/api/v1/files/*` to the API** (`apps/web/next.config.mjs` rewrite). On-device AR/3D: the 3D preview works everywhere; the native "View in your space" affordance needs a WebXR/ARCore device and is hidden (with an explanation) otherwise.
 
@@ -283,9 +376,10 @@ value, so rotating it is a one-line `.env` change.
 - `admin@sanroai.com` (SUPER_ADMIN)
 - `principal@sanroai.com` (INSTITUTION_ADMIN)
 - `teacher@sanroai.com` (TEACHER)
-- `student@sanroai.com` (STUDENT, class 10)
-- `student8@sanroai.com` / `student9@sanroai.com` (STUDENT, classes 8 and 9 — content is
-  grade-scoped, so without these two nobody can open the class-8/9 curriculum)
+- `student@sanroai.com` (STUDENT, primary class 10, **`allGrades: true`** — opens the
+  curriculum of every class 1-10, which is what the "browse all classes" demo shows)
+- `student8@sanroai.com` / `student9@sanroai.com` (STUDENT, classes 8 and 9 — single-class
+  accounts, kept so the grade-scoped 403s and the enrolment UI can be exercised)
 - `parent@sanroai.com` (PARENT)
 
 ## Design Language
@@ -321,6 +415,24 @@ score and from the mastery evidence.
 to the `XpEvent` ledger, which the leaderboard reads. The same file owns the streak rule
 (same day = keep, yesterday = extend, older = restart) - the old inline copies reset the
 streak to 1 on a second activity in the same day.
+
+**Completion controls are stateful, never decorative.** A lesson card's
+"Mark as done" / "Mark as read" control is driven by `item.progress.state` from
+`GET /learning/concepts/:id` (`progress: { state, secondsWatched, completedAt }`):
+not started → outline circle + the action label, pressable; `COMPLETED` → filled green check +
+"Completed" **plus an Undo** button. Undo calls
+`DELETE /learning/content/:contentId/complete`, which sets the row back to `NOT_STARTED` with
+`completedAt: null` (idempotent, student-only) so every completed count drops it again. A static
+green check on every card reads as "already done" and was reported as a bug (2026-10-29).
+`ContentItem` on both clients carries `progress` for this.
+
+**AI replies render as Markdown, never raw text.** Both chat surfaces (web
+`/app/chat`, mobile Ask tab and `ask/[conceptId]`) send assistant messages through the shared
+Markdown component, which first runs `normalizeMarkdown`
+(`apps/web/lib/markdown-normalize.ts`, `apps/mobile/lib/markdown-normalize.ts`): raw HTML
+(`<br>`, `<b>`, `<ul><li>`) becomes Markdown, entities are decoded, LaTeX delimiters become
+code, and a heading glued to the paragraph above gets its blank line. User messages stay plain
+text. Without this the model's `**`, `#` and `<br>` reach the student literally.
 
 ## Student Dashboard — "What should I do today?"
 - **Your Focus Today**: Weak concept "Fix This" CTA + upcoming assessment "Prepare"

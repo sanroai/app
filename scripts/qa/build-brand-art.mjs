@@ -26,21 +26,32 @@ const ROOT = path.resolve(import.meta.dirname, '..', '..');
 const ICONS = path.join(ROOT, 'apps', 'mobile', 'assets', 'icons');
 const WEB_OUT = path.join(ROOT, 'apps', 'web', 'public', 'art');
 const MOBILE_OUT = path.join(ROOT, 'apps', 'mobile', 'assets', 'art');
+/**
+ * Real photographs (see fetch-subject-photos.mjs). When a photo exists for a
+ * banner key it becomes the base layer and the brand gradient is drawn over it,
+ * so the artwork is photography rather than an abstract field.
+ */
+const PHOTOS = path.join(WEB_OUT, 'photos');
 
 /** Brand palette (matches apps/web/tailwind.config.ts). */
 const VIOLET = '#7c3aed';
 const INDIGO = '#4f46e5';
 
 /**
- * Each banner is a gradient field + a subject motif + one 3D icon. `accent` is
- * the subject colour used by the cards, so the banner and the card never fight.
+ * Each banner is a gradient field + a subject motif + (optionally) one 3D icon.
+ * `accent` is the subject colour used by the cards, so the banner and the card
+ * never fight.
+ *
+ * The **subject** banners carry no icon: the subject card draws its own
+ * typographic monogram (`SCI` / `MAT` / `ENG`) over the photograph, and a second
+ * rendered object behind it read as a sticker. The chapter and dashboard
+ * banners keep theirs.
  */
 const BANNERS = [
   {
     key: 'subject-science',
     width: 1600,
     height: 640,
-    icon: 'microscope.png',
     accent: '#06b6d4',
     accent2: '#10b981',
     motif: 'orbits',
@@ -49,7 +60,6 @@ const BANNERS = [
     key: 'subject-mathematics',
     width: 1600,
     height: 640,
-    icon: 'abacus.png',
     accent: '#10b981',
     accent2: '#6366f1',
     motif: 'grid',
@@ -58,7 +68,6 @@ const BANNERS = [
     key: 'subject-english',
     width: 1600,
     height: 640,
-    icon: 'open-book.png',
     accent: '#f59e0b',
     accent2: '#8b5cf6',
     motif: 'lines',
@@ -120,12 +129,15 @@ function motifSvg(kind, width, height, accent) {
   }).join('');
 }
 
-function backgroundSvg(spec, iconDataUri, iconSize) {
+function backgroundSvg(spec, iconDataUri, iconSize, hasPhoto) {
   const { width, height, accent, accent2, motif } = spec;
   const iconW = iconSize;
   const iconH = iconSize;
   const iconX = width - iconW - Math.round(width * 0.06);
   const iconY = Math.round((height - iconH) / 2);
+  // With a photograph underneath, the dark base becomes a tint instead of a
+  // wall: enough contrast for white text and the 3D icon, still visibly a photo.
+  const baseOpacity = hasPhoto ? 0.5 : 1;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
@@ -148,16 +160,24 @@ function backgroundSvg(spec, iconDataUri, iconSize) {
     </linearGradient>
   </defs>
 
-  <rect width="${width}" height="${height}" fill="url(#base)"/>
+  <rect width="${width}" height="${height}" fill="url(#base)" fill-opacity="${baseOpacity}"/>
   <ellipse cx="${width * 0.18}" cy="${height * 0.1}" rx="${width * 0.42}" ry="${height * 0.6}" fill="url(#glowA)"/>
   <ellipse cx="${width * 0.92}" cy="${height * 1.05}" rx="${width * 0.38}" ry="${height * 0.7}" fill="url(#glowB)"/>
+  ${
+    hasPhoto
+      ? `<rect width="${width}" height="${height}" fill="#0b0614" fill-opacity="0.10"/>`
+      : ''
+  }
 
   <g>${motifSvg(motif, width, height, accent)}</g>
-
-  <ellipse cx="${iconX + iconW / 2}" cy="${iconY + iconH * 0.94}" rx="${iconW * 0.42}" ry="${
-    iconH * 0.09
-  }" fill="#000000" fill-opacity="0.28"/>
-  <image href="${iconDataUri}" x="${iconX}" y="${iconY}" width="${iconW}" height="${iconH}"/>
+  ${
+    iconDataUri
+      ? `<ellipse cx="${iconX + iconW / 2}" cy="${iconY + iconH * 0.94}" rx="${
+          iconW * 0.42
+        }" ry="${iconH * 0.09}" fill="#000000" fill-opacity="0.28"/>
+  <image href="${iconDataUri}" x="${iconX}" y="${iconY}" width="${iconW}" height="${iconH}"/>`
+      : ''
+  }
 
   <rect width="${width}" height="${height}" fill="url(#sheen)"/>
   <rect width="${width}" height="${height}" fill="none" stroke="#ffffff" stroke-opacity="0.10" stroke-width="2"/>
@@ -186,16 +206,40 @@ async function main() {
       continue;
     }
 
-    const iconPath = path.join(ICONS, spec.icon);
-    if (!fs.existsSync(iconPath)) {
-      throw new Error(`icon not found: ${path.relative(ROOT, iconPath)}`);
+    let iconDataUri;
+    if (spec.icon) {
+      const iconPath = path.join(ICONS, spec.icon);
+      if (!fs.existsSync(iconPath)) {
+        throw new Error(`icon not found: ${path.relative(ROOT, iconPath)}`);
+      }
+      const iconSize = Math.round(spec.height * 0.62);
+      const resized = await sharp(iconPath)
+        .resize(iconSize, iconSize, { fit: 'contain' })
+        .png()
+        .toBuffer();
+      iconDataUri = `data:image/png;base64,${resized.toString('base64')}`;
     }
-    const iconSize = Math.round(spec.height * 0.62);
-    const resized = await sharp(iconPath).resize(iconSize, iconSize, { fit: 'contain' }).png().toBuffer();
-    const iconDataUri = `data:image/png;base64,${resized.toString('base64')}`;
-    const svg = backgroundSvg(spec, iconDataUri, iconSize);
 
-    const jpg = await sharp(Buffer.from(svg), { density: 144 })
+    const photoPath = path.join(PHOTOS, `${spec.key}.jpg`);
+    const hasPhoto = fs.existsSync(photoPath);
+    const svg = backgroundSvg(spec, iconDataUri, Math.round(spec.height * 0.62), hasPhoto);
+    // A photo is composited at the banner's own pixel size, so the overlay is
+    // rasterised 1:1; the photo-less path keeps the higher 2x density.
+    const overlay = await sharp(Buffer.from(svg), hasPhoto ? {} : { density: 144 })
+      .png()
+      .toBuffer();
+
+    let pipeline;
+    if (hasPhoto) {
+      const base = await sharp(photoPath)
+        .resize(spec.width, spec.height, { fit: 'cover', position: 'attention' })
+        .toBuffer();
+      pipeline = sharp(base).composite([{ input: overlay, top: 0, left: 0 }]);
+    } else {
+      pipeline = sharp(overlay);
+    }
+
+    const jpg = await pipeline
       .jpeg({ quality: 88, mozjpeg: true, chromaSubsampling: '4:4:4' })
       .toBuffer();
 
@@ -207,9 +251,14 @@ async function main() {
       width: spec.width,
       height: spec.height,
       accent: spec.accent,
+      photo: hasPhoto ? `photos/${spec.key}.jpg` : null,
       bytes: jpg.length,
     });
-    console.log(`  OK  ${spec.key}  ${spec.width}x${spec.height}  ${(jpg.length / 1024).toFixed(0)} KB`);
+    console.log(
+      `  OK  ${spec.key}  ${spec.width}x${spec.height}  ${(jpg.length / 1024).toFixed(0)} KB${
+        hasPhoto ? '  (photo)' : ''
+      }`,
+    );
   }
 
   if (check) {

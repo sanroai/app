@@ -8,7 +8,8 @@
       "width": 1600,
       "height": 640,
       "accent": "#06b6d4",
-      "bytes": 118585
+      "photo": "photos/subject-science.jpg",
+      "bytes": 136671
     },
     {
       "key": "subject-mathematics",
@@ -16,7 +17,8 @@
       "width": 1600,
       "height": 640,
       "accent": "#10b981",
-      "bytes": 287548
+      "photo": "photos/subject-mathematics.jpg",
+      "bytes": 260342
     },
     {
       "key": "subject-english",
@@ -24,7 +26,8 @@
       "width": 1600,
       "height": 640,
       "accent": "#f59e0b",
-      "bytes": 135625
+      "photo": "photos/subject-english.jpg",
+      "bytes": 124096
     },
     {
       "key": "chapter-banner",
@@ -32,7 +35,8 @@
       "width": 1600,
       "height": 420,
       "accent": "#8b5cf6",
-      "bytes": 83146
+      "photo": "photos/chapter-banner.jpg",
+      "bytes": 115104
     },
     {
       "key": "dashboard-hero",
@@ -40,7 +44,8 @@
       "width": 1600,
       "height": 480,
       "accent": "#a855f7",
-      "bytes": 100609
+      "photo": "photos/dashboard-hero.jpg",
+      "bytes": 84698
     }
   ]
 }

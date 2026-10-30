@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
+import { SubjectBanner } from '@/components/subject-banner';
 import { cn } from '@/lib/cn';
 import {
   Award,
   BookOpen,
   Brain,
-  ChevronRight,
   ClipboardList,
   Flame,
   Heart,
@@ -44,6 +44,11 @@ export function AchievementGlyph({ name, className }: { name?: string | null; cl
  * One row of the "Continue learning" grid. The mobile home screen renders the
  * same numbers (Class X · N topics, completed/total, progress bar) from the
  * same GET /learning/home payload.
+ *
+ * The card is the SAME card as the Library subject grid (`library/subjects`):
+ * one 16:9 photograph banner, the subject's 3D icon, a fixed body and a mastery
+ * footer. A student should recognise the subject at a glance instead of reading
+ * three different card designs for the same three subjects.
  */
 export type SubjectProgressItem = {
   id: string;
@@ -70,27 +75,44 @@ export function SubjectProgressGrid({ subjects }: { subjects: SubjectProgressIte
           <Link
             key={`${subject.boardId}-${subject.grade}-${subject.id}`}
             href={`/app/learn/${subject.boardId}/${subject.grade}/${subject.id}/chapters`}
-            className="group"
+            className="group block h-full"
           >
-            <Card className="h-full cursor-pointer border-surface-200 transition-all hover:border-brand-300 hover:shadow-md">
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-surface-900 transition-colors group-hover:text-brand-700">
-                      {subject.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-surface-400">
-                      Class {subject.grade} · {subject.totalContent} topics
-                    </p>
+            <Card className="flex h-full cursor-pointer flex-col overflow-hidden border-surface-200 transition-all hover:border-brand-300 hover:shadow-lg">
+              <CardContent className="flex flex-1 flex-col p-0">
+                <SubjectBanner
+                  name={subject.name}
+                  subtitle={`Class ${subject.grade} · ${subject.totalContent} topics`}
+                  sizes="(max-width: 640px) 100vw, 320px"
+                />
+
+                <div className="flex flex-1 flex-col px-4 py-4">
+                  <Progress value={pct} className="h-2" />
+                  <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
+                    <span>
+                      {subject.completedContent}/{subject.totalContent} lessons
+                    </span>
+                    <span className="font-medium text-surface-700">{pct}%</span>
                   </div>
-                  <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-surface-300 transition-colors group-hover:text-brand-600" />
                 </div>
-                <Progress value={pct} className="mt-4 h-2" />
-                <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
-                  <span>
-                    {subject.completedContent}/{subject.totalContent} done
-                  </span>
-                  <span className="font-medium text-surface-700">{pct}%</span>
+
+                <div className="border-t border-surface-100 bg-surface-50 px-4 py-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-surface-500">Mastery</span>
+                    <span
+                      className={cn(
+                        'font-semibold',
+                        subject.averageMastery >= 80
+                          ? 'text-green-600'
+                          : subject.averageMastery >= 50
+                            ? 'text-amber-600'
+                            : subject.averageMastery > 0
+                              ? 'text-red-600'
+                              : 'text-surface-400',
+                      )}
+                    >
+                      {subject.averageMastery > 0 ? `${subject.averageMastery}%` : 'Not started'}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -63,6 +63,10 @@ export interface SubjectSummary {
 }
 export interface LearningHome {
   boards: Board[];
+  /** Classes the server is showing (union of the student's enrolments). */
+  studentGrades?: string[];
+  /** True for the demo account that opens every class. */
+  allGrades?: boolean;
 }
 
 export function useLearningHome({ enabled = true }: { enabled?: boolean } = {}) {
@@ -87,6 +91,8 @@ export interface ChapterItem {
   completedContent: number;
   percentComplete: number;
   averageMastery: number;
+  /** The first video lesson's poster - a real frame from this chapter. */
+  thumbnailUrl?: string | null;
 }
 export interface ChaptersResponse {
   subject: { id: string; name: string; code: string };
@@ -123,6 +129,27 @@ export function useChapterDetail(chapterId: string) {
   return useChapterHub(chapterId);
 }
 
+export interface ChapterPages {
+  count: number;
+  expiresAt: string;
+  pages: Array<{ index: number; path: string }>;
+}
+
+/**
+ * The rendered textbook pages of a chapter (signed image URLs).
+ *
+ * Android's WebView cannot render PDF and Chrome only downloads it, so the book
+ * is read as page images in the app (see `app/textbook/[chapterId].tsx`).
+ */
+export function useChapterPages(chapterId: string) {
+  return useQuery<ChapterPages>({
+    queryKey: ['learning', 'chapter-pages', chapterId],
+    queryFn: () => apiAuthed<ChapterPages>(`/learning/chapters/${chapterId}/pages`),
+    enabled: !!chapterId,
+    staleTime: 10 * 60_000,
+  });
+}
+
 // ─── Concept Detail ──────────────────────────────────────
 export interface ContentItem {
   id: string;
@@ -135,6 +162,8 @@ export interface ContentItem {
   durationSeconds?: number;
   /** Chapter markers for a video lesson (start offsets into the video). */
   segments?: VideoSegment[] | null;
+  /** This student's own progress row for the item, when one exists. */
+  progress?: { state: string; secondsWatched?: number | null; completedAt?: string | null } | null;
 }
 export interface ChapterContentItem {
   id: string;
@@ -172,6 +201,15 @@ export function useCompleteContent() {
   return useMutation({
     mutationFn: (contentId: string) =>
       apiAuthed(`/learning/content/${contentId}/complete`, { method: 'POST' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['learning'] }),
+  });
+}
+
+export function useUncompleteContent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (contentId: string) =>
+      apiAuthed(`/learning/content/${contentId}/complete`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['learning'] }),
   });
 }
@@ -505,8 +543,12 @@ export function useSaveAnswers() {
 
 export function useAskAI() {
   return useMutation({
-    mutationFn: (data: { message: string; context?: { conceptId?: string; questionId?: string; assessmentId?: string } }) =>
-      apiAuthed<{ answer?: string; explanation?: string; reply?: string }>('/ai/chat', {
+    mutationFn: (data: {
+      message: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+      context?: { conceptId?: string; chapterId?: string; questionId?: string; assessmentId?: string };
+    }) =>
+      apiAuthed<{ answer?: string; explanation?: string; reply?: string; truncated?: boolean }>('/ai/chat', {
         method: 'POST',
         body: data,
       }),

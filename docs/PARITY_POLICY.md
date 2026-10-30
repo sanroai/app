@@ -74,7 +74,9 @@ Keep this table current. It is the acceptance checklist for a release.
 ## 5. Known, accepted differences
 
 - the mobile app has no authoring or administration screens (by design, see the table);
-- the mobile app opens the textbook PDF in the system browser (the web embeds it in a
-  dialog) - the same file, a different viewer;
+- the textbook is read as the same rendered NCERT pages on both platforms, but the chrome
+  differs: web shows them stacked in a dialog on the chapter hub, mobile has a dedicated
+  `/textbook/[chapterId]` screen. A chapter with no rendered pages falls back to the signed
+  PDF link on both (web: in-app blob dialog; mobile: the system viewer);
 - the mobile tab shell is 5 tabs, the web is a sidebar - the same destinations, grouped
   differently for a phone.

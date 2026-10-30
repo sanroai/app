@@ -13,15 +13,29 @@ function useToken() {
 /** Single source of truth for the chapter-hub cache key (used by prefetching too). */
 export const chapterKeys = {
   hub: (chapterId: string) => ['learning', 'chapter-hub', chapterId] as const,
+  pages: (chapterId: string) => ['learning', 'chapter-pages', chapterId] as const,
 };
+
+/** The slice of the chapter video that teaches one concept. */
+export interface ConceptSection {
+  contentId: string;
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  derived: boolean;
+}
 
 export interface ChapterConcept {
   id: string;
   name: string;
+  /** Curriculum position inside the chapter (1-based). */
+  order: number;
   mastery: { score: number; level: string } | null;
   hasVideo: boolean;
   status: string;
   topicName: string | null;
+  /** null when no marker matches - the hub prints no times rather than guess. */
+  section: ConceptSection | null;
 }
 
 export interface ChapterVideo {
@@ -51,6 +65,8 @@ export interface ChapterHub {
   code: string;
   subject: string;
   grade: string;
+  /** Curriculum position of the chapter (1-based). */
+  order: number;
   summary: string | null;
   pdfUrl: string | null;
   concepts: ChapterConcept[];
@@ -87,6 +103,22 @@ function masteryOf(value: unknown): { score: number; level: string } | null {
   return { score, level: text(rec.level) ?? 'INSUFFICIENT_EVIDENCE' };
 }
 
+function sectionOf(value: unknown): ConceptSection | null {
+  const rec = record(value);
+  if (!rec) return null;
+  const contentId = text(rec.contentId);
+  const startSeconds = num(rec.startSeconds);
+  const endSeconds = num(rec.endSeconds);
+  if (!contentId || startSeconds === null || endSeconds === null) return null;
+  return {
+    contentId,
+    startSeconds,
+    endSeconds,
+    durationSeconds: num(rec.durationSeconds) ?? Math.max(0, endSeconds - startSeconds),
+    derived: rec.derived === true,
+  };
+}
+
 function normalizeConcepts(raw: unknown): ChapterConcept[] {
   const out: ChapterConcept[] = [];
   for (const entry of list(raw)) {
@@ -98,10 +130,12 @@ function normalizeConcepts(raw: unknown): ChapterConcept[] {
     out.push({
       id,
       name,
+      order: num(rec.order) ?? out.length + 1,
       mastery: masteryOf(rec.mastery),
       hasVideo: rec.hasVideo === true,
       status: text(rec.status) ?? 'NOT_STARTED',
       topicName: text(rec.topicName),
+      section: sectionOf(rec.section),
     });
   }
   return out;
@@ -146,10 +180,12 @@ function conceptsFromTopics(raw: unknown): ChapterConcept[] {
       out.push({
         id,
         name,
+        order: num(rec.order) ?? out.length + 1,
         mastery: masteryOf(rec.mastery),
         hasVideo: false,
         status: total > 0 && done >= total ? 'COMPLETED' : 'NOT_STARTED',
         topicName,
+        section: sectionOf(rec.section),
       });
     }
   }
@@ -207,6 +243,7 @@ export function normalizeChapterHub(raw: unknown): ChapterHub {
     code: text(rec.code) ?? '',
     subject: text(rec.subject) ?? text(subjectRec?.name) ?? 'Subject',
     grade: text(rec.grade) ?? '',
+    order: num(rec.order) ?? 0,
     summary: text(rec.summary) ?? text(rec.description),
     pdfUrl: text(rec.pdfUrl),
     concepts: fallbackConcepts,
@@ -232,6 +269,33 @@ export function useChapterHub(
       api<unknown>(`/learning/chapters/${chapterId}`, { token }).then(normalizeChapterHub),
     enabled: !!token && !!chapterId && (options?.enabled ?? true),
     staleTime: 60_000,
+  });
+}
+
+/**
+ * The rendered textbook pages of a chapter.
+ *
+ * `pages[].path` is a short-lived signed URL, so the browser can render it with a
+ * plain `<img>` — no Authorization header, no blob round trip.
+ */
+export interface ChapterPage {
+  index: number;
+  path: string;
+}
+
+export interface ChapterPages {
+  count: number;
+  expiresAt: string;
+  pages: ChapterPage[];
+}
+
+export function useChapterPages(chapterId: string | null | undefined, options?: { enabled?: boolean }) {
+  const token = useToken();
+  return useQuery<ChapterPages>({
+    queryKey: chapterKeys.pages(chapterId ?? ''),
+    queryFn: () => api<ChapterPages>(`/learning/chapters/${chapterId}/pages`, { token }),
+    enabled: !!token && !!chapterId && (options?.enabled ?? true),
+    staleTime: 10 * 60_000,
   });
 }
 
@@ -282,10 +346,8 @@ export function useChapterPdf() {
     }
   }, []);
 
-  const openPdf = useCallback(
-    async (chapterId: string, pdfPath?: string | null) => {
-      revoke();
-      setState({ isOpen: true, loading: true, error: null, url: null });
+  const fetchPdf = useCallback(
+    async (chapterId: string, pdfPath?: string | null): Promise<{ url: string | null; error: string | null }> => {
       const target = pdfPath
         ? resolveApiPath(pdfPath)
         : `${apiUrl()}/learning/chapters/${chapterId}/pdf`;
@@ -295,31 +357,60 @@ export function useChapterPdf() {
           cache: 'no-store',
         });
         if (!res.ok) {
-          setState({
-            isOpen: true,
-            loading: false,
+          return {
+            url: null,
             error:
               res.status === 404
                 ? 'PDF not available for this chapter.'
                 : `Could not load the chapter PDF (error ${res.status}).`,
-            url: null,
-          });
-          return;
+          };
         }
         const blob = await res.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        objectUrlRef.current = objectUrl;
-        setState({ isOpen: true, loading: false, error: null, url: objectUrl });
+        return { url: URL.createObjectURL(blob), error: null };
       } catch {
-        setState({
-          isOpen: true,
-          loading: false,
-          error: 'Could not load the chapter PDF. Please try again.',
-          url: null,
-        });
+        return { url: null, error: 'Could not load the chapter PDF. Please try again.' };
       }
     },
-    [token, revoke],
+    [token],
+  );
+
+  const openPdf = useCallback(
+    async (chapterId: string, pdfPath?: string | null) => {
+      revoke();
+      setState({ isOpen: true, loading: true, error: null, url: null });
+      const result = await fetchPdf(chapterId, pdfPath);
+      if (!result.url) {
+        setState({ isOpen: true, loading: false, error: result.error, url: null });
+        return;
+      }
+      objectUrlRef.current = result.url;
+      setState({ isOpen: true, loading: false, error: null, url: result.url });
+    },
+    [fetchPdf, revoke],
+  );
+
+  /**
+   * Saves the PDF without showing it.
+   *
+   * The reader dialog shows the rendered pages; this is the "keep it offline"
+   * escape hatch next to them.
+   */
+  const downloadPdf = useCallback(
+    async (chapterId: string, fileName: string, pdfPath?: string | null) => {
+      const result = await fetchPdf(chapterId, pdfPath);
+      if (!result.url) {
+        setState({ isOpen: true, loading: false, error: result.error, url: null });
+        return;
+      }
+      const anchor = document.createElement('a');
+      anchor.href = result.url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(result.url as string), 10_000);
+    },
+    [fetchPdf],
   );
 
   const closePdf = useCallback(() => {
@@ -334,5 +425,5 @@ export function useChapterPdf() {
     [],
   );
 
-  return { ...state, openPdf, closePdf };
+  return { ...state, openPdf, downloadPdf, closePdf };
 }

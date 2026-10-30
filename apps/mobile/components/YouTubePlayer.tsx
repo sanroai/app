@@ -77,12 +77,16 @@ export function youTubeThumbUrl(videoId: string): string {
  */
 const EMBED_ORIGIN = 'https://app.sanroai.com';
 
-export function youTubeEmbedHtml(videoId: string): string {
+export function youTubeEmbedHtml(videoId: string, startSeconds?: number | null): string {
+  const start =
+    typeof startSeconds === 'number' && Number.isFinite(startSeconds) && startSeconds > 0
+      ? Math.floor(startSeconds)
+      : 0;
   // cc_load_policy=0 keeps captions off: without it the embed inherits the viewer's
   // own YouTube caption preference and auto-plays subtitles over the lesson.
-  const src = `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&enablejsapi=1&autoplay=1&cc_load_policy=0&hl=en&origin=${encodeURIComponent(
-    EMBED_ORIGIN,
-  )}`;
+  const src = `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&enablejsapi=1&autoplay=1&cc_load_policy=0&hl=en${
+    start > 0 ? `&start=${start}` : ''
+  }&origin=${encodeURIComponent(EMBED_ORIGIN)}`;
   return [
     '<!DOCTYPE html><html><head>',
     '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">',
@@ -141,19 +145,32 @@ interface Props {
   segments?: VideoSegment[] | null;
   /** Called when the student picks a chapter marker. */
   onSeek?: (seconds: number) => void;
+  /**
+   * Start the lesson at this timestamp instead of 0. Used when a concept row in
+   * the chapter hub is tapped: the student lands on the part that teaches it.
+   */
+  startSeconds?: number | null;
+  /** Mount the player immediately instead of the thumbnail (concept deep link). */
+  autoPlay?: boolean;
+  /** Render the marker list collapsed (chapter hub: concept rows carry the timings). */
+  collapseMarkers?: boolean;
   style?: object;
 }
 
 export const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function YouTubePlayer(
-  { url, videoId, title, thumbnailUrl, durationSeconds, segments, onSeek, style },
+  { url, videoId, title, thumbnailUrl, durationSeconds, segments, onSeek, startSeconds, autoPlay, collapseMarkers, style },
   ref,
 ) {
   const id = videoId ?? parseYouTubeId(url);
-  const [playing, setPlaying] = useState(false);
+  const initialStart =
+    typeof startSeconds === 'number' && Number.isFinite(startSeconds) && startSeconds > 0
+      ? Math.floor(startSeconds)
+      : 0;
+  const [playing, setPlaying] = useState(autoPlay === true || initialStart > 0);
   const [expanded, setExpanded] = useState(false);
-  const [activeMarker, setActiveMarker] = useState<number | null>(null);
+  const [activeMarker, setActiveMarker] = useState<number | null>(initialStart > 0 ? initialStart : null);
   const webViewRef = useRef<WebViewInstance | null>(null);
-  const pendingSeek = useRef<number | null>(null);
+  const pendingSeek = useRef<number | null>(initialStart > 0 ? initialStart : null);
   const seekTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const markers = normalizeSegments(segments);
@@ -234,7 +251,7 @@ export const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function You
   const player = (
     <PlayerWebView
       ref={webViewRef}
-      source={{ html: youTubeEmbedHtml(id), baseUrl: EMBED_ORIGIN }}
+      source={{ html: youTubeEmbedHtml(id, initialStart), baseUrl: EMBED_ORIGIN }}
       originWhitelist={['https://*']}
       // keep the lesson inside the app: the embed's title/logo links use
       // intent:// and would otherwise hand the student over to the YouTube app
@@ -304,6 +321,7 @@ export const YouTubePlayer = forwardRef<YouTubePlayerHandle, Props>(function You
         segments={markers}
         activeStartSeconds={activeMarker}
         onSelect={handleMarker}
+        collapsible={collapseMarkers === true}
       />
 
       <Modal visible={expanded} animationType="fade" onRequestClose={() => setExpanded(false)} statusBarTranslucent>

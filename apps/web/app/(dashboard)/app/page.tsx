@@ -170,7 +170,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Hero — the greeting lives on the artwork instead of above it, so the
           page opens with one visual anchor rather than a text block + a banner. */}
-      <div className="relative overflow-hidden rounded-3xl bg-surface-950 shadow-card">
+      <div className="relative overflow-hidden rounded-3xl shadow-card" style={{ backgroundColor: '#0b0614' }}>
         <Image
           src="/art/dashboard-hero.jpg"
           alt=""
@@ -179,7 +179,13 @@ export default function DashboardPage() {
           sizes="(max-width: 1024px) 100vw, 1100px"
           className="object-cover object-right opacity-70"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0b0614]/92 via-[#0b0614]/65 to-[#0b0614]/10" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(11,6,20,0.94) 0%, rgba(11,6,20,0.7) 55%, rgba(11,6,20,0.22) 100%)',
+          }}
+        />
         <div className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div className="min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">

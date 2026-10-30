@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import MarkdownDisplay from 'react-native-markdown-display';
 import { Colors, Spacing } from '../constants/theme';
+import { normalizeMarkdown } from '../lib/markdown-normalize';
 
 const rules = StyleSheet.create({
   body: { fontSize: 14, lineHeight: 22, color: Colors.text },
@@ -8,8 +9,11 @@ const rules = StyleSheet.create({
   heading2: { fontSize: 17, fontWeight: '700', color: Colors.text, marginTop: Spacing.md, marginBottom: Spacing.xs },
   heading3: { fontSize: 15, fontWeight: '600', color: Colors.text, marginTop: Spacing.md, marginBottom: Spacing.xs },
   heading4: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm, marginBottom: Spacing.xs },
+  heading5: { fontSize: 13, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm, marginBottom: Spacing.xs },
+  heading6: { fontSize: 12, fontWeight: '600', color: Colors.textMuted, marginTop: Spacing.sm, marginBottom: Spacing.xs },
   strong: { fontWeight: '700', color: Colors.text },
   em: { fontStyle: 'italic' },
+  s: { textDecorationLine: 'line-through', color: Colors.textSecondary },
   link: { color: Colors.primary, textDecorationLine: 'underline' },
   bullet_list: { marginBottom: Spacing.sm },
   ordered_list: { marginBottom: Spacing.sm },
@@ -69,7 +73,7 @@ export function Markdown({
   const merged = style ? ({ ...rules, ...style } as StyleSheet.NamedStyles<any>) : rules;
   return (
     <View>
-      <MarkdownDisplay style={merged}>{children}</MarkdownDisplay>
+      <MarkdownDisplay style={merged}>{normalizeMarkdown(children)}</MarkdownDisplay>
     </View>
   );
 }

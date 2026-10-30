@@ -21,7 +21,7 @@ export default function LearnScreen() {
   if (!data || (data.boards ?? []).length === 0) {
     return (
       <View style={styles.container}>
-        <Header />
+        <Header subtitle="Browse lessons by class and subject" />
         <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           <EmptyState icon="book" title={isFetching ? 'Loading…' : 'No classes yet'} subtitle="Your board classes will appear here." />
         </ScrollView>
@@ -29,9 +29,21 @@ export default function LearnScreen() {
     );
   }
 
+  // A student can be enrolled in more than one class; the library then lists
+  // every one of them, so the header says so instead of naming a single class.
+  const gradeCount = data.boards.reduce((n, b) => n + b.grades.length, 0);
+
   return (
     <View style={styles.container}>
-      <Header />
+      <Header
+        subtitle={
+          data.allGrades
+            ? 'All classes · every subject'
+            : gradeCount > 1
+              ? `${gradeCount} classes · every subject`
+              : 'Browse lessons by class and subject'
+        }
+      />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -47,6 +59,7 @@ export default function LearnScreen() {
                   <SubjectCard
                     key={subject.id}
                     name={subject.name}
+                    code={subject.code}
                     subtitle={`${subject.completedContent}/${subject.totalContent} topics done`}
                     progress={subject.totalContent > 0 ? (subject.completedContent / subject.totalContent) * 100 : 0}
                     style={styles.subjectGridItem}
@@ -67,11 +80,11 @@ export default function LearnScreen() {
   );
 }
 
-function Header() {
+function Header({ subtitle }: { subtitle: string }) {
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Library</Text>
-      <Text style={styles.headerSub}>Browse lessons by class and subject</Text>
+      <Text style={styles.headerSub}>{subtitle}</Text>
     </View>
   );
 }
@@ -84,7 +97,10 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   group: { marginBottom: Spacing.xl },
   subjectGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
-  subjectGridItem: { flexBasis: '47%', flexGrow: 1 },
+  // Fixed half-width columns: a `flexGrow` card stretches to full width when a
+  // grade has an odd number of subjects (English), which makes the last card a
+  // different size from the other two and breaks the shared thumbnail aspect.
+  subjectGridItem: { flexBasis: '47%', flexGrow: 0, flexShrink: 0 },
   groupTitle: { fontSize: 14, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: Spacing.md },
   subjectRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm },
   subjectIcon: { width: 44, height: 44, borderRadius: BorderRadius.md, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },

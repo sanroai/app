@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
@@ -22,6 +23,8 @@ interface CreateStudentData {
   dateOfBirth?: string;
   rollNumber?: string;
   grade?: string;
+  /** Every class the student is enrolled in; `grade` stays the primary class. */
+  grades?: string[];
   groupIds?: string[];
   parentName?: string;
   parentPhone?: string;
@@ -36,6 +39,7 @@ export class StudentsService {
     private readonly subscription: SubscriptionAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
+    private readonly gradeAccess: StudentGradeAccessService,
   ) {}
 
   async listStudents(user: RequestUser, query: {
@@ -107,6 +111,7 @@ export class StudentsService {
           mastery: true,
           academicYear: true,
           parentLinks: { include: { parent: true } },
+          enrolments: { select: { grade: true }, orderBy: { grade: 'asc' } },
         },
       }),
     ]);
@@ -120,6 +125,7 @@ export class StudentsService {
         gender: r.gender,
         rollNumber: r.rollNumber,
         grade: r.grade,
+        grades: r.enrolments.map((e) => e.grade),
         status: r.status,
         academicYearId: r.academicYearId,
         group: r.groupMemberships.length > 0 ? {
@@ -230,6 +236,13 @@ export class StudentsService {
     for (const gid of data.groupIds ?? []) {
       await this.addToGroup(institutionId, data.academicYearId, student.id, gid);
     }
+
+    // A student may start in more than one class; the primary `grade` is also an
+    // enrolment so the access check has one source.
+    await this.gradeAccess.setEnrolments(
+      student.id,
+      data.grades?.length ? data.grades : data.grade ? [data.grade] : [],
+    );
 
     if (data.parentName || data.parentEmail || data.parentPhone) {
       await this.linkParent(institutionId, student.id, {
@@ -355,6 +368,13 @@ for (const gid of data.groupIds) {
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
       },
     });
+
+    // `grades` is the full set; a bare `grade` change only adds the new class.
+    if (data.grades) {
+      await this.gradeAccess.setEnrolments(id, data.grades);
+    } else if (data.grade) {
+      await this.gradeAccess.addEnrolment(id, data.grade);
+    }
     return updated;
   }
 
@@ -425,9 +445,10 @@ for (const gid of data.groupIds) {
         groupMemberships: { where: { leftAt: null }, include: { group: true } },
         parentLinks: { include: { parent: true } },
         mastery: { include: { concept: { include: { topic: true } } } },
+        enrolments: { orderBy: { grade: 'asc' } },
       },
     });
     if (!student) throw new NotFoundException('Student not found');
-    return student;
+    return { ...student, grades: student.enrolments.map((e) => e.grade) };
   }
 }

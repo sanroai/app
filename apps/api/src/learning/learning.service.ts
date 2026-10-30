@@ -4,10 +4,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { MasteryService, normaliseAnswerToOptionText } from '../diagnosis/mastery.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 import { ContentScopeService } from '../common/content/content-scope.service';
 import { canonicalContentType } from '../common/content/content-types';
 import { normalizeChapterSegments, deriveConceptSegments, clipSegmentsToDuration } from '../common/books/chapter-segments';
 import { chapterPdfPath, chapterPdfFileName } from '../common/books/chapter-pdf';
+import { chapterPageFiles } from '../common/books/chapter-pages';
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
 import { Prisma } from '@prisma/client';
@@ -17,6 +19,25 @@ const API_PREFIX = '/api/v1';
 
 /** The mastery levels that count as "learned" for the chapter progress bar. */
 const MASTERED_LEVELS = new Set(['MASTERED', 'GOOD']);
+
+/**
+ * The number a student reads on the chapter ("Chapter 4").
+ *
+ * `Chapter.order` is the source of truth, but every chapter created before the
+ * seed started writing it holds 0, and the code is the only other curriculum
+ * numbering that survives: `SCI-10-4` and `MAT-8P2-3` both end in their own
+ * book's chapter number. Falling back to the position in the ordered list keeps
+ * a hand-created chapter sane instead of printing "Chapter 0".
+ */
+function curriculumNumber(order: number | null | undefined, code: string | null | undefined, index: number): number {
+  if (typeof order === 'number' && order > 0) return order;
+  const fromCode = /-(\d+)$/.exec(code ?? '');
+  if (fromCode) {
+    const parsed = Number(fromCode[1]);
+    if (Number.isInteger(parsed) && parsed > 0) return parsed;
+  }
+  return index + 1;
+}
 
 /** The most questions a single practice set may hold. */
 const PRACTICE_QUESTION_LIMIT = 20;
@@ -29,6 +50,108 @@ const DEFAULT_PRACTICE_QUESTIONS = 5;
 
 /** The default size of a chapter practice set. */
 const DEFAULT_CHAPTER_PRACTICE_QUESTIONS = 10;
+
+/**
+ * Where a concept sits inside the chapter's video, so the hub can print
+ * "12:30 - 18:05" and the client can open the concept with the video already
+ * playing at that point. Derived from the same markers the player renders, so
+ * the row and the marker strip can never disagree.
+ */
+export interface ConceptSection {
+  contentId: string;
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  derived: boolean;
+}
+
+/** Segment titles and concept names must match on words, not punctuation. */
+function normalizeSectionTitle(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/** The part of a chapter video the hub needs in order to place a concept. */
+export interface SectionVideo {
+  contentId: string;
+  conceptId: string | null;
+  durationSeconds: number | null;
+  segments: Array<{ title: string; startSeconds: number; derived?: boolean }>;
+}
+
+/**
+ * Map every concept to the slice of the chapter's video that teaches it.
+ *
+ * Two passes, because a chapter can carry both a short lesson and a long
+ * compilation that belongs to a single concept:
+ *  1. markers that name a concept (creator chapters by title, or the derived
+ *     concept split by position),
+ *  2. only then, a concept-owned video lesson (the whole clip is that part).
+ *
+ * Doing the whole-clip fallback last is what stops a 4-hour compilation from
+ * claiming a concept that a 38-minute lesson already covers at 00:00-09:38.
+ * A concept with no marker at all gets `null`: the hub prints no times rather
+ * than inventing a range.
+ */
+export function buildConceptSections(
+  videos: SectionVideo[],
+  concepts: Array<{ id: string; name: string }>,
+): Map<string, ConceptSection> {
+  const sections = new Map<string, ConceptSection>();
+  const idByName = new Map<string, string>();
+  for (const concept of concepts) {
+    const key = normalizeSectionTitle(concept.name);
+    if (key && !idByName.has(key)) idByName.set(key, concept.id);
+  }
+
+  const runtime = (video: SectionVideo): number | null =>
+    typeof video.durationSeconds === 'number' &&
+    Number.isFinite(video.durationSeconds) &&
+    video.durationSeconds > 0
+      ? video.durationSeconds
+      : null;
+
+  for (const video of videos) {
+    const duration = runtime(video);
+    const segments = video.segments ?? [];
+    const derivedOnly = segments.length > 0 && segments.every((segment) => segment.derived === true);
+
+    for (let index = 0; index < segments.length; index += 1) {
+      const segment = segments[index];
+      const next = segments[index + 1];
+      const start = segment.startSeconds;
+      const end = next ? next.startSeconds : duration && duration > start ? duration : start;
+      const section: ConceptSection = {
+        contentId: video.contentId,
+        startSeconds: start,
+        endSeconds: Math.max(start, end),
+        durationSeconds: Math.max(0, end - start),
+        derived: segment.derived === true,
+      };
+
+      const byTitle = idByName.get(normalizeSectionTitle(segment.title));
+      if (byTitle && !sections.has(byTitle)) sections.set(byTitle, section);
+
+      if (derivedOnly && segments.length === concepts.length) {
+        const byIndex = concepts[index]?.id;
+        if (byIndex && !sections.has(byIndex)) sections.set(byIndex, section);
+      }
+    }
+  }
+
+  for (const video of videos) {
+    if (!video.conceptId || sections.has(video.conceptId)) continue;
+    const duration = runtime(video);
+    sections.set(video.conceptId, {
+      contentId: video.contentId,
+      startSeconds: 0,
+      endSeconds: duration ?? 0,
+      durationSeconds: duration ?? 0,
+      derived: false,
+    });
+  }
+
+  return sections;
+}
 
 /**
  * The client picks how many questions it wants, so the number is clamped to a
@@ -80,6 +203,7 @@ export class LearningService {
     private readonly tenant: TenantAccessService,
     private readonly mastery: MasteryService,
     private readonly identity: StudentIdentityService,
+    private readonly gradeAccess: StudentGradeAccessService,
     private readonly scope: ContentScopeService,
   ) {}
 
@@ -93,14 +217,10 @@ export class LearningService {
   }
 
   async getLearningHome(user: RequestUser) {
-    // For students, get their assigned grade for filtering
-    let studentGrade: string | null = null;
-    if (user.role === 'STUDENT') {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade) {
-        studentGrade = student.grade;
-      }
-    }
+    // A student may be enrolled in several classes (or in all of them), so the
+    // home lists every class they can open - the clients already render whatever
+    // grades come back.
+    const access = await this.gradeAccess.forUser(user);
 
     const boards = await this.prisma.board.findMany({
       where: { active: true },
@@ -214,12 +334,16 @@ export class LearningService {
     }
 
     return {
+      // Which classes the home is showing, so a client can label the grid
+      // ("Class 10" / "Classes 8 and 10" / "All classes").
+      studentGrades: access.grades,
+      allGrades: access.unrestricted,
       boards: boards.map((b) => ({
         id: b.id,
         name: b.name,
         code: b.code,
         grades: b.grades
-          .filter((g) => !studentGrade || g.name === studentGrade)
+          .filter((g) => this.gradeAccess.allows(access, g.name))
           .map((g) => ({
           id: g.id,
           grade: g.name,
@@ -246,13 +370,8 @@ export class LearningService {
   async getChapters(user: RequestUser, boardId: string, grade: string, subjectId: string) {
     this.requireBrowseContext(user);
 
-    // For students, verify they can only access their assigned grade
-    if (user.role === 'STUDENT') {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade && student.grade !== grade) {
-        throw new ForbiddenException('You can only access content for your assigned grade');
-      }
-    }
+    // A student may be enrolled in several classes; any of them may be opened.
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), grade);
 
     const subject = await this.prisma.subject.findFirst({
       where: { id: subjectId, boardId, active: true },
@@ -261,7 +380,7 @@ export class LearningService {
 
     const chapters = await this.prisma.chapter.findMany({
       where: { subjectId, grade },
-      orderBy: { order: 'asc' },
+      orderBy: [{ order: 'asc' }, { code: 'asc' }],
       include: {
         topics: {
           orderBy: { order: 'asc' },
@@ -269,6 +388,12 @@ export class LearningService {
         },
       },
     });
+
+    // Number every chapter once, from `order` or its own code, and sort by that
+    // number: with legacy rows (order = 0) the database order is arbitrary.
+    const orderedChapters = chapters
+      .map((chapter, index) => ({ chapter, number: curriculumNumber(chapter.order, chapter.code, index) }))
+      .sort((a, b) => a.number - b.number || a.chapter.code.localeCompare(b.chapter.code));
 
     const chapterIds = chapters.map((c) => c.id);
 
@@ -288,8 +413,27 @@ export class LearningService {
       where: this.consumerWhere(user, {
         chapterId: { in: chapterIds },
       }),
-      select: { id: true, chapterId: true },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        id: true,
+        chapterId: true,
+        type: true,
+        url: true,
+        videoId: true,
+        thumbnailUrl: true,
+      },
     });
+
+    // A chapter card uses the chapter's own first video frame - a real image of
+    // the lesson the student is about to open, not a stock photo.
+    const thumbnailByChapter = new Map<string, string>();
+    for (const item of allChapterContent) {
+      if (!item.chapterId || thumbnailByChapter.has(item.chapterId)) continue;
+      if (canonicalContentType(item.type) !== 'VIDEO') continue;
+      const videoId = item.videoId ?? parseYouTubeVideoId(item.url ?? '');
+      const thumbnail = item.thumbnailUrl ?? (videoId ? youtubeThumbnailUrl(videoId) : null);
+      if (thumbnail) thumbnailByChapter.set(item.chapterId, thumbnail);
+    }
 
     const student = await this.identity.resolveForUser(user);
 
@@ -335,7 +479,7 @@ export class LearningService {
     return {
       subject: { id: subject.id, name: subject.name, code: subject.code },
       grade,
-      chapters: chapters.map((c) => {
+      chapters: orderedChapters.map(({ chapter: c, number }) => {
         const total = contentCountMap.get(c.id) ?? 0;
         const completed = completedByChapter.get(c.id) ?? 0;
         const conceptIds = c.topics.flatMap((t) => t.concepts.map((co) => co.id));
@@ -345,7 +489,7 @@ export class LearningService {
           id: c.id,
           name: c.name,
           code: c.code,
-          order: c.order,
+          order: number,
           description: c.description,
           topicCount: c.topics.length,
           conceptCount: c.topics.reduce((a, t) => a + t.concepts.length, 0),
@@ -353,6 +497,7 @@ export class LearningService {
           completedContent: completed,
           percentComplete: total > 0 ? Math.round((completed / total) * 100) : 0,
           averageMastery: avgMastery,
+          thumbnailUrl: thumbnailByChapter.get(c.id) ?? null,
         };
       }),
     };
@@ -377,13 +522,8 @@ export class LearningService {
     });
     if (!chapter) throw new NotFoundException('Chapter not found');
 
-    // For students, verify they can only access their assigned grade
-    if (user.role === 'STUDENT') {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade && student.grade !== chapter.grade) {
-        throw new ForbiddenException('You can only access content for your assigned grade');
-      }
-    }
+    // A student may be enrolled in several classes; any of them may be opened.
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), chapter.grade);
 
     const conceptIds = chapter.topics.flatMap((t) => t.concepts.map((c) => c.id));
 
@@ -463,15 +603,19 @@ export class LearningService {
       }
     }
 
+    let conceptPosition = 0;
     const concepts = chapter.topics.flatMap((t) =>
       t.concepts.map((c) => {
+        conceptPosition += 1;
         const total = contentByConcept.get(c.id) ?? 0;
         const completed = completedByConcept.get(c.id) ?? 0;
         const status = total > 0 && completed >= total ? 'COMPLETED' : completed > 0 ? 'IN_PROGRESS' : 'NOT_STARTED';
         return {
           id: c.id,
           name: c.name,
-          order: c.order,
+          // The position in the chapter, not in its topic: the Contents list is
+          // flat, and per-topic numbering repeats 1,2,1,2 down the page.
+          order: conceptPosition,
           description: c.description,
           topicId: t.id,
           topicName: t.name,
@@ -511,6 +655,12 @@ export class LearningService {
         };
       });
 
+    // The concept -> video-section map is built from the SAME marker list the
+    // player renders, so "12:30 - 18:05" on a concept row is exactly what the
+    // marker strip shows (real creator chapters when they exist, the derived
+    // concept split otherwise).
+    const sectionByConcept = buildConceptSections(videos, concepts);
+
     const questionCount = conceptIds.length
       ? await this.prisma.question.count({
           where: { conceptId: { in: conceptIds }, status: 'APPROVED' },
@@ -524,7 +674,7 @@ export class LearningService {
       name: chapter.name,
       code: chapter.code,
       grade: chapter.grade,
-      order: chapter.order,
+      order: curriculumNumber(chapter.order, chapter.code, 0),
       description: chapter.description,
       // The subject NAME, so a client can print it directly ("Science - Class 10").
       // The structured subject stays available under `subjectInfo`.
@@ -534,7 +684,10 @@ export class LearningService {
       summary: this.buildChapterSummary(chapter, items, concepts, itemsByConcept, masteryMap),
       pdfUrl: chapterPdfPath(chapter.code) ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf` : null,
       chapterContent,
-      concepts,
+      concepts: concepts.map((c) => ({
+        ...c,
+        section: sectionByConcept.get(c.id) ?? null,
+      })),
       videos,
       progress: {
         concepts: concepts.length,
@@ -555,11 +708,12 @@ export class LearningService {
           return {
             id: c.id,
             name: c.name,
-            order: c.order,
+            order: concept?.order ?? c.order,
             description: c.description,
             totalContent: concept?.totalContent ?? 0,
             completedContent: concept?.completedContent ?? 0,
             mastery: masteryMap.get(c.id) ?? null,
+            section: sectionByConcept.get(c.id) ?? null,
           };
         }),
       })),
@@ -623,13 +777,8 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
     if (!concept) throw new NotFoundException('Concept not found');
 
-    // For students, verify they can only access their assigned grade
-    if (user.role === 'STUDENT') {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade && student.grade !== concept.topic.chapter.grade) {
-        throw new ForbiddenException('You can only access content for your assigned grade');
-      }
-    }
+    // A student may be enrolled in several classes; any of them may be opened.
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), concept.topic.chapter.grade);
 
     const contentSelect = {
       id: true,
@@ -778,9 +927,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
     if (!question) throw new NotFoundException('Question not found');
 
-    if (student.grade && question.grade && student.grade !== question.grade) {
-      throw new ForbiddenException('You can only access content for your assigned grade');
-    }
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), question.grade);
 
     const result = await this.prisma.flashcardRating.upsert({
       where: { studentId_questionId: { studentId: student.id, questionId } },
@@ -800,6 +947,16 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can track learning progress');
 
+    // Completing a lesson of another class would show up in this student's
+    // progress and mastery, so the class check applies here too.
+    const grade =
+      content.grade ??
+      (content.chapterId
+        ? (await this.prisma.chapter.findUnique({ where: { id: content.chapterId }, select: { grade: true } }))
+            ?.grade
+        : null);
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), grade);
+
     const result = await this.prisma.contentProgress.upsert({
       where: { contentId_studentId: { contentId, studentId: student.id } },
       create: {
@@ -817,15 +974,46 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     return { ok: true, progress: result };
   }
 
+  async uncompleteContent(user: RequestUser, contentId: string) {
+    this.tenant.requireInstitution(user);
+
+    const content = await this.prisma.contentItem.findUnique({
+      where: { id: contentId },
+      select: { id: true },
+    });
+    if (!content) throw new NotFoundException('Content not found');
+
+    const student = await this.identity.resolveForUser(user);
+    if (!student) throw new ForbiddenException('Only students can track learning progress');
+
+    await this.prisma.contentProgress.updateMany({
+      where: { contentId, studentId: student.id },
+      data: { state: 'NOT_STARTED', completedAt: null },
+    });
+
+    const progress = await this.prisma.contentProgress.findUnique({
+      where: { contentId_studentId: { contentId, studentId: student.id } },
+    });
+
+    return { ok: true, progress };
+  }
+
   async getLearningProgress(user: RequestUser) {
     this.tenant.requireInstitution(user);
 
     const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can track learning progress');
 
+    // With several classes enrolled, the denominator counts only the classes
+    // this student actually reads (all of them when unrestricted).
+    const access = await this.gradeAccess.forUser(user);
+    const gradeFilter: Prisma.ContentItemWhereInput = access.unrestricted
+      ? {}
+      : { OR: [{ grade: { in: access.grades } }, { chapter: { grade: { in: access.grades } } }] };
+
     const [totalContent, completedProgress, masterySummary] = await Promise.all([
       this.prisma.contentItem.count({
-        where: this.consumerWhere(user, { subjectId: { not: null } }),
+        where: this.consumerWhere(user, { subjectId: { not: null }, ...gradeFilter }),
       }),
       this.prisma.contentProgress.findMany({
         where: { studentId: student.id, state: 'COMPLETED' },
@@ -862,7 +1050,13 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
 
     return {
-      student: { id: student.id, name: student.name, grade: student.grade },
+      student: {
+        id: student.id,
+        name: student.name,
+        grade: student.grade,
+        grades: access.grades,
+        allGrades: access.unrestricted,
+      },
       contentProgress: {
         totalContent,
         completedContent,
@@ -888,9 +1082,13 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students have a learning path');
 
+    // The path spans every class the student is enrolled in (all classes when
+    // the account is unrestricted).
+    const access = await this.gradeAccess.forUser(user);
+
     const [rawConcepts, masteryRows] = await Promise.all([
       this.prisma.concept.findMany({
-        where: student.grade ? { topic: { chapter: { grade: student.grade } } } : {},
+        where: access.unrestricted ? {} : { topic: { chapter: { grade: { in: access.grades } } } },
         include: {
           topic: {
             select: {
@@ -1099,7 +1297,13 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     }
 
     return {
-      student: { id: student.id, name: student.name, grade: student.grade },
+      student: {
+        id: student.id,
+        name: student.name,
+        grade: student.grade,
+        grades: access.grades,
+        allGrades: access.unrestricted,
+      },
       summary: {
         totalConcepts: track.length,
         done: stateCounts.DONE,
@@ -1124,8 +1328,15 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     const student = await this.identity.resolveForUser(user);
     if (!student) throw new ForbiddenException('Only students can practice');
 
-    const concept = await this.prisma.concept.findUnique({ where: { id: conceptId } });
+    const concept = await this.prisma.concept.findUnique({
+      where: { id: conceptId },
+      include: { topic: { select: { chapter: { select: { grade: true } } } } },
+    });
     if (!concept) throw new NotFoundException('Concept not found');
+
+    // Concept practice was the one reading path without a class check: a student
+    // could practise any concept of any class by id.
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), concept.topic.chapter.grade);
 
     const take = clampQuestionCount(questionCount, DEFAULT_PRACTICE_QUESTIONS);
     const questionSelect = {
@@ -1227,10 +1438,8 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
     if (!chapter) throw new NotFoundException('Chapter not found');
 
-    // A student may only practise their own grade.
-    if (student.grade && chapter.grade !== student.grade) {
-      throw new ForbiddenException('You can only access content for your assigned grade');
-    }
+    // Any of the student's enrolled classes may be practised.
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), chapter.grade);
 
     const conceptIds = chapter.topics.flatMap((t) => t.concepts.map((c) => c.id));
     if (conceptIds.length === 0) {
@@ -1296,6 +1505,34 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
    * client must show its "not available" state.
    */
   async getChapterPdf(user: RequestUser, chapterId: string): Promise<{ path: string; fileName: string } | null> {
+    const chapter = await this.chapterForUser(user, chapterId);
+
+    const path = chapterPdfPath(chapter.code);
+    if (!path) return null;
+    return { path, fileName: chapterPdfFileName(chapter.name, chapter.code) };
+  }
+
+  /**
+   * The rendered pages of a chapter's textbook, in reading order.
+   *
+   * Same authorisation as the PDF; an empty list means this deployment does not
+   * ship the book on disk (the `books/` tree is git-ignored).
+   */
+  async getChapterPages(user: RequestUser, chapterId: string): Promise<{ code: string; files: string[] }> {
+    const chapter = await this.chapterForUser(user, chapterId);
+    return { code: chapter.code, files: chapterPageFiles(chapter.code) };
+  }
+
+  /**
+   * The chapter row after the caller checks (browse context + grade).
+   *
+   * Extracted so the PDF, the signed link and the page images cannot drift apart
+   * in what they let a student open.
+   */
+  private async chapterForUser(
+    user: RequestUser,
+    chapterId: string,
+  ): Promise<{ id: string; name: string; code: string; grade: string }> {
     this.requireBrowseContext(user);
 
     const chapter = await this.prisma.chapter.findUnique({
@@ -1304,17 +1541,38 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
     if (!chapter) throw new NotFoundException('Chapter not found');
 
-    // The same grade check the other learning routes use for students.
-    if (user.role === 'STUDENT') {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade && student.grade !== chapter.grade) {
-        throw new ForbiddenException('You can only access content for your assigned grade');
-      }
-    }
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), chapter.grade);
+
+    return chapter;
+  }
+
+  /**
+   * Filesystem side of a chapter PDF, without the caller checks.
+   *
+   * Used by the signed-link route: the signature already proves that an
+   * authenticated, grade-checked user asked for this exact chapter, so the
+   * student lookup is not repeated.
+   */
+  async getChapterPdfFile(chapterId: string): Promise<{ path: string; fileName: string } | null> {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      select: { id: true, name: true, code: true },
+    });
+    if (!chapter) throw new NotFoundException('Chapter not found');
 
     const path = chapterPdfPath(chapter.code);
     if (!path) return null;
     return { path, fileName: chapterPdfFileName(chapter.name, chapter.code) };
+  }
+
+  /** One rendered page of a chapter textbook (1-based), or null when absent. */
+  async getChapterPageFile(chapterId: string, page: number): Promise<string | null> {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      select: { code: true },
+    });
+    if (!chapter) return null;
+    return chapterPageFiles(chapter.code)[page - 1] ?? null;
   }
 
   async getPractice(user: RequestUser, practiceId: string) {

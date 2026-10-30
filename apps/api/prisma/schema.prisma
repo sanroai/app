@@ -628,6 +628,7 @@ model Student {
   dateOfBirth   DateTime?
   rollNumber    String?
   grade         String?
+  allGrades     Boolean       @default(false)
   status        StudentStatus @default(ACTIVE)
   createdAt     DateTime      @default(now())
   deactivatedAt DateTime?
@@ -637,6 +638,7 @@ model Student {
   academicYear AcademicYear?    @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   user         User?            @relation(fields: [userId], references: [id])
   groupMemberships GroupMembership[]
+  enrolments   StudentEnrolment[]
   parentLinks ParentStudentLink[]
   attempts     AssessmentAttempt[]
   mastery      ConceptMastery[]
@@ -653,6 +655,26 @@ model Student {
   @@unique([institutionId, email])
   @@index([institutionId])
   @@index([academicYearId])
+  @@index([grade])
+}
+
+/// The classes a student is enrolled in.
+///
+/// Content is grade-scoped, and one student may take more than one class (a
+/// class-8 student taking class-9 mathematics, a student repeating a year, a
+/// demo account that explores every class). `Student.grade` stays the primary
+/// class shown on profiles and reports; every read that authorises content asks
+/// `StudentGradeAccessService`, which unions these rows.
+model StudentEnrolment {
+  id        String   @id @default(uuid()) @db.Uuid
+  studentId String   @db.Uuid
+  grade     String
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, grade])
+  @@index([studentId])
   @@index([grade])
 }
 

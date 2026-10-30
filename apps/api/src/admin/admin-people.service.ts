@@ -8,6 +8,7 @@ import { AuditService } from '../common/services/audit-notifications.service';
 import { EntitlementService } from '../common/security/entitlement.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { SystemInstitutionService } from '../common/security/system-institution.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 
 export interface PeopleListQuery {
   institutionId?: string;
@@ -40,6 +41,7 @@ export class AdminPeopleService {
     private readonly entitlement: EntitlementService,
     private readonly subscriptionAccess: SubscriptionAccessService,
     private readonly systemInstitution: SystemInstitutionService,
+    private readonly gradeAccess: StudentGradeAccessService,
   ) {}
 
   private async systemId(): Promise<string> {
@@ -407,6 +409,10 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       return student;
     });
     await this.clearInstitutionEntitlements(instId);
+    await this.gradeAccess.setEnrolments(
+      created.id,
+      data.grades?.length ? data.grades : data.grade ? [data.grade] : [],
+    );
     const isDirectCreate = instId === sId;
     const createdInst = isDirectCreate
       ? { name: 'SANRO AI' }
@@ -435,6 +441,11 @@ async listStudentsByInstitution(user: RequestUser, institutionId: string, q: Omi
       },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
+    if (data.grades) {
+      await this.gradeAccess.setEnrolments(id, data.grades);
+    } else if (data.grade) {
+      await this.gradeAccess.addEnrolment(id, data.grade);
+    }
     await this.auditLog(user, AuditAction.STUDENT_UPDATED, 'STUDENT', id, { studentId: id });
     return updated;
   }

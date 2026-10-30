@@ -4,10 +4,13 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useConceptDetail, useAskAI, useChapterHub } from '../../lib/hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { Markdown } from '../../components/Markdown';
 
 interface Message {
   role: 'user' | 'assistant';
   text: string;
+  /** The model hit its output cap; the text already carries the shortened marker. */
+  truncated?: boolean;
 }
 
 export default function AskScreen() {
@@ -38,10 +41,15 @@ export default function AskScreen() {
     try {
       const res = await askAI.mutateAsync({
         message,
-        context: { conceptId },
+        history: messages.slice(-20).map(({ role, text: content }) => ({ role, content })),
+        context: {
+          ...(conceptId ? { conceptId } : {}),
+          ...(chapterId ? { chapterId } : {}),
+        },
       });
       const reply = res?.answer ?? res?.reply ?? res?.explanation ?? 'I could not find an answer. Please try again.';
-      setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
+      const truncated = (res as { truncated?: boolean } | undefined)?.truncated === true;
+      setMessages((prev) => [...prev, { role: 'assistant', text: reply, truncated }]);
     } catch (err: unknown) {
       const e = err as { message?: string };
       setMessages((prev) => [...prev, { role: 'assistant', text: `Error: ${e.message || 'Something went wrong.'}` }]);
@@ -57,9 +65,11 @@ export default function AskScreen() {
           <Ionicons name="fitness" size={20} color={Colors.white} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Ask Sanro AI</Text>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {chapter?.name ?? concept?.name ?? 'Context-aware tutor'}
+          </Text>
           <Text style={styles.headerSub} numberOfLines={1}>
-            {chapter?.name ? `About ${chapter.name}` : 'Context-aware tutor'}
+            Sanro AI tutor · {chapter?.name ? 'this chapter' : 'this concept'}
           </Text>
         </View>
       </View>
@@ -80,7 +90,25 @@ export default function AskScreen() {
         )}
         {messages.map((m, i) => (
           <View key={i} style={[styles.bubble, m.role === 'user' ? styles.userBubble : styles.aiBubble]}>
-            <Text style={[styles.bubbleText, m.role === 'user' && { color: Colors.white }]}>{m.text}</Text>
+            {m.role === 'assistant' ? (
+              <>
+                <Markdown>{m.text}</Markdown>
+                {m.truncated && i === messages.length - 1 ? (
+                  <TouchableOpacity
+                    style={styles.continueBtn}
+                    onPress={() => send('Continue the answer from exactly where you stopped.')}
+                    disabled={waiting}
+                    accessibilityRole="button"
+                    accessibilityLabel="Continue the answer"
+                  >
+                    <Ionicons name="arrow-forward" size={13} color={Colors.white} />
+                    <Text style={styles.continueText}>Continue</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </>
+            ) : (
+              <Text style={[styles.bubbleText, { color: Colors.white }]}>{m.text}</Text>
+            )}
           </View>
         ))}
         {waiting && (
@@ -127,6 +155,18 @@ const styles = StyleSheet.create({
   userBubble: { alignSelf: 'flex-end', backgroundColor: Colors.primary, borderBottomRightRadius: 4 },
   aiBubble: { alignSelf: 'flex-start', backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, borderBottomLeftRadius: 4 },
   bubbleText: { fontSize: 14, color: Colors.text, lineHeight: 20 },
+  continueBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  continueText: { fontSize: 11, fontWeight: '700', color: Colors.white },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.surface, gap: Spacing.sm },
   input: { flex: 1, backgroundColor: Colors.surfaceSecondary, borderRadius: BorderRadius.lg, padding: Spacing.md, fontSize: 14, maxHeight: 120, color: Colors.text },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },

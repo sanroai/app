@@ -9,6 +9,7 @@ import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { ChatSchema } from '@sanro/validation';
 import { PrismaService } from '../prisma/prisma.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 
 /**
  * The chat request accepts a chapter next to the concept: the chapter hub has
@@ -41,6 +42,8 @@ interface ChatContextPayload {
   subjectName?: string;
   chapterConcepts?: string[];
   chapterDescription?: string;
+  boardName?: string;
+  grade?: string;
 }
 
 @ApiTags('chat')
@@ -51,12 +54,13 @@ export class ChatController {
     private readonly ai: AiService,
     private readonly prisma: PrismaService,
     private readonly identity: StudentIdentityService,
+    private readonly gradeAccess: StudentGradeAccessService,
   ) {}
 
   @Post('ask-sanro')
   async ask(
     @CurrentUser() user: RequestUser,
-    @Body(new ZodValidationPipe(ChatRequestSchema)) body: { message: string; chapterId?: string; context?: ChatContextInput },
+    @Body(new ZodValidationPipe(ChatRequestSchema)) body: { message: string; history?: Array<{ role: 'user' | 'assistant'; content: string }>; chapterId?: string; context?: ChatContextInput },
   ) {
     const context = await this.buildContext(user, {
       ...body.context,
@@ -67,6 +71,7 @@ export class ChatController {
       institutionId: user.institutionId,
       role: this.effectiveRole(user.role),
       message: body.message,
+      history: body.history,
       context,
     });
   }
@@ -97,6 +102,10 @@ export class ChatController {
       });
       if (concept) {
         result.conceptName = concept.name;
+        const chapter = concept.topic.chapter;
+        this.gradeAccess.assert(await this.gradeAccess.forUser(user), chapter.grade);
+        result.boardName = chapter.subject.board?.name;
+        result.grade = chapter.grade;
         const content = await this.prisma.contentItem.findMany({
           where: { conceptId: ctx.conceptId, status: 'APPROVED' },
           select: { title: true },
@@ -126,22 +135,19 @@ export class ChatController {
     const chapter = await this.prisma.chapter.findUnique({
       where: { id: chapterId },
       include: {
-        subject: { select: { name: true } },
+        subject: { select: { name: true, board: { select: { name: true } } } },
         topics: { select: { concepts: { select: { id: true, name: true } } } },
       },
     });
     if (!chapter) return;
 
-    // A student may only ask about their own grade.
-    if (user.role === 'STUDENT') {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade && student.grade !== chapter.grade) {
-        throw new ForbiddenException('You can only access content for your assigned grade');
-      }
-    }
+    // A student may only ask about a class they are enrolled in.
+    this.gradeAccess.assert(await this.gradeAccess.forUser(user), chapter.grade);
 
     result.chapterName = chapter.name;
     result.subjectName = chapter.subject.name;
+    result.boardName = chapter.subject.board?.name;
+    result.grade = chapter.grade;
     result.chapterConcepts = chapter.topics.flatMap((t) => t.concepts.map((c) => c.name));
     result.chapterDescription = chapter.description ?? undefined;
   }

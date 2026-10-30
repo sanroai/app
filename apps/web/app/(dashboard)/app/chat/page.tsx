@@ -8,13 +8,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Send, Brain, Loader2 } from 'lucide-react';
+import { Markdown } from '@/components/markdown';
+import { Bot, Send, Brain, Loader2, ArrowRight } from 'lucide-react';
 
 type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  /** The reply was cut at the output cap - offer the rest without retyping. */
+  truncated?: boolean;
 };
 
 const SUGGESTED_QUESTIONS = [
@@ -29,7 +32,7 @@ export default function ChatPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm Sanro AI — your AI study assistant. Ask me anything about your studies.",
+      content: 'Hello, I am Sanro — your study assistant. Ask me anything about your studies.',
       timestamp: new Date(),
     },
   ]);
@@ -76,6 +79,10 @@ export default function ChatPage() {
     chatMutation.mutate(
       {
         message,
+        history: messages
+          .filter((msg) => msg.id !== 'welcome')
+          .slice(-20)
+          .map(({ role, content }) => ({ role, content })),
         context: {
           ...(conceptId ? { conceptId } : {}),
           ...(chapterId ? { chapterId } : {}),
@@ -90,6 +97,7 @@ export default function ChatPage() {
               role: 'assistant',
               content: data.reply,
               timestamp: new Date(),
+              truncated: data.truncated === true,
             },
           ]);
         },
@@ -150,7 +158,26 @@ export default function ChatPage() {
                           : 'bg-surface-100 text-surface-900 rounded-tl-sm'
                       }`}
                     >
-                      {msg.content}
+                      {msg.role === 'assistant' ? (
+                        <>
+                          <Markdown className="text-sm text-surface-900">{msg.content}</Markdown>
+                          {msg.truncated && msg.id === messages[messages.length - 1]?.id ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSend('Continue the answer from exactly where you stopped.')
+                              }
+                              disabled={chatMutation.isPending}
+                              className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
+                            >
+                              <ArrowRight className="h-3 w-3" />
+                              Continue
+                            </button>
+                          ) : null}
+                        </>
+                      ) : (
+                        msg.content
+                      )}
                     </div>
                   </div>
                 </div>

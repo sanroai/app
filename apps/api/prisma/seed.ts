@@ -2683,12 +2683,16 @@ async function seedCurriculum() {
 
   for (const gradeName of gradeNames) {
     for (const [subjectName, chapters] of Object.entries(CURRICULUM[gradeName])) {
-      for (const ch of chapters) {
+      for (const [chapterIndex, ch] of chapters.entries()) {
         const subj = subjectByName(subjectName);
+        // `order` is the number a student reads ("Chapter 4"), so it is written
+        // 1-based from the curriculum list. Without it every chapter held 0 and
+        // the UI could only show the code.
+        const chapterOrder = chapterIndex + 1;
         const chapter = await prisma.chapter.upsert({
           where: { subjectId_code: { subjectId: subj.id, code: ch.code } },
-          update: { name: ch.name },
-          create: { subjectId: subj.id, name: ch.name, code: ch.code, grade: gradeName },
+          update: { name: ch.name, order: chapterOrder },
+          create: { subjectId: subj.id, name: ch.name, code: ch.code, grade: gradeName, order: chapterOrder },
         });
         CHAPTERS[`${gradeName}|${subjectName}|${ch.name}`] = { id: chapter.id, subjectId: subj.id };
         CHAPTER_KEY_BY_ID[chapter.id] = `${gradeName}|${subjectName}|${ch.name}`;
@@ -2696,16 +2700,16 @@ async function seedCurriculum() {
         for (const [ti, topic] of ch.topics.entries()) {
           const dbTopic = await prisma.topic.upsert({
             where: { chapterId_name: { chapterId: chapter.id, name: topic.name } },
-            update: { order: ti },
-            create: { chapterId: chapter.id, name: topic.name, order: ti },
+            update: { order: ti + 1 },
+            create: { chapterId: chapter.id, name: topic.name, order: ti + 1 },
           });
           for (const [ci, conceptName] of topic.concepts.entries()) {
             const conceptKey = `${gradeName}|${ch.name}|${conceptName}`;
             const conceptDescription = conceptDescriptions[conceptKey] ?? null;
             const dbConcept = await prisma.concept.upsert({
               where: { topicId_name: { topicId: dbTopic.id, name: conceptName } },
-              update: { order: ci, ...(conceptDescription ? { description: conceptDescription } : {}) },
-              create: { topicId: dbTopic.id, name: conceptName, order: ci, description: conceptDescription },
+              update: { order: ci + 1, ...(conceptDescription ? { description: conceptDescription } : {}) },
+              create: { topicId: dbTopic.id, name: conceptName, order: ci + 1, description: conceptDescription },
             });
             if (!CONCEPT_IDS[`${gradeName}|${subjectName}|${ch.name}`]) {
               CONCEPT_IDS[`${gradeName}|${subjectName}|${ch.name}`] = {};
@@ -2847,7 +2851,9 @@ async function seedUsers(institutionId: string, academicYearId: string) {
   });
   const student = await prisma.student.upsert({
     where: { institutionId_email: { institutionId, email: 'student@sanroai.com' } },
-    update: {},
+    // The demo student explores the whole curriculum of every class, so this one
+    // account is granted all classes (real students get explicit enrolments).
+    update: { allGrades: true },
     create: {
       institutionId,
       academicYearId,
@@ -2857,8 +2863,14 @@ async function seedUsers(institutionId: string, academicYearId: string) {
       phone: '9822000003',
       rollNumber: 'R1001',
       grade: '10',
+      allGrades: true,
       status: 'ACTIVE',
     },
+  });
+  await prisma.studentEnrolment.upsert({
+    where: { studentId_grade: { studentId: student.id, grade: '10' } },
+    update: {},
+    create: { studentId: student.id, grade: '10' },
   });
   await prisma.gamificationProfile.upsert({
     where: { studentId: student.id },
@@ -2902,22 +2914,27 @@ async function seedUsers(institutionId: string, academicYearId: string) {
     create: { groupId: group.id, studentId: student.id, academicYearId },
   });
 
-  // Every seeded grade carries its own curriculum (chapters, concepts, videos,
-  // notes and questions), but content is grade-scoped: a class-10 student is
-  // answered 403 for a class-1 chapter. The demo therefore needs one student per
-  // grade, or that grade's curriculum cannot be opened by anyone.
-  if (MODE === 'demo') {
-    const extras = [
-      { name: 'Vivaan Joshi', email: 'student1@sanroai.com', phone: '9822000011', grade: '1', xp: 20 },
-      { name: 'Anaya Nair', email: 'student2@sanroai.com', phone: '9822000012', grade: '2', xp: 30 },
-      { name: 'Kabir Rao', email: 'student3@sanroai.com', phone: '9822000013', grade: '3', xp: 40 },
-      { name: 'Diya Menon', email: 'student4@sanroai.com', phone: '9822000014', grade: '4', xp: 50 },
-      { name: 'Arjun Patel', email: 'student5@sanroai.com', phone: '9822000015', grade: '5', xp: 60 },
-      { name: 'Sara Khan', email: 'student6@sanroai.com', phone: '9822000016', grade: '6', xp: 70 },
-      { name: 'Rehan Bhatt', email: 'student7@sanroai.com', phone: '9822000017', grade: '7', xp: 80 },
-      { name: 'Ishaan Verma', email: 'student8@sanroai.com', phone: '9822000005', grade: '8', xp: 120 },
-      { name: 'Ananya Iyer', email: 'student9@sanroai.com', phone: '9822000006', grade: '9', xp: 60 },
-    ];
+  // One student per grade is not needed for access any more (a student may be
+  // enrolled in several classes, and `student@sanroai.com` above opens all of
+  // them), but a per-grade class list keeps the teacher/class screens populated.
+  // QA seeds one single-class student: the grade-scope tests must not run as the
+  // all-classes demo account, or a regression in the 403 path cannot be seen.
+  if (MODE === 'demo' || MODE === 'qa') {
+    const extras = MODE === 'qa'
+      ? [
+          { name: 'Ishaan Verma', email: 'student8@sanroai.com', phone: '9822000005', grade: '8', xp: 120 },
+        ]
+      : [
+          { name: 'Vivaan Joshi', email: 'student1@sanroai.com', phone: '9822000011', grade: '1', xp: 20 },
+          { name: 'Anaya Nair', email: 'student2@sanroai.com', phone: '9822000012', grade: '2', xp: 30 },
+          { name: 'Kabir Rao', email: 'student3@sanroai.com', phone: '9822000013', grade: '3', xp: 40 },
+          { name: 'Diya Menon', email: 'student4@sanroai.com', phone: '9822000014', grade: '4', xp: 50 },
+          { name: 'Arjun Patel', email: 'student5@sanroai.com', phone: '9822000015', grade: '5', xp: 60 },
+          { name: 'Sara Khan', email: 'student6@sanroai.com', phone: '9822000016', grade: '6', xp: 70 },
+          { name: 'Rehan Bhatt', email: 'student7@sanroai.com', phone: '9822000017', grade: '7', xp: 80 },
+          { name: 'Ishaan Verma', email: 'student8@sanroai.com', phone: '9822000005', grade: '8', xp: 120 },
+          { name: 'Ananya Iyer', email: 'student9@sanroai.com', phone: '9822000006', grade: '9', xp: 60 },
+        ];
     for (const extra of extras) {
       const user = await prisma.user.upsert({
         where: { email: extra.email },
@@ -2948,6 +2965,11 @@ async function seedUsers(institutionId: string, academicYearId: string) {
         where: { studentId: extraStudent.id },
         update: {},
         create: { studentId: extraStudent.id, xp: extra.xp, streakDays: 1 },
+      });
+      await prisma.studentEnrolment.upsert({
+        where: { studentId_grade: { studentId: extraStudent.id, grade: extra.grade } },
+        update: {},
+        create: { studentId: extraStudent.id, grade: extra.grade },
       });
       // the counter and the ledger must agree, exactly as for the class-10 student
       await prisma.xpEvent.deleteMany({ where: { studentId: extraStudent.id } });

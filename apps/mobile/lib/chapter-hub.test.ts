@@ -7,6 +7,7 @@ import {
   normalizeSegments,
   pickContinueConcept,
   progressPercent,
+  sectionStartForConcept,
   type ChapterConcept,
 } from './chapter-hub';
 
@@ -21,8 +22,7 @@ function concept(overrides: Partial<ChapterConcept>): ChapterConcept {
   };
 }
 
-describe('formatTimestamp (chapter markers)', () => {
-  it('formats as mm:ss', () => {
+describe('formatTimestamp (chapter markers)', () => {  it('formats as mm:ss', () => {
     expect(formatTimestamp(0)).toBe('00:00');
     expect(formatTimestamp(9)).toBe('00:09');
     expect(formatTimestamp(2558)).toBe('42:38');
@@ -133,5 +133,27 @@ describe('progressPercent', () => {
     expect(progressPercent(140)).toBe(100);
     expect(progressPercent(null)).toBe(0);
     expect(progressPercent(undefined)).toBe(0);
+  });
+});
+
+describe('sectionStartForConcept (concept deep link)', () => {
+  const markers = normalizeSegments([
+    { title: 'Degree', startSeconds: 0 },
+    { title: 'Graph', startSeconds: 263 },
+    { title: 'Division Algorithm', startSeconds: 526 },
+  ]);
+
+  it('starts the lesson at the marker that names the concept', () => {
+    expect(sectionStartForConcept(markers, 'Graph')).toBe(263);
+  });
+
+  it('ignores punctuation and case when matching the marker title', () => {
+    expect(sectionStartForConcept(markers, 'division-algorithm')).toBe(526);
+  });
+
+  it('returns 0 rather than guessing when no marker names the concept', () => {
+    expect(sectionStartForConcept(markers, 'Remainder Theorem')).toBe(0);
+    expect(sectionStartForConcept(null, 'Graph')).toBe(0);
+    expect(sectionStartForConcept(markers, '')).toBe(0);
   });
 });

@@ -205,14 +205,35 @@ describe('Role-permission matrix (e2e)', () => {
       .set('Authorization', `Bearer ${tokens.TEACHER}`);
     const teacherInstitution = me.body?.memberships?.[0]?.institution?.id as string | undefined;
     if (teacherInstitution) {
-      const group = await prisma.group.findFirst({
-        where: { institutionId: teacherInstitution },
-        select: { id: true },
+      // The teacher's own classes: `/reports/student/:id` is scoped to the groups
+      // the teacher is linked to (TeacherGroup), so the "allowed" case has to
+      // pick a student from one of those groups. A student of another class in
+      // the same institution is a legitimate 403.
+      const teacher = await prisma.teacher.findFirst({
+        where: { user: { email: 'teacher@sanroai.com' } },
+        select: { id: true, groups: { select: { groupId: true } } },
       });
-      const student = await prisma.student.findFirst({
-        where: { institutionId: teacherInstitution },
-        select: { id: true },
-      });
+      const taughtGroupIds = teacher?.groups.map((t) => t.groupId) ?? [];
+      const group = taughtGroupIds.length
+        ? { id: taughtGroupIds[0] }
+        : await prisma.group.findFirst({
+            where: { institutionId: teacherInstitution },
+            select: { id: true },
+          });
+      const membership = taughtGroupIds.length
+        ? await prisma.groupMembership.findFirst({
+            where: { groupId: { in: taughtGroupIds }, student: { status: 'ACTIVE' } },
+            select: { studentId: true },
+            orderBy: { studentId: 'asc' },
+          })
+        : null;
+      const student = membership
+        ? { id: membership.studentId }
+        : await prisma.student.findFirst({
+            where: { institutionId: teacherInstitution },
+            select: { id: true },
+            orderBy: { id: 'asc' },
+          });
       for (const c of MATRIX) {
         c.path = c.path
           .replace('__OWN_GROUP__', group?.id ?? c.path)

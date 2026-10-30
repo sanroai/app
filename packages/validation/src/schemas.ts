@@ -199,6 +199,8 @@ export const CreateStudentSchema = z.object({
   dateOfBirth: z.string().optional(),
   rollNumber: z.string().trim().optional(),
   grade: z.string().trim().optional(),
+  /** Every class the student is enrolled in (defaults to `grade` when omitted). */
+  grades: z.array(z.string().trim().min(1)).optional(),
   groupIds: z.array(z.string().uuid()).default([]),
   parentName: z.string().trim().optional(),
   parentPhone: phoneSchema,
@@ -330,11 +332,18 @@ export const CreateRetestSchema = z.object({
   conceptIds: z.array(z.string().uuid()).min(1).max(10),
 });
 
+export const ChatHistoryMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string().min(1).max(2000),
+});
+
 export const ChatSchema = z.object({
   message: z.string().min(1).max(2000),
+  history: z.array(ChatHistoryMessageSchema).max(20).optional(),
   context: z
     .object({
       conceptId: z.string().uuid().optional(),
+      chapterId: z.string().uuid().optional(),
       questionId: z.string().uuid().optional(),
       assessmentId: z.string().uuid().optional(),
     })

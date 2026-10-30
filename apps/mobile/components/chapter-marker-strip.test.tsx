@@ -35,6 +35,16 @@ describe('ChapterMarkerStrip (chapter-marker strip under a video lesson)', () =>
     const { toJSON } = render(<ChapterMarkerStrip segments={null} />);
     expect(toJSON()).toBeNull();
   });
+
+  it('starts collapsed on the chapter hub and opens on tap', () => {
+    render(<ChapterMarkerStrip segments={segments} collapsible />);
+
+    expect(screen.getByText(/2 sections/)).toBeTruthy();
+    expect(screen.queryByText('Total Surface Area')).toBeNull();
+
+    fireEvent.press(screen.getByText(/2 sections/));
+    expect(screen.getByText('Total Surface Area')).toBeTruthy();
+  });
 });
 
 describe('seekScript (jump inside the YouTube iframe)', () => {

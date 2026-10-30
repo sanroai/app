@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
-import { useConceptDetail, useCompleteContent, useStartPractice, useRateFlashcard, type ContentItem, type ConceptDetail } from '@/lib/learning-hooks';
+import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, useRateFlashcard, type ContentItem, type ConceptDetail } from '@/lib/learning-hooks';
 import { useConceptAr } from '@/lib/ar-hooks';
 import { ConceptArPanel } from '@/components/ar/ConceptArPanel';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import { Spinner, ErrorBanner } from '@/components/ui';
 import { VideoWithSegments } from '@/components/video-segments';
 import { Markdown } from '@/components/markdown';
 import { useChapterHub } from '@/lib/chapter-hooks';
-import { normalizeSegments, type VideoSegment } from '@/lib/video-segments';
+import { normalizeSegments, formatTimestamp, sectionStartForConcept, type VideoSegment } from '@/lib/video-segments';
 import {
   ChevronRight,
   ChevronLeft,
@@ -26,6 +26,7 @@ import {
   BookOpen,
   ExternalLink,
   CheckCircle2,
+  Circle,
   Brain,
   Play,
   MessageSquare,
@@ -73,7 +74,15 @@ const TABS = [
 export default function ConceptDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const conceptId = params.conceptId as string;
+  // The chapter hub links a concept to the exact slice of the lesson that
+  // teaches it (?t=<seconds>&video=<contentId>); without those params the
+  // lesson opens normally at 0:00.
+  const requestedStart = Number.parseInt(searchParams.get('t') ?? '', 10);
+  const startAt = Number.isFinite(requestedStart) && requestedStart > 0 ? requestedStart : 0;
+  const videoParam = searchParams.get('video');
+  const [fromStart, setFromStart] = useState(false);
   const [activeTab, setActiveTab] = useState('learn');
   const [practiceFormat, setPracticeFormat] = useState<'quiz' | 'cards'>('quiz');
   const [flashcardIndex, setFlashcardIndex] = useState(0);
@@ -83,6 +92,7 @@ export default function ConceptDetailPage() {
 
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
+  const uncompleteContent = useUncompleteContent();
   const startPractice = useStartPractice();
   const rateFlashcard = useRateFlashcard();
   const { data: arItems } = useConceptAr(conceptId);
@@ -153,6 +163,19 @@ export default function ConceptDetailPage() {
   const chapterName = concept.chapter?.name ?? '';
   const topicName = concept.topic?.name ?? '';
   const videos = conceptVideos;
+  // The hub names the exact clip + second that teaches this concept, and that is
+  // what starts playing. A chapter can carry more than one chapter-wide video,
+  // so when the named clip is not one of this concept's own lessons the lesson's
+  // own marker for this concept decides - applying the other clip's offset would
+  // drop the student in the middle of the previous concept.
+  const requestedVideo = startAt > 0 ? (videos.find((v) => v.id === videoParam) ?? null) : null;
+  const fallbackVideo = startAt > 0 && !requestedVideo ? (videos[0] ?? null) : null;
+  const targetVideoId = requestedVideo?.id ?? fallbackVideo?.id ?? null;
+  const targetStart = requestedVideo
+    ? startAt
+    : fallbackVideo
+      ? sectionStartForConcept(segmentsForVideo(fallbackVideo), concept.name ?? '')
+      : 0;
   const notes = contentItems.filter((c: ContentItem) => c.type === 'NOTES' || c.type === 'ARTICLE');
   const toggleNote = (id: string) =>
     setOpenNotes((prev) => (prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]));
@@ -295,29 +318,78 @@ export default function ConceptDetailPage() {
                 Video Lessons
               </h2>
               <div className="grid gap-4 md:grid-cols-2">
-                {videos.map((item: ContentItem) => (
+                {videos.map((item: ContentItem) => {
+                  const isTarget = item.id === targetVideoId;
+                  const effectiveStart = isTarget ? (fromStart ? 0 : targetStart) : 0;
+                  return (
                   <Card key={item.id} className="overflow-hidden hover:shadow-md transition-all group">
+                    <div className="px-4 pb-3 pt-4">
+                      <p className="font-semibold text-surface-900 line-clamp-2">{item.title}</p>
+                      {isTarget && targetStart > 0 ? (
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-2.5 py-1 text-[11px] font-semibold text-brand-700">
+                            <Play className="h-3 w-3" />
+                            Starting at {formatTimestamp(effectiveStart)}
+                          </span>
+                          {!fromStart ? (
+                            <button
+                              type="button"
+                              onClick={() => setFromStart(true)}
+                              className="text-[11px] font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-700"
+                            >
+                              Play from the start
+                            </button>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
                     <VideoWithSegments
+                      key={`${item.id}-${effectiveStart}`}
                       url={item.url}
                       videoId={item.videoId}
                       title={item.title}
                       thumbnailUrl={item.thumbnailUrl}
                       durationSeconds={item.durationSeconds}
+                      startSeconds={effectiveStart}
+                      autoPlay={isTarget && targetStart > 0}
                       segments={segmentsForVideo(item)}
                     />
                     <CardContent className="p-4">
-                      <p className="font-semibold text-surface-900 line-clamp-2">{item.title}</p>
-                      <div className="mt-2 flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                         <Badge variant="secondary" className="text-[10px]">
                           <Video className="mr-1 h-3 w-3" /> VIDEO
                         </Badge>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs text-green-600" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Done
-                        </Button>
+                        {item.progress?.state === 'COMPLETED' ? (
+                          <div className="flex items-center gap-1">
+                            <span className="flex items-center text-xs font-semibold text-green-600">
+                              <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Completed
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                              onClick={() => uncompleteContent.mutate(item.id)}
+                              disabled={uncompleteContent.isPending}
+                            >
+                              Undo
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-surface-500 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => completeContent.mutate(item.id)}
+                            disabled={completeContent.isPending}
+                          >
+                            <Circle className="h-3.5 w-3.5 mr-1" /> Mark as done
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             </section>
           )}
@@ -389,9 +461,36 @@ export default function ConceptDetailPage() {
                           ) : (
                             <Button variant="outline" size="sm" className="h-8 text-xs" disabled>Read</Button>
                           )}
-                          <Button variant="ghost" size="sm" className="h-8 text-xs text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => completeContent.mutate(item.id)} disabled={completeContent.isPending}>
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                          </Button>
+                          {item.progress?.state === 'COMPLETED' ? (
+                            <>
+                              <span className="flex items-center text-xs font-semibold text-green-600" title="Completed">
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Completed
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                onClick={() => uncompleteContent.mutate(item.id)}
+                                disabled={uncompleteContent.isPending}
+                                title="Mark as unread"
+                                aria-label="Mark as unread"
+                              >
+                                Undo
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs text-surface-500 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => completeContent.mutate(item.id)}
+                              disabled={completeContent.isPending}
+                              title="Mark as read"
+                              aria-label="Mark as read"
+                            >
+                              <Circle className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                       {open && item.description ? (
@@ -656,7 +755,7 @@ export default function ConceptDetailPage() {
               <div className="flex items-center gap-3 mb-4">
                 <Brain className="h-6 w-6 text-brand-600" />
                 <div>
-                  <h3 className="font-bold text-surface-900">Ask Sanro AI</h3>
+                  <h3 className="font-bold text-surface-900">Sanro AI tutor</h3>
                   <p className="text-sm text-surface-500">Get instant help with this concept</p>
                 </div>
               </div>

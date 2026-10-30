@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
 export { CHAPTER_SEGMENT_LIMIT } from './chapter-segments';
@@ -153,6 +153,31 @@ export function chapterPdfPath(code: string | null | undefined): string | null {
     if (existsSync(candidate)) return candidate;
   }
   return null;
+}
+
+/**
+ * The screenshots folder of a chapter (`chapters/NN-slug/screenshots`), or null.
+ *
+ * Chapter folders are numbered `NN-slugified-title`, so the chapter number from the
+ * code picks the folder. The class-8 maths volumes both number 1-7; the book
+ * folder (`math part 1` / `math part 2`) keeps them apart.
+ */
+export function chapterPagesDir(code: string | null | undefined): string | null {
+  const parsed = parseChapterCode(code);
+  const root = findBooksRoot();
+  if (!parsed || !root) return null;
+
+  const chaptersDir = join(root, `class-${parsed.grade}`, parsed.book.folder, 'chapters');
+  if (!existsSync(chaptersDir)) return null;
+
+  const prefix = `${String(parsed.chapterNumber).padStart(2, '0')}-`;
+  const folder = readdirSync(chaptersDir, { withFileTypes: true }).find(
+    (entry) => entry.isDirectory() && entry.name.startsWith(prefix),
+  );
+  if (!folder) return null;
+
+  const shots = join(chaptersDir, folder.name, 'screenshots');
+  return existsSync(shots) ? shots : null;
 }
 
 /** A readable file name for the chapter PDF download (no path traversal). */

@@ -72,7 +72,8 @@ a **format inside Practice**. This is unchanged and documented in `AGENTS.md`.
 
 ## 6. Video sections are labelled honestly
 
-Every lesson video now shows a jumpable strip under the player. See
+Every lesson video now shows a jumpable section list under the player - every
+section visible, stacked vertically (no horizontal scroller). See
 `docs/VIDEO_CHAPTER_MARKERS.md`: real creator chapters when YouTube has them,
 otherwise an even split across the chapter's concepts, marked
 **"Sections · approximate"** so a derived marker is never mistaken for a
@@ -93,6 +94,26 @@ capability is authoring/admin (web-only by design):
 | Chapter header artwork | ✅ | ✅ |
 | Approximate concept split label | ✅ | ✅ |
 | Question counts | same API | same API |
+| Read the textbook (page images) | ✅ dialog on the chapter hub | ✅ `/textbook/[chapterId]` screen |
+
+## 7b. The textbook opens inside the app
+
+The chapter PDF used to be handed to another app: a WebView cannot render it on Android
+("Download unsuccessful"), and Chrome only downloads it. The chapter's own NCERT pages are
+already rendered by the book pipeline (`books/.../chapters/<slug>/screenshots/pNNN.png`,
+1240 px), so both clients now read those pages in place - the same content, one image per
+page, no PDF plugin:
+
+- the row is labelled **Read the textbook** (it said "Open chapter PDF"); the PDF survives as
+  **Download PDF** next to the pages on web, and as the fallback on mobile for a chapter
+  whose screenshots are not on disk;
+- mobile is a vertical `FlatList` (page label under each image, tap to retry a failed page,
+  lazy pages with `windowSize` 3 so a 16-page chapter does not hold 7 MB of bitmaps);
+- the page URLs are signed (`/learning/pdf/:chapterId/pages/:page?exp&sig`, valid 60
+  minutes) because an `<img>`/`<Image>` cannot send the bearer token;
+- the page response must carry `Cross-Origin-Resource-Policy: cross-origin`: helmet's
+  default `same-origin` makes Chrome drop the image on any other origin, which is *always*
+  the case in production (`app.sanroai.com` vs `api.sanroai.com`).
 
 ## 8. Verification used
 
@@ -103,3 +124,9 @@ capability is authoring/admin (web-only by design):
   sticky blurred header, not duplicated DOM.
 - `node scripts/qa/probe-video-segments.mjs [--grade 8|9]` → every student
   lesson video exposes markers.
+- `node scripts/qa/probe-chapter-pages.mjs` → signed page list + real PNG bytes, 404 past the
+  last page, 401 for a tampered signature (16/20/21 pages on SCI-10-1/2/3).
+- `npx tsx scripts/qa/probe-textbook-reader.mts` → the web dialog paints the first page
+  (`naturalWidth` 1240) and **Download PDF** emits the chapter file.
+- On the phone (1080x2340): chapter hub → **Read the textbook** → page 1 of 16 renders
+  in-app, scrolling loads the next pages.

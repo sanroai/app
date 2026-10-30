@@ -26,3 +26,24 @@ export function subjectBanner(name?: string | null, code?: string | null): Image
   if (/english|literature|language/.test(haystack)) return SUBJECT_ART.english;
   return SUBJECT_ART.chapter;
 }
+
+/**
+ * Three letters that stand for a subject ("SCI", "MAT", "ENG"), mirroring
+ * `subjectMonogram` in `apps/web/components/subject-banner.tsx`.
+ *
+ * The card used to show a 3D PNG icon in a white square; next to a sentence-case
+ * subject name that reads as an emoji sticker, so both platforms now set a
+ * typographic monogram on the banner instead.
+ */
+export function subjectMonogram(name?: string | null, code?: string | null): string {
+  const key = `${name ?? ''} ${code ?? ''}`.toLowerCase();
+  if (/scien|physic|chemis|biolog/.test(key)) return 'SCI';
+  if (/math|ganit/.test(key)) return 'MAT';
+  if (/english|literature/.test(key)) return 'ENG';
+  if (/hindi/.test(key)) return 'HIN';
+  if (/sanskrit/.test(key)) return 'SAN';
+  if (/social|history|geograph|civic/.test(key)) return 'SST';
+  if (/art|craft/.test(key)) return 'ART';
+  const letters = `${code || name || ''}`.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase();
+  return letters || 'SUB';
+}

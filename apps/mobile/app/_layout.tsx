@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack, useRouter, useSegments } from 'expo-router';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
 import { useAuthStore } from '../lib/auth-store';
 import { QueryProvider } from '../lib/query-provider';
@@ -75,29 +76,32 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <ErrorBoundary>
-        <QueryProvider>
-          <StatusBar style="dark" />
-          <AuthGate />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <QueryProvider>
+            <StatusBar style="dark" />
+            <AuthGate />
           <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.background } }}>
             <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="expired" options={{ headerShown: false }} />
-          <Stack.Screen name="learn/[boardId]/[grade]/[subjectId]" options={{ headerShown: true, title: 'Chapters', headerTintColor: Colors.primary }} />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="expired" options={{ headerShown: false }} />
+            <Stack.Screen name="learn/[boardId]/[grade]/[subjectId]" options={{ headerShown: true, title: 'Chapters', headerTintColor: Colors.primary }} />
             <Stack.Screen name="learn/chapter/[chapterId]" options={{ headerShown: true, title: 'Chapter', headerTintColor: Colors.primary }} />
             <Stack.Screen name="chapter/[chapterId]" options={{ headerShown: true, title: 'Chapter', headerTintColor: Colors.primary }} />
-            <Stack.Screen name="concept/[conceptId]" options={{ headerShown: false }} />
+            <Stack.Screen name="textbook/[chapterId]" options={{ headerShown: true, title: 'Textbook', headerTintColor: Colors.primary }} />
+            <Stack.Screen name="concept/[conceptId]" options={{ headerShown: true, title: 'Concept', headerTintColor: Colors.primary }} />
             <Stack.Screen name="remediation" options={{ headerShown: false }} />
             <Stack.Screen name="practice/[practiceId]" options={{ headerShown: true, title: 'Practice', headerTintColor: Colors.primary }} />
             <Stack.Screen name="attempt/[attemptId]" options={{ headerShown: true, title: 'Assessment', headerTintColor: Colors.primary }} />
             <Stack.Screen name="flashcards/[conceptId]" options={{ headerShown: true, title: 'Flashcards', headerTintColor: Colors.primary }} />
-            <Stack.Screen name="ask/[conceptId]" options={{ headerShown: false }} />
+            <Stack.Screen name="ask/[conceptId]" options={{ headerShown: true, title: 'Ask Sanro AI', headerTintColor: Colors.primary }} />
             <Stack.Screen name="leaderboard" options={{ headerShown: true, title: 'Leaderboard', headerTintColor: Colors.primary }} />
             <Stack.Screen name="profile-edit" options={{ headerShown: true, title: 'Edit Profile', headerTintColor: Colors.primary }} />
           </Stack>
-        </QueryProvider>
-      </ErrorBoundary>
-    </SafeAreaProvider>
+          </QueryProvider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

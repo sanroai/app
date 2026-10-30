@@ -21,6 +21,9 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notification-bell';
 import { Icon3D } from '@/components/icon-3d';
+import { PrefetchLink } from '@/components/prefetch-link';
+import { prefetchLearningHome, prefetchLearningPath, prefetchLibraryBrowse } from '@/lib/prefetch';
+import { useQueryClient } from '@tanstack/react-query';
 import { ICONS, type IconKey } from '@/lib/subject-art';
 import { 
   DropdownMenu, 
@@ -70,11 +73,29 @@ function NavIcon({ link, size, className }: { link: NavLink; size: number; class
 function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const theme = useRoleTheme();
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
   const isSuperAdmin = role === 'SUPER_ADMIN';
   const isAdmin = role === 'INSTITUTION_ADMIN';
   const staff = role === 'TEACHER' || isAdmin || isSuperAdmin;
 
   const activeClass = `bg-gradient-to-r ${theme.gradient} text-white shadow-md`;
+
+  /**
+   * The top-level nav is the first click of every session, so hovering it warms
+   * both the route (chunk/compile) and the screen's data. Anything that is not a
+   * known expensive screen simply gets the route prefetch from PrefetchLink.
+   */
+  const warmFor = (href: string): (() => void) | undefined => {
+    if (href === '/app/library') {
+      return () => {
+        prefetchLibraryBrowse(queryClient, token);
+        prefetchLearningHome(queryClient, token);
+      };
+    }
+    if (href === '/app/assessments') return () => prefetchLearningPath(queryClient, token);
+    return undefined;
+  };
 
   const superAdminLinks: NavLink[] = isSuperAdmin
     ? [
@@ -162,9 +183,10 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const renderLink = (l: NavLink) => {
     const active = activeFor(l);
     return (
-      <Link
+      <PrefetchLink
         key={l.href}
         href={l.href}
+        prefetchData={warmFor(l.href)}
         aria-current={active ? 'page' : undefined}
         className={cn(
           'inline-flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
@@ -182,7 +204,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
           <NavIcon link={l} size={24} />
         </span>
         {l.label}
-      </Link>
+      </PrefetchLink>
     );
   };
 
@@ -230,9 +252,10 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const renderMobileLink = (l: NavLink) => {
     const active = activeFor(l);
     return (
-      <Link
+      <PrefetchLink
         key={l.href}
         href={l.href}
+        prefetchData={warmFor(l.href)}
         aria-current={active ? 'page' : undefined}
         onClick={() => onNavigate?.()}
         className={cn(
@@ -251,7 +274,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
           <NavIcon link={l} size={26} />
         </span>
         {l.label}
-      </Link>
+      </PrefetchLink>
     );
   };
 

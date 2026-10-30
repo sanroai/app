@@ -46,6 +46,7 @@ function buildService() {
     prisma,
     { requireInstitution: () => INSTITUTION } as any,
     { resolveForUser: async () => null } as any,
+    { forUser: async () => ({ unrestricted: true, grades: [] }), allows: () => true } as any,
     {} as any,
     {} as any,
   );

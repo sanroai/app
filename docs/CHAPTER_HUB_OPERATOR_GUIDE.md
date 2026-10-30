@@ -13,7 +13,7 @@ The hub is one scroll with five sections, in learning-loop order:
 |---|---|---|
 | **Continue** | the first not-yet-mastered concept, `X of Y concepts mastered`, a progress bar | `ConceptMastery` + `ContentProgress` |
 | **Contents** | every concept of the chapter with its mastery badge and resource count | `Chapter` → `Topic` → `Concept` |
-| **Learn** | the chapter's videos (each with its chapter-marker strip), the study notes, *View chapter PDF* | `ContentItem` (type `VIDEO` / `NOTES`), `ContentItem.segments`, the NCERT PDF on disk |
+| **Learn** | the chapter's videos (each with its chapter-marker list), the study notes, *View chapter PDF* | `ContentItem` (type `VIDEO` / `NOTES`), `ContentItem.segments`, the NCERT PDF on disk |
 | **Practise** | *Practice the whole chapter* — one session over every concept of the chapter | `Question` (status `APPROVED`) |
 | **Ask** | *Ask SANRO AI about this chapter*, scoped to the chapter | the AI provider (may be unconfigured) |
 
@@ -239,7 +239,7 @@ Student-visible content is filtered to `ContentStatus.APPROVED` / `PUBLISHED`.
 
 ### A video has no chapter markers
 
-*What you see:* the marker strip is simply not rendered; the video plays as one blob.
+*What you see:* the marker list is simply not rendered; the video plays as one blob.
 
 *Why:* `ContentItem.segments` is empty for that video — YouTube publishes no chapter
 list and the description carries no timestamps, or the markers were never applied.

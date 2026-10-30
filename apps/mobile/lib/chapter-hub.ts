@@ -14,12 +14,22 @@ export interface VideoSegment {
   derived?: boolean;
 }
 
+export interface ConceptSection {
+  contentId: string;
+  startSeconds: number;
+  endSeconds: number;
+  durationSeconds: number;
+  derived: boolean;
+}
+
 export interface ChapterConcept {
   id: string;
   name: string;
+  order?: number;
   mastery: { score: number; level: string } | null;
   hasVideo: boolean;
   status: string;
+  section?: ConceptSection | null;
 }
 
 export interface ChapterVideo {
@@ -49,8 +59,12 @@ export interface ChapterHub {
   code: string;
   subject: string;
   grade: string;
+  /** Curriculum position of the chapter (1-based). */
+  order?: number;
   summary?: string | null;
   pdfUrl?: string | null;
+  /** First video lesson's poster - a real frame from this chapter's lesson. */
+  thumbnailUrl?: string | null;
   concepts?: ChapterConcept[];
   videos?: ChapterVideo[];
   progress?: ChapterProgress;
@@ -93,8 +107,29 @@ export function normalizeSegments(segments?: VideoSegment[] | null): VideoSegmen
     .sort((a, b) => a.startSeconds - b.startSeconds);
 }
 
-export function masteryTone(level?: string | null): MasteryTone {
-  if (!level) return 'unknown';
+/** Marker titles and concept names match on words, not punctuation - same rule as the API. */
+export function normalizeSectionTitle(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/**
+ * Where this concept starts inside a video lesson the chapter hub did not name.
+ * A chapter can carry more than one chapter-wide video (the hub picks the one
+ * the section times were computed for); when the concept screen shows a
+ * different clip, its own markers decide - applying the other clip's offset
+ * would drop the student in the middle of the previous concept.
+ *
+ * Returns 0 when nothing names the concept: start at the beginning rather than
+ * pretending to know.
+ */
+export function sectionStartForConcept(segments: VideoSegment[] | null | undefined, conceptName: string): number {
+  const key = normalizeSectionTitle(conceptName || '');
+  if (!key) return 0;
+  const hit = normalizeSegments(segments).find((segment) => normalizeSectionTitle(segment.title) === key);
+  return hit ? hit.startSeconds : 0;
+}
+
+export function masteryTone(level?: string | null): MasteryTone {  if (!level) return 'unknown';
   if (MASTERED_LEVELS.has(level)) return 'mastered';
   if (WEAK_LEVELS.has(level)) return 'weak';
   if (level === 'DEVELOPING') return 'developing';

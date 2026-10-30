@@ -20,6 +20,9 @@ const FEATURES = [
   ['library item', 'library/item/[contentId]/page.tsx', 'concept/[conceptId].tsx'],
   ['chapter list', 'learn/[boardId]/[grade]/[subjectId]/chapters/page.tsx', 'learn/[boardId]/[grade]/[subjectId].tsx'],
   ['chapter hub', 'learn/chapters/[chapterId]/page.tsx', 'learn/chapter/[chapterId].tsx'],
+  // the rendered NCERT pages open in the web chapter-hub dialog and on the mobile
+  // screen below - the same pages, a different container
+  ['chapter textbook', 'learn/chapters/[chapterId]/page.tsx', 'textbook/[chapterId].tsx'],
   ['concept', 'learn/concepts/[conceptId]/page.tsx', 'concept/[conceptId].tsx'],
   ['practice session', 'learn/practice/[practiceId]/page.tsx', 'practice/[practiceId].tsx'],
   // the web offers flashcards as a format inside the concept page, mobile as its own

@@ -2,8 +2,8 @@
 
 ## The bug
 
-"Split the video concept-wise" looked broken: the strip under the player appeared
-on only a minority of lessons. Measured on `sanro_dev`:
+"Split the video concept-wise" looked broken: the marker list under the player
+appeared on only a minority of lessons. Measured on `sanro_dev`:
 
 | Videos | Markers before this fix |
 |---|---|
@@ -37,7 +37,7 @@ Data path (unchanged): `scripts/qa/source-video-chapters.mjs` →
 - splits the runtime evenly, one marker per concept, in curriculum order,
 - marks every marker **`derived: true`**.
 
-Both clients label such a strip **"Sections · approximate"** (web
+Both clients label such a list **"Sections · approximate"** (web
 `components/video-segments.tsx`, mobile `components/ChapterMarkerStrip.tsx`), so a
 derived marker is never presented as a published timestamp.
 
@@ -48,8 +48,23 @@ Derivation happens **at read time**, so:
 - a real marker set automatically replaces it the moment one exists.
 
 `clipSegmentsToDuration` also drops markers that start at or past the end of the
-video (creator timestamps can outlive a re-upload): a chip that seeks nowhere is
-worse than no chip.
+video (creator timestamps can outlive a re-upload): a marker that seeks nowhere is
+worse than no marker.
+
+## Presentation — every section visible (2026-10-29)
+
+The markers used to be one **horizontally scrolling row of chips**, which hid every
+section past the first two or three: on a phone the student saw "Combination and
+Decom…" and a sliver of the next chip, and a section they cannot see is a section
+they will not jump to. Both clients now render the markers as a **vertical list**,
+one full-width row per section, timestamp first and title un-truncated:
+
+- web — `apps/web/components/video-segments.tsx` (`flex flex-col`, full-width rows);
+- mobile — `apps/mobile/components/ChapterMarkerStrip.tsx` (a plain `View`, no
+  `ScrollView horizontal`).
+
+There is no scroller to discover and no clipped label. The list still seeks in place
+on tap; the derived heading is unchanged.
 
 ## Regression gate
 

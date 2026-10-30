@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   levelLabel: { fontSize: 13, fontWeight: '700', color: Colors.text },
   levelValue: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
   subjectGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md, marginHorizontal: Spacing.lg },
-  subjectGridItem: { flexBasis: '47%', flexGrow: 1 },
+  subjectGridItem: { flexBasis: '47%', flexGrow: 0, flexShrink: 0 },
   badgeRow: { gap: Spacing.md, paddingHorizontal: Spacing.lg },
   badgeItem: { width: 76, alignItems: 'center' },
   badgeIcon: {

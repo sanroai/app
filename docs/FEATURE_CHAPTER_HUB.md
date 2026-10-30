@@ -34,7 +34,7 @@ tab is an extra tap. The sections are cards with a clear heading, in this order:
    - if everything is mastered: *"Chapter complete - revise any concept"*
 2. **Contents** - every concept with its mastery badge, its resource count and a link.
    The spine of the chapter.
-3. **Learn** - the chapter's videos (each with its **chapter-marker strip**, i.e. the lesson
+3. **Learn** - the chapter's videos (each with its **chapter-marker list**, i.e. the lesson
    split by time) and the study notes, plus **View chapter PDF** (the textbook chapter,
    viewable inside the app).
 4. **Practise** - *Practice the whole chapter* (one session over every concept) and the
@@ -62,7 +62,7 @@ for the chapter.
 | Chapter has no concepts | Contents empty state; Continue and Practise hidden; PDF still offered |
 | Chapter PDF is not on disk | *View chapter PDF* is disabled and says *"PDF not available for this chapter"* |
 | Chapter has no videos | Learn shows the notes only |
-| A video has no chapter markers | The marker strip is simply not rendered |
+| A video has no chapter markers | The marker list is simply not rendered |
 | Chapter has no questions | *Practice the whole chapter* is disabled: *"No practice questions for this chapter yet"* |
 | The student has done nothing | Progress 0%, Continue points at the first concept |
 | The AI provider is not configured | The chat screen shows its existing error state; the hub still works |

@@ -2,9 +2,9 @@ import { ScrollView, View, Text, StyleSheet, TouchableOpacity, FlatList, Linking
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useConceptDetail, useCompleteContent, useStartPractice, useChapterHub } from '../../lib/hooks';
+import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, useChapterHub } from '../../lib/hooks';
 import { useConceptAr } from '../../lib/ar-hooks';
-import { normalizeSegments, type VideoSegment } from '../../lib/chapter-hub';
+import { normalizeSegments, formatTimestamp, sectionStartForConcept, type VideoSegment } from '../../lib/chapter-hub';
 import { Icon3D } from '../../components/Icon3D';
 import { Colors, Spacing, BorderRadius, Pastel } from '../../constants/theme';
 import { Card } from '../../components/Card';
@@ -17,12 +17,20 @@ import { Markdown } from '../../components/Markdown';
 const TABS = CONCEPT_MODES;
 
 export default function ConceptDetailScreen() {
-  const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
+  const { conceptId = '', t, video: videoParam } = useLocalSearchParams<{
+    conceptId: string;
+    t?: string;
+    video?: string;
+  }>();
+  const parsedStart = Number.parseInt(t ?? '', 10);
+  const startAt = Number.isFinite(parsedStart) && parsedStart > 0 ? parsedStart : 0;
+  const [fromStart, setFromStart] = useState(false);
   const router = useRouter();
   const [tab, setTab] = useState('learn');
   const [openNote, setOpenNote] = useState<string | null>(null);
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
+  const uncompleteContent = useUncompleteContent();
   const startPractice = useStartPractice();
   const { data: arItems } = useConceptAr(conceptId);
   const arContent = arItems ?? [];
@@ -61,6 +69,21 @@ export default function ConceptDetailScreen() {
   const videos = concept.content.filter((c) => c.type === 'VIDEO');
   const notes = concept.content.filter((c) => c.type === 'NOTES' || c.type === 'ARTICLE');
   const questions = concept.practiceQuestions ?? [];
+  const markersFor = (video: { id: string; segments?: VideoSegment[] | null }) =>
+    normalizeSegments(video.segments ?? markersByContentId.get(video.id) ?? null);
+  // The chapter hub names the exact video + timestamp that teaches this concept.
+  // A chapter can carry several chapter-wide videos, so when the named clip is
+  // not one of this concept's own lessons we use that lesson's own marker for
+  // this concept - applying the other clip's offset would start in the middle of
+  // the previous concept.
+  const requestedVideo = startAt > 0 ? (videos.find((v) => v.id === videoParam) ?? null) : null;
+  const fallbackVideo = startAt > 0 && !requestedVideo ? (videos[0] ?? null) : null;
+  const targetVideoId = requestedVideo?.id ?? fallbackVideo?.id ?? null;
+  const targetStart = requestedVideo
+    ? startAt
+    : fallbackVideo
+      ? sectionStartForConcept(markersFor(fallbackVideo), concept.name)
+      : 0;
 
   const startMode = (count: number) => {
     if (questions.length === 0) {
@@ -142,29 +165,74 @@ export default function ConceptDetailScreen() {
             {videos.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Video Lessons</Text>
-                {videos.map((v) => (
-                  <Card key={v.id} style={styles.itemCard}>
-                    <YouTubePlayer
-                      url={v.url}
-                      videoId={v.videoId}
-                      title={v.title}
-                      thumbnailUrl={v.thumbnailUrl}
-                      durationSeconds={v.durationSeconds}
-                      segments={normalizeSegments(v.segments ?? markersByContentId.get(v.id) ?? null)}
-                    />
-                    <Text style={styles.itemTitle}>{v.title}</Text>
-                    {v.description ? <Text style={styles.itemDesc}>{v.description}</Text> : null}
-                    <TouchableOpacity
-                      style={styles.doneBtn}
-                      onPress={() => completeContent.mutate(v.id)}
-                      accessibilityLabel="Mark as complete"
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-                      <Text style={styles.doneBtnText}>Mark as done</Text>
-                    </TouchableOpacity>
-                  </Card>
-                ))}
+                {videos.map((v) => {
+                  const done = v.progress?.state === 'COMPLETED';
+                  const isTarget = v.id === targetVideoId;
+                  const effectiveStart = isTarget ? (fromStart ? 0 : targetStart) : 0;
+                  return (
+                    <Card key={v.id} style={styles.itemCard}>
+                      <Text style={styles.itemTitle}>{v.title}</Text>
+                      {isTarget && targetStart > 0 ? (
+                        <View style={styles.startRow}>
+                          <View style={styles.startChip}>
+                            <Ionicons name="play-forward" size={12} color={Colors.primary} />
+                            <Text style={styles.startChipText}>
+                              Starting at {formatTimestamp(effectiveStart)}
+                            </Text>
+                          </View>
+                          {!fromStart ? (
+                            <TouchableOpacity
+                              onPress={() => setFromStart(true)}
+                              accessibilityRole="button"
+                              accessibilityLabel="Play the lesson from the start"
+                            >
+                              <Text style={styles.startLink}>Play from the start</Text>
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      ) : null}
+                      <YouTubePlayer
+                        key={`${v.id}-${effectiveStart}`}
+                        url={v.url}
+                        videoId={v.videoId}
+                        title={v.title}
+                        thumbnailUrl={v.thumbnailUrl}
+                        durationSeconds={v.durationSeconds}
+                        startSeconds={effectiveStart}
+                        autoPlay={isTarget && targetStart > 0}
+                        segments={markersFor(v)}
+                      />
+                      {v.description ? <Text style={styles.itemDesc}>{v.description}</Text> : null}
+                      {done ? (
+                        <View style={styles.doneRow}>
+                          <View style={[styles.doneBtn, styles.doneBtnInline]}>
+                            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                            <Text style={styles.doneBtnText}>Completed</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => uncompleteContent.mutate(v.id)}
+                            disabled={uncompleteContent.isPending}
+                            accessibilityLabel="Mark as not done"
+                            accessibilityRole="button"
+                          >
+                            <Text style={styles.undoText}>Undo</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.doneBtn}
+                          onPress={() => completeContent.mutate(v.id)}
+                          disabled={completeContent.isPending}
+                          accessibilityLabel="Mark as done"
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name="ellipse-outline" size={16} color={Colors.textSecondary} />
+                          <Text style={[styles.doneBtnText, styles.doneBtnIdle]}>Mark as done</Text>
+                        </TouchableOpacity>
+                      )}
+                    </Card>
+                  );
+                })}
               </View>
             )}
 
@@ -200,6 +268,7 @@ export default function ConceptDetailScreen() {
                 {notes.map((n) => {
                   const noteUrl = n.url;
                   const open = openNote === n.id;
+                  const done = n.progress?.state === 'COMPLETED';
                   return (
                     <Card key={n.id} style={styles.itemCard}>
                       <TouchableOpacity
@@ -226,10 +295,33 @@ export default function ConceptDetailScreen() {
                           <Markdown>{n.description}</Markdown>
                         </View>
                       ) : null}
-                      <TouchableOpacity style={styles.doneBtn} onPress={() => completeContent.mutate(n.id)} accessibilityLabel="Mark as complete" accessibilityRole="button">
-                        <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-                        <Text style={styles.doneBtnText}>Mark as read</Text>
-                      </TouchableOpacity>
+                      {done ? (
+                        <View style={styles.doneRow}>
+                          <View style={[styles.doneBtn, styles.doneBtnInline]}>
+                            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                            <Text style={styles.doneBtnText}>Completed</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => uncompleteContent.mutate(n.id)}
+                            disabled={uncompleteContent.isPending}
+                            accessibilityLabel="Mark as unread"
+                            accessibilityRole="button"
+                          >
+                            <Text style={styles.undoText}>Undo</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.doneBtn}
+                          onPress={() => completeContent.mutate(n.id)}
+                          disabled={completeContent.isPending}
+                          accessibilityLabel="Mark as read"
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name="ellipse-outline" size={16} color={Colors.textSecondary} />
+                          <Text style={[styles.doneBtnText, styles.doneBtnIdle]}>Mark as read</Text>
+                        </TouchableOpacity>
+                      )}
                     </Card>
                   );
                 })}
@@ -421,13 +513,29 @@ const styles = StyleSheet.create({
   section: { marginBottom: Spacing.lg },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
   itemCard: { marginBottom: Spacing.md, padding: Spacing.md },
-  itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm },
+  itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: Spacing.sm },
+  startRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm, marginBottom: Spacing.sm },
+  startChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primary + '12',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  startChipText: { fontSize: 11, fontWeight: '700', color: Colors.primary },
+  startLink: { fontSize: 11, fontWeight: '700', color: Colors.primary, textDecorationLine: 'underline' },
   itemDesc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   itemTitleF: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.text },
   noteRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   noteIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.success + '20', alignItems: 'center', justifyContent: 'center' },
   doneBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'flex-start' },
   doneBtnText: { fontSize: 13, fontWeight: '600', color: Colors.success },
+  doneBtnIdle: { color: Colors.textSecondary },
+  doneRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: Spacing.sm, alignSelf: 'flex-start' },
+  doneBtnInline: { marginTop: 0 },
+  undoText: { fontSize: 13, fontWeight: '600', color: Colors.primary, textDecorationLine: 'underline' },
   revisionCard: { backgroundColor: Colors.amber, borderWidth: 1, borderColor: Colors.amberBorder, padding: Spacing.lg },
   revisionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   revisionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },

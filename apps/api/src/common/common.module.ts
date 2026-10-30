@@ -7,6 +7,7 @@ import { EntitlementService } from '../common/security/entitlement.service';
 import { SystemInstitutionService } from '../common/security/system-institution.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 import { StorageService } from '../common/services/storage.service';
 import { JobQueueService } from '../common/services/job-queue.service';
 import { ContentScopeService } from '../common/content/content-scope.service';
@@ -26,6 +27,7 @@ import { APP_CONFIG_TOKEN } from './common.constants';
     AuditService,
     NotificationsService,
     StudentIdentityService,
+    StudentGradeAccessService,
     StorageService,
     JobQueueService,
     ContentScopeService,
@@ -40,6 +42,7 @@ import { APP_CONFIG_TOKEN } from './common.constants';
     AuditService,
     NotificationsService,
     StudentIdentityService,
+    StudentGradeAccessService,
     StorageService,
     JobQueueService,
     ContentScopeService,

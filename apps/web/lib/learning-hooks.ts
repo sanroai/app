@@ -71,9 +71,15 @@ export interface ContentItem {
   videoId?: string;
   thumbnailUrl?: string;
   durationSeconds?: number;
+  /** This student's own progress row for the item, when one exists. */
+  progress?: { state: string; secondsWatched?: number | null; completedAt?: string | null } | null;
 }
 
 export interface LearningHome {
+  /** Classes the server is showing (union of the student's enrolments). */
+  studentGrades?: string[];
+  /** True for the demo account that opens every class. */
+  allGrades?: boolean;
   boards: Array<{
     id: string;
     name: string;
@@ -105,6 +111,8 @@ export interface ChapterListItem {
   completedContent: number;
   percentComplete: number;
   averageMastery: number;
+  /** The first video lesson's poster - a real frame from this chapter. */
+  thumbnailUrl?: string | null;
 }
 
 export interface ConceptDetail {
@@ -216,6 +224,18 @@ export function useCompleteContent() {
   return useMutation({
     mutationFn: (contentId: string) =>
       api(`/learning/content/${contentId}/complete`, { method: 'POST', token }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['learning'] });
+    },
+  });
+}
+
+export function useUncompleteContent() {
+  const queryClient = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (contentId: string) =>
+      api(`/learning/content/${contentId}/complete`, { method: 'DELETE', token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['learning'] });
     },

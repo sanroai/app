@@ -124,3 +124,13 @@ export function prefetchLibraryItem(client: QueryClient, itemId: string, token: 
     staleTime: PREFETCH_STALE_MS,
   });
 }
+
+/** Prefetch the assessments tab (the ordered learning path). */
+export function prefetchLearningPath(client: QueryClient, token: string | null) {
+  if (!token || !canPrefetch()) return;
+  void client.prefetchQuery({
+    queryKey: ['learning', 'path'],
+    queryFn: () => api<unknown>('/learning/path', { token }),
+    staleTime: PREFETCH_STALE_MS,
+  });
+}

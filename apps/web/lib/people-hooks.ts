@@ -15,6 +15,8 @@ export interface Student {
   phone: string;
   rollNumber: string;
   grade: string;
+  /** Every class the student may read; `grade` is the primary class. */
+  grades?: string[];
   status: string;
   group?: { id: string; name: string };
   user?: { id: string; name: string; email: string };
@@ -95,6 +97,24 @@ export function useActivateStudent() {
       api(`/students/${id}/activate`, { method: 'POST', token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
+    },
+  });
+}
+
+/**
+ * Replace the classes a student may read. `Student.grade` stays the primary
+ * class; this is the set the API gates every chapter, textbook page, practice
+ * set and AI answer on.
+ */
+export function useUpdateStudentClasses(id: string) {
+  const queryClient = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (grades: string[]) =>
+      api<Student>(`/students/${id}`, { method: 'PATCH', body: { grades }, token }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['student', id] });
+      void queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });
 }

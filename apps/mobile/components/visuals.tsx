@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, TouchableOpacity, StyleProp, ViewStyle } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StyleProp, ViewStyle, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Icon3D, hasIcon3D } from './Icon3D';
+import { subjectBanner, subjectMonogram } from '../lib/subject-art';
 import { Colors, Pastel, Ink, BorderRadius, Spacing, Shadow } from '../constants/theme';
 
 export interface SubjectVisual {
@@ -78,37 +79,48 @@ export function SubjectCard({
   name,
   subtitle,
   progress,
+  code,
   onPress,
   style,
 }: {
   name: string;
   subtitle?: string;
   progress?: number;
+  code?: string;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
   const v = resolveSubject(name);
   return (
     <TouchableOpacity style={[styles.subjectCard, { backgroundColor: v.bg }, style]} onPress={onPress} activeOpacity={0.85}>
-      <View style={styles.subjectIconWrap}>
-        <Icon3D name={v.icon} size={40} />
-      </View>
-      <Text style={styles.subjectTitle} numberOfLines={1}>
-        {name}
-      </Text>
-      {subtitle ? (
-        <Text style={styles.subjectSub} numberOfLines={2}>
-          {subtitle}
-        </Text>
-      ) : null}
-      {progress !== undefined ? (
-        <View style={styles.subjectFooter}>
-          <View style={styles.subjectTrack}>
-            <View style={[styles.subjectFill, { width: `${Math.max(2, Math.min(progress, 100))}%`, backgroundColor: v.ink }]} />
-          </View>
-          <Text style={[styles.subjectPct, { color: v.ink }]}>{Math.round(progress)}%</Text>
+      {/* The same photograph the web subject card uses, cropped to the same
+          16:9 box so every card in the grid is exactly the same size. The
+          subject is identified by a typographic monogram, not a glossy icon. */}
+      <View style={styles.subjectBannerWrap}>
+        <Image source={subjectBanner(name, code)} style={styles.subjectBanner} resizeMode="cover" />
+        <View style={[styles.subjectBannerTint, { backgroundColor: v.ink }]} />
+        <View style={styles.subjectMonogram}>
+          <Text style={styles.subjectMonogramText}>{subjectMonogram(name, code)}</Text>
         </View>
-      ) : null}
+      </View>
+      <View style={styles.subjectBody}>
+        <Text style={styles.subjectTitle} numberOfLines={1}>
+          {name}
+        </Text>
+        {subtitle ? (
+          <Text style={styles.subjectSub} numberOfLines={2}>
+            {subtitle}
+          </Text>
+        ) : null}
+        {progress !== undefined ? (
+          <View style={styles.subjectFooter}>
+            <View style={styles.subjectTrack}>
+              <View style={[styles.subjectFill, { width: `${Math.max(2, Math.min(progress, 100))}%`, backgroundColor: v.ink }]} />
+            </View>
+            <Text style={[styles.subjectPct, { color: v.ink }]}>{Math.round(progress)}%</Text>
+          </View>
+        ) : null}
+      </View>
     </TouchableOpacity>
   );
 }
@@ -179,23 +191,47 @@ export function Chevron() {
 const styles = StyleSheet.create({
   subjectCard: {
     borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    minHeight: 148,
-    justifyContent: 'flex-start',
+    overflow: 'hidden',
     ...Shadow.sm,
   },
-  subjectIconWrap: {
-    width: 60,
-    height: 60,
+  subjectBannerWrap: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    backgroundColor: Colors.surfaceSecondary,
+    position: 'relative',
+  },
+  subjectBanner: { width: '100%', height: '100%' },
+  subjectBannerTint: { ...StyleSheet.absoluteFillObject, opacity: 0.16 },
+  subjectBannerIcon: {
+    position: 'absolute',
+    left: 10,
+    bottom: 10,
+    width: 44,
+    height: 44,
     borderRadius: BorderRadius.lg,
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: 'rgba(255,255,255,0.92)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.md,
     ...Shadow.sm,
   },
-  subjectTitle: { fontSize: 17, fontWeight: '700', color: Colors.text },
-  subjectSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 16 },
+  subjectMonogram: {
+    position: 'absolute',
+    left: 10,
+    bottom: 10,
+    minWidth: 44,
+    height: 44,
+    paddingHorizontal: 8,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.45)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subjectMonogramText: { color: '#ffffff', fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  subjectBody: { flex: 1, minHeight: 104, padding: Spacing.md },
+  subjectTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+  subjectSub: { fontSize: 11, color: Colors.textSecondary, marginTop: 2, lineHeight: 15 },
   subjectFooter: { marginTop: 'auto', paddingTop: Spacing.md },
   subjectTrack: { height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.85)', overflow: 'hidden' },
   subjectFill: { height: 6, borderRadius: 3 },

@@ -8,6 +8,8 @@ export type ChatReply = {
   reply: string;
   grounded: boolean;
   sources: string[];
+  /** The model hit its output cap; `reply` already carries the shortened marker. */
+  truncated?: boolean;
 };
 
 export function useChat() {
@@ -15,6 +17,7 @@ export function useChat() {
   return useMutation({
     mutationFn: (data: {
       message: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
       context?: { conceptId?: string; questionId?: string; assessmentId?: string; chapterId?: string };
     }) => api<ChatReply>('/chat/ask-sanro', { method: 'POST', token, body: data }),
   });

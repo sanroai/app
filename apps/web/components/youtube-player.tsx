@@ -52,7 +52,11 @@ export function parseYouTubeId(raw?: string | null): string | null {
   return id && VIDEO_ID_PATTERN.test(id) ? id : null;
 }
 
-export function youTubeEmbedUrl(videoId: string, origin?: string | null): string {
+export function youTubeEmbedUrl(
+  videoId: string,
+  origin?: string | null,
+  startSeconds?: number | null,
+): string {
   // cc_load_policy=0 keeps captions off - without it the embed follows the viewer's
   // own YouTube caption preference and can subtitle over the lesson.
   const params = new URLSearchParams({
@@ -66,6 +70,10 @@ export function youTubeEmbedUrl(videoId: string, origin?: string | null): string
   // YouTube only accepts postMessage commands (seekTo) when the embed knows the
   // page origin, so the origin travels with the embed URL.
   if (origin) params.set('origin', origin);
+  if (typeof startSeconds === 'number' && Number.isFinite(startSeconds) && startSeconds > 0) {
+    params.set('start', String(Math.floor(startSeconds)));
+    params.set('autoplay', '1');
+  }
   return `https://www.youtube.com/embed/${videoId}?${params.toString()}`;
 }
 
@@ -122,18 +130,26 @@ export const YouTubePlayer = forwardRef<
     title: string;
     thumbnailUrl?: string | null;
     durationSeconds?: number | null;
+    /** Start the lesson at this timestamp (concept row deep link). */
+    startSeconds?: number | null;
+    /** Mount the embed immediately instead of the thumbnail. */
+    autoPlay?: boolean;
     className?: string;
   }
 >(function YouTubePlayer(
-  { url, videoId, title, thumbnailUrl, durationSeconds, className },
+  { url, videoId, title, thumbnailUrl, durationSeconds, startSeconds, autoPlay, className },
   ref,
 ) {
   const id = videoId ?? parseYouTubeId(url);
-  const [playing, setPlaying] = useState(false);
+  const initialStart =
+    typeof startSeconds === 'number' && Number.isFinite(startSeconds) && startSeconds > 0
+      ? Math.floor(startSeconds)
+      : 0;
+  const [playing, setPlaying] = useState(autoPlay === true || initialStart > 0);
   const [origin, setOrigin] = useState<string | undefined>(undefined);
-  const [seekNonce, setSeekNonce] = useState(0);
+  const [seekNonce, setSeekNonce] = useState(initialStart > 0 ? 1 : 0);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const pendingSeekRef = useRef<number | null>(null);
+  const pendingSeekRef = useRef<number | null>(initialStart > 0 ? initialStart : null);
   const readyRef = useRef(false);
 
   useEffect(() => {
@@ -235,7 +251,7 @@ export const YouTubePlayer = forwardRef<
       <div className={cn('relative aspect-video w-full bg-black', className)}>
         <iframe
           ref={iframeRef}
-          src={youTubeEmbedUrl(id, origin)}
+          src={youTubeEmbedUrl(id, origin, initialStart)}
           className="absolute inset-0 h-full w-full"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen

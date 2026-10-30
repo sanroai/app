@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 
 @Injectable()
 export class DashboardService {
@@ -12,10 +13,12 @@ export class DashboardService {
     private readonly tenant: TenantAccessService,
     private readonly subscription: SubscriptionAccessService,
     private readonly identity: StudentIdentityService,
+    private readonly gradeAccess: StudentGradeAccessService,
   ) {}
 
   async studentHome(user: RequestUser) {
     const student = await this.identity.requireForUser(user);
+    const access = await this.gradeAccess.forStudentId(student.id);
 
     const [mastery, attempts, assignments, gamification, plans] = await Promise.all([
       this.prisma.conceptMastery.findMany({
@@ -49,7 +52,13 @@ export class DashboardService {
     const weakCount = mastery.filter((m) => m.level === 'WEAK' || m.level === 'NEEDS_INTERVENTION').length;
 
     return {
-      profile: { name: student.name, rollNumber: student.rollNumber, grade: student.grade ?? undefined },
+      profile: {
+        name: student.name,
+        rollNumber: student.rollNumber,
+        grade: student.grade ?? undefined,
+        grades: access.grades,
+        allGrades: access.unrestricted,
+      },
       gamification,
       masterySummary: { avgScore, weakCount, conceptCount: mastery.length },
       weakConcepts: mastery.filter((m) => m.level === 'WEAK' || m.level === 'NEEDS_INTERVENTION').slice(0, 4).map((m) => ({

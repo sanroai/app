@@ -1,21 +1,21 @@
 'use client';
 
-import Image from 'next/image';
 import { useLearningHome } from '@/lib/learning-hooks';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Spinner, ErrorBanner } from '@/components/ui';
-import { subjectArt } from '@/lib/subject-art';
-import { BookOpen, GraduationCap, ChevronRight, Search } from 'lucide-react';
+import { ErrorBanner } from '@/components/ui';
+import { SubjectBanner } from '@/components/subject-banner';
+import { BookOpen, GraduationCap, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
 import { useAuthStore } from '@/lib/auth-store';
 import { PrefetchLink } from '@/components/prefetch-link';
 import { prefetchChapters } from '@/lib/prefetch';
+import { useIdlePrefetch } from '@/lib/use-idle-prefetch';
 
 function SkeletonCard() {
   return (
@@ -33,6 +33,19 @@ export default function LibrarySubjectsPage() {
   const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
   const token = useAuthStore((s) => s.token);
+
+  // The student almost always opens the first card, so its chapters route is
+  // warmed during idle time (the tap then lands on a ready page).
+  const firstSubjectHref = useMemo(() => {
+    for (const board of data?.boards ?? []) {
+      for (const grade of board.grades) {
+        const subject = grade.subjects[0];
+        if (subject) return `/app/learn/${board.id}/${grade.grade}/${subject.id}/chapters`;
+      }
+    }
+    return null;
+  }, [data]);
+  useIdlePrefetch(firstSubjectHref);
 
   if (isLoading) {
     return (
@@ -71,7 +84,8 @@ export default function LibrarySubjectsPage() {
       <div>
         <h1 className="text-2xl font-bold text-surface-900">Browse by subject</h1>
         <p className="mt-1 text-sm text-surface-500">
-          {totalClasses} classes · {totalSubjects} subjects available — select a subject to start learning
+          {data?.allGrades ? 'All classes' : `${totalClasses} classes`} · {totalSubjects} subjects
+          available — select a subject to start learning
         </p>
         <div className="relative mt-4 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
@@ -127,7 +141,6 @@ export default function LibrarySubjectsPage() {
                   </h3>
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredSubjects.map((subject) => {
-                      const art = subjectArt(subject.name, subject.code);
                       const pct =
                         subject.totalContent > 0
                           ? Math.round((subject.completedContent / subject.totalContent) * 100)
@@ -144,39 +157,21 @@ export default function LibrarySubjectsPage() {
                               token,
                             )
                           }
+                          className="block h-full"
                         >
-                        <Card className="group cursor-pointer overflow-hidden border-surface-200 hover:border-brand-300 hover:shadow-lg transition-all">
-                          <CardContent className="p-0">
-                            {/* Subject banner: the cover art plus the subject's own 3D
-                                icon, so a student recognises the subject before
-                                reading the name. */}
-                            <div className="relative h-28 w-full overflow-hidden bg-surface-900">
-                              <Image
-                                src={art.banner}
-                                alt=""
-                                fill
-                                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
-                                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                              />
-                              <div
-                                className="absolute inset-0 mix-blend-soft-light"
-                                style={{ background: `linear-gradient(135deg, ${art.accent}, ${art.accent2})` }}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
-                              <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-4">
-                                <div className="min-w-0">
-                                  <h4 className="truncate font-bold text-white drop-shadow">
-                                    {subject.name}
-                                  </h4>
-                                  <p className="truncate text-[11px] font-medium text-white/75">
-                                    {subject.code}
-                                  </p>
-                                </div>
-                              </div>
-                              <ChevronRight className="absolute right-3 top-3 h-4 w-4 text-white/80 transition-transform group-hover:translate-x-0.5" />
-                            </div>
+                        <Card className="group flex h-full cursor-pointer flex-col overflow-hidden border-surface-200 transition-all hover:border-brand-300 hover:shadow-lg">
+                          <CardContent className="flex flex-1 flex-col p-0">
+                            {/* Subject banner: a real photograph of the subject,
+                                its accent wash and a typographic monogram. Every
+                                card is the same size, so the grid never staggers. */}
+                            <SubjectBanner
+                              name={subject.name}
+                              code={subject.code}
+                              subtitle={subject.code}
+                              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
+                            />
 
-                            <div className="px-4 py-4">
+                            <div className="flex flex-1 flex-col px-4 py-4">
                               <Progress value={pct} className="h-2" />
                               <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
                                 <span>
@@ -186,25 +181,25 @@ export default function LibrarySubjectsPage() {
                               </div>
                             </div>
 
-                            {subject.averageMastery > 0 && (
-                              <div className="border-t border-surface-100 bg-surface-50 px-6 py-3">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-surface-500">Mastery</span>
-                                    <span
-                                      className={cn(
-                                        'font-semibold',
-                                        subject.averageMastery >= 80
-                                          ? 'text-green-600'
-                                          : subject.averageMastery >= 50
-                                            ? 'text-amber-600'
-                                            : 'text-red-600',
-                                      )}
-                                    >
-                                      {subject.averageMastery}%
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
+                            <div className="border-t border-surface-100 bg-surface-50 px-6 py-3">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-surface-500">Mastery</span>
+                                <span
+                                  className={cn(
+                                    'font-semibold',
+                                    subject.averageMastery >= 80
+                                      ? 'text-green-600'
+                                      : subject.averageMastery >= 50
+                                        ? 'text-amber-600'
+                                        : subject.averageMastery > 0
+                                          ? 'text-red-600'
+                                          : 'text-surface-400',
+                                  )}
+                                >
+                                  {subject.averageMastery > 0 ? `${subject.averageMastery}%` : 'Not started'}
+                                </span>
+                              </div>
+                            </div>
                           </CardContent>
                         </Card>
                       </PrefetchLink>
