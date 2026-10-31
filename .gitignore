@@ -84,3 +84,5 @@ chatgpt.md.bak-*
 # local one-off QA scratch (probes worth keeping are named probe-*.mjs / audit-*.mjs)
 scripts/qa/tmp-*
 apps/api/src/routes-for-sweep.txt
+
+# Release binary is uploaded by the Vercel CLI, never stored in git (80 MB) apps/web/public/downloads/*.apk
