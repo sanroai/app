@@ -11,7 +11,10 @@ config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, 'node_modules'),
   path.resolve(workspaceRoot, 'node_modules'),
 ];
-config.server.unstable_serverRoot = workspaceRoot;
+// The server root stays the app directory. Pointing it at the workspace root made
+// `expo export:embed` resolve `./index.js` from the monorepo root, so a release
+// build failed with "Unable to resolve module ./index.js from D:\sanroaiapp".
+config.server.unstable_serverRoot = projectRoot;
 
 // pnpm writes and deletes transient task-run state under node_modules while it
 // runs (`start.lock`, `*.jsonl`, `latest.json`). Metro crawls the whole
