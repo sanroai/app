@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, type ContentItem, type ConceptDetail } from '@/lib/learning-hooks';
@@ -16,6 +17,7 @@ import { VideoWithSegments } from '@/components/video-segments';
 import { Markdown } from '@/components/markdown';
 import { useChapterHub } from '@/lib/chapter-hooks';
 import { normalizeSegments, formatTimestamp, sectionStartForConcept, type VideoSegment } from '@/lib/video-segments';
+import { subjectArt, subjectBannerFor } from '@/lib/subject-art';
 import {
   ChevronRight,
   ChevronLeft,
@@ -195,24 +197,46 @@ export default function ConceptDetailPage() {
         <span className="text-surface-400">{topicName}</span>
       </nav>
 
-      {/* Header */}
-      <div className="flex items-start gap-3">
+      {/* Hero: the class+subject artwork behind the concept name, so the concept
+          page opens like the chapter hub instead of a flat purple block. */}
+      <div className="relative overflow-hidden rounded-3xl border border-surface-200 shadow-card">
+        <div className="relative aspect-[16/9] w-full sm:aspect-[21/7]">
+          <Image
+            src={subjectBannerFor(subjectArt(concept.chapter.subject?.name, concept.chapter.subject?.code), concept.chapter.grade)}
+            alt=""
+            fill
+            sizes="(max-width: 1280px) 100vw, 960px"
+            className="object-cover"
+            priority
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10" />
+        <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-end justify-between gap-3 p-4 sm:p-6">
+          <div className="min-w-0">
+            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-white/70">
+              {concept.chapter.subject?.name ?? 'Subject'} · Class {concept.chapter.grade}
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-extrabold leading-tight text-white drop-shadow sm:text-4xl">
+              {concept.name}
+            </h1>
+            <p className="mt-1 text-sm font-medium text-white/80">
+              {chapterName} &middot; {topicName}
+            </p>
+          </div>
+          {mastery && (
+            <div className="rounded-2xl bg-white/15 px-4 py-2 text-center backdrop-blur-sm">
+              <p className="text-2xl font-extrabold text-white">{mastery.score}%</p>
+              <p className="text-[10px] font-bold tracking-wide text-white/70">MASTERY</p>
+            </div>
+          )}
+        </div>
         <Link
           href="/app/library"
-          className="mt-1 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
+          aria-label="Go back to Library"
+          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-white/30 bg-black/30 text-white backdrop-blur-sm transition-all hover:bg-black/45"
         >
           <ChevronLeft className="h-4 w-4" />
         </Link>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-surface-900">{concept.name}</h1>
-          <p className="mt-1 text-sm text-surface-500">{chapterName} &middot; {topicName}</p>
-        </div>
-        {mastery && (
-          <div className={cn('rounded-2xl px-4 py-2 text-center', masteryStyle?.bg ?? 'bg-surface-50')}>
-            <p className={cn('text-2xl font-bold', masteryStyle?.color ?? 'text-surface-900')}>{mastery.score}%</p>
-            <p className="text-[10px] font-medium text-surface-400">MASTERY</p>
-          </div>
-        )}
       </div>
 
       {/* Mastery Progress */}
@@ -579,12 +603,15 @@ export default function ConceptDetailPage() {
               <Button
                 className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
                 onClick={() => {
+                  // The API tops a thin concept up from its chapter, so the count
+                  // is only a request - a concept with no questions of its own is
+                  // still practisable.
                   startPractice.mutate(
-                    { conceptId, questionCount: Math.min(questions.length, 10) },
+                    { conceptId, questionCount: Math.min(Math.max(questions.length, 5), 10) },
                     { onSuccess: (data) => router.push(`/app/learn/practice/${data.practiceId}`) }
                   );
                 }}
-                disabled={startPractice.isPending || questions.length === 0}
+                disabled={startPractice.isPending}
               >
                 {startPractice.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Play className="h-4 w-4 mr-2" />}
                 Start Practice

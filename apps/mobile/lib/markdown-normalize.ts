@@ -172,6 +172,28 @@ export function normalizeMarkdown(input: string): string {
 }
 
 /**
+ * The notes as a student would paste them: the same text the page renders, with
+ * the Markdown syntax removed (heading hashes, emphasis markers, link brackets).
+ * Mirrors `markdownToPlainText` in `apps/web/lib/markdown-normalize.ts`.
+ */
+export function markdownToPlainText(input: string): string {
+  return normalizeMarkdown(input)
+    .replace(/```[a-z]*\n?([\s\S]*?)```/gi, '$1')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1$2')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/^>\s?/gm, '')
+    .replace(/^[-*+]\s+/gm, '- ')
+    .replace(/[ \t]+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
  * A single newline is a line break in a chat reply, not a soft wrap.
  *
  * Markdown joins "Step 1: a = 1\nStep 2: b = 2" into one paragraph, so a worked

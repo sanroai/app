@@ -120,7 +120,13 @@ export interface ConceptDetail {
   name: string;
   description?: string;
   topic: { id: string; name: string };
-  chapter: { id: string; name: string; grade: string };
+  chapter: {
+    id: string;
+    name: string;
+    grade: string;
+    code?: string;
+    subject?: { id: string; name: string; code: string };
+  };
   mastery: { level: string; score: number; attempts: number } | null;
   content: ContentItem[];
   practiceQuestions: Array<{

@@ -27,6 +27,20 @@ let m;
 while ((m = re.exec(seed)) !== null) {
   entries.push({ lesson: m[1].replace(/\\'/g, "'"), videoId: m[2] });
 }
+
+// Primary English (classes 1-4) lives in its own module: video ids and durations
+// are keyed by chapter code there, so they are collected separately.
+try {
+  const primary = await readFile('apps/api/prisma/primary-english.ts', 'utf8');
+  const idRe = /'(ENG-[1-4]-[1-5])':\s*'([A-Za-z0-9_-]{6,20})'/g;
+  let p;
+  while ((p = idRe.exec(primary)) !== null) {
+    entries.push({ lesson: `${p[1]} - Video Lesson`, videoId: p[2] });
+  }
+} catch {
+  // module not present - nothing to add
+}
+
 console.log(`seeded videos found: ${entries.length}`);
 
 async function durationOf(videoId) {

@@ -2,6 +2,7 @@ import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Image } from 'rea
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useChapters, ChapterItem } from '../../../../lib/hooks';
+import { subjectBanner } from '../../../../lib/subject-art';
 import { Colors, Spacing, BorderRadius } from '../../../../constants/theme';
 import { EmptyState } from '../../../../components/EmptyState';
 import { Card } from '../../../../components/Card';
@@ -16,8 +17,19 @@ export default function SubjectChaptersScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{data?.subject?.name ?? 'Subject'}</Text>
-        <Text style={styles.headerSub}>Class {grade} • {chapters.length} chapters</Text>
+        <View style={styles.headerThumbWrap}>
+          <Image
+            source={subjectBanner(data?.subject?.name ?? 'Subject', data?.subject?.code, grade)}
+            style={styles.headerThumb}
+            resizeMode="cover"
+          />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {data?.subject?.name ?? 'Subject'}
+          </Text>
+          <Text style={styles.headerSub}>Class {grade} • {chapters.length} chapters</Text>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -85,9 +97,27 @@ export default function SubjectChaptersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: { backgroundColor: Colors.primary, paddingHorizontal: Spacing.lg, paddingTop: Spacing.xl, paddingBottom: Spacing.lg, borderBottomLeftRadius: BorderRadius.xxl, borderBottomRightRadius: BorderRadius.xxl },
-  headerTitle: { color: Colors.white, fontSize: 24, fontWeight: '700' },
-  headerSub: { color: Colors.primaryLight, fontSize: 13, marginTop: 2 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerThumbWrap: {
+    width: 104,
+    height: 78,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  headerThumb: { width: '100%', height: '100%' },
+  headerText: { flex: 1 },
+  headerTitle: { color: Colors.text, fontSize: 20, fontWeight: '700' },
+  headerSub: { color: Colors.textSecondary, fontSize: 13, marginTop: 2 },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   chapterCard: { marginBottom: Spacing.md, padding: 0, overflow: 'hidden' },
   thumbWrap: { width: '100%', aspectRatio: 16 / 9, backgroundColor: Colors.surfaceSecondary, position: 'relative' },

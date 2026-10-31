@@ -33,10 +33,12 @@ import {
   ArrowRight,
   BookOpen,
   Brain,
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Copy,
   Download,
   FileDown,
   FileText,
@@ -48,6 +50,7 @@ import {
   Video,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { markdownToPlainText } from '@/lib/markdown-normalize';
 
 const MASTERY_STYLE: Record<string, string> = {
   MASTERED: 'bg-green-100 text-green-700',
@@ -82,7 +85,8 @@ export default function ChapterHubPage() {
   const pdf = useChapterPdf();
   const textbook = useChapterPages(chapterId);
   const [readerOpen, setReaderOpen] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(true);
+  const [notesCopied, setNotesCopied] = useState(false);
   const queryClient = useQueryClient();
   const token = useAuthStore((s) => s.token);
 
@@ -97,6 +101,29 @@ export default function ChapterHubPage() {
     if (!pending.length) return null;
     return [...pending].sort((a, b) => (a.mastery?.score ?? 0) - (b.mastery?.score ?? 0))[0];
   }, [chapter]);
+
+  /**
+   * Copy the chapter notes as plain text: students paste the revision sheet into
+   * their own notes app, so the Markdown syntax is stripped first.
+   */
+  const copyNotes = async () => {
+    if (!chapter?.summary) return;
+    const text = markdownToPlainText(chapter.summary);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.style.position = 'fixed';
+      area.style.opacity = '0';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      document.body.removeChild(area);
+    }
+    setNotesCopied(true);
+    window.setTimeout(() => setNotesCopied(false), 2000);
+  };
 
   if (isLoading) {
     return (
@@ -545,26 +572,40 @@ export default function ChapterHubPage() {
         </Card>
       </section>
 
-      {/* Chapter notes - the revision sheet, collapsed by default because
-          reading it should be a choice, not the first screenful. */}
+      {/* Chapter notes - open by default: the revision sheet is the last thing on
+          the page, so a student who scrolls here wants to read it. */}
       <section>
-        <button
-          type="button"
-          onClick={() => setNotesOpen((open) => !open)}
-          aria-expanded={notesOpen}
-          className="mb-3 flex w-full items-center justify-between gap-3 text-left"
-        >
-          <h2 className="flex items-center gap-2 text-lg font-bold text-surface-900">
-            <FileText className="h-5 w-5 text-emerald-600" />
-            Chapter notes
-          </h2>
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600">
-            {notesOpen ? 'Hide' : 'Show'}
-            <ChevronRight
-              className={cn('h-4 w-4 transition-transform', notesOpen && 'rotate-90')}
-            />
-          </span>
-        </button>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setNotesOpen((open) => !open)}
+            aria-expanded={notesOpen}
+            className="flex items-center gap-3 text-left"
+          >
+            <h2 className="flex items-center gap-2 text-lg font-bold text-surface-900">
+              <FileText className="h-5 w-5 text-emerald-600" />
+              Chapter notes
+            </h2>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600">
+              {notesOpen ? 'Hide' : 'Show'}
+              <ChevronRight
+                className={cn('h-4 w-4 transition-transform', notesOpen && 'rotate-90')}
+              />
+            </span>
+          </button>
+          {chapter.summary ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={copyNotes}
+              className="shrink-0 rounded-xl"
+            >
+              {notesCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              {notesCopied ? 'Copied' : 'Copy notes'}
+            </Button>
+          ) : null}
+        </div>
         {notesOpen ? (
           <Card>
             <CardContent className="p-5">

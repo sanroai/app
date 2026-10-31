@@ -4,93 +4,303 @@
   "assets": [
     {
       "key": "subject-science",
-      "file": "subject-science-a.jpg",
-      "variant": "left",
-      "width": 1600,
-      "height": 640,
+      "file": "subject-science-1.jpg",
+      "variant": 1,
+      "width": 1200,
+      "height": 480,
       "accent": "#06b6d4",
-      "photo": "photos/subject-science.jpg",
-      "bytes": 109547
+      "photo": null,
+      "bytes": 71111
     },
     {
       "key": "subject-science",
-      "file": "subject-science-b.jpg",
-      "variant": "centre",
-      "width": 1600,
-      "height": 640,
+      "file": "subject-science-2.jpg",
+      "variant": 2,
+      "width": 1200,
+      "height": 480,
       "accent": "#06b6d4",
-      "photo": "photos/subject-science.jpg",
-      "bytes": 88043
+      "photo": null,
+      "bytes": 68656
     },
     {
       "key": "subject-science",
-      "file": "subject-science-c.jpg",
-      "variant": "right",
-      "width": 1600,
-      "height": 640,
+      "file": "subject-science-3.jpg",
+      "variant": 3,
+      "width": 1200,
+      "height": 480,
       "accent": "#06b6d4",
-      "photo": "photos/subject-science.jpg",
-      "bytes": 92120
+      "photo": null,
+      "bytes": 70108
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-4.jpg",
+      "variant": 4,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 68503
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-5.jpg",
+      "variant": 5,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 68471
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-6.jpg",
+      "variant": 6,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 64009
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-7.jpg",
+      "variant": 7,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 72733
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-8.jpg",
+      "variant": 8,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 79892
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-9.jpg",
+      "variant": 9,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 68399
+    },
+    {
+      "key": "subject-science",
+      "file": "subject-science-10.jpg",
+      "variant": 10,
+      "width": 1200,
+      "height": 480,
+      "accent": "#06b6d4",
+      "photo": null,
+      "bytes": 68987
     },
     {
       "key": "subject-mathematics",
-      "file": "subject-mathematics-a.jpg",
-      "variant": "left",
-      "width": 1600,
-      "height": 640,
-      "accent": "#10b981",
-      "photo": "photos/subject-mathematics.jpg",
-      "bytes": 211953
+      "file": "subject-mathematics-1.jpg",
+      "variant": 1,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 121721
     },
     {
       "key": "subject-mathematics",
-      "file": "subject-mathematics-b.jpg",
-      "variant": "centre",
-      "width": 1600,
-      "height": 640,
-      "accent": "#10b981",
-      "photo": "photos/subject-mathematics.jpg",
-      "bytes": 192139
+      "file": "subject-mathematics-2.jpg",
+      "variant": 2,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 110343
     },
     {
       "key": "subject-mathematics",
-      "file": "subject-mathematics-c.jpg",
-      "variant": "right",
-      "width": 1600,
-      "height": 640,
-      "accent": "#10b981",
-      "photo": "photos/subject-mathematics.jpg",
-      "bytes": 176382
+      "file": "subject-mathematics-3.jpg",
+      "variant": 3,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 99874
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-4.jpg",
+      "variant": 4,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 81812
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-5.jpg",
+      "variant": 5,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 101546
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-6.jpg",
+      "variant": 6,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 107423
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-7.jpg",
+      "variant": 7,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 126527
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-8.jpg",
+      "variant": 8,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 109371
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-9.jpg",
+      "variant": 9,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 122055
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics-10.jpg",
+      "variant": 10,
+      "width": 1200,
+      "height": 480,
+      "accent": "#6366f1",
+      "photo": null,
+      "bytes": 106419
     },
     {
       "key": "subject-english",
-      "file": "subject-english-a.jpg",
-      "variant": "left",
-      "width": 1600,
-      "height": 640,
+      "file": "subject-english-1.jpg",
+      "variant": 1,
+      "width": 1200,
+      "height": 480,
       "accent": "#f59e0b",
-      "photo": "photos/subject-english.jpg",
-      "bytes": 101218
+      "photo": null,
+      "bytes": 87802
     },
     {
       "key": "subject-english",
-      "file": "subject-english-b.jpg",
-      "variant": "centre",
-      "width": 1600,
-      "height": 640,
+      "file": "subject-english-2.jpg",
+      "variant": 2,
+      "width": 1200,
+      "height": 480,
       "accent": "#f59e0b",
-      "photo": "photos/subject-english.jpg",
-      "bytes": 92308
+      "photo": null,
+      "bytes": 90228
     },
     {
       "key": "subject-english",
-      "file": "subject-english-c.jpg",
-      "variant": "right",
-      "width": 1600,
-      "height": 640,
+      "file": "subject-english-3.jpg",
+      "variant": 3,
+      "width": 1200,
+      "height": 480,
       "accent": "#f59e0b",
-      "photo": "photos/subject-english.jpg",
-      "bytes": 87329
+      "photo": null,
+      "bytes": 89737
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-4.jpg",
+      "variant": 4,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 77816
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-5.jpg",
+      "variant": 5,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 86932
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-6.jpg",
+      "variant": 6,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 80956
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-7.jpg",
+      "variant": 7,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 89748
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-8.jpg",
+      "variant": 8,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 87493
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-9.jpg",
+      "variant": 9,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 88196
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english-10.jpg",
+      "variant": 10,
+      "width": 1200,
+      "height": 480,
+      "accent": "#f59e0b",
+      "photo": null,
+      "bytes": 87444
     },
     {
       "key": "chapter-banner",

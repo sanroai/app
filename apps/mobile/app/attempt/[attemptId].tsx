@@ -161,6 +161,35 @@ export default function AttemptScreen() {
             <Text style={styles.statLabel}>Skipped</Text>
           </View>
         </View>
+
+        {/* What to fix next: the concepts behind the wrong answers, each one tap
+            from practice. The result screen used to stop at the score. */}
+        {data.weakConcepts && data.weakConcepts.length > 0 ? (
+          <View style={styles.fixCard}>
+            <Text style={styles.fixTitle}>What to fix next</Text>
+            <Text style={styles.fixSub}>These concepts carried the answers you missed.</Text>
+            <View style={styles.fixChips}>
+              {data.weakConcepts.map((concept) => (
+                <TouchableOpacity
+                  key={concept.id}
+                  style={styles.fixChip}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/concept/[conceptId]',
+                      params: { conceptId: concept.id, tab: 'practice' },
+                    })
+                  }
+                >
+                  <Ionicons name="play-circle-outline" size={14} color={Colors.primary} />
+                  <Text style={styles.fixChipText} numberOfLines={1}>
+                    {concept.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <Text style={styles.reviewTitle}>Answer review</Text>
         {data.questions.map((q) => (
           <View key={q.id} style={styles.reviewCard}>
@@ -283,6 +312,12 @@ const styles = StyleSheet.create({
   scoreCircle: { width: 150, height: 150, borderRadius: 75, borderWidth: 8, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginTop: Spacing.xl },
   scoreNum: { fontSize: 26, fontWeight: '800' },
   scorePct: { fontSize: 14, fontWeight: '700', color: Colors.textSecondary, marginTop: 2 },
+  fixCard: { marginHorizontal: Spacing.lg, marginTop: Spacing.lg, borderRadius: BorderRadius.xl, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface, padding: Spacing.lg },
+  fixTitle: { fontSize: 15, fontWeight: '800', color: Colors.text },
+  fixSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  fixChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: Spacing.md },
+  fixChip: { flexDirection: 'row', alignItems: 'center', gap: 5, maxWidth: '100%', borderRadius: BorderRadius.full, backgroundColor: Colors.primaryLight + '22', paddingHorizontal: 12, paddingVertical: 7 },
+  fixChipText: { fontSize: 12, fontWeight: '700', color: Colors.primary, maxWidth: 220 },
   statsRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.xl },
   stat: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, paddingVertical: Spacing.md, alignItems: 'center' },
   statVal: { fontSize: 20, fontWeight: '700', color: Colors.text },

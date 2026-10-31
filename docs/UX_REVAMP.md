@@ -59,16 +59,27 @@ are correct here.
 ## 4. Subject + chapter artwork
 
 - **Subject cards** (`/app/library/subjects`): a 16:9 banner per subject (science,
-  mathematics, english, plus a neutral fallback), name and code over the dark
-  bottom band. The subject banner carries **no** 3D icon anymore — the card sets a
-  typographic monogram (`SCI` / `MAT` / `ENG`) instead, because a sentence-case
-  subject name next to a small glossy object read as a sticker.
-- **Every class gets its own framing** (2026-10-30). A subject repeats in ten
-  classes, so one photograph made ten identical cards. Each subject now ships three
-  framings (`-a` wide / `-b` mirrored closer / `-c` close-up, produced by the same
-  script from the class's photo) and each class takes one deterministically
-  (`classSubjectVariant`, mirrored on web and mobile), plus a large ghost class
-  numeral on the banner. Same subject identity, different picture.
+  mathematics, english, plus a neutral fallback), with the subject name and code
+  printed **under** the picture. The subject banner carries **no** 3D icon anymore —
+  the card sets a typographic monogram (`SCI` / `MAT` / `ENG`) instead, because a
+  sentence-case subject name next to a small glossy object read as a sticker.
+- **Every class gets its own picture** (2026-10-30). A subject repeats in ten
+  classes, so one photograph made ten identical cards. Each subject now ships **ten**
+  framings (`subject-<name>-1.jpg` … `-10.jpg`, one per class, produced by the same
+  script: a different crop window, zoom depth and mirror each time) and class *N*
+  takes framing *N* deterministically (`classSubjectVariant`, mirrored on web and
+  mobile), plus a large ghost class numeral on the banner. No two classes of a
+  subject ever show the same image, and the subject identity (photo, accent,
+  monogram) survives.
+- The name is printed **under** the picture on the subject card (`showName={false}`):
+  the banner is artwork, and a second title over it competed with the monogram.
+- **Chapter list header** (after tapping a subject): a compact card with that
+  class+subject picture, the subject name and "Class N · X chapters" on web, and the
+  same thumbnail row on mobile — the thumbnail is never missing after tapping in.
+- **Chapter notes are open by default** on both platforms (the revision sheet is the
+  last section, so a student who scrolls there wants to read it) and can be copied:
+  **Copy notes** on web copies the plain-text version (Markdown stripped), mobile
+  text is selectable so a long-press copies it.
 - **Chapter hub** (web `/app/learn/chapters/[id]`, mobile `/chapter/[id]`): the
   same subject banner becomes the header, so opening a chapter feels like opening
   a book. Progress percentage sits in a translucent pill on the right.

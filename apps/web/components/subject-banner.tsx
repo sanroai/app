@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 import { subjectArt, subjectBannerFor } from '@/lib/subject-art';
+import { cn } from '@/lib/cn';
 
 /**
  * Three letters that stand for a subject ("SCI", "MAT", "ENG").
@@ -30,16 +31,33 @@ interface SubjectBannerProps {
   /** The line under the name ("Class 10 · 40 lessons"). */
   subtitle?: string;
   sizes?: string;
+  /** Tailwind aspect class for the tile - a wide banner when used as a header. */
+  aspect?: string;
+  /**
+   * Set false when the card prints the name under the picture: lesson frames
+   * already carry their own captions, and two titles on one image collide.
+   */
+  showName?: boolean;
   showChevron?: boolean;
 }
 
 /** The shared subject thumbnail: photograph, accent wash, monogram, name. */
-export function SubjectBanner({ name, code, grade, subtitle, sizes, showChevron = true }: SubjectBannerProps) {
+export function SubjectBanner({
+  name,
+  code,
+  grade,
+  subtitle,
+  sizes,
+  aspect = 'aspect-[16/9]',
+  showName = true,
+  showChevron = true,
+}: SubjectBannerProps) {
   const art = subjectArt(name, code);
+  const src = subjectBannerFor(art, grade);
   return (
-    <div className="relative aspect-[16/9] w-full overflow-hidden bg-surface-900">
+    <div className={cn('relative w-full overflow-hidden bg-surface-900', aspect)}>
       <Image
-        src={subjectBannerFor(art, grade)}
+        src={src}
         alt=""
         fill
         sizes={sizes ?? '(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px'}
@@ -49,18 +67,20 @@ export function SubjectBanner({ name, code, grade, subtitle, sizes, showChevron 
         className="absolute inset-0 mix-blend-soft-light"
         style={{ background: `linear-gradient(135deg, ${art.accent}, ${art.accent2})` }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
       <span className="absolute left-4 top-4 inline-flex h-11 min-w-11 items-center justify-center rounded-2xl border border-white/35 bg-white/15 px-2 text-[13px] font-extrabold tracking-[0.08em] text-white backdrop-blur-sm">
         {subjectMonogram(name, code)}
       </span>
-      <div className="absolute inset-x-0 bottom-0 p-4 pr-14">
-        <h4 className="truncate font-display text-[17px] font-bold leading-tight text-white drop-shadow">
-          {name}
-        </h4>
-        {subtitle ? (
-          <p className="mt-0.5 truncate text-[11px] font-medium text-white/75">{subtitle}</p>
-        ) : null}
-      </div>
+      {showName ? (
+        <div className="absolute inset-x-0 bottom-0 p-4 pr-14">
+          <h4 className="truncate font-display text-[17px] font-bold leading-tight text-white drop-shadow">
+            {name}
+          </h4>
+          {subtitle ? (
+            <p className="mt-0.5 truncate text-[11px] font-medium text-white/75">{subtitle}</p>
+          ) : null}
+        </div>
+      ) : null}
       {grade !== undefined && grade !== null ? (
         <span
           aria-hidden="true"

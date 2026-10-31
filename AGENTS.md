@@ -136,18 +136,27 @@ Guard: `node scripts/qa/probe-multi-class.mjs`.
 
 Classes 1-7 carry chapters, concepts, one video lesson and questions but **no NCERT book**
 (only 8-10 are extracted), so their textbook routes return `pdfUrl: null` / `count: 0` and both
-clients say so instead of showing an empty reader.
+clients say so instead of showing an empty reader. The primary classes do have the full three
+subjects now: Science, Mathematics and English (see `## CBSE Curriculum`).
 
-## Subject thumbnails — designed, never emoji
+## Subject thumbnails — designed, never emoji, one picture per class
 A subject card is a real photograph + the subject's accent wash + a typographic **monogram**
 (`SCI` / `MAT` / `ENG`, `subjectMonogram` in `apps/web/components/subject-banner.tsx` and
-`apps/mobile/lib/subject-art.ts`) with the subject name set on the banner. There is no glossy
-3D/emoji icon in a subject or chapter thumbnail on either platform — a sentence-case subject
-name next to a small rendered object reads as a sticker. Both platforms render the same
-`SUBJECT_ART` banners and the same three letters, in the same 16:9 box. The banner artwork
-itself (`scripts/qa/build-brand-art.mjs`) carries **no icon** for `subject-*` — only the
-photo, the wash and the faint motif; `chapter-banner` and `dashboard-hero` still composite
-their own icon. Re-run `node scripts/qa/build-brand-art.mjs` after changing a photo.
+`apps/mobile/lib/subject-art.ts`) with the subject name printed **under** the picture (a title
+over the artwork competed with the monogram). There is no glossy 3D/emoji icon in a subject or
+chapter thumbnail on either platform — a sentence-case subject name next to a small rendered
+object reads as a sticker. Both platforms render the same `SUBJECT_ART` banners and the same
+three letters, in the same 16:9 box. The banner artwork itself
+(`scripts/qa/build-brand-art.mjs`) carries **no icon** for `subject-*` — only the photo, the
+wash and the faint motif; `chapter-banner` and `dashboard-hero` still composite their own icon.
+
+**Every class has its own image.** A subject repeats in ten classes, so one photograph made ten
+identical cards. Each subject now ships ten framings (`subject-<name>-1.jpg` … `-10.jpg`, one per
+class: a different crop window, zoom depth and mirror) and class *N* takes framing *N*
+(`classSubjectVariant` + `subjectBannerFor` / `subjectBanner`, mirrored on both platforms), plus a
+large ghost class numeral. No two classes of a subject ever show the same picture. Re-run
+`node scripts/qa/build-brand-art.mjs` after changing a photo (32 files, ~80 KB each) and clear
+`apps/web/.next/cache/images` so Next does not serve the old JPEGs.
 
 ## Chapter hub + chapter markers
 The concept page's parent is the **chapter hub** (`/app/learn/chapters/[chapterId]` web,
@@ -512,9 +521,10 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
-- Seeded: **209 chapters**, **1009 concepts**, **503 topics**, **221 video + 221 notes lessons**
-  and **1229 practice questions**. Every chapter in every class carries at least one video, one
-  notes lesson and three questions.
+- Seeded: **229 chapters**, **1089 concepts**, **543 topics**, **241 video + 241 notes lessons**
+  and **1335 practice questions** (1309 plus 26 authored top-ups in
+  `apps/api/prisma/question-topups.ts` for the chapters that only had three). Every chapter in
+  every class carries at least one video, one notes lesson and three questions.
   - Class 10: 13 Science + 15 Math + 9 English chapters (the 2026 maths book has **14**
     chapters - *Constructions* was rationalised out - so `MAT-10-1..14` follow the book and
     *Constructions* is `MAT-10-15`, the one chapter with no textbook PDF)
@@ -524,11 +534,13 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
     (the new class-8 books - Curiosity, Ganita Prakash, Poorvi - are seeded)
   - Classes 5-7: Science + Mathematics + English (5: 10 + 15 + 10, 6: 12 + 10 + 5,
     7: 12 + 15 + 5 chapters)
-  - Classes 1-4: 2 Science + 2 Mathematics chapters each (class 3 Science has 3), one video, one
-    notes lesson and four questions per chapter
+  - Classes 1-4: **all three subjects**. English was missing from the primary classes and is now
+    seeded from `apps/api/prisma/primary-english.ts` (5 Marigold chapters per class: the poem and
+    the story of each unit, with concepts, a real NCERT-aligned video, notes and four questions).
+    Science + Mathematics stay at 2 chapters each (class 3 Science has 3)
 - **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
   the seed are the real YouTube lengths, enforced by `audit-video-durations.mjs --min 120`.
-- All ten classes are **practisable**: 1229 questions cover every chapter (class 1-4: 16/16/20/16,
+- All ten classes are **practisable**: 1335 questions cover every chapter (class 1-4: 36/36/40/36,
   class 5: 180, class 6: 152, class 7: 148, class 8: 122, class 9: 152, class 10: 407), authored
   from the chapter's own textbook text where a book exists. The chapter-coverage audit
   (`audit-question-coverage.mjs`) fails when any chapter loses its questions. Class 10 carries

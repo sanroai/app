@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useChapterHub, useStartPractice } from '../../lib/hooks';
 import { subjectBanner } from '../../lib/subject-art';
+import { markdownToPlainText } from '../../lib/markdown-normalize';
 import { absoluteApiUrl, apiAuthed } from '../../lib/api';
 import {
   conceptStatusLabel,
@@ -39,7 +41,8 @@ export default function ChapterHubScreen() {
   const { data: chapter, isLoading, error, refetch } = useChapterHub(chapterId);
   const startPractice = useStartPractice();
   const [pdfBusy, setPdfBusy] = useState(false);
-  const [notesOpen, setNotesOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(true);
+  const [notesCopied, setNotesCopied] = useState(false);
 
   const concepts = useMemo<ChapterConcept[]>(() => chapter?.concepts ?? [], [chapter]);
   const videos = useMemo(() => chapter?.videos ?? [], [chapter]);
@@ -113,6 +116,21 @@ export default function ChapterHubScreen() {
       Alert.alert('Textbook', e.message ?? 'Could not open the chapter textbook. Try again in a moment.');
     } finally {
       setPdfBusy(false);
+    }
+  };
+
+  /**
+   * Copy the chapter notes as plain text (Markdown stripped), the same text the
+   * web "Copy notes" button puts on the clipboard.
+   */
+  const copyNotes = async () => {
+    if (!chapter?.summary) return;
+    try {
+      await Clipboard.setStringAsync(markdownToPlainText(chapter.summary));
+      setNotesCopied(true);
+      setTimeout(() => setNotesCopied(false), 2000);
+    } catch {
+      Alert.alert('Notes', 'Could not copy the notes on this device.');
     }
   };
 
@@ -431,25 +449,44 @@ export default function ChapterHubScreen() {
           </Card>
         </View>
 
-        {/* Chapter notes - the reference sheet, one tap away */}
+        {/* Chapter notes - the reference sheet, open by default and copyable */}
         <View style={styles.section}>
-          <TouchableOpacity
-            style={styles.sectionHead}
-            onPress={() => setNotesOpen((open) => !open)}
-            accessibilityRole="button"
-            accessibilityLabel={notesOpen ? 'Hide chapter notes' : 'Show chapter notes'}
-            accessibilityState={{ expanded: notesOpen }}
-          >
-            <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Chapter notes</Text>
-            <View style={styles.notesToggle}>
-              <Text style={styles.notesToggleText}>{notesOpen ? 'Hide' : 'Show'}</Text>
-              <Ionicons name={notesOpen ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
+          <View style={styles.sectionHead}>
+            <TouchableOpacity
+              style={styles.notesToggleHit}
+              onPress={() => setNotesOpen((open) => !open)}
+              accessibilityRole="button"
+              accessibilityLabel={notesOpen ? 'Hide chapter notes' : 'Show chapter notes'}
+              accessibilityState={{ expanded: notesOpen }}
+            >
+              <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Chapter notes</Text>
+              <View style={styles.notesToggle}>
+                <Text style={styles.notesToggleText}>{notesOpen ? 'Hide' : 'Show'}</Text>
+                <Ionicons name={notesOpen ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.primary} />
+              </View>
+            </TouchableOpacity>
+            {chapter.summary ? (
+              <TouchableOpacity
+                style={[styles.copyButton, notesCopied && styles.copyButtonDone]}
+                onPress={copyNotes}
+                accessibilityRole="button"
+                accessibilityLabel="Copy chapter notes"
+              >
+                <Ionicons
+                  name={notesCopied ? 'checkmark' : 'copy-outline'}
+                  size={14}
+                  color={notesCopied ? Colors.success : Colors.primary}
+                />
+                <Text style={[styles.copyButtonText, notesCopied && styles.copyButtonTextDone]}>
+                  {notesCopied ? 'Copied' : 'Copy'}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
           {notesOpen ? (
             <Card style={styles.notesCard}>
               {chapter.summary ? (
-                <Markdown>{chapter.summary}</Markdown>
+                <Markdown selectable>{chapter.summary}</Markdown>
               ) : (
                 <Text style={styles.mutedText}>
                   The notes for this chapter are being prepared. The video lessons and concept summaries cover the
@@ -534,6 +571,21 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   sectionCount: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
+  notesToggleHit: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.primaryLight,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  copyButtonDone: { borderColor: '#a7f3d0', backgroundColor: '#ecfdf5' },
+  copyButtonText: { fontSize: 12, fontWeight: '800', color: Colors.primary },
+  copyButtonTextDone: { color: '#047857' },
   progressCard: { padding: Spacing.lg },
   progressTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: Spacing.lg },
   progressLabel: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
@@ -571,6 +623,7 @@ const styles = StyleSheet.create({
   actionTitle: { fontSize: 14, fontWeight: '600', color: Colors.text },
   actionSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   notesCard: { padding: Spacing.lg },
+  copyHint: { fontSize: 11, color: Colors.textMuted, marginTop: Spacing.sm },
   notesHint: { fontSize: 12, color: Colors.textSecondary, paddingHorizontal: 2 },
   notesToggle: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   notesToggleText: { fontSize: 12, fontWeight: '700', color: Colors.primary },

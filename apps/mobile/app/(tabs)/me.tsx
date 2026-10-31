@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { useAuthStore } from '../../lib/auth-store';
-import { useGamificationProfile, useAchievements, useLearningProgress, useUserDisplayRole } from '../../lib/hooks';
+import { useGamificationProfile, useAchievements, useLearningProgress, useUserDisplayRole, useSubscription } from '../../lib/hooks';
 import { Card } from '../../components/Card';
 import { ProgressBar } from '../../components/Progress';
 import { StatTile, resolveAchievement } from '../../components/visuals';
@@ -20,6 +20,7 @@ export default function MeScreen() {
   const { data: gamification, refetch } = useGamificationProfile({ enabled: isStudent });
   const { data: achievements } = useAchievements({ enabled: isStudent });
   const { data: progress, refetch: refetchProgress } = useLearningProgress({ enabled: isStudent });
+  const { data: subscription } = useSubscription();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -55,6 +56,72 @@ export default function MeScreen() {
         <Text style={styles.role}>{roleLabel}</Text>
         <Text style={styles.email}>{user?.email}</Text>
       </View>
+
+      {/* Subscription - the plan that governs this account (own plan, else the school's) */}
+      {subscription ? (
+        <Card style={styles.subscriptionCard}>
+          <View style={styles.subscriptionHead}>
+            <View style={styles.subscriptionTitleWrap}>
+              <Ionicons name="card-outline" size={18} color={Colors.primary} />
+              <Text style={styles.subscriptionTitle}>Subscription</Text>
+            </View>
+            <View
+              style={[
+                styles.subscriptionBadge,
+                { backgroundColor: subscription.access ? '#dcfce7' : '#fee2e2' },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.subscriptionBadgeText,
+                  { color: subscription.access ? '#047857' : '#b91c1c' },
+                ]}
+              >
+                {subscription.status ?? 'NO PLAN'}
+              </Text>
+            </View>
+          </View>
+          {subscription.plan ? (
+            <>
+              <Text style={styles.subscriptionPlan}>{subscription.plan.name}</Text>
+              <Text style={styles.subscriptionMeta}>
+                {subscription.scope === 'INSTITUTION'
+                  ? `Provided by ${subscription.institution?.name ?? 'your school'}`
+                  : 'Personal plan'}
+                {subscription.endsAt
+                  ? ` · valid till ${new Date(subscription.endsAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}`
+                  : ' · no expiry'}
+              </Text>
+              <View style={styles.subscriptionRow}>
+                <Text style={styles.subscriptionStat}>
+                  {subscription.daysRemaining !== null ? `${subscription.daysRemaining} days left` : 'No expiry'}
+                </Text>
+                <Text style={styles.subscriptionStat}>
+                  {subscription.seatLimit ?? 'Unlimited'} seats
+                </Text>
+                <Text style={styles.subscriptionStat}>
+                  {subscription.plan.priceYearly
+                    ? `₹${subscription.plan.priceYearly.toLocaleString('en-IN')}/yr`
+                    : subscription.plan.priceMonthly
+                      ? `₹${subscription.plan.priceMonthly.toLocaleString('en-IN')}/mo`
+                      : 'Free'}
+                </Text>
+              </View>
+              {!subscription.access && subscription.message ? (
+                <Text style={styles.subscriptionWarning}>{subscription.message}</Text>
+              ) : null}
+            </>
+          ) : (
+            <Text style={styles.subscriptionMeta}>
+              No plan is attached to this account yet. Ask your school administrator to activate one.
+            </Text>
+          )}
+        </Card>
+      ) : null}
 
       {/* Progress summary - gamification and learning progress are student-only,
           exactly as on the web profile page */}
@@ -131,6 +198,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   content: { paddingBottom: Spacing.xxxl },
   header: { backgroundColor: Colors.primary, alignItems: 'center', paddingTop: Spacing.xxl, paddingBottom: Spacing.xl, borderBottomLeftRadius: BorderRadius.xxl, borderBottomRightRadius: BorderRadius.xxl },
+  subscriptionCard: { margin: Spacing.lg, marginBottom: 0, padding: Spacing.lg },
+  subscriptionHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  subscriptionTitleWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  subscriptionTitle: { fontSize: 15, fontWeight: '800', color: Colors.text },
+  subscriptionBadge: { borderRadius: BorderRadius.full, paddingHorizontal: 10, paddingVertical: 3 },
+  subscriptionBadgeText: { fontSize: 10, fontWeight: '800', letterSpacing: 0.4 },
+  subscriptionPlan: { fontSize: 18, fontWeight: '800', color: Colors.text, marginTop: Spacing.sm },
+  subscriptionMeta: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  subscriptionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: Spacing.sm },
+  subscriptionStat: { fontSize: 12, fontWeight: '700', color: Colors.primary },
+  subscriptionWarning: { marginTop: Spacing.sm, fontSize: 12, fontWeight: '600', color: '#b91c1c' },
   avatarWrap: { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: Colors.white, fontSize: 30, fontWeight: '700' },
   name: { color: Colors.white, fontSize: 20, fontWeight: '700', marginTop: Spacing.md },

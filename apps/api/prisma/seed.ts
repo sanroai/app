@@ -7,6 +7,15 @@ import { DEMO_PASSWORD } from '../src/common/demo-password';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { seedArContent } from './seed-ar';
+import {
+  PRIMARY_ENGLISH_CURRICULUM,
+  PRIMARY_ENGLISH_LESSONS,
+  PRIMARY_ENGLISH_NOTES,
+  PRIMARY_ENGLISH_QUESTION_CONCEPTS,
+  PRIMARY_ENGLISH_QUESTIONS,
+  PRIMARY_ENGLISH_VIDEO_URLS,
+} from './primary-english';
+import { TOPUP_QUESTIONS, TOPUP_QUESTION_CONCEPTS } from './question-topups';
 
 loadApiEnv();
 
@@ -2601,6 +2610,12 @@ const CURRICULUM: Record<string, Record<string, ChapterSpec[]>> = {
     ],
   },
 };
+
+// Classes 1-4 had Science + Mathematics only, so English was missing from the
+// primary classes. `primary-english.ts` adds the NCERT Marigold course for them.
+for (const primaryGrade of ['1', '2', '3', '4']) {
+  CURRICULUM[primaryGrade][ENGLISH] = PRIMARY_ENGLISH_CURRICULUM[primaryGrade];
+}
 
 function question(
   grade: string,
@@ -12968,6 +12983,18 @@ async function seedQuestions() {
     }),
   ];
 
+  // Primary English (classes 1-4) practice questions.
+  scienceQuestions.push(
+    ...PRIMARY_ENGLISH_QUESTIONS.map((entry) => question(entry.grade, ENGLISH, entry.chapterName, entry.spec)),
+  );
+
+  // Extra questions for the chapters that only had three (see question-topups.ts).
+  scienceQuestions.push(
+    ...TOPUP_QUESTIONS.map((entry) =>
+      question(entry.grade, entry.subject === 'MATHS' ? MATHS : SCIENCE, entry.chapterName, entry.spec),
+    ),
+  );
+
   const QUESTION_CONCEPT: Record<string, string> = {
     "State the two laws of chemical combination.": "Dalton's Theory",
     'Which of the following is an example of a combination reaction?': 'Combination and Decomposition',
@@ -14202,6 +14229,10 @@ async function seedQuestions() {
     'Why are decomposers essential in an ecosystem?': 'Food Chains',
   };
 
+  // Primary English questions map to their chapter's first concept.
+  Object.assign(QUESTION_CONCEPT, PRIMARY_ENGLISH_QUESTION_CONCEPTS);
+  Object.assign(QUESTION_CONCEPT, TOPUP_QUESTION_CONCEPTS);
+
   const specQuestions = [...scienceQuestions].map((q) => q as typeof q & { conceptId: string | null });
   for (const q of specQuestions) {
     const chapterKey = CHAPTER_KEY_BY_ID[q.chapterId];
@@ -14249,7 +14280,15 @@ async function seedQuestions() {
     }
   }
 
-  const contentNodes = [
+  const contentNodes: Array<{
+    ch: string;
+    subjectName: string;
+    grade: string;
+    concept: string;
+    type: 'VIDEO' | 'NOTES';
+    title: string;
+    duration: number;
+  }> = [
     { ch: 'Plants and Animals', subjectName: SCIENCE, grade: '1', concept: 'Root, Stem, Leaves', type: 'VIDEO', title: 'Plants and Animals - Video Lesson', duration: 1462 },
     { ch: 'Plants and Animals', subjectName: SCIENCE, grade: '1', concept: 'Root, Stem, Leaves', type: 'NOTES', title: 'Plants and Animals - Study Notes', duration: 420 },
     { ch: 'Our Body and Food', subjectName: SCIENCE, grade: '1', concept: 'Senses', type: 'VIDEO', title: 'Our Body and Food - Video Lesson', duration: 1154 },
@@ -14692,7 +14731,10 @@ async function seedQuestions() {
     {ch: 'Light: Shadows and Reflections', subjectName: SCIENCE, grade: '7', concept: 'Luminous and Non-luminous Objects', type: 'NOTES', title: 'Light: Shadows and Reflections - Study Notes', duration: 420},
     {ch: 'Earth, Moon, and the Sun', subjectName: SCIENCE, grade: '7', concept: 'Rotation and Axis', type: 'VIDEO', title: 'Earth, Moon, and the Sun - Video Lesson', duration: 3695},
     {ch: 'Earth, Moon, and the Sun', subjectName: SCIENCE, grade: '7', concept: 'Rotation and Axis', type: 'NOTES', title: 'Earth, Moon, and the Sun - Study Notes', duration: 420}
-] as const;
+];
+
+  // Primary English lessons (classes 1-4): one video + one notes lesson each.
+  contentNodes.push(...PRIMARY_ENGLISH_LESSONS);
 
   const demoUser = await prisma.user.findUnique({ where: { email: 'teacher@sanroai.com' } });
 
@@ -15265,17 +15307,23 @@ const videoSegments: Record<string, Array<{ title: string; startSeconds: number 
       }
       // refresh seeded content that changed since the row was first created
       // (e.g. a lesson video replaced after the row already existed)
-      const mappedUrl = videoUrls[c.title] ?? null;
-      const mappedDescription = notesTexts[c.title] ?? null;
+      const mappedUrl = videoUrls[c.title] ?? PRIMARY_ENGLISH_VIDEO_URLS[c.title] ?? null;
+      const mappedDescription = notesTexts[c.title] ?? PRIMARY_ENGLISH_NOTES[c.title] ?? null;
       const mappedSegments = videoSegments[c.title] ?? null;
       if (
         existsContent.url !== mappedUrl ||
         existsContent.description !== mappedDescription ||
-        JSON.stringify(existsContent.segments ?? null) !== JSON.stringify(mappedSegments)
+        JSON.stringify(existsContent.segments ?? null) !== JSON.stringify(mappedSegments) ||
+        existsContent.durationSeconds !== c.duration
       ) {
         await prisma.contentItem.update({
           where: { id: existsContent.id },
-          data: { url: mappedUrl, description: mappedDescription, segments: mappedSegments },
+          data: {
+            url: mappedUrl,
+            description: mappedDescription,
+            segments: mappedSegments,
+            durationSeconds: c.duration,
+          },
         });
       }
       continue;
@@ -15289,9 +15337,9 @@ const videoSegments: Record<string, Array<{ title: string; startSeconds: number 
         directSanroAvailable: true,
         title: c.title,
         durationSeconds: c.duration,
-        url: videoUrls[c.title] ?? null,
+        url: videoUrls[c.title] ?? PRIMARY_ENGLISH_VIDEO_URLS[c.title] ?? null,
         segments: videoSegments[c.title] ?? null,
-        description: notesTexts[c.title] ?? null,
+        description: notesTexts[c.title] ?? PRIMARY_ENGLISH_NOTES[c.title] ?? null,
         institutionId: null,
         boardId: BOARD.id,
         subjectId,

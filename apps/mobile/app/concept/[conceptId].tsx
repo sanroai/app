@@ -1,8 +1,9 @@
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, FlatList, Linking, Alert, ActivityIndicator, Modal } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, FlatList, Linking, Alert, ActivityIndicator, Modal, Image } from 'react-native';
 import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, useChapterHub } from '../../lib/hooks';
+import { subjectBanner } from '../../lib/subject-art';
 import { useConceptAr } from '../../lib/ar-hooks';
 import { normalizeSegments, formatTimestamp, sectionStartForConcept, type VideoSegment } from '../../lib/chapter-hub';
 import { Icon3D } from '../../components/Icon3D';
@@ -86,12 +87,8 @@ export default function ConceptDetailScreen() {
       : 0;
 
   const startMode = (count: number) => {
-    if (questions.length === 0) {
-      Alert.alert('No questions', 'No questions are available for this concept yet.');
-      return;
-    }
     startPractice.mutate(
-      { conceptId, questionCount: Math.min(count, questions.length) },
+      { conceptId, questionCount: Math.min(Math.max(count, 5), 10) },
       {
         onSuccess: (data) => {
           const practiceId = data?.practiceId;
@@ -113,33 +110,45 @@ export default function ConceptDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Hero: the class+subject artwork behind the concept name, like the chapter hub */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{concept.name}</Text>
-        <Text style={styles.headerSub}>
-          <Text
-            style={styles.headerLink}
-            onPress={() =>
-              concept.chapter?.id
-                ? router.push({ pathname: '/chapter/[chapterId]', params: { chapterId: concept.chapter.id } })
-                : undefined
-            }
-          >
-            {concept.chapter?.name ?? ''}
+        <Image
+          source={subjectBanner(concept.chapter?.subject?.name, concept.chapter?.subject?.code, concept.chapter?.grade)}
+          style={styles.headerBanner}
+          resizeMode="cover"
+        />
+        <View style={styles.headerScrim} />
+        <View style={styles.headerBody}>
+          <Text style={styles.headerEyebrow}>
+            {concept.chapter?.subject?.name ?? 'Subject'}
+            {concept.chapter?.grade ? ` · Class ${concept.chapter.grade}` : ''}
           </Text>
-          {' • '}
-          {concept.topic?.name ?? ''}
-        </Text>
-        {mastery && (
-          <View style={styles.masteryRow}>
-            <View style={styles.masteryChip}>
-              <View style={[styles.masteryDot, { backgroundColor: weak ? '#dc2626' : '#059669' }]} />
-              <Text style={[styles.masteryText, { color: weak ? '#b91c1c' : '#047857' }]}>
-                Mastery {mastery.score}% · {mastery.level.replace(/_/g, ' ')}
-              </Text>
+          <Text style={styles.headerTitle}>{concept.name}</Text>
+          <Text style={styles.headerSub}>
+            <Text
+              style={styles.headerLink}
+              onPress={() =>
+                concept.chapter?.id
+                  ? router.push({ pathname: '/chapter/[chapterId]', params: { chapterId: concept.chapter.id } })
+                  : undefined
+              }
+            >
+              {concept.chapter?.name ?? ''}
+            </Text>
+            {' • '}
+            {concept.topic?.name ?? ''}
+          </Text>
+          {mastery && (
+            <View style={styles.masteryRow}>
+              <View style={styles.masteryChip}>
+                <View style={[styles.masteryDot, { backgroundColor: weak ? '#dc2626' : '#059669' }]} />
+                <Text style={[styles.masteryText, { color: weak ? '#b91c1c' : '#047857' }]}>
+                  Mastery {mastery.score}% · {mastery.level.replace(/_/g, ' ')}
+                </Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
+        </View>
       </View>
 
       {/* Tab bar */}
@@ -394,8 +403,8 @@ export default function ConceptDetailScreen() {
             </Text>
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => startMode(Math.min(questions.length, 10))}
-              disabled={startPractice.isPending || questions.length === 0}
+              onPress={() => startMode(Math.min(Math.max(questions.length, 5), 10))}
+              disabled={startPractice.isPending}
             >
               {startPractice.isPending ? (
                 <ActivityIndicator color={Colors.white} />
@@ -460,15 +469,28 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
   errorText: { color: Colors.error, fontSize: 15, fontWeight: '600', textAlign: 'center', marginTop: Spacing.md },
   header: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.lg,
+    backgroundColor: Colors.primaryDark,
     borderBottomLeftRadius: BorderRadius.xxl,
     borderBottomRightRadius: BorderRadius.xxl,
+    overflow: 'hidden',
+    minHeight: 210,
+    justifyContent: 'flex-end',
   },
-  headerTitle: { color: Colors.white, fontSize: 22, fontWeight: '700' },
-  headerSub: { color: Colors.primaryLight, fontSize: 13, marginTop: 4 },
+  headerBanner: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  headerScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,23,42,0.45)',
+  },
+  headerBody: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xxl, paddingBottom: Spacing.lg },
+  headerEyebrow: {
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  headerTitle: { color: Colors.white, fontSize: 28, fontWeight: '800', marginTop: 4 },
+  headerSub: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 4 },
   headerLink: { textDecorationLine: 'underline', fontWeight: '600' },
   masteryRow: { marginTop: Spacing.md },
   masteryChip: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: BorderRadius.full, paddingHorizontal: 12, paddingVertical: 6, gap: 6 },

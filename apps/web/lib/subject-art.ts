@@ -12,10 +12,13 @@
  */
 
 export type SubjectArt = {
-  /** Banner under `public/art/` (the first framing; use `subjectBannerFor`). */
+  /** Banner under `public/art/` (class 1; use `subjectBannerFor`). */
   banner: string;
-  /** Every framing of the subject photograph, if the subject has more than one. */
-  banners?: string[];
+  /**
+   * One framing of the subject photograph per class (1-10). Every class of a
+   * subject therefore has its own picture, never a repeat of another class.
+   */
+  banners?: Record<number, string>;
   /** 3D icon under `public/icons/`. */
   icon: string;
   /** Primary accent (hex) used for tints and rings. */
@@ -24,40 +27,35 @@ export type SubjectArt = {
   accent2: string;
 };
 
+/** `subject-science` -> `{ 1: '/art/subject-science-1.jpg', … 10: … }`. */
+function classFramings(key: string): Record<number, string> {
+  return Object.fromEntries(
+    Array.from({ length: 10 }, (_, index) => [index + 1, `/art/${key}-${index + 1}.jpg`]),
+  );
+}
+
 const SCIENCE: SubjectArt = {
-  banner: '/art/subject-science-a.jpg',
-  banners: [
-    '/art/subject-science-a.jpg',
-    '/art/subject-science-b.jpg',
-    '/art/subject-science-c.jpg',
-  ],
+  banner: '/art/subject-science-1.jpg',
+  banners: classFramings('subject-science'),
   icon: '/icons/microscope.png',
   accent: '#06b6d4',
-  accent2: '#10b981',
+  accent2: '#22c55e',
 };
 
 const MATHEMATICS: SubjectArt = {
-  banner: '/art/subject-mathematics-a.jpg',
-  banners: [
-    '/art/subject-mathematics-a.jpg',
-    '/art/subject-mathematics-b.jpg',
-    '/art/subject-mathematics-c.jpg',
-  ],
+  banner: '/art/subject-mathematics-1.jpg',
+  banners: classFramings('subject-mathematics'),
   icon: '/icons/abacus.png',
-  accent: '#10b981',
-  accent2: '#6366f1',
+  accent: '#6366f1',
+  accent2: '#a855f7',
 };
 
 const ENGLISH: SubjectArt = {
-  banner: '/art/subject-english-a.jpg',
-  banners: [
-    '/art/subject-english-a.jpg',
-    '/art/subject-english-b.jpg',
-    '/art/subject-english-c.jpg',
-  ],
+  banner: '/art/subject-english-1.jpg',
+  banners: classFramings('subject-english'),
   icon: '/icons/open-book.png',
   accent: '#f59e0b',
-  accent2: '#8b5cf6',
+  accent2: '#ec4899',
 };
 
 const SOCIAL: SubjectArt = {
@@ -95,19 +93,19 @@ export function subjectArt(name?: string | null, code?: string | null): SubjectA
  * Which framing of the subject photograph a class gets.
  *
  * A subject repeats in every class ("Class 1 Science" … "Class 10 Science"), so a
- * single banner made ten cards look like one card. Each class takes a different
- * slice of the same photograph: the subject identity (photo, accent, monogram)
- * stays, the grid stops repeating itself. Deterministic, so the same class always
- * shows the same framing (no flicker between renders or between the two clients).
+ * single banner made ten cards look like one card. Every class has its own file
+ * (`subject-<name>-<class>.jpg`), generated as a different crop of the subject
+ * photograph, so no two classes ever show the same picture. Deterministic, so the
+ * same class always shows the same framing on both clients.
  */
 export function classSubjectVariant(grade?: string | number | null): number {
   const value = Number.parseInt(String(grade ?? ''), 10);
-  if (!Number.isFinite(value)) return 0;
-  return ((value - 1) % 3 + 3) % 3;
+  if (!Number.isFinite(value)) return 1;
+  return (((value - 1) % 10) + 10) % 10 + 1;
 }
 
 /**
- * The banner for one subject in one class. Falls back to the subject's single
+ * The banner for one subject in one class. Falls back to the subject's class-1
  * banner (and then to the chapter banner) when the subject has no framings.
  */
 export function subjectBannerFor(art: SubjectArt, grade?: string | number | null): string {

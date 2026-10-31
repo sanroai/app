@@ -352,9 +352,13 @@ describe('Practice flow (e2e)', () => {
       where: { studentId_conceptId: { studentId, conceptId } },
     });
     expect(mastery).toBeTruthy();
-    expect(submit.body.masteryUpdate).toEqual({ level: mastery!.level, score: mastery!.score });
-    expect(submit.body.masteryUpdates).toEqual([
-      { conceptId, level: mastery!.level, score: mastery!.score },
-    ]);
+    // A thin concept is topped up from its chapter, so the same session can carry
+    // evidence for several concepts; the practised concept must still report its
+    // own cumulative standing (the singular `masteryUpdate` is only filled when
+    // the whole session belongs to one concept).
+    const entry = (submit.body.masteryUpdates as Array<{ conceptId: string; level: string; score: number }>).find(
+      (update) => update.conceptId === conceptId,
+    );
+    expect(entry).toEqual({ conceptId, level: mastery!.level, score: mastery!.score });
   });
 });

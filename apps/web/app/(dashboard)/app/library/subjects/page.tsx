@@ -161,19 +161,28 @@ export default function LibrarySubjectsPage() {
                         >
                         <Card className="group flex h-full cursor-pointer flex-col overflow-hidden border-surface-200 transition-all hover:border-brand-300 hover:shadow-lg">
                           <CardContent className="flex flex-1 flex-col p-0">
-                            {/* Subject banner: a real photograph of the subject,
-                                its accent wash and a typographic monogram. Every
-                                card is the same size, so the grid never staggers. */}
+                            {/* Subject banner: the first lesson frame of this
+                                class+subject (a different picture in every
+                                card), its accent wash, the monogram and the
+                                class numeral. The name sits under the picture
+                                because the frame already carries captions. */}
                             <SubjectBanner
                               name={subject.name}
                               code={subject.code}
                               grade={grade.grade}
                               subtitle={subject.code}
+                              showName={false}
                               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
                             />
 
                             <div className="flex flex-1 flex-col px-4 py-4">
-                              <Progress value={pct} className="h-2" />
+                              <div className="flex items-baseline justify-between gap-2">
+                                <h4 className="truncate text-[15px] font-bold text-surface-900">{subject.name}</h4>
+                                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+                                  {subject.code}
+                                </span>
+                              </div>
+                              <Progress value={pct} className="mt-3 h-2" />
                               <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
                                 <span>
                                   {subject.completedContent}/{subject.totalContent} lessons

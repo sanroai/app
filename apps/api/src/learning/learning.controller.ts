@@ -32,6 +32,23 @@ export class LearningController {
     return this.service.getLearningHome(user);
   }
 
+  /**
+   * Ready-made exams for the student's classes: term-wise and class-test papers
+   * generated from the approved question bank, so a class always has something to
+   * solve without waiting for a teacher to author a paper.
+   */
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Get('exams')
+  exams(@CurrentUser() user: RequestUser) {
+    return this.service.listExams(user);
+  }
+
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Post('exams/:key/start')
+  startExam(@CurrentUser() user: RequestUser, @Param('key') key: string) {
+    return this.service.startExam(user, key);
+  }
+
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('boards/:boardId/grades/:grade/subjects/:subjectId/chapters')
   chapters(

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,7 +17,7 @@ import {
   parseMultiSelectAnswer,
   toggleMultiSelectAnswer,
 } from '@/lib/answer-format';
-import { ArrowLeft, Check, Save, Send, X } from 'lucide-react';
+import { ArrowLeft, Check, Save, Send, Target, X } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 export default function AttemptPage() {
@@ -296,6 +297,29 @@ function ResultBanner({ data }: { data: NonNullable<ReturnType<typeof useAttempt
         <ResultStat label="Accuracy" value={a.accuracy !== null && a.accuracy !== undefined ? `${a.accuracy}%` : '—'} />
         <ResultStat label="Time" value={a.timeSpentSeconds ? `${Math.round(a.timeSpentSeconds / 60)} min` : '—'} />
       </div>
+
+      {/* The DIAGNOSE edge: the concepts behind the wrong answers, each one tap
+          from practice. Without this the result screen was the end of the road. */}
+      {data.weakConcepts && data.weakConcepts.length > 0 ? (
+        <div className="mt-4 rounded-xl border border-brand-200 bg-white p-4">
+          <p className="text-sm font-semibold text-surface-900">What to fix next</p>
+          <p className="mt-0.5 text-xs text-surface-500">
+            These concepts carried the answers you missed. Practise one now - the result updates your mastery.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {data.weakConcepts.map((concept) => (
+              <Link
+                key={concept.id}
+                href={`/app/learn/concepts/${concept.id}?tab=practice`}
+                className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-3 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-200"
+              >
+                <Target className="h-3.5 w-3.5" />
+                {concept.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }

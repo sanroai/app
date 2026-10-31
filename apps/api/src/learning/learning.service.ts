@@ -52,6 +52,17 @@ const DEFAULT_PRACTICE_QUESTIONS = 5;
 const DEFAULT_CHAPTER_PRACTICE_QUESTIONS = 10;
 
 /**
+ * Ready-made exams generated from the question bank. A class always has a Term 1,
+ * a Term 2 and a class test per subject without waiting for a teacher to author
+ * one. The key is stable, so the same exam is the same paper for everyone.
+ */
+const EXAM_BLUEPRINTS = [
+  { key: 'term-1', label: 'Term 1', questions: 20, durationMinutes: 30 },
+  { key: 'term-2', label: 'Term 2', questions: 20, durationMinutes: 30 },
+  { key: 'class-test', label: 'Class test', questions: 10, durationMinutes: 15 },
+] as const;
+
+/**
  * Where a concept sits inside the chapter's video, so the hub can print
  * "12:30 - 18:05" and the client can open the concept with the video already
  * playing at that point. Derived from the same markers the player renders, so
@@ -770,7 +781,15 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       include: {
         topic: {
           include: {
-            chapter: { select: { id: true, name: true, grade: true } },
+            chapter: {
+              select: {
+                id: true,
+                name: true,
+                grade: true,
+                code: true,
+                subject: { select: { id: true, name: true, code: true } },
+              },
+            },
           },
         },
       },
@@ -1286,6 +1305,154 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     };
   }
 
+  /**
+   * Ready-made exams: for every class+subject the student can open, a Term 1,
+   * Term 2 and Class-test paper generated from the approved question bank.
+   *
+   * The blueprint is deterministic (the same key always means the same paper), so
+   * the exam a student starts today is the exam their classmate sees tomorrow.
+   */
+  async listExams(user: RequestUser) {
+    const access = await this.gradeAccess.forUser(user);
+    const grades = access.unrestricted
+      ? (await this.prisma.grade.findMany({ orderBy: { order: 'asc' }, select: { name: true } })).map((g) => g.name)
+      : access.grades;
+    if (grades.length === 0) return { exams: [] };
+
+    const counts = await this.prisma.question.groupBy({
+      by: ['subjectId', 'grade'],
+      where: { status: 'APPROVED', grade: { in: grades } },
+      _count: { _all: true },
+    });
+    if (counts.length === 0) return { exams: [] };
+
+    const subjects = await this.prisma.subject.findMany({
+      where: { id: { in: [...new Set(counts.map((c) => c.subjectId))] } },
+      select: { id: true, name: true, code: true },
+    });
+    const subjectById = new Map(subjects.map((s) => [s.id, s]));
+
+    const exams: Array<Record<string, unknown>> = [];
+    for (const row of counts) {
+      const subject = subjectById.get(row.subjectId);
+      if (!subject) continue;
+      for (const blueprint of EXAM_BLUEPRINTS) {
+        const questionCount = Math.min(blueprint.questions, row._count._all);
+        if (questionCount < 5) continue;
+        exams.push({
+          key: `${subject.code}-${row.grade}-${blueprint.key}`,
+          title: `${subject.name} · ${blueprint.label} · Class ${row.grade}`,
+          blueprint: blueprint.key,
+          blueprintLabel: blueprint.label,
+          grade: row.grade,
+          subject: { id: subject.id, name: subject.name, code: subject.code },
+          questionCount,
+          totalMarks: questionCount,
+          durationMinutes: blueprint.durationMinutes,
+        });
+      }
+    }
+
+    exams.sort((a, b) => {
+      const ga = Number(a.grade);
+      const gb = Number(b.grade);
+      if (ga !== gb) return ga - gb;
+      const sa = String((a.subject as { name: string }).name);
+      const sb = String((b.subject as { name: string }).name);
+      if (sa !== sb) return sa.localeCompare(sb);
+      return String(a.blueprint).localeCompare(String(b.blueprint));
+    });
+
+    return { exams };
+  }
+
+  /**
+   * Start a ready-made exam. The assessment is created once per institution and
+   * reused afterwards, so the exam keeps one identity (and one set of questions)
+   * across students and attempts.
+   */
+  async startExam(user: RequestUser, key: string) {
+    const student = await this.identity.resolveForUser(user);
+    if (!student) throw new ForbiddenException('Only students can start an exam');
+
+    const match = /^([A-Z]+)-(\d+)-(.+)$/.exec(key);
+    if (!match) throw new BadRequestException('Unknown exam');
+    const [, subjectCode, grade, blueprintKey] = match;
+    const blueprint = EXAM_BLUEPRINTS.find((b) => b.key === blueprintKey);
+    if (!blueprint) throw new BadRequestException('Unknown exam');
+
+    const access = await this.gradeAccess.forUser(user);
+    this.gradeAccess.assert(access, grade);
+
+    const subject = await this.prisma.subject.findFirst({
+      where: { code: subjectCode },
+      select: { id: true, name: true, code: true },
+    });
+    if (!subject) throw new NotFoundException('Subject not found');
+
+    const title = `${subject.name} · ${blueprint.label} · Class ${grade}`;
+    const institutionId = student.institutionId;
+    if (!institutionId) throw new ForbiddenException('No institution on this account');
+
+    const existing = await this.prisma.assessment.findFirst({
+      where: { institutionId, title, subjectId: subject.id },
+      select: { id: true },
+    });
+    if (existing) {
+      await this.prisma.assessmentAssignment.createMany({
+        data: [{ assessmentId: existing.id, studentId: student.id }],
+        skipDuplicates: true,
+      });
+      return { assessmentId: existing.id, title };
+    }
+
+    const offset = blueprint.key === 'term-2' ? 20 : blueprint.key === 'class-test' ? 40 : 0;
+    const loadQuestions = (skip: number) =>
+      this.prisma.question.findMany({
+        where: { status: 'APPROVED', grade, subjectId: subject.id },
+        orderBy: [{ createdAt: 'asc' }],
+        skip,
+        take: blueprint.questions,
+        include: { options: { orderBy: { order: 'asc' } } },
+      });
+
+    // Each blueprint reads a different slice of the bank, so Term 1, Term 2 and the
+    // class test are different papers. A thin bank falls back to the start.
+    let questions = await loadQuestions(offset);
+    if (questions.length < 5 && offset > 0) questions = await loadQuestions(0);
+    if (questions.length < 5) throw new BadRequestException('Not enough questions for this exam yet');
+
+    const assessment = await this.prisma.assessment.create({
+      data: {
+        institutionId,
+        title,
+        subjectId: subject.id,
+        totalMarks: questions.reduce((sum, q) => sum + (q.marks ?? 1), 0),
+        durationMinutes: blueprint.durationMinutes,
+        status: 'PUBLISHED',
+        attemptsAllowed: 1,
+        createdById: user.sub,
+        questions: {
+          create: questions.map((q, index) => ({
+            questionId: q.id,
+            text: q.text,
+            type: q.type,
+            marks: q.marks ?? 1,
+            answer: q.answer,
+            explanation: q.explanation,
+            conceptId: q.conceptId,
+            order: index + 1,
+            options: q.options.map((o) => ({ text: o.text, isCorrect: o.isCorrect, order: o.order })),
+          })),
+        },
+        assignments: { create: [{ studentId: student.id }] },
+      },
+      select: { id: true },
+    });
+
+    return { assessmentId: assessment.id, title };
+  }
+
   async startPractice(user: RequestUser, conceptId: string, questionCount: number) {
     this.tenant.requireInstitution(user);
 
@@ -1351,7 +1518,14 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       throw new BadRequestException('No practice questions available for this concept');
     }
 
-    const shuffle = (list: typeof questions) => [...list].sort(() => Math.random() - 0.5);
+    const shuffle = <T,>(list: T[]): T[] => {
+      const copy = [...list];
+      for (let i = copy.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
     const autoGradable = shuffle(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
     const written = shuffle(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
     const chosen = [...autoGradable, ...written].slice(0, take);

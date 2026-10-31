@@ -324,7 +324,7 @@ export function ConceptArPanel({ conceptId, items }: { conceptId: string; items:
                     Score: {submit.data?.score} / {submit.data?.total}
                   </p>
                   <div className="flex gap-2">
-                    <Link href={`/app/learn/practice?conceptId=${conceptId}`}>
+                    <Link href={`/app/learn/concepts/${conceptId}?tab=practice`}>
                       <Button size="sm" variant="outline" className="rounded-xl bg-white">
                         Practice this concept
                       </Button>

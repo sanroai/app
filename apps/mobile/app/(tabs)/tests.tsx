@@ -349,15 +349,24 @@ function TestsView({
                 <Text style={styles.testDue}>Due {formatDate(a.dueAt)}</Text>
               </View>
             </View>
-            <TouchableOpacity
-              style={[styles.startBtn, starting === a.id && styles.startBtnDisabled]}
-              disabled={starting === a.id}
-              onPress={() => (inProgress && inProgressAttempt ? router.push(`/attempt/${inProgressAttempt.id}`) : handleStart(a.id))}
-            >
-              <Text style={styles.startBtnText}>
-                {starting === a.id ? 'Starting…' : inProgress ? 'Resume attempt' : 'Start test'}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.testActions}>
+              <TouchableOpacity
+                style={styles.paperBtn}
+                onPress={() => router.push({ pathname: '/paper/[assessmentId]', params: { assessmentId: a.assessmentId } })}
+              >
+                <Ionicons name="document-text-outline" size={15} color={Colors.primary} />
+                <Text style={styles.paperBtnText}>View paper</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.startBtn, starting === a.id && styles.startBtnDisabled]}
+                disabled={starting === a.id}
+                onPress={() => (inProgress && inProgressAttempt ? router.push(`/attempt/${inProgressAttempt.id}`) : handleStart(a.id))}
+              >
+                <Text style={styles.startBtnText}>
+                  {starting === a.id ? 'Starting…' : inProgress ? 'Resume attempt' : 'Start test'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
       })}
@@ -464,7 +473,10 @@ const styles = StyleSheet.create({
   testTitle: { fontSize: 15, fontWeight: '600', color: Colors.text },
   testMeta: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   testDue: { fontSize: 12, color: Colors.warning, marginTop: 2, fontWeight: '500' },
-  startBtn: { backgroundColor: Colors.primary, borderRadius: BorderRadius.md, paddingVertical: 12, alignItems: 'center', marginTop: Spacing.md },
+  testActions: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.md },
+  paperBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, borderRadius: BorderRadius.md, borderWidth: 1, borderColor: Colors.primaryLight, paddingVertical: 12, paddingHorizontal: 14 },
+  paperBtnText: { color: Colors.primary, fontSize: 13, fontWeight: '700' },
+  startBtn: { flex: 1, backgroundColor: Colors.primary, borderRadius: BorderRadius.md, paddingVertical: 12, alignItems: 'center' },
   startBtnDisabled: { opacity: 0.5 },
   startBtnText: { color: Colors.white, fontSize: 15, fontWeight: '600' },
   resultWrap: { alignItems: 'flex-end' },

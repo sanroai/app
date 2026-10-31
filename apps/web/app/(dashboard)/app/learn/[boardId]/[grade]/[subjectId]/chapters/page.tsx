@@ -10,6 +10,8 @@ import { ErrorBanner } from '@/components/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/lib/auth-store';
 import { PrefetchLink } from '@/components/prefetch-link';
+import { subjectMonogram } from '@/components/subject-banner';
+import { subjectArt, subjectBannerFor } from '@/lib/subject-art';
 import { prefetchChapterHub } from '@/lib/prefetch';
 import { useIdlePrefetch } from '@/lib/use-idle-prefetch';
 import {
@@ -76,19 +78,32 @@ export default function ChaptersPage() {
         <span className="text-surface-400">{subjectName}</span>
       </nav>
 
-      {/* Header */}
-      <div className="flex items-center gap-3">
+      {/* Subject header: the same picture the library card showed for this
+          class+subject, so the thumbnail is never missing after tapping in. */}
+      <div className="flex items-center gap-3 rounded-2xl border border-surface-200 bg-white p-3 shadow-card">
         <Link
           href="/app/library"
           aria-label="Go back to Library"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 transition-all"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-surface-200 bg-white text-surface-600 transition-all hover:bg-surface-50"
         >
           <ChevronLeft className="h-4 w-4" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-surface-900">Chapters</h1>
+        <div className="relative h-[84px] w-[112px] shrink-0 overflow-hidden rounded-xl bg-surface-900">
+          <Image
+            src={subjectBannerFor(subjectArt(subjectName, chapterData?.subject?.code), grade)}
+            alt=""
+            fill
+            sizes="112px"
+            className="object-cover"
+          />
+          <span className="absolute left-1.5 top-1.5 inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-white/35 bg-white/20 px-1 text-[9px] font-extrabold tracking-[0.08em] text-white backdrop-blur-sm">
+            {subjectMonogram(subjectName, chapterData?.subject?.code)}
+          </span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate text-2xl font-bold text-surface-900">{subjectName}</h1>
           <p className="text-sm text-surface-500">
-            Class {grade} &middot; {items.length} chapters available
+            Class {grade} &middot; {items.length} {items.length === 1 ? 'chapter' : 'chapters'}
           </p>
         </div>
       </div>

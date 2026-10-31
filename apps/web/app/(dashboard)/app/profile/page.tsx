@@ -13,6 +13,7 @@ import {
   useGamificationProfile,
   useLearningProgress,
 } from '@/lib/learning-hooks';
+import { useSubscription } from '@/lib/api-hooks';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,6 +35,7 @@ import {
 } from '@/components/ui/select';
 import {
   CheckCircle2,
+  CreditCard,
   Flame,
   Loader2,
   Target,
@@ -41,6 +43,7 @@ import {
   UserCircle2,
   Zap,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import {
   BadgeGrid,
   LearningProgressBars,
@@ -77,6 +80,7 @@ export default function ProfilePage() {
   const { data: gamification } = useGamificationProfile({ enabled: isStudent });
   const { data: progress } = useLearningProgress({ enabled: isStudent });
   const { data: achievements } = useAchievements({ enabled: isStudent });
+  const { data: subscription } = useSubscription();
 
   const {
     register,
@@ -165,6 +169,94 @@ export default function ProfilePage() {
 
       {isStudent ? (
         <>
+          {/* Subscription - the plan that governs this account (own plan, else the
+              school's), so "where is my subscription?" is answered in the profile. */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CreditCard className="h-4 w-4 text-brand-600" />
+                Subscription
+              </CardTitle>
+              <CardDescription>
+                {subscription?.scope === 'INSTITUTION'
+                  ? `Provided by ${subscription.institution?.name ?? 'your school'}`
+                  : 'Your personal plan'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {subscription?.plan ? (
+                <>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-lg font-bold text-surface-900">{subscription.plan.name}</p>
+                      <p className="text-xs uppercase tracking-wide text-surface-400">
+                        {subscription.plan.key.replace(/_/g, ' ')}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className={
+                        subscription.access
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-red-100 text-red-700'
+                      }
+                    >
+                      {subscription.status ?? 'NO PLAN'}
+                    </Badge>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-xl bg-surface-50 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-surface-400">Valid till</p>
+                      <p className="mt-1 text-sm font-semibold text-surface-900">
+                        {subscription.endsAt
+                          ? new Date(subscription.endsAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : 'No expiry'}
+                      </p>
+                      {subscription.daysRemaining !== null ? (
+                        <p className="text-xs text-surface-500">{subscription.daysRemaining} days left</p>
+                      ) : null}
+                    </div>
+                    <div className="rounded-xl bg-surface-50 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-surface-400">Seats</p>
+                      <p className="mt-1 text-sm font-semibold text-surface-900">
+                        {subscription.seatLimit ?? 'Unlimited'}
+                      </p>
+                      <p className="text-xs text-surface-500">
+                        {subscription.scope === 'INSTITUTION' ? 'shared by the school' : 'for this account'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-surface-50 p-3">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-surface-400">Price</p>
+                      <p className="mt-1 text-sm font-semibold text-surface-900">
+                        {subscription.plan.priceYearly
+                          ? `₹${subscription.plan.priceYearly.toLocaleString('en-IN')}/yr`
+                          : subscription.plan.priceMonthly
+                            ? `₹${subscription.plan.priceMonthly.toLocaleString('en-IN')}/mo`
+                            : 'Free'}
+                      </p>
+                      <p className="text-xs text-surface-500">
+                        {subscription.plan.perSeat ? 'per seat' : 'per account'}
+                      </p>
+                    </div>
+                  </div>
+                  {!subscription.access && subscription.message ? (
+                    <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                      {subscription.message}
+                    </p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="text-sm text-surface-500">
+                  No plan is attached to this account yet. Ask your school administrator to activate one.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Progress summary - the same three numbers the mobile profile shows */}
           <div className="grid gap-4 sm:grid-cols-3">
             <Card className="bg-gradient-to-br from-violet-500 to-purple-600 border-0 text-white">

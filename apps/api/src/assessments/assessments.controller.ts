@@ -38,6 +38,12 @@ export class AssessmentsController {
     return this.service.detail(user, id);
   }
 
+  /** The paper as the student will see it, without starting an attempt. */
+  @Get(':id/paper')
+  paper(@CurrentUser() user: RequestUser, @Param('id') id: string) {
+    return this.service.paperForStudent(user, id);
+  }
+
   @Post(':id/publish')
   publish(
     @CurrentUser() user: RequestUser,
@@ -69,5 +75,19 @@ export class AssessmentsController {
   @Post('attempts/:attemptId/submit')
   submit(@CurrentUser() user: RequestUser, @Param('attemptId') attemptId: string) {
     return this.service.submitAttempt(user, attemptId);
+  }
+
+  /**
+   * Grade one written answer. `gradeAnswer` existed on the service but had no
+   * route, so a subjective paper could never leave "pending review".
+   */
+  @Post('attempts/:attemptId/answers/:answerId/grade')
+  gradeAnswer(
+    @CurrentUser() user: RequestUser,
+    @Param('attemptId') attemptId: string,
+    @Param('answerId') answerId: string,
+    @Body() body: { marksAwarded: number },
+  ) {
+    return this.service.gradeAnswer(user, attemptId, answerId, Number(body?.marksAwarded));
   }
 }

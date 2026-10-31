@@ -6,6 +6,27 @@ import fs from 'node:fs';
 
 const seed = fs.readFileSync('apps/api/prisma/seed.ts', 'utf8');
 
+/**
+ * Classes 1-4 English lives in its own module (`primary-english.ts`), so the
+ * seed-only regexes below would miss 20 chapters, 40 lessons and 20 video URLs.
+ * The module is parsed with the same shapes and merged in.
+ */
+const primaryPath = 'apps/api/prisma/primary-english.ts';
+const primary = fs.existsSync(primaryPath) ? fs.readFileSync(primaryPath, 'utf8') : '';
+const primaryChapters = [
+  ...primary.matchAll(/name:\s*(?:'((?:[^'\\]|\\.)*)'|"([^"]*)")\s*,\s*\n\s*code:\s*'(ENG-[1-4]-\d)'/g),
+].map((m) => ({ name: (m[1] ?? m[2]).replace(/\\'/g, "'"), code: m[3] }));
+const primaryGrade = (code) => code.split('-')[1];
+const primaryLessonTitles = new Map(
+  primaryChapters.map((c) => [c.code, `${c.name} - Video Lesson`]),
+);
+const primaryUrls = new Map(
+  [...primary.matchAll(/'(ENG-[1-4]-\d)':\s*'([A-Za-z0-9_-]{6,20})'/g)].map((m) => [
+    primaryLessonTitles.get(m[1]) ?? m[1],
+    m[2],
+  ]),
+);
+
 /** every curriculum chapter: name + code (the entries are multi-line) */
 const chapters = [...seed.matchAll(/name:\s*'((?:[^'\\]|\\.)*)',\s*\n\s*code:\s*'([A-Z]+-\d+(?:P\d)?-\d+)'/g)].map((m) => ({
   name: m[1].replace(/\\'/g, "'"),
@@ -34,8 +55,15 @@ const urls = new Map(
   ]),
 );
 
-const videoLessons = lessons.filter((l) => l.type === 'VIDEO');
-const withVideoChapter = new Set(videoLessons.map((l) => `${l.grade}|${l.ch}`));
+chapters.push(...primaryChapters);
+for (const c of primaryChapters) {
+  const grade = primaryGrade(c.code);
+  lessons.push({ ch: c.name, subject: 'ENGLISH', grade, concept: '', type: 'VIDEO', title: `${c.name} - Video Lesson` });
+  lessons.push({ ch: c.name, subject: 'ENGLISH', grade, concept: '', type: 'NOTES', title: `${c.name} - Study Notes` });
+}
+for (const [title, id] of primaryUrls) urls.set(title, id);
+
+const videoLessons = lessons.filter((l) => l.type === 'VIDEO');const withVideoChapter = new Set(videoLessons.map((l) => `${l.grade}|${l.ch}`));
 
 console.log('  curriculum chapters          :', chapters.length);
 console.log('  video lessons                :', videoLessons.length);

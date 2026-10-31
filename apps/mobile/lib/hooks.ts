@@ -78,6 +78,37 @@ export function useLearningHome({ enabled = true }: { enabled?: boolean } = {}) 
   });
 }
 
+// ─── Subscription ────────────────────────────────────────
+export interface SubscriptionSummary {
+  plan: {
+    key: string;
+    name: string;
+    priceMonthly: number | null;
+    priceYearly: number | null;
+    perSeat: number;
+  } | null;
+  status: string | null;
+  scope: 'USER' | 'INSTITUTION' | null;
+  startedAt: string | null;
+  endsAt: string | null;
+  daysRemaining: number | null;
+  seatLimit: number | null;
+  institution: { id: string; name: string } | null;
+  access: boolean;
+  blockState: string | null;
+  message: string | null;
+}
+
+/** The plan that governs this account (own plan, else the institution's). */
+export function useSubscription() {
+  const token = useAuthStore((s) => s.token);
+  return useQuery<SubscriptionSummary>({
+    queryKey: ['subscription'],
+    queryFn: () => apiAuthed<SubscriptionSummary>('/auth/subscription'),
+    enabled: !!token,
+  });
+}
+
 // ─── Chapters ────────────────────────────────────────────
 export interface ChapterItem {
   id: string;
@@ -181,7 +212,13 @@ export interface ConceptDetail {
   name: string;
   description?: string;
   topic: { id: string; name: string };
-  chapter: { id: string; name: string; grade: string };
+  chapter: {
+    id: string;
+    name: string;
+    grade: string;
+    code?: string;
+    subject?: { id: string; name: string; code: string };
+  };
   mastery: { level: string; score: number; attempts: number } | null;
   content: ContentItem[];
   practiceQuestions: Array<{ id: string; text: string; type: string; marks: number; difficulty?: string; options: Array<{ id: string; text: string; order: number }> }>;
@@ -475,6 +512,42 @@ export function useMyAssessments({ enabled = true }: { enabled?: boolean } = {})
   });
 }
 
+export interface AssessmentPaper {
+  id: string;
+  title: string;
+  subject: { id: string; name: string; code: string } | null;
+  chapter: { id: string; name: string; grade: string } | null;
+  totalMarks: number;
+  durationMinutes: number;
+  status: string;
+  mode: string;
+  startsAt: string | null;
+  dueAt: string | null;
+  attemptsAllowed: number;
+  attemptsUsed: number;
+  attemptsLeft: number;
+  isOpen: boolean;
+  questionCount: number;
+  questions: Array<{
+    id: string;
+    text: string;
+    type: string;
+    marks: number;
+    order: number;
+    options: Array<{ text: string; order: number }>;
+  }>;
+}
+
+/** The question paper a student is about to attempt (no answers). */
+export function useAssessmentPaper(id?: string) {
+  const token = useAuthStore((s) => s.token);
+  return useQuery<AssessmentPaper>({
+    queryKey: ['assessment-paper', id],
+    queryFn: () => apiAuthed<AssessmentPaper>(`/assessments/${id}/paper`),
+    enabled: !!token && !!id,
+  });
+}
+
 export interface AttemptDetail {
   attempt: {
     id: string;
@@ -490,6 +563,7 @@ export interface AttemptDetail {
     submittedAt: string | null;
   };
   assessment: { title: string; subject: string; totalMarks: number };
+  weakConcepts?: Array<{ id: string; name: string }>;
   questions: Array<{
     id: string;
     text: string;

@@ -814,9 +814,9 @@ function ChildCard({ child }: { child: ChildData }) {
                     </Badge>
                   </div>
                 ))}
-                <Link href="/app/remediation">
+                <Link href="/app/children">
                   <Button size="sm" variant="link" className="h-auto p-0 text-xs">
-                    Start Remediation <ArrowRight className="ml-1 h-3 w-3" />
+                    See your child&apos;s plan <ArrowRight className="ml-1 h-3 w-3" />
                   </Button>
                 </Link>
               </div>
@@ -1306,7 +1306,7 @@ function QuickActions({ role }: { role: string }) {
       : isParent
         ? [
             { label: 'View Children', icon: Users, color: 'bg-teal-100 text-teal-600', href: '/app/children' },
-            { label: 'Progress Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/reports' },
+            { label: 'Progress Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/children' },
           ]
         : isSuperAdmin
           ? [
