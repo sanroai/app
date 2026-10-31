@@ -13,8 +13,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { QA_PASSWORD } from './_env.mjs';
 
-const WEB = 'http://localhost:3000';
-const API = 'http://localhost:4000/api/v1';
+const WEB = process.env.WALKTHROUGH_WEB ?? 'http://localhost:3000';
+const API = process.env.WALKTHROUGH_API ?? 'http://localhost:4000/api/v1';
 const PW = QA_PASSWORD;
 const SHOTS = join(process.cwd(), 'artifacts', 'qa', new Date().toISOString().slice(0, 10), 'screenshots');
 

@@ -15415,10 +15415,14 @@ async function main() {
   console.log(`[seed] mode: ${modeLabel}`);
   console.log(`[seed] target: ${target ? `${target.host}:${target.port || '5432'}/${target.database} (from ${target.source})` : TARGET_URL ? '<custom url>' : '<prisma default>'}`);
 
-  if (target && !isLocalHost(target.host) && MODE !== 'system') {
+  if (target && !isLocalHost(target.host) && MODE !== 'system' && process.env.ALLOW_REMOTE_DEMO_SEED !== '1') {
     throw new Error(
-      `Refusing to seed a non-local database host "${target.host}". Only the system bootstrap (seed.ts --system) may run remotely; --demo and --qa are development-only.`,
+      `Refusing to seed a non-local database host "${target.host}". Only the system bootstrap (seed.ts --system) may run remotely; --demo and --qa are development-only. Set ALLOW_REMOTE_DEMO_SEED=1 to seed a deliberate demo deployment.`,
     );
+  }
+
+  if (target && !isLocalHost(target.host) && MODE !== 'system' && process.env.ALLOW_REMOTE_DEMO_SEED === '1') {
+    console.warn(`[seed] REMOTE ${MODE} seed explicitly allowed (ALLOW_REMOTE_DEMO_SEED=1) on ${target.host}`);
   }
 
   if (target && !isLocalHost(target.host) && MODE === 'system') {
