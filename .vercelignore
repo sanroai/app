@@ -1,11 +1,14 @@
-# Vercel upload limit is 15k files. Before the NCERT extraction (books/) and QA
-# output (artifacts/) existed, the full workspace uploaded fine — so exclude only
-# the two huge directories plus caches. Everything else (apps/*, packages/*,
-# public/downloads/sanroai.apk) was part of every successful deploy.
-.git
-books
-artifacts
-releases
-**/.expo
-**/.next
-**/*.tsbuildinfo
+# Keep the Vercel upload to what the web app actually needs.
+# books/ (NCERT PDFs + page renders) is local-only and huge; artifacts/ holds QA
+# screenshots; apps/mobile and apps/api are other deployables.
+books/
+artifacts/
+apps/mobile/
+apps/api/
+docs/
+scripts/
+**/node_modules/
+**/.next/
+**/dist/
+*.log
+.env*
