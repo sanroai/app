@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-10-31 — Production textbook fallback + the two hosting faults behind the failed deploys
+
+| Field | Detail |
+|---|---|
+| Date | 2026-10-31 |
+| Task | Make the NCERT chapter readable on the deployed site, and fix the two Render faults that had been silently blocking every API deploy |
+| Reason | The book tree is git-ignored and local-only, so the deployed API had no PDF on disk and every chapter hub said "No textbook available". Separately, `sanro-api` had been failing at instance start since 14:37 because its env-var list had been replaced (losing `DATABASE_URL`, `AUTH_SECRET`, `NODE_ENV`, `CORS_ORIGINS`); after that was restored, `connection_limit=1` in the pooled URL starved Prisma's pool and the super-admin overview returned 500 |
+| Entities affected | `apps/api/src/common/books/chapter-pdf.ts` (new `chapterPdfRemoteUrl`), `apps/api/src/learning/learning.service.ts` (hub payload), `apps/web/lib/chapter-hooks.ts`, `apps/web/app/(dashboard)/app/learn/chapters/[chapterId]/page.tsx`, `scripts/qa/web-walkthrough.mts`, `apps/api/import-content.mjs`, `.gitignore` |
+| Database changes | none (the 555 `ContentItem` + 555 `ContentAssignment` rows were imported earlier by `apps/api/import-content.mjs`, resolving chapter/subject/concept by natural key) |
+| API changes | `GET /learning/chapters/:chapterId` now returns `externalPdfUrl` — the official `https://ncert.nic.in/textbook/pdf/<file>` link — when `pdfUrl` is null because this deployment ships no book files. Additive: `pdfUrl` is unchanged and still null in that case |
+| Frontend changes | Web chapter hub shows **Read on NCERT** (opens the official PDF in a new tab) instead of a disabled "Not available" button. `web-walkthrough.mts` reads `WALKTHROUGH_WEB` / `WALKTHROUGH_API` so the same 69-page role walkthrough can run against production |
+| Seed/import changes | `ALLOW_REMOTE_DEMO_SEED=1` escape hatch documented; the release APK is no longer stored in git (it is uploaded by the Vercel CLI, 80 MB) |
+| Migration | none — data/config only |
+| Verification | `pnpm --filter @sanro/api typecheck` and `@sanro/web typecheck` clean. Render deploy `dep-dbj62doae00c73dam500` → **live**. `artifacts/qa/2026-10-30/live-sweep.mjs` → **49/49** (7 logins, every student/teacher/principal/parent/admin flow, practice start→answer→submit, exam start→paper, 401/403/404 edges). `scripts/qa/web-walkthrough.mts` against `https://sanroai.com` → **69 pages, 62 PASS, 7 EXPECTED (RBAC), 0 FAIL, 0 console errors**. Browser check of the class-10 chapter hub shows "Read on NCERT" → `jesc101.pdf`. `https://sanroai.com/downloads/sanroai.apk` = 80,831,728 bytes |
+| Known issues | Render free sleeps when idle (~50 s cold start); the NCERT link leaves the app instead of the in-app page reader, which still needs the book files on disk |
+
 ### 2026-10-31 — Practice bank: the thinnest chapters now have enough questions to move mastery
 
 | Field | Detail |
