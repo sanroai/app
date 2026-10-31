@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLearningHome } from '../../lib/hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { EmptyState } from '../../components/EmptyState';
+import { SubjectCard } from '../../components/visuals';
 
 export default function LearnScreen() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function LearnScreen() {
   if (!data || (data.boards ?? []).length === 0) {
     return (
       <View style={styles.container}>
-        <Header />
+        <Header subtitle="Browse lessons by class and subject" />
         <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
           <EmptyState icon="book" title={isFetching ? 'Loading…' : 'No classes yet'} subtitle="Your board classes will appear here." />
         </ScrollView>
@@ -28,9 +29,21 @@ export default function LearnScreen() {
     );
   }
 
+  // A student can be enrolled in more than one class; the library then lists
+  // every one of them, so the header says so instead of naming a single class.
+  const gradeCount = data.boards.reduce((n, b) => n + b.grades.length, 0);
+
   return (
     <View style={styles.container}>
-      <Header />
+      <Header
+        subtitle={
+          data.allGrades
+            ? 'All classes · every subject'
+            : gradeCount > 1
+              ? `${gradeCount} classes · every subject`
+              : 'Browse lessons by class and subject'
+        }
+      />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
@@ -41,35 +54,25 @@ export default function LearnScreen() {
               <Text style={styles.groupTitle}>
                 {board.name} • Class {grade.grade}
               </Text>
-              {grade.subjects.map((subject) => (
-                <TouchableOpacity
-                  key={subject.id}
-                  style={styles.subjectRow}
-                  activeOpacity={0.85}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/learn/[boardId]/[grade]/[subjectId]',
-                      params: { boardId: board.id, grade: grade.grade, subjectId: subject.id },
-                    })
-                  }
-                >
-                  <View style={styles.subjectIcon}>
-                    <Ionicons name={subject.code === 'MATH' ? 'calculator' : 'flask'} size={22} color={Colors.white} />
-                  </View>
-                  <View style={styles.subjectBody}>
-                    <Text style={styles.subjectName}>{subject.name}</Text>
-                    <Text style={styles.subjectMeta}>
-                      {subject.completedContent}/{subject.totalContent} topics done
-                    </Text>
-                  </View>
-                  <View style={styles.subjectPct}>
-                    <Text style={styles.subjectPctText}>
-                      {subject.totalContent > 0 ? Math.round((subject.completedContent / subject.totalContent) * 100) : 0}%
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-                </TouchableOpacity>
-              ))}
+              <View style={styles.subjectGrid}>
+                {grade.subjects.map((subject) => (
+                  <SubjectCard
+                    key={subject.id}
+                    name={subject.name}
+                    code={subject.code}
+                    grade={grade.grade}
+                    subtitle={`${subject.completedContent}/${subject.totalContent} topics done`}
+                    progress={subject.totalContent > 0 ? (subject.completedContent / subject.totalContent) * 100 : 0}
+                    style={styles.subjectGridItem}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/learn/[boardId]/[grade]/[subjectId]',
+                        params: { boardId: board.id, grade: grade.grade, subjectId: subject.id },
+                      })
+                    }
+                  />
+                ))}
+              </View>
             </View>
           )),
         )}
@@ -78,11 +81,11 @@ export default function LearnScreen() {
   );
 }
 
-function Header() {
+function Header({ subtitle }: { subtitle: string }) {
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>Library</Text>
-      <Text style={styles.headerSub}>Browse lessons by class and subject</Text>
+      <Text style={styles.headerSub}>{subtitle}</Text>
     </View>
   );
 }
@@ -94,6 +97,11 @@ const styles = StyleSheet.create({
   headerSub: { color: Colors.primaryLight, fontSize: 13, marginTop: 2 },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   group: { marginBottom: Spacing.xl },
+  subjectGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.md },
+  // Fixed half-width columns: a `flexGrow` card stretches to full width when a
+  // grade has an odd number of subjects (English), which makes the last card a
+  // different size from the other two and breaks the shared thumbnail aspect.
+  subjectGridItem: { flexBasis: '47%', flexGrow: 0, flexShrink: 0 },
   groupTitle: { fontSize: 14, fontWeight: '700', color: Colors.textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: Spacing.md },
   subjectRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm },
   subjectIcon: { width: 44, height: 44, borderRadius: BorderRadius.md, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },

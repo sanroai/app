@@ -34,14 +34,29 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 
-type StudentSummary = {
+// Shapes below match what GET /dashboard/teacher actually returns
+// (apps/api/src/dashboard/dashboard.service.ts -> teacherHome). Verified live 2026-10-19:
+//   classes[]: { id, name, grade, studentCount, recentAssessments[], topStudents[], strugglingStudents[] }
+//   subjectStats[]: { subjectId, name, avgMastery, totalQuestions, contentCount }
+// Top/struggling students are NESTED per class, not top-level, and classes carry no
+// per-class avgMastery/studentsNeedingHelp — deriving them here avoids the NaN/undefined
+// rendering that the previous (incorrect) types produced.
+type ClassStudent = {
   id: string;
   name: string;
-  email: string;
-  overallMastery: number;
-  weakConcepts: number;
-  completedAssessments: number;
-  totalAssessments: number;
+  avgMastery: number;
+  // Present on `strugglingStudents`; the server omits it on `topStudents`
+  // (dashboard.service.ts:225-230 vs 231-234) — treat as optional and guard renders.
+  weakConcepts?: string[];
+  trend?: 'up' | 'stable' | 'down';
+};
+
+type RecentAssessment = {
+  id: string;
+  title: string;
+  avgScore: number;
+  completionRate: number;
+  date: string;
 };
 
 type ClassSummary = {
@@ -49,19 +64,22 @@ type ClassSummary = {
   name: string;
   grade: string;
   studentCount: number;
+  recentAssessments: RecentAssessment[];
+  topStudents: ClassStudent[];
+  strugglingStudents: ClassStudent[];
+};
+
+type SubjectStat = {
+  subjectId: string;
+  name: string;
   avgMastery: number;
-  studentsNeedingHelp: number;
+  totalQuestions: number;
+  contentCount: number;
 };
 
 type ReportsData = {
   classes: ClassSummary[];
-  topStudents: StudentSummary[];
-  strugglingStudents: StudentSummary[];
-  subjectStats: Array<{
-    subject: string;
-    avgMastery: number;
-    totalStudents: number;
-  }>;
+  subjectStats: SubjectStat[];
 };
 
 type InstitutionItem = { id: string; name: string };
@@ -142,21 +160,21 @@ export default function ReportsPage() {
     try {
       const rows: string[] = ['Section,Name,Metric,Value'];
       data.classes.forEach((c) => {
+        const help = c.strugglingStudents.length;
         rows.push(`Class,${c.name},Students,${c.studentCount}`);
-        rows.push(`Class,${c.name},Avg Mastery,${c.avgMastery}%`);
-        rows.push(`Class,${c.name},Need Help,${c.studentsNeedingHelp}`);
+        rows.push(`Class,${c.name},Need Help,${help}`);
       });
       data.subjectStats.forEach((s) => {
-        rows.push(`Subject,${s.subject},Avg Mastery,${s.avgMastery}%`);
-        rows.push(`Subject,${s.subject},Students,${s.totalStudents}`);
+        rows.push(`Subject,${s.name},Avg Mastery,${s.avgMastery}%`);
+        rows.push(`Subject,${s.name},Questions,${s.totalQuestions}`);
       });
-      data.topStudents.forEach((s) => {
-        rows.push(`Top Performer,${s.name},Mastery,${s.overallMastery}%`);
-        rows.push(`Top Performer,${s.name},Weak Concepts,${s.weakConcepts}`);
+      topStudents.forEach((s) => {
+        rows.push(`Top Performer,${s.name},Mastery,${s.avgMastery}%`);
+        rows.push(`Top Performer,${s.name},Weak Concepts,${(s.weakConcepts ?? []).join('; ')}`);
       });
-      data.strugglingStudents.forEach((s) => {
-        rows.push(`Needs Attention,${s.name},Mastery,${s.overallMastery}%`);
-        rows.push(`Needs Attention,${s.name},Weak Concepts,${s.weakConcepts}`);
+      strugglingStudents.forEach((s) => {
+        rows.push(`Needs Attention,${s.name},Mastery,${s.avgMastery}%`);
+        rows.push(`Needs Attention,${s.name},Weak Concepts,${(s.weakConcepts ?? []).join('; ')}`);
       });
       const csv = rows.join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -208,21 +226,30 @@ export default function ReportsPage() {
   }
 
   const classes = data?.classes ?? [];
-  const topStudents = data?.topStudents ?? [];
-  const strugglingStudents = data?.strugglingStudents ?? [];
   const subjectStats = data?.subjectStats ?? [];
+  // Top/struggling students are nested per class — flatten across classes and
+  // re-sort so the "Top Performers" / "Needing Attention" lists show real data.
+  const topStudents = classes
+    .flatMap((c) => c.topStudents)
+    .sort((a, b) => b.avgMastery - a.avgMastery)
+    .slice(0, 5);
+  const strugglingStudents = classes
+    .flatMap((c) => c.strugglingStudents)
+    .sort((a, b) => a.avgMastery - b.avgMastery)
+    .slice(0, 5);
 
   const totalStudents = isSuperAdmin
     ? superAdminData?.platform.activeStudents ?? 0
     : classes.reduce((sum, c) => sum + c.studentCount, 0);
-  const avgMastery = isSuperAdmin
-    ? 0
-    : classes.length > 0
-      ? Math.round(classes.reduce((sum, c) => sum + c.avgMastery, 0) / classes.length)
-      : 0;
+  // Average mastery across subjects the teacher actually teaches (guarded against
+  // an empty list so this can never render NaN).
+  const avgMastery =
+    isSuperAdmin || subjectStats.length === 0
+      ? 0
+      : Math.round(subjectStats.reduce((sum, s) => sum + (s.avgMastery || 0), 0) / subjectStats.length);
   const totalNeedingHelp = isSuperAdmin
     ? 0
-    : classes.reduce((sum, c) => sum + c.studentsNeedingHelp, 0);
+    : classes.reduce((sum, c) => sum + c.strugglingStudents.length, 0);
   const totalClasses = isSuperAdmin
     ? superAdminData?.platform.activeTeachers ?? 0
     : classes.length;
@@ -348,11 +375,13 @@ export default function ReportsPage() {
                       <p className="text-xs text-surface-500">{cls.studentCount} students · Grade {cls.grade}</p>
                     </div>
                     <div className="text-right">
-                      <Badge variant={cls.avgMastery >= 70 ? 'default' : cls.avgMastery >= 50 ? 'secondary' : 'destructive'}>
-                        {cls.avgMastery}%
+                      <Badge variant={cls.strugglingStudents.length > 0 ? 'destructive' : 'secondary'}>
+                        {cls.strugglingStudents.length} need help
                       </Badge>
-                      {cls.studentsNeedingHelp > 0 && (
-                        <p className="text-xs text-amber-600 mt-1">{cls.studentsNeedingHelp} need help</p>
+                      {cls.topStudents.length > 0 && (
+                        <p className="text-xs text-emerald-600 mt-1">
+                          Top: {cls.topStudents[0].name} ({cls.topStudents[0].avgMastery}%)
+                        </p>
                       )}
                     </div>
                   </div>
@@ -376,9 +405,9 @@ export default function ReportsPage() {
             ) : (
               <div className="space-y-3">
                 {subjectStats.map((s) => (
-                  <div key={s.subject}>
+                  <div key={s.subjectId}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-surface-700">{s.subject}</span>
+                      <span className="text-sm font-medium text-surface-700">{s.name}</span>
                       <span className="text-sm font-semibold text-surface-900">{s.avgMastery}%</span>
                     </div>
                     <Progress value={s.avgMastery} className="h-2" />
@@ -411,9 +440,11 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-surface-700 truncate">{s.name}</p>
-                      <p className="text-xs text-surface-500">{s.completedAssessments}/{s.totalAssessments} assessments</p>
+                      {s.weakConcepts && s.weakConcepts.length > 0 && (
+                        <p className="text-xs text-surface-500 truncate">Focus: {s.weakConcepts.join(', ')}</p>
+                      )}
                     </div>
-                    <Badge className="bg-emerald-100 text-emerald-700">{s.overallMastery}%</Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700">{s.avgMastery}%</Badge>
                   </div>
                 ))}
               </div>
@@ -442,12 +473,14 @@ export default function ReportsPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-surface-700 truncate">{s.name}</p>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <p className="text-xs text-amber-600">{s.weakConcepts} weak concept{s.weakConcepts !== 1 ? 's' : ''}</p>
-                        <p className="text-xs text-surface-500">Mastery: {s.overallMastery}%</p>
-                        <p className="text-xs text-surface-500">{s.completedAssessments}/{s.totalAssessments} assessments</p>
+                        <p className="text-xs text-amber-600 truncate">
+                          {(s.weakConcepts?.length ?? 0)} weak concept{(s.weakConcepts?.length ?? 0) !== 1 ? 's' : ''}
+                          {(s.weakConcepts?.length ?? 0) > 0 ? `: ${s.weakConcepts!.join(', ')}` : ''}
+                        </p>
+                        <p className="text-xs text-surface-500">Mastery: {s.avgMastery}%</p>
                       </div>
                     </div>
-                    <Badge variant="destructive">{s.overallMastery}%</Badge>
+                    <Badge variant="destructive">{s.avgMastery}%</Badge>
                   </div>
                 ))}
               </div>

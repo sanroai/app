@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { SubscriptionAccessService } from '../common/security/subscription-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
@@ -22,6 +23,8 @@ interface CreateStudentData {
   dateOfBirth?: string;
   rollNumber?: string;
   grade?: string;
+  /** Every class the student is enrolled in; `grade` stays the primary class. */
+  grades?: string[];
   groupIds?: string[];
   parentName?: string;
   parentPhone?: string;
@@ -36,6 +39,7 @@ export class StudentsService {
     private readonly subscription: SubscriptionAccessService,
     private readonly audit: AuditService,
     private readonly notifications: NotificationsService,
+    private readonly gradeAccess: StudentGradeAccessService,
   ) {}
 
   async listStudents(user: RequestUser, query: {
@@ -107,6 +111,7 @@ export class StudentsService {
           mastery: true,
           academicYear: true,
           parentLinks: { include: { parent: true } },
+          enrolments: { select: { grade: true }, orderBy: { grade: 'asc' } },
         },
       }),
     ]);
@@ -120,6 +125,7 @@ export class StudentsService {
         gender: r.gender,
         rollNumber: r.rollNumber,
         grade: r.grade,
+        grades: r.enrolments.map((e) => e.grade),
         status: r.status,
         academicYearId: r.academicYearId,
         group: r.groupMemberships.length > 0 ? {
@@ -151,7 +157,14 @@ export class StudentsService {
     const institutionId = this.tenant.requireInstitution(user);
     if (user.role === 'TEACHER') throw new ForbiddenException('Teachers cannot create students');
 
-    await this.subscription.assertSeatAvailable(institutionId, 1);
+    // A student created with parent fields also creates a Parent row below, and
+    // every parent is a billable seat - asserting only the student would let a
+    // full institution overshoot its allowance by one.
+    const parentFields = Boolean(data.parentName || data.parentEmail || data.parentPhone);
+    const parentWillBeNew = parentFields
+      ? !(await this.findParentByContact(institutionId, data.parentEmail, data.parentPhone))
+      : false;
+    await this.subscription.assertSeatAvailable(institutionId, parentWillBeNew ? 2 : 1);
 
     if (data.email && data.email.trim()) {
       const existing = await this.prisma.student.findFirst({
@@ -224,6 +237,13 @@ export class StudentsService {
       await this.addToGroup(institutionId, data.academicYearId, student.id, gid);
     }
 
+    // A student may start in more than one class; the primary `grade` is also an
+    // enrolment so the access check has one source.
+    await this.gradeAccess.setEnrolments(
+      student.id,
+      data.grades?.length ? data.grades : data.grade ? [data.grade] : [],
+    );
+
     if (data.parentName || data.parentEmail || data.parentPhone) {
       await this.linkParent(institutionId, student.id, {
         name: data.parentName ?? 'Parent',
@@ -262,6 +282,26 @@ export class StudentsService {
     });
   }
 
+  private async findParentByContact(
+    institutionId: string,
+    email?: string,
+    phone?: string,
+  ): Promise<{ id: string } | null> {
+    if (email) {
+      const byEmail = await this.prisma.parent.findFirst({
+        where: { institutionId, email: email.toLowerCase() },
+      });
+      if (byEmail) return byEmail;
+    }
+    if (phone) {
+      const byPhone = await this.prisma.parent.findFirst({
+        where: { institutionId, phone },
+      });
+      if (byPhone) return byPhone;
+    }
+    return null;
+  }
+
   async linkParent(
     institutionId: string,
     studentId: string,
@@ -270,14 +310,13 @@ export class StudentsService {
     const student = await this.prisma.student.findFirst({ where: { id: studentId, institutionId } });
     if (!student) throw new NotFoundException('Student not found');
 
-    let parent = parentData.email
-      ? await this.prisma.parent.findFirst({ where: { institutionId, email: parentData.email.toLowerCase() } })
-      : null;
-    if (!parent && parentData.phone) {
-      parent = await this.prisma.parent.findFirst({ where: { institutionId, phone: parentData.phone } });
-    }
+    const existing = await this.findParentByContact(institutionId, parentData.email, parentData.phone);
+    let parent: { id: string } | null = existing;
 
     if (!parent) {
+      // Every parent row is billable, so linking a brand-new parent to a student
+      // consumes a seat too (POST /students/:id/link-parent reaches this path).
+      await this.subscription.assertSeatAvailable(institutionId, 1);
       parent = await this.prisma.parent.create({
         data: {
           institutionId,
@@ -329,6 +368,13 @@ for (const gid of data.groupIds) {
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
       },
     });
+
+    // `grades` is the full set; a bare `grade` change only adds the new class.
+    if (data.grades) {
+      await this.gradeAccess.setEnrolments(id, data.grades);
+    } else if (data.grade) {
+      await this.gradeAccess.addEnrolment(id, data.grade);
+    }
     return updated;
   }
 
@@ -336,6 +382,11 @@ for (const gid of data.groupIds) {
     const institutionId = this.tenant.requireInstitution(user);
     const student = await this.prisma.student.findFirst({ where: { id, institutionId } });
     if (!student) throw new NotFoundException('Student not found');
+    // Reactivating a deactivated/archived student makes them billable again -
+    // without this the limit could be bypassed by archiving and re-adding.
+    if (status === 'ACTIVE' && student.status !== 'ACTIVE') {
+      await this.subscription.assertSeatAvailable(institutionId, 1);
+    }
     await this.prisma.student.update({
       where: { id },
       data: {
@@ -394,9 +445,10 @@ for (const gid of data.groupIds) {
         groupMemberships: { where: { leftAt: null }, include: { group: true } },
         parentLinks: { include: { parent: true } },
         mastery: { include: { concept: { include: { topic: true } } } },
+        enrolments: { orderBy: { grade: 'asc' } },
       },
     });
     if (!student) throw new NotFoundException('Student not found');
-    return student;
+    return { ...student, grades: student.enrolments.map((e) => e.grade) };
   }
 }

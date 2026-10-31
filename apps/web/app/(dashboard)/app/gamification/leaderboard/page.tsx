@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useLeaderboard } from '@/lib/learning-hooks';
+import { useAuthStore } from '@/lib/auth-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Spinner, ErrorBanner } from '@/components/ui';
-import { Trophy, ChevronLeft, Crown, Medal, Star, Flame } from 'lucide-react';
+import { ErrorBanner } from '@/components/ui';
+import { Trophy, Crown, Medal, Flame } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 const PERIODS = [
@@ -28,9 +29,27 @@ const RANK_ICONS: Record<number, typeof Trophy> = {
   3: Medal,
 };
 
+const PODIUM_ORDER = [2, 1, 3];
+
+const PODIUM_HEIGHT: Record<number, string> = {
+  1: 'h-40 sm:h-44',
+  2: 'h-28 sm:h-32',
+  3: 'h-20 sm:h-24',
+};
+
+const PODIUM_FACE: Record<number, string> = {
+  1: 'from-yellow-300 via-amber-400 to-amber-500',
+  2: 'from-slate-200 via-gray-300 to-gray-400',
+  3: 'from-orange-200 via-orange-300 to-orange-400',
+};
+
 export default function LeaderboardPage() {
   const [period, setPeriod] = useState('weekly');
-  const { data, isLoading, error } = useLeaderboard(period);
+  const [groupId, setGroupId] = useState<string | null>(null);
+  const { data, isLoading, error } = useLeaderboard(period, groupId);
+  // The leaderboard rows carry the user id, so the caller's own row is the one
+  // that matches the signed-in user - the API does not echo it back.
+  const myUserId = useAuthStore((s) => s.user?.id);
 
   if (isLoading) {
     return (
@@ -49,6 +68,7 @@ export default function LeaderboardPage() {
 
   const entries = data?.entries ?? [];
   const myRank = data?.myRank ?? 0;
+  const groups = (data?.groups ?? []) as Array<{ id: string; name: string; grade?: string | null }>;
 
   return (
     <div className="space-y-6">
@@ -87,32 +107,80 @@ export default function LeaderboardPage() {
         ))}
       </div>
 
-      {/* Top 3 Podium */}
+      {/* Scope: whole school vs one class - competing with peers you know is what
+          keeps a board motivating, so the class board is one click away. */}
+      {groups.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-surface-400">Scope</span>
+          <Button
+            variant={groupId === null ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setGroupId(null)}
+            className={groupId === null ? 'bg-brand-600 hover:bg-brand-700' : ''}
+          >
+            Whole school
+          </Button>
+          {groups.map((g) => (
+            <Button
+              key={g.id}
+              variant={groupId === g.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setGroupId(g.id)}
+              className={groupId === g.id ? 'bg-brand-600 hover:bg-brand-700' : ''}
+            >
+              {g.name}
+            </Button>
+          ))}
+        </div>
+      )}
+
+      {/* Top 3 Podium (3D stage) */}
       {entries.length >= 3 && (
-        <div className="flex items-end justify-center gap-4 py-6">
-          {[1, 0, 2].map((idx) => {
-            const entry = entries[idx];
-            if (!entry) return <div key={idx} className="w-32" />;
-            const Icon = RANK_ICONS[entry.rank] ?? Trophy;
-            return (
-              <div key={entry.userId} className={cn(
-                'flex flex-col items-center rounded-2xl p-4',
-                entry.rank === 1 ? 'w-40 bg-gradient-to-b from-amber-50 to-white border-2 border-amber-200' :
-                entry.rank === 2 ? 'w-36 bg-gradient-to-b from-gray-50 to-white border border-gray-200' :
-                'w-36 bg-gradient-to-b from-orange-50 to-white border border-orange-200'
-              )}>
-                <div className={cn(
-                  'flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold',
-                  RANK_STYLES[entry.rank] ?? 'bg-surface-100 text-surface-600'
-                )}>
-                  <Icon className="h-6 w-6" />
-                </div>
-                <p className="mt-2 text-sm font-bold text-surface-900 text-center truncate w-full">{entry.name}</p>
-                <p className="text-xs text-surface-500">{entry.xp} XP</p>
-                <p className="text-xs font-medium text-brand-600">Lv.{entry.level}</p>
-              </div>
-            );
-          })}
+        <div className="relative overflow-hidden rounded-3xl border border-surface-200 bg-gradient-to-b from-white via-white to-surface-50 p-6">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(ellipse_at_center,rgba(124,58,237,0.12),transparent_70%)]" />
+          <div className="[perspective:1400px]">
+            <div className="flex items-end justify-center gap-2 sm:gap-4">
+              {PODIUM_ORDER.map((rank) => {
+                const entry = entries.find((e: { rank: number }) => e.rank === rank);
+                if (!entry) return <div key={rank} className="w-20 sm:w-24" />;
+                const Icon = RANK_ICONS[rank] ?? Trophy;
+                return (
+                  <div key={entry.userId} className="flex flex-col items-center">
+                    <div className="mb-2 flex flex-col items-center">
+                      <span
+                        className={cn(
+                          'flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold shadow-lg',
+                          RANK_STYLES[rank] ?? 'bg-surface-100 text-surface-600',
+                        )}
+                      >
+                        <Icon className="h-6 w-6" />
+                      </span>
+                      <p className="mt-1.5 max-w-[7.5rem] truncate text-center text-sm font-bold text-surface-900">
+                        {entry.name}
+                      </p>
+                      <p className="text-xs text-surface-500">{entry.xp} XP</p>
+                    </div>
+                    <div
+                      className={cn(
+                        'w-20 rounded-t-2xl bg-gradient-to-b shadow-[0_22px_32px_-20px_rgba(76,29,149,0.65)] sm:w-24',
+                        PODIUM_HEIGHT[rank],
+                        PODIUM_FACE[rank],
+                      )}
+                      style={{ transform: 'rotateX(7deg)', transformStyle: 'preserve-3d' }}
+                    >
+                      <div
+                        className="flex h-full items-start justify-center pt-3 text-3xl font-black text-white/95 drop-shadow"
+                        style={{ transform: 'translateZ(22px)' }}
+                      >
+                        {rank}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-8 h-2 rounded-[100%] bg-gradient-to-r from-transparent via-brand-200 to-transparent" />
         </div>
       )}
 
@@ -127,25 +195,34 @@ export default function LeaderboardPage() {
             </div>
           ) : (
             <div className="divide-y divide-surface-100">
-              {entries.map((entry: { userId: string; name: string; xp: number; rank: number; level?: number; streakDays?: number }) => (
+              {entries.map((entry) => (
                 <div
                   key={entry.userId}
                   className={cn(
                     'flex items-center gap-4 px-6 py-4 transition-colors',
-                    entry.userId === data?.userId ? 'bg-brand-50' : 'hover:bg-surface-50'
+                    entry.userId === myUserId ? 'bg-brand-50' : 'hover:bg-surface-50',
                   )}
                 >
-                  <span className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold',
-                    entry.rank <= 3 ? RANK_STYLES[entry.rank] : 'bg-surface-100 text-surface-600'
-                  )}>
+                  <span
+                    className={cn(
+                      'flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold',
+                      entry.rank <= 3 ? RANK_STYLES[entry.rank] : 'bg-surface-100 text-surface-600',
+                    )}
+                  >
                     {entry.rank}
                   </span>
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-purple-500 text-sm font-bold text-white">
                     {entry.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-surface-900">{entry.name}</p>
+                    <p className="font-semibold text-surface-900">
+                      {entry.name}
+                      {entry.userId === myUserId ? (
+                        <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-700">
+                          You
+                        </span>
+                      ) : null}
+                    </p>
                     <p className="text-xs text-surface-500">Level {entry.level}</p>
                   </div>
                   <div className="flex items-center gap-4 text-sm">

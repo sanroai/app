@@ -115,4 +115,14 @@ export class AuthController {
   me(@CurrentUser() user: RequestUser) {
     return this.authService.me(user.sub);
   }
+
+  /**
+   * The plan this account is on. A student sees the subscription that actually
+   * governs their access: their own if they have one, otherwise the one of the
+   * institution they belong to.
+   */
+  @Get('subscription')
+  subscription(@CurrentUser() user: RequestUser) {
+    return this.authService.subscription(user.sub);
+  }
 }

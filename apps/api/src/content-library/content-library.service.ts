@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService } from '../common/services/audit-notifications.service';
 import { RequestUser } from '../common/types/auth-context';
+import { canonicalTypeMembers } from '../common/content/content-types';
 
 export type ContentRole = 'SUPER_ADMIN' | 'INSTITUTION_ADMIN' | 'TEACHER';
 
@@ -95,7 +96,7 @@ export class ContentLibraryService {
     const scope = this.manageScope(user);
 
     const where: Prisma.ContentItemWhereInput = { ...scope };
-    if (q.type) where.type = q.type;
+    if (q.type) where.type = { in: canonicalTypeMembers(q.type) };
     if (q.status) where.status = q.status;
     if (q.ownerType) where.ownerType = q.ownerType;
     if (q.grade) where.grade = q.grade;
@@ -397,8 +398,12 @@ export class ContentLibraryService {
   }
 
   async listAssignments(user: RequestUser, institutionId?: string) {
-    const scope = institutionId;
-    if (!scope && user.role !== 'SUPER_ADMIN') {
+    const isSuper = user.role === 'SUPER_ADMIN';
+    if (!isSuper && institutionId && institutionId !== user.institutionId) {
+      throw new ForbiddenException('Cannot view assignments of another institution');
+    }
+    const scope = institutionId ?? (isSuper ? undefined : user.institutionId);
+    if (!scope && !isSuper) {
       throw new ForbiddenException('institutionId is required');
     }
     const rows = await this.prisma.contentAssignment.findMany({

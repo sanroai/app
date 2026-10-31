@@ -2,6 +2,7 @@ import { chromium } from 'playwright';
 import { mkdir } from 'fs/promises';
 import { join } from 'path';
 import { statSync } from 'fs';
+import { QA_PASSWORD } from './qa/_env.mjs';
 
 const DIR = join(import.meta.dirname!, '..', 'screenshots', 'live-verify');
 const BASE = 'https://sanroai.com';
@@ -16,7 +17,7 @@ async function login(page: any, email: string) {
   await page.goto(`${BASE}/login`, { waitUntil: 'networkidle', timeout: 30000 });
   await page.waitForTimeout(2000);
   await page.fill('input[type="email"]', email).catch(() => {});
-  await page.fill('input[type="password"]', 'Sanro@123').catch(() => {});
+  await page.fill('input[type="password"]', QA_PASSWORD).catch(() => {});
   await page.click('button[type="submit"]').catch(() => {});
   await page.waitForTimeout(8000);
   console.log(`  Logged in as ${email} → ${page.url()}`);

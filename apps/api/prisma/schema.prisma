@@ -628,6 +628,7 @@ model Student {
   dateOfBirth   DateTime?
   rollNumber    String?
   grade         String?
+  allGrades     Boolean       @default(false)
   status        StudentStatus @default(ACTIVE)
   createdAt     DateTime      @default(now())
   deactivatedAt DateTime?
@@ -637,6 +638,7 @@ model Student {
   academicYear AcademicYear?    @relation(fields: [academicYearId], references: [id], onDelete: Cascade)
   user         User?            @relation(fields: [userId], references: [id])
   groupMemberships GroupMembership[]
+  enrolments   StudentEnrolment[]
   parentLinks ParentStudentLink[]
   attempts     AssessmentAttempt[]
   mastery      ConceptMastery[]
@@ -645,6 +647,7 @@ model Student {
   practiceSets PracticeSet[]
   contentProgress ContentProgress[]
   gamification GamificationProfile?
+  xpEvents     XpEvent[]
   achievements StudentAchievement[]
   assessmentAssignments AssessmentAssignment[]
   flashcardRatings FlashcardRating[]
@@ -652,6 +655,26 @@ model Student {
   @@unique([institutionId, email])
   @@index([institutionId])
   @@index([academicYearId])
+  @@index([grade])
+}
+
+/// The classes a student is enrolled in.
+///
+/// Content is grade-scoped, and one student may take more than one class (a
+/// class-8 student taking class-9 mathematics, a student repeating a year, a
+/// demo account that explores every class). `Student.grade` stays the primary
+/// class shown on profiles and reports; every read that authorises content asks
+/// `StudentGradeAccessService`, which unions these rows.
+model StudentEnrolment {
+  id        String   @id @default(uuid()) @db.Uuid
+  studentId String   @db.Uuid
+  grade     String
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, grade])
+  @@index([studentId])
   @@index([grade])
 }
 
@@ -806,6 +829,8 @@ model ContentItem {
   title           String
   description     String?
   durationSeconds Int?
+  /// Chapter markers of a video lesson: [{ "title": "Total Surface Area", "startSeconds": 2558 }]
+  segments       Json?
   thumbnailUrl    String?
   url             String?
   order           Int           @default(0)
@@ -1243,6 +1268,7 @@ model DiagnosticResult {
   studentId   String      @db.Uuid
   conceptId   String      @db.Uuid
   attemptId   String?     @db.Uuid
+  practiceSetId String?   @db.Uuid
   score       Int
   attempts    Int
   correct     Int
@@ -1253,10 +1279,12 @@ model DiagnosticResult {
   student Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
   concept Concept          @relation(fields: [conceptId], references: [id], onDelete: Cascade)
   attempt AssessmentAttempt? @relation(fields: [attemptId], references: [id])
+  practiceSet PracticeSet?  @relation(fields: [practiceSetId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([conceptId, level])
   @@index([attemptId])
+  @@index([practiceSetId])
 }
 
 model RemediationPlan {
@@ -1309,6 +1337,7 @@ model PracticeSet {
   student Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
   concept Concept?          @relation(fields: [conceptId], references: [id])
   answers PracticeAnswer[]
+  diagnosticResults DiagnosticResult[]
 
   @@index([studentId])
   @@index([conceptId])
@@ -1330,6 +1359,10 @@ model PracticeAnswer {
   @@index([practiceSetId])
 }
 
+/// Retired 2026-10-30: the student flashcard deck was removed (it replayed the
+/// quiz pool without writing mastery evidence or XP). The table is kept so no
+/// destructive migration is needed, and `generate-flashcards` authoring still
+/// documents what it produced; nothing reads or writes it from the student flow.
 model FlashcardRating {
   id         String   @id @default(uuid()) @db.Uuid
   studentId  String   @db.Uuid
@@ -1363,6 +1396,18 @@ model GamificationProfile {
   student      Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([studentId])
+}
+
+model XpEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  studentId String   @db.Uuid
+  xp        Int
+  reason    String
+  createdAt DateTime @default(now())
+
+  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, createdAt])
 }
 
 model StudentAchievement {

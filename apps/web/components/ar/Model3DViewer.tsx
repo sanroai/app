@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ElementType } from 'react';
 import { Boxes, Maximize2, RefreshCw, Rotate3d, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { ArHotspot } from '@/lib/ar-hooks';
@@ -24,6 +24,13 @@ model-viewer [slot^="hotspot"] {
 `;
 
 let viewerScriptPromise: Promise<void> | null = null;
+
+interface ModelViewerElement extends HTMLElement {
+  cameraOrbit?: string;
+  cameraTarget?: string;
+  fieldOfView?: string;
+  loaded?: boolean;
+}
 
 function loadModelViewer(): Promise<void> {
   if (typeof window === 'undefined') return Promise.resolve();
@@ -64,9 +71,16 @@ export function Model3DViewer({
   onHotspotSelect,
 }: Model3DViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const viewerRef = useRef<any>(null);
+  const viewerRef = useRef<ModelViewerElement | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [attempt, setAttempt] = useState(0);
+  const onReadyRef = useRef(onReady);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onReadyRef.current = onReady;
+    onErrorRef.current = onError;
+  });
 
   useEffect(() => {
     if (!src) return;
@@ -74,18 +88,34 @@ export function Model3DViewer({
     setStatus('loading');
     loadModelViewer()
       .then(() => {
-        if (!cancelled && viewerRef.current) onReady?.();
+        if (!cancelled && viewerRef.current) onReadyRef.current?.();
       })
       .catch(() => {
         if (!cancelled) {
           setStatus('error');
-          onError?.();
+          onErrorRef.current?.();
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [src, attempt, onReady, onError]);
+  }, [src, attempt]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !src) return;
+    const handleLoad = () => setStatus('ready');
+    const handleError = () => {
+      setStatus('error');
+      onErrorRef.current?.();
+    };
+    viewer.addEventListener('load', handleLoad);
+    viewer.addEventListener('error', handleError);
+    return () => {
+      viewer.removeEventListener('load', handleLoad);
+      viewer.removeEventListener('error', handleError);
+    };
+  }, [src, attempt]);
 
   const resetCamera = useCallback(() => {
     const viewer = viewerRef.current;
@@ -159,7 +189,7 @@ export function Model3DViewer({
         )}
 
         {(() => {
-          const ModelViewer: any = 'model-viewer';
+          const ModelViewer = 'model-viewer' as unknown as ElementType;
           return (
             <ModelViewer
               ref={viewerRef}
@@ -173,11 +203,6 @@ export function Model3DViewer({
               shadow-intensity="1"
               exposure="1"
               style={{ width: '100%', height: '360px', backgroundColor: 'transparent' }}
-              onLoad={() => setStatus('ready')}
-              onError={() => {
-                setStatus('error');
-                onError?.();
-              }}
             >
               {(hotspots ?? []).map((hotspot) => (
                 <button

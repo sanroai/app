@@ -3,6 +3,7 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/cn';
+import { normalizeMarkdown } from '@/lib/markdown-normalize';
 
 const components = {
   h1: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -16,6 +17,12 @@ const components = {
   ),
   h4: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h4 className="mt-3 mb-1.5 text-sm font-semibold text-surface-800 first:mt-0">{children}</h4>
+  ),
+  h5: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h5 className="mt-3 mb-1 text-sm font-semibold text-surface-800 first:mt-0">{children}</h5>
+  ),
+  h6: ({ children }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h6 className="mt-3 mb-1 text-xs font-semibold uppercase tracking-wide text-surface-500 first:mt-0">{children}</h6>
   ),
   p: ({ children }: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className="mb-3 text-sm leading-relaxed text-surface-700 last:mb-0">{children}</p>
@@ -40,7 +47,15 @@ const components = {
   ol: ({ children }: React.HTMLAttributes<HTMLOListElement>) => (
     <ol className="mb-3 list-decimal space-y-1 pl-5 text-sm text-surface-700">{children}</ol>
   ),
-  li: ({ children }: React.HTMLAttributes<HTMLLIElement>) => <li className="leading-relaxed">{children}</li>,
+  li: ({ children }: React.HTMLAttributes<HTMLLIElement>) => (
+    <li className="leading-relaxed [&>p]:mb-1 [&>p:last-child]:mb-0">{children}</li>
+  ),
+  del: ({ children }: React.HTMLAttributes<HTMLElement>) => (
+    <del className="text-surface-500 line-through">{children}</del>
+  ),
+  input: (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <input {...props} disabled className="mr-1.5 align-middle accent-brand-600" />
+  ),
   blockquote: ({ children }: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote className="mb-3 rounded-r-lg border-l-4 border-brand-200 bg-brand-50/50 px-4 py-2 text-sm text-surface-700">
       {children}
@@ -76,7 +91,6 @@ const components = {
   ),
   hr: () => <hr className="my-4 border-surface-200" />,
   img: (props: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    // eslint-disable-next-line @next/next/no-img-element
     <img {...props} alt={props.alt ?? ''} className="my-3 max-w-full rounded-lg" />
   ),
 };
@@ -86,7 +100,7 @@ export function Markdown({ children, className }: { children?: string | null; cl
   return (
     <div className={cn('sanro-markdown', className)}>
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
-        {children}
+        {normalizeMarkdown(children)}
       </ReactMarkdown>
     </div>
   );

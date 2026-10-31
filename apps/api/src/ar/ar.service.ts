@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 import { StorageService } from '../common/services/storage.service';
 import { RequestUser } from '../common/types/auth-context';
 import { ArValidationService } from './ar-validation.service';
@@ -73,6 +74,7 @@ export class ArService {
     private readonly prisma: PrismaService,
     private readonly tenant: TenantAccessService,
     private readonly identity: StudentIdentityService,
+    private readonly gradeAccess: StudentGradeAccessService,
     private readonly storage: StorageService,
     private readonly validation: ArValidationService,
   ) {}
@@ -82,7 +84,7 @@ export class ArService {
   // ==========================================================================
 
   async listForConcept(user: RequestUser, conceptId: string) {
-    const grade = await this.studentGrade(user);
+    const access = await this.gradeAccess.forUser(user);
     const where: any = {
       conceptId,
       status: 'PUBLISHED',
@@ -91,7 +93,7 @@ export class ArService {
         { visibility: 'INSTITUTION_ONLY', institutionId: user.institutionId ?? NO_INSTITUTION_ID },
       ],
     };
-    if (grade) where.AND = [{ OR: [{ grade: null }, { grade }] }];
+    if (!access.unrestricted) where.AND = [{ OR: [{ grade: null }, { grade: { in: access.grades } }] }];
 
     const items = await this.prisma.arContent.findMany({
       where,
@@ -102,7 +104,7 @@ export class ArService {
   }
 
   async listForStudent(user: RequestUser, filters: { subjectId?: string; conceptId?: string; chapterId?: string } = {}) {
-    const grade = await this.studentGrade(user);
+    const access = await this.gradeAccess.forUser(user);
     const where: any = {
       status: 'PUBLISHED',
       OR: [
@@ -113,7 +115,7 @@ export class ArService {
     if (filters.subjectId) where.subjectId = filters.subjectId;
     if (filters.chapterId) where.chapterId = filters.chapterId;
     if (filters.conceptId) where.conceptId = filters.conceptId;
-    if (grade) where.AND = [{ OR: [{ grade: null }, { grade }] }];
+    if (!access.unrestricted) where.AND = [{ OR: [{ grade: null }, { grade: { in: access.grades } }] }];
 
     const items = await this.prisma.arContent.findMany({
       where,
@@ -682,8 +684,8 @@ export class ArService {
 
     this.assertReadable(user, item);
     if (user.role === 'STUDENT' && item.grade) {
-      const student = await this.identity.resolveForUser(user);
-      if (student?.grade && student.grade !== item.grade) {
+      const access = await this.gradeAccess.forUser(user);
+      if (!this.gradeAccess.allows(access, item.grade)) {
         throw new NotFoundException('AR content not found');
       }
     }
@@ -732,12 +734,6 @@ export class ArService {
     }
     const institutionId = this.tenant.requireInstitution(user);
     return { OR: [{ institutionId: null }, { institutionId }] };
-  }
-
-  private async studentGrade(user: RequestUser): Promise<string | null> {
-    if (user.role !== 'STUDENT') return null;
-    const student = await this.identity.resolveForUser(user);
-    return student?.grade ?? null;
   }
 
   private async resolveMapping(input: {

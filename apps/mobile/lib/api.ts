@@ -2,7 +2,26 @@ import { useAuthStore } from './auth-store';
 import { useOfflineStore, isNetworkError } from './offline';
 import { blockedFromBody, blockedFromError, BlockedState, BlockState } from './blocked';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
+export const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://api.sanroai.com/api/v1';
+
+const API_PREFIX = '/api/v1';
+
+/**
+ * Build an absolute URL for an API path.
+ *
+ * The API hands out paths in two shapes (`/learning/chapters/<id>/pdf` and
+ * `/api/v1/learning/chapters/<id>/pdf`), and `API_BASE` already carries the
+ * `/api/v1` prefix - so a naive concatenation would produce
+ * `.../api/v1/api/v1/...`. Absolute URLs are returned untouched.
+ */
+export function absoluteApiUrl(path: string): string {
+  if (!path) return API_BASE;
+  if (/^https?:\/\//i.test(path)) return path;
+  const base = API_BASE.replace(/\/+$/, '');
+  const suffix = path.startsWith('/') ? path : `/${path}`;
+  const stripped = base.endsWith(API_PREFIX) && suffix.startsWith(`${API_PREFIX}/`) ? suffix.slice(API_PREFIX.length) : suffix;
+  return `${base}${stripped}`;
+}
 
 export class BlockedAuthError extends Error {
   readonly state: BlockState;
@@ -147,6 +166,16 @@ export async function apiAuthed<T>(
   path: string,
   options: { method?: string; body?: unknown; params?: Record<string, string>; queueOffline?: boolean } = {},
 ): Promise<T> {
+  // On a cold start the token is restored from SecureStore asynchronously. Querying
+  // before that threw "Not authenticated" and cached the error, leaving the screen
+  // permanently empty (0 XP, endless spinner). Wait for the first hydration instead.
+  if (!useAuthStore.getState()._hasHydrated) {
+    try {
+      await useAuthStore.getState().hydrate();
+    } catch {
+      /* storage unavailable - the token check below reports it */
+    }
+  }
   const store = useAuthStore.getState();
   let token = store.token;
 

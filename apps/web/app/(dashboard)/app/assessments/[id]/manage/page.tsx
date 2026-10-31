@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatDate, titleCase } from '@/lib/format';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, ClipboardCheck, Send } from 'lucide-react';
 
 export default function ManageAssessmentPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,6 +66,12 @@ export default function ManageAssessmentPage() {
           {assessment.subject?.name ?? '—'} · {assessment.totalMarks} marks · {assessment.durationMinutes} min ·{' '}
           <Badge>{assessment.status}</Badge>
         </p>
+        <div className="mt-3">
+          <Button variant="outline" onClick={() => router.push(`/app/assessments/${id}/grading`)}>
+            <ClipboardCheck className="h-4 w-4" />
+            Grade attempts
+          </Button>
+        </div>
       </div>
 
       <Card>

@@ -1,7 +1,14 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useStudentDetail, useDeactivateStudent, useActivateStudent } from '@/lib/people-hooks';
+import { useMemo, useState } from 'react';
+import {
+  useStudentDetail,
+  useDeactivateStudent,
+  useActivateStudent,
+  useUpdateStudentClasses,
+} from '@/lib/people-hooks';
+import { useLearningHome } from '@/lib/learning-hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner, ErrorBanner } from '@/components/ui';
@@ -16,12 +23,27 @@ export default function StudentDetailPage() {
   const { data: student, isLoading, error } = useStudentDetail(id);
   const deactivateMutation = useDeactivateStudent();
   const activateMutation = useActivateStudent();
-
+  const updateClasses = useUpdateStudentClasses(id);
+  const [editingClasses, setEditingClasses] = useState(false);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [classesError, setClassesError] = useState<string | null>(null);
+  // Every class the board offers. The staff board list is not available to an
+  // institution admin, so the options come from the curriculum the server
+  // returns for staff (unrestricted = all classes).
+  const homeQuery = useLearningHome();
+  const grades = useMemo(() => {
+    const names = new Set<string>();
+    for (const board of homeQuery.data?.boards ?? []) {
+      for (const g of board.grades ?? []) names.add(g.grade);
+    }
+    return [...names].sort((a, b) => Number(a) - Number(b) || a.localeCompare(b));
+  }, [homeQuery.data]);
   if (isLoading) return <Spinner label="Loading student…" />;
   if (error) return <ErrorBanner message={(error as Error).message} />;
   if (!student) return <ErrorBanner message="Student not found." />;
 
   const isActive = student.status === 'ACTIVE';
+  const currentClasses = student.grades?.length ? student.grades : student.grade ? [student.grade] : [];
 
   function handleToggleStatus() {
     if (!student) return;
@@ -134,6 +156,107 @@ export default function StudentDetailPage() {
                   <p className="mt-1 text-lg font-semibold text-surface-900">{student.status}</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Classes — a student may be enrolled in more than one class */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle>Classes</CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedClasses(currentClasses);
+                    setEditingClasses((v) => !v);
+                  }}
+                >
+                  <Edit3 className="h-4 w-4" />
+                  {editingClasses ? 'Cancel' : 'Edit classes'}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-surface-500">
+                The student sees the curriculum, textbook, practice and AI answers of every
+                class listed here. The primary class is fixed and always included.
+              </p>
+
+              {!editingClasses ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {currentClasses.map((g) => (
+                    <span
+                      key={g}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700"
+                    >
+                      Class {g}
+                      {g === student.grade ? (
+                        <span className="rounded-full bg-brand-600 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                          primary
+                        </span>
+                      ) : null}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {(grades.length ? grades : currentClasses).map((g) => {
+                      const value = String(g);
+                      const isPrimary = value === student.grade;
+                      const checked = isPrimary || selectedClasses.includes(value);
+                      return (
+                        <label
+                          key={value}
+                          className={`inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            checked
+                              ? 'border-brand-300 bg-brand-50 text-brand-700'
+                              : 'border-surface-200 bg-white text-surface-600 hover:border-brand-200'
+                          } ${isPrimary ? 'cursor-not-allowed opacity-80' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-3.5 w-3.5 accent-brand-600"
+                            checked={checked}
+                            disabled={isPrimary}
+                            onChange={(e) =>
+                              setSelectedClasses((list) =>
+                                e.target.checked
+                                  ? [...new Set([...list, value])]
+                                  : list.filter((c) => c !== value),
+                              )
+                            }
+                          />
+                          Class {value}
+                          {isPrimary ? <span className="text-[10px] font-bold uppercase tracking-wide">primary</span> : null}
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {classesError ? (
+                    <p className="text-xs font-medium text-red-600">{classesError}</p>
+                  ) : null}
+                  <Button
+                    size="sm"
+                    disabled={
+                      updateClasses.isPending ||
+                      selectedClasses.length + (currentClasses.includes(student.grade) ? 1 : 0) === 0
+                    }
+                    onClick={() =>
+                      updateClasses.mutate([...new Set([student.grade, ...selectedClasses])], {
+                        onSuccess: () => {
+                          setEditingClasses(false);
+                          setClassesError(null);
+                        },
+                        onError: (e) => setClassesError((e as Error).message),
+                      })
+                    }
+                  >
+                    {updateClasses.isPending ? 'Saving…' : 'Save classes'}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

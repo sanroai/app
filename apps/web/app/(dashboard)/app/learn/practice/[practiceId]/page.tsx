@@ -1,18 +1,17 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Spinner, ErrorBanner } from '@/components/ui';
+import { ErrorBanner } from '@/components/ui';
 import {
   ChevronRight,
   ChevronLeft,
   CheckCircle2,
-  XCircle,
   Clock,
   Trophy,
   ArrowLeft,
@@ -23,31 +22,55 @@ import { cn } from '@/lib/cn';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import type {
-  PracticeQuestion,
   PracticeStartResponse,
   PracticeSubmitResponse,
 } from '@/lib/learning-hooks';
+import { useSavePracticeAnswer, useStartPractice } from '@/lib/learning-hooks';
+import { isAutoGradedType, parseMultiSelectAnswer } from '@/lib/answer-format';
 
 type AnswerMap = Record<string, string>;
+
+/**
+ * The submit response plus the optional counters a newer API may add. The web
+ * falls back to what it can derive from the questions it already holds.
+ */
+type PracticeSubmitResult = PracticeSubmitResponse & {
+  gradedCount?: number;
+  gradedQuestions?: number;
+  xpEarned?: number;
+};
 
 export default function PracticePage() {
   const params = useParams();
   const router = useRouter();
   const token = useAuthStore((s) => s.token);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
   const practiceId = params.practiceId as string;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [practiceData, setPracticeData] = useState<PracticeStartResponse | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>({});
-  const [results, setResults] = useState<PracticeSubmitResponse | null>(null);
+  const [results, setResults] = useState<PracticeSubmitResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [restarting, setRestarting] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [savingQuestion, setSavingQuestion] = useState<string | null>(null);
+  const savePracticeAnswer = useSavePracticeAnswer();
+  const startPractice = useStartPractice();
+  // Every answer save that is still in flight. The API grades the answers it has
+  // stored, so the submit has to wait for these - otherwise the last answer is
+  // scored as if it had never been given.
+  const pendingSaves = useRef<Promise<unknown>[]>([]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!hasHydrated) return;
+    if (!token) {
+      setLoading(false);
+      setError('Please sign in to practise.');
+      return;
+    }
     const loadPractice = async () => {
       try {
         const data = await api<PracticeStartResponse & { status: string }>(
@@ -66,7 +89,7 @@ export default function PracticePage() {
       }
     };
     loadPractice();
-  }, [practiceId, token]);
+  }, [practiceId, token, hasHydrated]);
 
   useEffect(() => {
     if (!practiceData || results) return;
@@ -81,15 +104,50 @@ export default function PracticePage() {
   const answeredCount = Object.keys(answers).length;
   const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
+  /**
+   * The number of questions the API grades automatically. The rest are written
+   * answers: they are not auto-graded, so they are excluded from the score and
+   * reviewed by a teacher.
+   */
+  const autoGradedCount = useMemo(
+    () => (practiceData?.questions ?? []).filter((q) => isAutoGradedType(q.type)).length,
+    [practiceData],
+  );
+
+  // The API may report how many questions it graded; otherwise the web derives
+  // it from the question types it already holds.
+  const gradedCount = results?.gradedCount ?? results?.gradedQuestions ?? autoGradedCount;
+  const writtenCount = Math.max(0, totalQuestions - autoGradedCount);
+
   const formatTime = useCallback((seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   }, []);
 
-  const handleAnswerChange = useCallback((questionId: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
-  }, []);
+  const handleAnswerChange = useCallback(
+    (questionId: string, value: string) => {
+      setAnswers((prev) => ({ ...prev, [questionId]: value }));
+      setSaveError(null);
+      // The server grades the answers it has stored, so every answer has to be
+      // persisted - otherwise the submit scores an empty answer set. The save
+      // promise is tracked so the submit can wait for it.
+      const pending = savePracticeAnswer.mutateAsync({ practiceId, questionId, answer: value });
+      pendingSaves.current.push(pending);
+      pending
+        .catch((err: unknown) => {
+          setSaveError(
+            err instanceof Error
+              ? `We could not save your answer: ${err.message}. Your result may not include it.`
+              : 'We could not save your answer. Your result may not include it.',
+          );
+        })
+        .finally(() => {
+          pendingSaves.current = pendingSaves.current.filter((p) => p !== pending);
+        });
+    },
+    [savePracticeAnswer, practiceId],
+  );
 
   const handleNext = useCallback(() => {
     if (currentIndex < totalQuestions - 1) {
@@ -107,7 +165,12 @@ export default function PracticePage() {
     if (!token || submitting) return;
     setSubmitting(true);
     try {
-      const result = await api<PracticeSubmitResponse>(
+      // Every answer has to be stored before the submit: the API scores the
+      // answers it has, so a save that is still in flight would be scored wrong.
+      for (let attempt = 0; attempt < 5 && pendingSaves.current.length > 0; attempt += 1) {
+        await Promise.allSettled(pendingSaves.current);
+      }
+      const result = await api<PracticeSubmitResult>(
         `/learning/practice/${practiceId}/submit`,
         { method: 'POST', token },
       );
@@ -117,6 +180,48 @@ export default function PracticePage() {
       setSubmitting(false);
     }
   }, [token, practiceId, submitting]);
+
+  /**
+   * "Practice Again" starts a NEW practice session: the finished set cannot be
+   * reopened (the API refuses to score a completed set), so re-pushing the same
+   * id was a dead end.
+   */
+  const handlePracticeAgain = useCallback(async () => {
+    if (!token || restarting) return;
+    setRestarting(true);
+    try {
+      const conceptId = practiceData?.conceptId ?? null;
+      if (conceptId) {
+        const data = await startPractice.mutateAsync({
+          conceptId,
+          questionCount: Math.max(1, totalQuestions),
+        });
+        router.push(`/app/learn/practice/${data.practiceId}`);
+        return;
+      }
+      // A chapter practice has no single concept: resolve the chapter from its
+      // first question and restart the chapter set.
+      const firstQuestionId = practiceData?.questions[0]?.id;
+      if (firstQuestionId) {
+        const detail = await api<{ chapterId?: string | null }>(`/questions/${firstQuestionId}`, {
+          token,
+        });
+        if (detail.chapterId) {
+          const data = await api<PracticeStartResponse>('/learning/practice/start', {
+            method: 'POST',
+            token,
+            body: { chapterId: detail.chapterId },
+          });
+          router.push(`/app/learn/practice/${data.practiceId}`);
+          return;
+        }
+      }
+      router.push('/app/library');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start a new practice session');
+      setRestarting(false);
+    }
+  }, [token, restarting, practiceData, totalQuestions, startPractice, router]);
 
   const goToConcept = useCallback(() => {
     if (practiceData?.conceptId) {
@@ -216,10 +321,17 @@ export default function PracticePage() {
                 <p className="mt-1 text-xs text-surface-500">Correct</p>
               </div>
               <div className="rounded-2xl bg-surface-50 p-4 text-center">
-                <p className="text-3xl font-bold text-surface-600">{results.totalQuestions}</p>
-                <p className="mt-1 text-xs text-surface-500">Total</p>
+                <p className="text-3xl font-bold text-surface-600">{gradedCount}</p>
+                <p className="mt-1 text-xs text-surface-500">Graded</p>
               </div>
             </div>
+
+            <p className="mt-3 text-center text-xs text-surface-500">
+              {gradedCount} of {totalQuestions} question{totalQuestions === 1 ? '' : 's'} were auto-graded.
+              {writtenCount > 0
+                ? ` ${writtenCount} written answer${writtenCount === 1 ? ' is' : 's are'} not auto-graded - your teacher reviews them.`
+                : ''}
+            </p>
 
             {results.masteryUpdate && (
               <div className="mt-6 rounded-2xl border border-brand-100 bg-brand-50/50 p-4">
@@ -227,7 +339,7 @@ export default function PracticePage() {
                   <div>
                     <p className="text-sm font-medium text-surface-700">Mastery Updated</p>
                     <p className="text-xs text-surface-500">
-                      Your concept mastery has been updated based on this practice.
+                      Your overall concept mastery after this practice.
                     </p>
                   </div>
                   <Badge
@@ -239,7 +351,7 @@ export default function PracticePage() {
                         : 'bg-red-100 text-red-700',
                     )}
                   >
-                    {results.masteryUpdate.level} — {results.masteryUpdate.score}%
+                    {results.masteryUpdate.level} — {results.masteryUpdate.score}% overall
                   </Badge>
                 </div>
               </div>
@@ -250,9 +362,18 @@ export default function PracticePage() {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Concept
               </Button>
-              <Button onClick={() => router.push(`/app/learn/practice/${practiceId}`)}>
-                <RotateCcw className="h-4 w-4" />
-                Practice Again
+              <Button onClick={handlePracticeAgain} disabled={restarting}>
+                {restarting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Starting...
+                  </span>
+                ) : (
+                  <>
+                    <RotateCcw className="h-4 w-4" />
+                    Practice Again
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
@@ -298,6 +419,8 @@ export default function PracticePage() {
 
       <Progress value={progressPercent} className="h-2" />
 
+      {saveError ? <ErrorBanner message={saveError} /> : null}
+
       <Card>
         <CardContent className="p-6">
           <div className="mb-4 flex items-center gap-2">
@@ -319,9 +442,11 @@ export default function PracticePage() {
                 return (
                   <button
                     key={opt.id}
+                    type="button"
+                    disabled={submitting}
                     onClick={() => handleAnswerChange(currentQuestion.id, opt.text)}
                     className={cn(
-                      'w-full rounded-xl border-2 p-4 text-left transition-all',
+                      'w-full rounded-xl border-2 p-4 text-left transition-all disabled:cursor-not-allowed disabled:opacity-70',
                       isSelected
                         ? 'border-brand-500 bg-brand-50 shadow-sm'
                         : 'border-surface-200 bg-white hover:border-surface-300 hover:bg-surface-50',
@@ -347,24 +472,20 @@ export default function PracticePage() {
               <div className="space-y-2">
                 <p className="text-xs text-surface-500">Select all that apply</p>
                 {currentQuestion.options.map((opt) => {
-                  const selectedList = (() => {
-                    try {
-                      return JSON.parse(answers[currentQuestion.id] ?? '[]') as string[];
-                    } catch {
-                      return [];
-                    }
-                  })();
+                  const selectedList = parseMultiSelectAnswer(answers[currentQuestion.id]);
                   const isSelected = selectedList.includes(opt.text);
                   return (
                     <button
                       key={opt.id}
+                      type="button"
+                      disabled={submitting}
                       onClick={() => {
                         const current = selectedList.filter((s) => s !== opt.text);
                         if (!isSelected) current.push(opt.text);
                         handleAnswerChange(currentQuestion.id, JSON.stringify(current));
                       }}
                       className={cn(
-                        'w-full rounded-xl border-2 p-4 text-left transition-all',
+                        'w-full rounded-xl border-2 p-4 text-left transition-all disabled:cursor-not-allowed disabled:opacity-70',
                         isSelected
                           ? 'border-brand-500 bg-brand-50 shadow-sm'
                           : 'border-surface-200 bg-white hover:border-surface-300 hover:bg-surface-50',
@@ -388,13 +509,25 @@ export default function PracticePage() {
                 })}
               </div>
             ) : (
-              <textarea
-                value={answers[currentQuestion.id] ?? ''}
-                onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                placeholder="Type your answer here..."
-                rows={4}
-                className="w-full rounded-xl border-2 border-surface-200 bg-white p-4 text-sm text-surface-800 placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all resize-y"
-              />
+              <div className="space-y-2">
+                <textarea
+                  value={answers[currentQuestion.id] ?? ''}
+                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                  placeholder="Type your answer here..."
+                  rows={4}
+                  disabled={submitting}
+                  className="w-full rounded-xl border-2 border-surface-200 bg-white p-4 text-sm text-surface-800 placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20 transition-all resize-y"
+                />
+                {isAutoGradedType(currentQuestion.type) ? (
+                  <p className="text-xs text-surface-500">
+                    This answer is checked automatically.
+                  </p>
+                ) : (
+                  <p className="text-xs text-surface-500">
+                    Written answers are not auto-graded - your teacher reviews them.
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </CardContent>

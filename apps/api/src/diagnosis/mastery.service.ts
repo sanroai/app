@@ -46,6 +46,42 @@ export function gradeObjectiveResponse(q: GradableQuestion, rawAnswer: string | 
   return null; // subjective / numerical — needs manual grading
 }
 
+/**
+ * The graded answer is the option TEXT (that is what `question.answer` holds).
+ * Some clients send the option id instead, which would silently mark every
+ * answer wrong, so the id is resolved to its text before grading.
+ */
+export function normaliseAnswerToOptionText(
+  question: { options?: Array<{ id: string; text: string }> },
+  rawAnswer: string | null | undefined,
+): string | null {
+  if (rawAnswer == null) return rawAnswer ?? null;
+  const options = question.options ?? [];
+  if (options.length === 0) return rawAnswer;
+
+  // MULTI_SELECT sends a JSON array of the selected options
+  const trimmed = rawAnswer.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return JSON.stringify(
+          parsed.map((entry) => {
+            const value = String(entry);
+            return options.find((o) => o.id === value)?.text ?? options.find((o) => o.text === value)?.text ?? value;
+          }),
+        );
+      }
+    } catch {
+      // not JSON - fall through to the single-value handling
+    }
+  }
+
+  if (options.some((o) => o.text === rawAnswer)) return rawAnswer;
+  const byId = options.find((o) => o.id === rawAnswer);
+  return byId ? byId.text : rawAnswer;
+}
+
 export function masteryLevelForScore(score: number, evidenceQuestionCount: number): MasteryLevel {
   if (!evidenceQuestionCount || evidenceQuestionCount < MASTERY_EVIDENCE_MIN_QUESTIONS) {
     return MasteryLevel.INSUFFICIENT_EVIDENCE;
@@ -69,13 +105,17 @@ export class MasteryService {
   /**
    * Updates ConceptMastery rows using evidence derived from an attempt's answers.
    * Returns the per-concept results (including weakness flag).
+   *
+   * `source` says where the evidence came from: an assessment attempt, a practice
+   * session, or both. Writing a practice id into the assessment-attempt foreign key
+   * made every practice submit fail with a foreign-key error.
    */
   async applyAttemptEvidence(
     studentId: string,
-    attemptId: string,
+    source: { attemptId?: string | null; practiceSetId?: string | null },
     conceptEvidence: Array<{ conceptId: string; questions: number; correct: number }>,
-  ): Promise<Array<{ conceptId: string; score: number; level: MasteryLevel; weak: boolean; evidenceCount: number }>> {
-    const results: Array<{ conceptId: string; score: number; level: MasteryLevel; weak: boolean; evidenceCount: number }> = [];
+  ): Promise<Array<{ conceptId: string; score: number; combinedScore: number; level: MasteryLevel; weak: boolean; evidenceCount: number }>> {
+    const results: Array<{ conceptId: string; score: number; combinedScore: number; level: MasteryLevel; weak: boolean; evidenceCount: number }> = [];
 
     for (const ev of conceptEvidence) {
       if (!ev.conceptId || ev.questions <= 0) continue;
@@ -114,7 +154,8 @@ export class MasteryService {
         data: {
           studentId,
           conceptId: ev.conceptId,
-          attemptId,
+          attemptId: source.attemptId ?? null,
+          practiceSetId: source.practiceSetId ?? null,
           score,
           attempts: ev.questions,
           correct: ev.correct,
@@ -123,7 +164,7 @@ export class MasteryService {
         },
       });
 
-      results.push({ conceptId: ev.conceptId, score, level, weak: isWeakLevel(level), evidenceCount: combinedAttempts });
+      results.push({ conceptId: ev.conceptId, score, combinedScore, level, weak: isWeakLevel(level), evidenceCount: combinedAttempts });
     }
     return results;
   }

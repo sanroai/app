@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { useAdminStudents, useArchiveAdminStudent, useRestoreAdminStudent, useDisableAdminStudent, useEnableAdminStudent, type AdminStudentQuery } from '@/lib/people-hooks';
+import { useAdminStudents, useArchiveAdminStudent, useRestoreAdminStudent, useDisableAdminStudent, useEnableAdminStudent, useBulkAdminStudentAction, type AdminStudentQuery } from '@/lib/people-hooks';
 import { useInstitutions } from '@/lib/institution-hooks';
 import { useBoards, useGrades } from '@/lib/api-hooks';
 import { Button } from '@/components/ui/button';
@@ -119,6 +119,7 @@ export default function PeopleStudentsPage() {
   const restoreMut = useRestoreAdminStudent(actionId);
   const deactivateMut = useDisableAdminStudent(actionId);
   const enableMut = useEnableAdminStudent(actionId);
+  const bulkAction = useBulkAdminStudentAction();
 
   const actionPending =
     pendingAction?.kind === 'archive'
@@ -162,8 +163,7 @@ export default function PeopleStudentsPage() {
     let ok = 0;
     for (const id of ids) {
       try {
-        const mut = pendingBulk === 'archive' ? useArchiveAdminStudent(id) : useRestoreAdminStudent(id);
-        await mut.mutateAsync({ status });
+        await bulkAction.mutateAsync({ id, path: '/status', body: { status } });
         ok++;
       } catch {}
     }

@@ -1,0 +1,51 @@
+{
+  "note": "Photographs used under the Unsplash licence. Composited with the brand gradient by scripts/qa/build-brand-art.mjs - the raw files are never shipped alone.",
+  "fetchedBy": "scripts/qa/fetch-subject-photos.mjs",
+  "photos": [
+    {
+      "key": "subject-science",
+      "file": "subject-science.jpg",
+      "title": "Microscope",
+      "photographer": "Ousa Chea",
+      "source": "https://unsplash.com/photos/gKUC4TMhOiY",
+      "license": "https://unsplash.com/license",
+      "downloadedFrom": "https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=1600&h=640&fit=crop&crop=entropy&q=82&fm=jpg"
+    },
+    {
+      "key": "subject-mathematics",
+      "file": "subject-mathematics.jpg",
+      "title": "A blackboard covered in mathematics",
+      "photographer": "Thomas T",
+      "source": "https://unsplash.com/photos/OPpCbAAKWv8",
+      "license": "https://unsplash.com/license",
+      "downloadedFrom": "https://images.unsplash.com/photo-1635372722656-389f87a941b7?w=1600&h=640&fit=crop&crop=entropy&q=82&fm=jpg"
+    },
+    {
+      "key": "subject-english",
+      "file": "subject-english.jpg",
+      "title": "A shelf of well-read books",
+      "photographer": "Rey Seven",
+      "source": "https://unsplash.com/photos/_nm_mZ4Cs2I",
+      "license": "https://unsplash.com/license",
+      "downloadedFrom": "https://images.unsplash.com/photo-1513185041617-8ab03f83d6c5?w=1600&h=640&fit=crop&crop=entropy&q=82&fm=jpg"
+    },
+    {
+      "key": "chapter-banner",
+      "file": "chapter-banner.jpg",
+      "title": "An Indian school classroom",
+      "photographer": "Haseeb Modi",
+      "source": "https://unsplash.com/photos/OcDJhBm8Jnc",
+      "license": "https://unsplash.com/license",
+      "downloadedFrom": "https://images.unsplash.com/photo-1719159381916-062fa9f435a6?w=1600&h=420&fit=crop&crop=entropy&q=82&fm=jpg"
+    },
+    {
+      "key": "dashboard-hero",
+      "file": "dashboard-hero.jpg",
+      "title": "A market stall of books",
+      "photographer": "Tom Hermans",
+      "source": "https://unsplash.com/photos/9BoqXzEeQqM",
+      "license": "https://unsplash.com/license",
+      "downloadedFrom": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?w=1600&h=480&fit=crop&crop=entropy&q=82&fm=jpg"
+    }
+  ]
+}

@@ -145,7 +145,6 @@ export default function LibraryItemPage() {
       ) : null}
 
       {item.type === 'IMAGE' && (item.thumbnailUrl || item.url) ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img src={item.thumbnailUrl ?? item.url!} alt={item.title} className="w-full rounded-xl border border-surface-200" />
       ) : null}
 
@@ -165,7 +164,7 @@ export default function LibraryItemPage() {
       ) : item.type === 'VIDEO' || item.type === 'QUIZ' || item.type === 'FLASHCARDS' || item.type === 'PRACTICE_SET' || item.type === 'GAME' ? (
         <div className="rounded-2xl border border-surface-200 bg-surface-50 p-6 text-sm text-surface-500">
           {item.concept
-            ? 'This lesson sits on a concept. Open the concept page for practice, flashcards and quizzes.'
+            ? 'This lesson sits on a concept. Open the concept page for the practice quiz.'
             : 'No additional notes for this item.'}
         </div>
       ) : null}

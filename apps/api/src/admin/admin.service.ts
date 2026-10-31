@@ -242,10 +242,18 @@ export class AdminService {
       }),
     ]);
     const map = new Map<string, number>();
-    for (const g of students) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
-    for (const g of teachers) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
-    for (const g of parents) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
-    for (const g of admins) g.institutionId && map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    for (const g of students) {
+      if (g.institutionId) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    }
+    for (const g of teachers) {
+      if (g.institutionId) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    }
+    for (const g of parents) {
+      if (g.institutionId) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    }
+    for (const g of admins) {
+      if (g.institutionId) map.set(g.institutionId, (map.get(g.institutionId) ?? 0) + g._count._all);
+    }
     return map;
   }
 

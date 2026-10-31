@@ -8,34 +8,42 @@ import { blockedRoute } from '@/lib/blocked-state';
 import { useRoleTheme, useRole } from '@/lib/role-theme';
 import {
   LogOut,
-  LayoutDashboard,
-  FileText,
-  BarChart2,
   GraduationCap,
-  Trophy,
-  BookOpen,
-  Users,
-  UserCheck,
-  HeartHandshake,
   Settings,
   Search,
   Menu,
   X,
-  HelpCircle,
-  MessageCircle,
-  Upload,
-  Lightbulb,
   UserCircle2,
-  Layers,
-  Database,
-  Boxes,
   ShieldX,
-  Film,
+  LayoutDashboard,
+  Library,
+  ClipboardList,
+  MessageCircle,
+  Trophy,
+  Baby,
+  Building2,
+  UserCheck,
+  HeartHandshake,
+  Upload,
+  BookOpen,
+  FileQuestion,
+  FileText,
+  FilePlus,
+  Layers,
+  Inbox,
+  Video,
+  Boxes,
+  BarChart3,
+  Lightbulb,
+  Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { NotificationBell } from '@/components/notification-bell';
+import { PrefetchLink } from '@/components/prefetch-link';
+import { prefetchLearningHome, prefetchLearningPath, prefetchLibraryBrowse } from '@/lib/prefetch';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -66,29 +74,59 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/**
+ * Navigation is a map, not a gallery. Every item carries one line glyph from the
+ * same set, drawn at one weight and one size, inside a tinted chip; the active
+ * item inverts the chip. The rendered 3D artwork stays where it describes
+ * content (lesson, AR, subject) and is deliberately not used as menu furniture -
+ * a row of small glossy objects in the menu reads as emoji.
+ */
 type NavLink = { href: string; label: string; icon: LucideIcon; alias?: string[] };
+
+function NavIcon({ link, size = 18 }: { link: NavLink; size?: number }) {
+  const Icon = link.icon;
+  return <Icon aria-hidden="true" strokeWidth={1.9} style={{ width: size, height: size }} className="shrink-0" />;
+}
 
 function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const theme = useRoleTheme();
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
   const isSuperAdmin = role === 'SUPER_ADMIN';
   const isAdmin = role === 'INSTITUTION_ADMIN';
   const staff = role === 'TEACHER' || isAdmin || isSuperAdmin;
 
   const activeClass = `bg-gradient-to-r ${theme.gradient} text-white shadow-md`;
 
+  /**
+   * The top-level nav is the first click of every session, so hovering it warms
+   * both the route (chunk/compile) and the screen's data. Anything that is not a
+   * known expensive screen simply gets the route prefetch from PrefetchLink.
+   */
+  const warmFor = (href: string): (() => void) | undefined => {
+    if (href === '/app/library') {
+      return () => {
+        prefetchLibraryBrowse(queryClient, token);
+        prefetchLearningHome(queryClient, token);
+      };
+    }
+    if (href === '/app/assessments') return () => prefetchLearningPath(queryClient, token);
+    return undefined;
+  };
+
   const superAdminLinks: NavLink[] = isSuperAdmin
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/institutions', label: 'Institutions', icon: GraduationCap },
+        { href: '/app/institutions', label: 'Institutions', icon: Building2 },
       ]
     : [];
 
   const studentLinks: NavLink[] = role === 'STUDENT'
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/library', label: 'Library', icon: BookOpen, alias: ['/app/learn'] },
-        { href: '/app/assessments', label: 'Assessments', icon: BarChart2 },
+        { href: '/app/library', label: 'Library', icon: Library, alias: ['/app/learn'] },
+        { href: '/app/assessments', label: 'Assessments', icon: ClipboardList },
         { href: '/app/chat', label: 'Ask Sanro AI', icon: MessageCircle },
         { href: '/app/gamification', label: 'Progress', icon: Trophy },
       ]
@@ -97,14 +135,14 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const parentLinks: NavLink[] = role === 'PARENT'
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/children', label: 'Children', icon: Users },
+        { href: '/app/children', label: 'Children', icon: Baby },
       ]
     : [];
 
   const staffLinks: NavLink[] = staff && !isSuperAdmin
     ? [
         { href: '/app', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/app/library', label: 'Library', icon: BookOpen },
+        { href: '/app/library', label: 'Library', icon: Library },
       ]
     : [];
 
@@ -112,7 +150,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const peopleLinks: NavLink[] = isSuperAdmin
     ? [
-        { href: '/app/people/students', label: 'Students', icon: Users },
+        { href: '/app/people/students', label: 'Students', icon: GraduationCap },
         { href: '/app/people/teachers', label: 'Teachers', icon: UserCheck },
         { href: '/app/people/parents', label: 'Parents', icon: HeartHandshake },
       ]
@@ -120,7 +158,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const managementLinks: NavLink[] = staff && !isSuperAdmin
     ? [
-        { href: '/app/students', label: 'Students', icon: Users },
+        { href: '/app/students', label: 'Students', icon: GraduationCap },
         { href: '/app/teachers', label: 'Teachers', icon: UserCheck },
         { href: '/app/parents', label: 'Parents', icon: HeartHandshake },
         ...(isAdmin ? [{ href: '/app/import', label: 'Import', icon: Upload }] : []),
@@ -131,20 +169,23 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
 
   const academicLinks: NavLink[] = staff
     ? [
-        { href: '/app/curriculum', label: 'Curriculum', icon: Layers },
-        { href: '/app/questions', label: 'Question Bank', icon: HelpCircle },
+        // Curriculum is a SUPER_ADMIN management console (the page calls
+        // GET /admin/curriculum, @Roles(SUPER_ADMIN) only) — gating the nav link to the
+        // same role prevents TEACHER/IA from hitting a 403 error banner. See BUG-I.
+        ...(isSuperAdmin ? [{ href: '/app/curriculum', label: 'Curriculum', icon: BookOpen }] : []),
+        { href: '/app/questions', label: 'Question Bank', icon: FileQuestion },
         { href: '/app/papers', label: 'Question Papers', icon: FileText },
-        ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Database }] : []),
-        ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FileText }] : []),
-        { href: '/app/content/ingest', label: 'Content Ingest', icon: Upload },
-        { href: '/app/content/videos', label: 'Chapter Videos', icon: Film },
+        ...(isSuperAdmin ? [{ href: '/app/content-processing', label: 'Content', icon: Layers }] : []),
+        ...(!isSuperAdmin ? [{ href: '/app/papers/new', label: 'New Paper', icon: FilePlus }] : []),
+        { href: '/app/content/ingest', label: 'Content Ingest', icon: Inbox },
+        { href: '/app/content/videos', label: 'Chapter Videos', icon: Video },
         { href: '/app/ar', label: 'AR / 3D', icon: Boxes },
       ]
     : [];
 
   const analyticsLinks: NavLink[] = staff
     ? [
-        { href: '/app/reports', label: 'Reports', icon: BarChart2 },
+        { href: '/app/reports', label: 'Reports', icon: BarChart3 },
         ...(isSuperAdmin ? [{ href: '/app/gamification', label: 'Gamification', icon: Trophy }] : []),
         ...(staff && !isSuperAdmin ? [{ href: '/app/remediation', label: 'Remediation', icon: Lightbulb }] : []),
       ]
@@ -160,48 +201,64 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const renderLink = (l: NavLink) => {
     const active = activeFor(l);
     return (
-      <Link
+      <PrefetchLink
         key={l.href}
         href={l.href}
+        prefetchData={warmFor(l.href)}
         aria-current={active ? 'page' : undefined}
         className={cn(
-          'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+          'inline-flex shrink-0 items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
           active
             ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
             : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
         )}
       >
-        <l.icon className="h-4 w-4" />
+        <span
+          className={cn(
+            'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] transition-colors',
+            active ? 'bg-white/20' : 'bg-surface-100'
+          )}
+        >
+          <NavIcon link={l} size={18} />
+        </span>
         {l.label}
-      </Link>
+      </PrefetchLink>
     );
   };
 
-  const renderDropdown = (label: string, Icon: LucideIcon, links: NavLink[]) => {
+  const renderDropdown = (label: string, icon: LucideIcon, links: NavLink[]) => {
     const active = links.some((l) => activeFor(l));
+    const GroupIcon = icon;
     return (
       <DropdownMenu key={label}>
         <DropdownMenuTrigger asChild>
           <button
             className={cn(
-              'inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-all',
+              'inline-flex shrink-0 items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all',
               active
                 ? `bg-gradient-to-r ${theme.gradient} text-white shadow-md`
                 : 'text-surface-500 hover:bg-surface-100 hover:text-surface-900'
             )}
           >
-            <Icon className="h-4 w-4" />
+            <span
+              className={cn(
+                'grid h-8 w-8 shrink-0 place-items-center rounded-[10px] transition-colors',
+                active ? 'bg-white/20' : 'bg-surface-100'
+              )}
+            >
+              <GroupIcon aria-hidden="true" strokeWidth={1.9} style={{ width: 18, height: 18 }} className="shrink-0" />
+            </span>
             {label}
             <svg className="h-3 w-3 text-current opacity-70" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
+        <DropdownMenuContent align="start" className="w-52">
           {links.map((l) => (
             <DropdownMenuItem key={l.href} asChild>
-              <Link href={l.href} className="flex items-center gap-2">
-                <l.icon className="h-4 w-4" />
+              <Link href={l.href} className="flex items-center gap-2.5 py-1">
+                <NavIcon link={l} size={16} />
                 {l.label}
               </Link>
             </DropdownMenuItem>
@@ -214,9 +271,10 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
   const renderMobileLink = (l: NavLink) => {
     const active = activeFor(l);
     return (
-      <Link
+      <PrefetchLink
         key={l.href}
         href={l.href}
+        prefetchData={warmFor(l.href)}
         aria-current={active ? 'page' : undefined}
         onClick={() => onNavigate?.()}
         className={cn(
@@ -226,9 +284,16 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
             : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-100'
         )}
       >
-        <l.icon className="h-5 w-5" />
+        <span
+          className={cn(
+            'grid h-9 w-9 shrink-0 place-items-center rounded-xl',
+            active ? 'bg-white/20' : 'bg-surface-100 dark:bg-surface-800'
+          )}
+        >
+          <NavIcon link={l} size={20} />
+        </span>
         {l.label}
-      </Link>
+      </PrefetchLink>
     );
   };
 
@@ -236,7 +301,7 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
     const sections = [
       { label: 'People', links: peopleDropdownLinks },
       { label: 'Academic', links: academicLinks },
-      ...(staff ? [{ label: 'Assessments', links: [{ href: '/app/assessments', label: 'Assessments', icon: BarChart2 }] as NavLink[] }] : []),
+      ...(staff ? [{ label: 'Assessments', links: [{ href: '/app/assessments', label: 'Assessments', icon: ClipboardList }] as NavLink[] }] : []),
       { label: 'Analytics', links: analyticsLinks },
       { label: 'Settings', links: settingsLinks },
     ];
@@ -268,19 +333,19 @@ function NavLinks({ role, mobile = false, onNavigate }: { role: string; mobile?:
       {academicLinks.length > 0 && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderDropdown('Academic', Layers, academicLinks)}
+          {renderDropdown('Academic', BookOpen, academicLinks)}
         </>
       )}
       {staff && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderLink({ href: '/app/assessments', label: 'Assessments', icon: BarChart2 })}
+          {renderLink({ href: '/app/assessments', label: 'Assessments', icon: ClipboardList })}
         </>
       )}
       {analyticsLinks.length > 0 && (
         <>
           <div className="mx-1 h-5 w-px bg-surface-200 dark:bg-surface-700" aria-hidden="true" />
-          {renderDropdown('Analytics', BarChart2, analyticsLinks)}
+          {renderDropdown('Analytics', BarChart3, analyticsLinks)}
         </>
       )}
       {settingsLinks.length > 0 && (

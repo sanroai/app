@@ -19,7 +19,7 @@ pnpm --filter @sanro/api start:dev  # API on :4000
 pnpm --filter @sanro/web dev        # Web on :3000
 ```
 
-**Demo login**: `student@sanroai.com` / `Sanro@123` (available after `db:seed:demo`)
+**Demo login**: demo accounts are created by `db:seed:demo`; the demo password is intentionally omitted from this README (the local development default is defined by the seed).
 
 ## Monorepo Layout
 
@@ -27,7 +27,7 @@ pnpm --filter @sanro/web dev        # Web on :3000
 |---------|------|:----:|-------------|
 | `apps/api` | NestJS 11, Prisma 6.19 | 4000 | REST API, JWT auth, paper generator, assessments, mastery diagnosis |
 | `apps/web` | Next.js 15, Tailwind 3.4 | 3000 | Web app with gamified student dashboard, teacher tools, 12 public pages |
-| `apps/mobile` | Expo SDK 52, React Native | — | Mobile app (student-first, multi-role tabs for teacher/parent/admin) |
+| `apps/mobile` | Expo SDK 53, React Native 0.79.6 | — | Mobile app (student-first, multi-role tabs for teacher/parent/admin) |
 | `packages/types` | TypeScript | — | Shared types & enums |
 | `packages/validation` | Zod 3.24 | — | Shared validation schemas |
 | `packages/config` | TypeScript | — | Shared configuration |
@@ -45,7 +45,7 @@ pnpm --filter @sanro/web dev        # Web on :3000
 - **Assessment System** — Create, publish to groups, timed attempts, auto-grading
 - **Remediation** — Concept mastery tracking, targeted learning plans, progress marking
 - **Teacher Tools** — Paper management, assessment creation, student monitoring
-- **Concept Learning** — Class-wise content (CBSE 1-10), 6 concept learning modes
+- **Concept Learning** — Class-wise content (CBSE 1-10), 3 concept learning modes (Learn / Practice / Ask Sanro AI)
 - **Gamification** — XP, streaks, achievements, leaderboard
 - **AI Tutor** — Context-aware chat with curriculum grounding
 - **Question Bank** — 7-filter search, CRUD, bulk import
@@ -67,7 +67,7 @@ pnpm --filter @sanro/web dev        # Web on :3000
 | Layer | Technologies |
 |-------|-------------|
 | Frontend | Next.js 15, React 19, Tailwind 3.4, shadcn/ui-style, TanStack Query, Zustand, RHF + Zod |
-| Mobile | Expo SDK 52, React Native 0.76.5, expo-router 4, Zustand, TanStack Query, expo-secure-store |
+| Mobile | Expo SDK 53, React Native 0.79.6, expo-router 5, Zustand, TanStack Query, expo-secure-store |
 | Backend | NestJS 11, Prisma 6.19, PostgreSQL 18, JWT, Zod validation, @nestjs/throttler |
 | Tooling | pnpm 12, Turborepo, TypeScript 5.7, Vitest |
 
@@ -81,7 +81,7 @@ pnpm --filter @sanro/web dev        # Web on :3000
 | `student@sanroai.com` | STUDENT | Aarav Sharma |
 | `parent@sanroai.com` | PARENT | Parent |
 
-All passwords: `Sanro@123`
+All demo accounts share one development password, created by `db:seed:demo`. It is intentionally omitted from this README.
 
 ## Production
 

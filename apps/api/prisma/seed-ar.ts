@@ -172,10 +172,10 @@ const AR_SEED: ArSeedDefinition[] = [
   },
   {
     title: 'Atom - Subatomic Structure',
-    grade: '8',
+    grade: '9',
     subject: 'Science',
-    chapterName: 'Matter and its Properties',
-    conceptName: 'Subatomic Particles',
+    chapterName: 'Journey Inside the Atom',
+    conceptName: 'Atomic Number and Mass Number',
     description: 'Explore a simplified atomic model with a nucleus and electron orbits to visualise subatomic particles.',
     learningObjective: 'Identify the nucleus and electron orbits within a simplified atomic model.',
     instructions:

@@ -20,6 +20,33 @@ interface ErrorBody {
   error?: string;
 }
 
+/**
+ * Prisma throws P2023 when a value that must be a UUID is not parseable as one,
+ * e.g. a client sent `not-a-uuid` on a `:id` route. Treat it as a 400.
+ */
+function isMalformedUuid(exception: unknown): boolean {
+  return (
+    typeof exception === 'object' &&
+    exception !== null &&
+    (exception as { code?: unknown }).code === 'P2023'
+  );
+}
+
+/**
+ * Prisma throws P2002 when a write violates a unique constraint, e.g. creating a
+ * second `AcademicYear` with the same name in the same institution
+ * (`@@unique([institutionId, name])`). That is a client conflict, not a server fault —
+ * surface it as 409 instead of leaking a 500. The schema declares 29 `@@unique`
+ * constraints, so this applies broadly across create/update paths.
+ */
+function isUniqueViolation(exception: unknown): boolean {
+  return (
+    typeof exception === 'object' &&
+    exception !== null &&
+    (exception as { code?: unknown }).code === 'P2002'
+  );
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -61,6 +88,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
         body.details = obj.details ?? (Array.isArray(obj.message) ? obj.message : undefined);
         if (obj.error) body.error = String(obj.error);
       }
+      body.statusCode = status;
+    } else if (isMalformedUuid(exception)) {
+      // Prisma P2023: a client-supplied `:id` was not a valid UUID. This is a bad
+      // request, not a server fault — surface it as 400 instead of leaking a 500.
+      status = HttpStatus.BAD_REQUEST;
+      body.code = 'VALIDATION_ERROR';
+      body.message = 'Invalid identifier: expected a UUID.';
+      body.statusCode = status;
+    } else if (isUniqueViolation(exception)) {
+      // Prisma P2002: the write collided with a unique constraint (duplicate name,
+      // email, code, …). Return 409 CONFLICT so clients can show a meaningful
+      // "already exists" message instead of an opaque 500. The raw constraint
+      // details (model/field values) are deliberately not echoed.
+      status = HttpStatus.CONFLICT;
+      body.code = 'CONFLICT';
+      body.message = 'A record with the same unique values already exists.';
       body.statusCode = status;
     } else {
       const err = exception as Error;

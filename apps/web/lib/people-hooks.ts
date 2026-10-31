@@ -15,6 +15,8 @@ export interface Student {
   phone: string;
   rollNumber: string;
   grade: string;
+  /** Every class the student may read; `grade` is the primary class. */
+  grades?: string[];
   status: string;
   group?: { id: string; name: string };
   user?: { id: string; name: string; email: string };
@@ -95,6 +97,24 @@ export function useActivateStudent() {
       api(`/students/${id}/activate`, { method: 'POST', token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
+    },
+  });
+}
+
+/**
+ * Replace the classes a student may read. `Student.grade` stays the primary
+ * class; this is the set the API gates every chapter, textbook page, practice
+ * set and AI answer on.
+ */
+export function useUpdateStudentClasses(id: string) {
+  const queryClient = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (grades: string[]) =>
+      api<Student>(`/students/${id}`, { method: 'PATCH', body: { grades }, token }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['student', id] });
+      void queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });
 }
@@ -411,6 +431,19 @@ export function useRestoreAdminStudent(id: string) {
   return useAdminStudentAction(id, '/status');
 }
 
+export function useBulkAdminStudentAction() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: ({ id, path, body }: { id: string; path: string; body?: Record<string, unknown> }) =>
+      api<{ ok: boolean }>(`/admin/people/students/${id}${path}`, { method: 'POST', body: body ?? {}, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'students'] });
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'students', 'search'] });
+    },
+  });
+}
+
 export function useSetDirectSubscription(id: string) {
   const qc = useQueryClient();
   const token = useToken();
@@ -470,6 +503,18 @@ export function useEnableAdminTeacher(id: string) {
 }
 export function useTransferAdminTeacher(id: string) {
   return useAdminTeacherAction(id, '/transfer');
+}
+
+export function useBulkAdminTeacherAction() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: ({ id, path, body }: { id: string; path: string; body?: Record<string, unknown> }) =>
+      api<{ ok: boolean }>(`/admin/people/teachers/${id}${path}`, { method: 'POST', body: body ?? {}, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'teachers'] });
+    },
+  });
 }
 
 export function useCreateAdminTeacher() {
@@ -536,6 +581,18 @@ export function useDisableAdminParent(id: string) {
 }
 export function useEnableAdminParent(id: string) {
   return useAdminParentAction(id, '/enable');
+}
+
+export function useBulkAdminParentAction() {
+  const qc = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: ({ id, path, body }: { id: string; path: string; body?: Record<string, unknown> }) =>
+      api<{ ok: boolean }>(`/admin/people/parents/${id}${path}`, { method: 'POST', body: body ?? {}, token }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'people', 'parents'] });
+    },
+  });
 }
 
 export function useCreateAdminParent() {

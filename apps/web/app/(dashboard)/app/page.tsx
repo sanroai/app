@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuthStore } from '@/lib/auth-store';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -22,9 +23,7 @@ import {
   Target,
   Trophy,
   Users,
-  Zap,
   Star,
-  Flame,
   Clock,
   CheckCircle2,
   ArrowRight,
@@ -40,6 +39,12 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { Icon3D } from '@/components/icon-3d';
+import { useLearningHome, useGamificationProfile } from '@/lib/learning-hooks';
+import {
+  SubjectProgressGrid,
+  type SubjectProgressItem,
+} from '@/lib/learner-progress';
 import { KpiCards } from '@/components/super-admin/kpi-cards';
 import { InstitutionHealthPanel } from '@/components/super-admin/institution-health-panel';
 import { AttentionPanel } from '@/components/super-admin/attention-panel';
@@ -163,38 +168,56 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-surface-900 leading-tight">
-            {greeting}, {(user.name || 'there').split(' ')[0] || 'there'}! 👋
-          </h1>
-          <p className="text-surface-600 mt-1 text-sm sm:text-base">
-            {isStudent
-              ? "Let's continue your learning journey"
-              : isTeacher
-                ? "Here's your class overview and student performance"
-                : isParent
-                  ? "Track your children's academic progress"
-                  : "Here's what's happening today"}
-          </p>
+      {/* Hero — the greeting lives on the artwork instead of above it, so the
+          page opens with one visual anchor rather than a text block + a banner. */}
+      <div className="relative overflow-hidden rounded-3xl shadow-card" style={{ backgroundColor: '#0b0614' }}>
+        <Image
+          src="/art/dashboard-hero.jpg"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 1100px"
+          className="object-cover object-right opacity-70"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(90deg, rgba(11,6,20,0.94) 0%, rgba(11,6,20,0.7) 55%, rgba(11,6,20,0.22) 100%)',
+          }}
+        />
+        <div className="relative flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              {greeting}, {(user.name || 'there').split(' ')[0] || 'there'}
+            </h1>
+            <p className="text-white/75 mt-1 text-sm sm:text-base">
+              {isStudent
+                ? "Let's continue your learning journey"
+                : isTeacher
+                  ? "Here's your class overview and student performance"
+                  : isParent
+                    ? "Track your children's academic progress"
+                    : "Here's what's happening today"}
+            </p>
+          </div>
+          {isStudent && (
+            <Link href="/app/library" className="shrink-0">
+              <Button className="sm:w-auto w-full bg-white text-brand-700 hover:bg-white/90 shadow-lg">
+                <Lightbulb className="mr-2 h-4 w-4" />
+                Continue Learning
+              </Button>
+            </Link>
+          )}
+          {isTeacher && (
+            <Link href="/app/papers/new" className="shrink-0">
+              <Button className="bg-white text-brand-700 hover:bg-white/90 shadow-lg">
+                <FileText className="mr-2 h-4 w-4" />
+                Create Assessment
+              </Button>
+            </Link>
+          )}
         </div>
-        {isStudent && (
-          <Link href="/app/library">
-            <Button className="sm:w-auto w-full bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
-              <Lightbulb className="mr-2 h-4 w-4" />
-              Continue Learning
-            </Button>
-          </Link>
-        )}
-        {isTeacher && (
-          <Link href="/app/papers/new">
-            <Button className="bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-700 hover:to-purple-700">
-              <FileText className="mr-2 h-4 w-4" />
-              Create Assessment
-            </Button>
-          </Link>
-        )}
       </div>
 
       {error && !isSuperAdmin && (
@@ -223,7 +246,6 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-6">
                   <QuickActions role={user.role} />
-                  <RecentActivity data={data} />
                 </div>
               </div>
             </>
@@ -792,9 +814,9 @@ function ChildCard({ child }: { child: ChildData }) {
                     </Badge>
                   </div>
                 ))}
-                <Link href="/app/remediation">
+                <Link href="/app/children">
                   <Button size="sm" variant="link" className="h-auto p-0 text-xs">
-                    Start Remediation <ArrowRight className="ml-1 h-3 w-3" />
+                    See your child&apos;s plan <ArrowRight className="ml-1 h-3 w-3" />
                   </Button>
                 </Link>
               </div>
@@ -840,6 +862,11 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
   const mastery = data?.masterySummary as Record<string, unknown> | undefined;
   const weakConcepts = (data?.weakConcepts as { name: string; score: number; level: string; conceptId?: string }[]) ?? [];
   const pendingAssignments = (data?.pendingAssignments as Record<string, unknown>[]) ?? [];
+  // Level / XP-to-next-level only exist on GET /learning/gamification/profile -
+  // the dashboard payload carries the raw profile row (xp + streak) instead.
+  const { data: profile } = useGamificationProfile();
+  const xpForLevel = profile?.xpForLevel ?? 500;
+  const xpInLevel = profile?.xpInLevel ?? 0;
 
   return (
     <>
@@ -850,47 +877,70 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
           <p className="text-sm text-surface-500 dark:text-surface-400 mb-4">What needs your attention right now</p>
 
           <div className="space-y-3">
-            {/* Fix weakness CTA */}
-            {weakConcepts.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-surface-800 p-4 border border-orange-100 dark:border-orange-800/30">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100">
+            {/* Fix weakness CTA - the mobile home shows the two weakest concepts */}
+            {weakConcepts.slice(0, 2).map((weak) => (
+              <div
+                key={weak.conceptId ?? weak.name}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white dark:bg-surface-800 p-4 border border-orange-100 dark:border-orange-800/30"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100">
                     <Target className="h-5 w-5 text-orange-600" />
                   </div>
-                  <div>
-                    <p className="font-medium text-surface-900">{weakConcepts[0].name}</p>
-                    <p className="text-xs text-orange-600">{weakConcepts[0].score}% mastery · Needs practice</p>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-surface-900">{weak.name}</p>
+                    <p className="text-xs text-orange-600">{weak.score}% mastery · Needs practice</p>
                   </div>
                 </div>
-                <Link href={`/app/learn/concepts/${weakConcepts[0].conceptId ?? ''}`}>
-                  <Button size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white">
-                    Fix This
-                  </Button>
-                </Link>
+                <div className="flex shrink-0 items-center gap-2">
+                  {weak.conceptId ? (
+                    <Link href={`/app/learn/concepts/${weak.conceptId}?tab=practice`}>
+                      <Button size="sm" variant="ghost" className="rounded-xl text-brand-600 hover:bg-brand-50">
+                        Practise
+                      </Button>
+                    </Link>
+                  ) : null}
+                  <Link href={`/app/learn/concepts/${weak.conceptId ?? ''}`}>
+                    <Button size="sm" className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white">
+                      Fix This
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            )}
+            ))}
 
-            {/* Upcoming assessment */}
-            {pendingAssignments.length > 0 && (
-              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-surface-800 p-4 border border-blue-100 dark:border-blue-800/30">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
-                    <FileText className="h-5 w-5 text-blue-600" />
+            {/* Upcoming assessment - the mobile home shows the next two */}
+            {pendingAssignments.slice(0, 2).map((assignment, i) => {
+              const assessment = (assignment as Record<string, unknown>)?.assessment as
+                | Record<string, unknown>
+                | undefined;
+              const subject = assessment?.subject as Record<string, unknown> | undefined;
+              return (
+                <div
+                  key={i}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white dark:bg-surface-800 p-4 border border-blue-100 dark:border-blue-800/30"
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-surface-900">
+                        {(assessment?.title as string) ?? 'Assessment'}
+                      </p>
+                      <p className="text-xs text-blue-600">
+                        Upcoming · {(subject?.name as string) ?? 'Assessment'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-surface-900">{((pendingAssignments[0] as Record<string, unknown>)?.assessment as Record<string, unknown>)?.title as string ?? 'Assessment'}</p>
-                    <p className="text-xs text-blue-600">
-                      Upcoming · {(((pendingAssignments[0] as Record<string, unknown>)?.assessment as Record<string, unknown>)?.subject as Record<string, unknown>)?.name as string ?? 'Assessment'}
-                    </p>
-                  </div>
+                  <Link href="/app/assessments" className="shrink-0">
+                    <Button size="sm" variant="outline" className="rounded-xl border-blue-300 text-blue-700">
+                      Prepare
+                    </Button>
+                  </Link>
                 </div>
-                <Link href="/app/assessments">
-                  <Button size="sm" variant="outline" className="rounded-xl border-blue-300 text-blue-700">
-                    Prepare
-                  </Button>
-                </Link>
-              </div>
-            )}
+              );
+            })}
 
             {/* No weak concepts */}
             {weakConcepts.length === 0 && pendingAssignments.length === 0 && (
@@ -908,7 +958,8 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
         </CardContent>
       </Card>
 
-      {/* Progress Summary */}
+      {/* Progress Summary - three numbers, not four: Level is a subtitle of XP
+          (it is derived from XP) and does not deserve a card of its own. */}
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="bg-gradient-to-br from-violet-500 to-purple-600 border-0 text-white">
           <CardContent className="p-5">
@@ -917,15 +968,11 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
                 <p className="text-sm text-violet-100 font-medium">Total XP</p>
                 <p className="text-2xl font-bold text-white mt-1">{(gamification?.xp as number) ?? 0}</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-white" />
-              </div>
+              <Icon3D name="xp" size={40} />
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-violet-100">
               <TrendingUp className="h-3.5 w-3.5" />
-              {gamification?.lastActiveAt ? (
-                <>Last active {new Date(gamification.lastActiveAt as string).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</>
-              ) : ('Keep learning every day')}
+              Level {profile?.level ?? 1} · {xpInLevel}/{xpForLevel} XP to next
             </div>
           </CardContent>
         </Card>
@@ -937,9 +984,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
                 <p className="text-sm text-amber-100 font-medium">Streak</p>
                 <p className="text-2xl font-bold text-white mt-1">{(gamification?.streakDays as number) ?? 0} days</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <Flame className="h-5 w-5 text-white" />
-              </div>
+              <Icon3D name="streak" size={40} />
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-amber-100">
               <Star className="h-3.5 w-3.5" />
@@ -955,9 +1000,7 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
                 <p className="text-sm text-emerald-100 font-medium">Mastery</p>
                 <p className="text-2xl font-bold text-white mt-1">{((mastery as Record<string, unknown>)?.avgScore as number) ?? 0}%</p>
               </div>
-              <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <Target className="h-5 w-5 text-white" />
-              </div>
+              <Icon3D name="mastery" size={40} />
             </div>
             <div className="mt-3">
               <Progress value={((mastery as Record<string, unknown>)?.avgScore as number) ?? 0} className="h-1.5 bg-white/20" />
@@ -970,8 +1013,26 @@ function StudentStats({ data }: { data: Record<string, unknown> | null }) {
 }
 
 function StudentContent({ data }: { data: Record<string, unknown> | null }) {
-  const pendingAssignments = (data?.pendingAssignments as Record<string, unknown>[]) ?? [];
   const recentAttempts = (data?.recentAttempts as Record<string, unknown>[]) ?? [];
+  // The mobile home screen shows the same subject grid (Class X, topics, done
+  // count and a progress bar) from the same GET /learning/home payload.
+  const { data: home } = useLearningHome();
+
+  const subjects: SubjectProgressItem[] =
+    home?.boards.flatMap((board) =>
+      board.grades.flatMap((grade) =>
+        grade.subjects.map((subject) => ({
+          id: subject.id,
+          name: subject.name,
+          boardId: board.id,
+          boardName: board.name,
+          grade: grade.grade,
+          completedContent: subject.completedContent,
+          totalContent: subject.totalContent,
+          averageMastery: subject.averageMastery,
+        })),
+      ),
+    ) ?? [];
 
   return (
     <>
@@ -991,68 +1052,28 @@ function StudentContent({ data }: { data: Record<string, unknown> | null }) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <Link href="/app/library" className="flex items-center gap-4 rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
-              <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                <BookOpen className="h-5 w-5 text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-surface-900">Browse All Subjects</p>
-                <p className="text-sm text-surface-500">Science & Mathematics</p>
-              </div>
-              <ChevronRight className="h-4 w-4 text-surface-400" />
-            </Link>
-          </div>
+          {subjects.length > 0 ? (
+            <SubjectProgressGrid subjects={subjects} />
+          ) : (
+            <div className="space-y-3">
+              <Link href="/app/library" className="flex items-center gap-4 rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
+                <div className="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-surface-900">Browse All Subjects</p>
+                  <p className="text-sm text-surface-500">Science &amp; Mathematics</p>
+                </div>
+                <ChevronRight className="h-4 w-4 text-surface-400" />
+              </Link>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Pending Assessments */}
-      {pendingAssignments.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Pending Assessments</CardTitle>
-                <CardDescription>{pendingAssignments.length} assessment{pendingAssignments.length > 1 ? 's' : ''} waiting</CardDescription>
-              </div>
-              <Link href="/app/assessments">
-                <Button variant="ghost" size="sm">
-                  View all <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {pendingAssignments.slice(0, 3).map((item, i) => (
-                <div key={i} className="flex items-center justify-between rounded-xl bg-surface-50 p-4 hover:bg-surface-100 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-brand-100 flex items-center justify-center">
-                      <BookOpen className="h-5 w-5 text-brand-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-surface-900">
-                        {((item.assessment as Record<string, unknown>)?.title as string) ?? 'Assessment'}
-                      </p>
-                      <p className="text-sm text-surface-500">
-                        {(((item.assessment as Record<string, unknown>)?.subject as Record<string, unknown>)?.name as string) ?? 'General'}
-                        {item.assessment && (item.assessment as Record<string, unknown>).dueAt
-                          ? ` · due ${new Date((item.assessment as Record<string, unknown>).dueAt as string).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}`
-                          : ''}
-                      </p>
-                    </div>
-                  </div>
-                  <Link href={`/app/assessments`}>
-                    <Button variant="outline" size="sm" className="rounded-xl">
-                      Start
-                    </Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Badges earned intentionally do NOT live on the dashboard: a badge is a
+          reward, not a daily action. Achievements are on /app/achievements and in
+          the profile menu (see docs/UX_REVAMP.md). */}
 
       {/* Recent Activity */}
       {recentAttempts.length > 0 && (
@@ -1285,7 +1306,7 @@ function QuickActions({ role }: { role: string }) {
       : isParent
         ? [
             { label: 'View Children', icon: Users, color: 'bg-teal-100 text-teal-600', href: '/app/children' },
-            { label: 'Progress Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/reports' },
+            { label: 'Progress Reports', icon: BarChart3, color: 'bg-purple-100 text-purple-600', href: '/app/children' },
           ]
         : isSuperAdmin
           ? [

@@ -58,7 +58,7 @@ export class ContentGeneratorService {
 
     const contentItem = await this.prisma.contentItem.create({
       data: {
-        type: 'QUIZ',
+        type: 'OTHER',
         status: ContentStatus.DRAFT,
         visibility: Visibility.INSTITUTION_ONLY,
         title: `Flashcards: ${kb.name}`,

@@ -3,14 +3,32 @@
 import { useRouter } from 'next/navigation';
 import { usePapers } from '@/lib/api-hooks';
 import { useRole } from '@/lib/role-theme';
+import { useAuthStore } from '@/lib/auth-store';
 import { Badge, Button, Card, ErrorBanner, Spinner } from '@/components/ui';
 import { formatDate } from '@/lib/format';
-import { Eye, FileText, Plus } from 'lucide-react';
+import { AlertCircle, Eye, FileText, Plus } from 'lucide-react';
 
 export default function PapersPage() {
   const router = useRouter();
   const role = useRole();
+  const { user } = useAuthStore();
   const { data, isLoading, error } = usePapers();
+
+  // Question papers are a staff authoring tool: the nav only exposes this route to
+  // staff, and the API mutations (`POST /papers`, duplicate/regenerate/export) are
+  // `@Roles(INSTITUTION_ADMIN, TEACHER)`. Students/parents receive papers through the
+  // assessment flow, not this page. This render-guard is defense-in-depth UX only —
+  // the API `@Roles` guard remains the actual security boundary. (FINDING-G)
+  const isStaff = user?.role === 'TEACHER' || user?.role === 'INSTITUTION_ADMIN' || user?.role === 'SUPER_ADMIN';
+  if (!isStaff) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <h2 className="text-xl font-semibold">Access Denied</h2>
+        <p className="text-surface-500">Question papers are available to teaching staff.</p>
+      </div>
+    );
+  }
 
   if (isLoading) return <Spinner label="Loading papers…" />;
   if (error) return <ErrorBanner message={(error as Error).message} />;

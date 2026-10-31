@@ -80,10 +80,6 @@ function buildService() {
       },
     },
     practiceAnswer: { upsert: async () => ({}) },
-    flashcardRating: {
-      findMany: async () => [],
-      upsert: async (args: any) => ({ ...args.update, ...args.create }),
-    },
   };
 
   const tenant: any = { requireInstitution: () => 'inst-1' };
@@ -92,7 +88,22 @@ function buildService() {
     resolveForUser: async () => db.students[0] ?? null,
     requireForUser: async () => db.students[0] ?? null,
   };
-  const service = new LearningService(prisma, tenant, mastery, identity, { buildContentWhere: () => ({}) });
+  const gradeAccess: any = {
+    forUser: async () => ({ unrestricted: true, grades: [] }),
+    forStudentId: async () => ({ unrestricted: true, grades: [] }),
+    allows: () => true,
+    assert: () => undefined,
+    setEnrolments: async () => undefined,
+    addEnrolment: async () => undefined,
+  };
+  const service = new LearningService(
+    prisma,
+    tenant,
+    mastery,
+    identity,
+    gradeAccess,
+    { buildContentWhere: () => ({}) },
+  );
   return { service, db };
 }
 
@@ -115,10 +126,17 @@ describe('LearningService question–concept isolation', () => {
   it('startPractice only assembles practice questions from the requested concept', async () => {
     const { service, db } = buildService();
     const started = await service.startPractice(studentUser, CONCEPT_A, 2);
-    expect(started.questions.map((s: any) => s.id).sort()).toEqual(['q-a1', 'q-a2']);
+    const ids = started.questions.map((s: any) => s.id);
+    // A wider pool is shuffled into the session, so the exact pair varies — what
+    // must never vary is that every question belongs to the requested concept.
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    expect(ids.every((id: string) => id.startsWith('q-a'))).toBe(true);
     const created = db.created[0];
     expect(created.conceptId).toBe(CONCEPT_A);
-    expect([...(created.questionIds as string[])].sort()).toEqual(['q-a1', 'q-a2']);
+    const createdIds = [...(created.questionIds as string[])];
+    expect(createdIds).toHaveLength(2);
+    expect(createdIds.every((id: string) => id.startsWith('q-a'))).toBe(true);
   });
 
   it('startPractice rejects when the concept has no approved questions', async () => {
@@ -128,26 +146,13 @@ describe('LearningService question–concept isolation', () => {
     );
   });
 
-  it('getConceptDetail exposes answer and explanation for flashcards', async () => {
+  it('getConceptDetail exposes answer and explanation for the practice payload', async () => {
     const { service } = buildService();
     const detail = await service.getConceptDetail(studentUser, CONCEPT_A);
     expect(detail.practiceQuestions[0]).toMatchObject({
       answer: 'A',
       explanation: 'Because A is correct',
     });
-    expect(detail.flashcardRatings).toEqual({});
-  });
-
-  it('rateFlashcard rejects an invalid rating', async () => {
-    const { service } = buildService();
-    await expect(service.rateFlashcard(studentUser, 'q-a1', 'MAYBE')).rejects.toThrow(
-      'Invalid flashcard rating',
-    );
-  });
-
-  it('rateFlashcard persists a valid rating for the student', async () => {
-    const { service } = buildService();
-    const result = await service.rateFlashcard(studentUser, 'q-a1', 'GOOD');
-    expect(result).toEqual({ ok: true, rating: 'GOOD' });
+    expect('flashcardRatings' in detail).toBe(false);
   });
 });

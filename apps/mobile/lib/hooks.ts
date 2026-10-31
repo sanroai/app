@@ -2,6 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiAuthed } from './api';
 import { useAuthStore } from './auth-store';
 import type { AuthUser } from './auth-store';
+import type {
+  ChapterConcept,
+  ChapterHub,
+  ChapterPractice,
+  ChapterProgress,
+  ChapterVideo,
+  VideoSegment,
+} from './chapter-hub';
+
+export type {
+  ChapterConcept,
+  ChapterHub,
+  ChapterPractice,
+  ChapterProgress,
+  ChapterVideo,
+  VideoSegment,
+};
 
 export function useIsLoggedIn() {
   return useAuthStore((s) => !!s.token && !!s.user);
@@ -46,13 +63,48 @@ export interface SubjectSummary {
 }
 export interface LearningHome {
   boards: Board[];
+  /** Classes the server is showing (union of the student's enrolments). */
+  studentGrades?: string[];
+  /** True for the demo account that opens every class. */
+  allGrades?: boolean;
 }
 
-export function useLearningHome() {
+export function useLearningHome({ enabled = true }: { enabled?: boolean } = {}) {
   const token = useAuthStore((s) => s.token);
   return useQuery<LearningHome>({
     queryKey: ['learning', 'home'],
     queryFn: () => apiAuthed<LearningHome>('/learning/home'),
+    enabled: !!token && enabled,
+  });
+}
+
+// ─── Subscription ────────────────────────────────────────
+export interface SubscriptionSummary {
+  plan: {
+    key: string;
+    name: string;
+    priceMonthly: number | null;
+    priceYearly: number | null;
+    perSeat: number;
+  } | null;
+  status: string | null;
+  scope: 'USER' | 'INSTITUTION' | null;
+  startedAt: string | null;
+  endsAt: string | null;
+  daysRemaining: number | null;
+  seatLimit: number | null;
+  institution: { id: string; name: string } | null;
+  access: boolean;
+  blockState: string | null;
+  message: string | null;
+}
+
+/** The plan that governs this account (own plan, else the institution's). */
+export function useSubscription() {
+  const token = useAuthStore((s) => s.token);
+  return useQuery<SubscriptionSummary>({
+    queryKey: ['subscription'],
+    queryFn: () => apiAuthed<SubscriptionSummary>('/auth/subscription'),
     enabled: !!token,
   });
 }
@@ -70,6 +122,8 @@ export interface ChapterItem {
   completedContent: number;
   percentComplete: number;
   averageMastery: number;
+  /** The first video lesson's poster - a real frame from this chapter. */
+  thumbnailUrl?: string | null;
 }
 export interface ChaptersResponse {
   subject: { id: string; name: string; code: string };
@@ -89,30 +143,41 @@ export function useChapters(boardId: string, grade: string, subjectId: string) {
 }
 
 // ─── Chapter Detail ──────────────────────────────────────
-export interface ChapterDetail {
-  id: string;
-  name: string;
-  code: string;
-  grade: string;
-  subject: { id: string; name: string };
-  chapterContent?: ChapterContentItem[];
-  topics: Array<{
-    id: string;
-    name: string;
-    concepts: Array<{
-      id: string;
-      name: string;
-      mastery: { level: string; score: number } | null;
-      contentCount: number;
-    }>;
-  }>;
+/**
+ * The chapter hub: one textbook chapter with its notes, concepts, videos
+ * (split into chapter markers) and progress.
+ */
+export function useChapterHub(chapterId: string) {
+  return useQuery<ChapterHub>({
+    queryKey: ['learning', 'chapter', chapterId],
+    queryFn: () => apiAuthed<ChapterHub>(`/learning/chapters/${chapterId}`),
+    enabled: !!chapterId,
+  });
 }
 
+/** Kept for callers that used the old name - the endpoint returns the hub payload. */
 export function useChapterDetail(chapterId: string) {
-  return useQuery<ChapterDetail>({
-    queryKey: ['learning', 'chapter', chapterId],
-    queryFn: () => apiAuthed<ChapterDetail>(`/learning/chapters/${chapterId}`),
+  return useChapterHub(chapterId);
+}
+
+export interface ChapterPages {
+  count: number;
+  expiresAt: string;
+  pages: Array<{ index: number; path: string }>;
+}
+
+/**
+ * The rendered textbook pages of a chapter (signed image URLs).
+ *
+ * Android's WebView cannot render PDF and Chrome only downloads it, so the book
+ * is read as page images in the app (see `app/textbook/[chapterId].tsx`).
+ */
+export function useChapterPages(chapterId: string) {
+  return useQuery<ChapterPages>({
+    queryKey: ['learning', 'chapter-pages', chapterId],
+    queryFn: () => apiAuthed<ChapterPages>(`/learning/chapters/${chapterId}/pages`),
     enabled: !!chapterId,
+    staleTime: 10 * 60_000,
   });
 }
 
@@ -126,6 +191,10 @@ export interface ContentItem {
   videoId?: string;
   thumbnailUrl?: string;
   durationSeconds?: number;
+  /** Chapter markers for a video lesson (start offsets into the video). */
+  segments?: VideoSegment[] | null;
+  /** This student's own progress row for the item, when one exists. */
+  progress?: { state: string; secondsWatched?: number | null; completedAt?: string | null } | null;
 }
 export interface ChapterContentItem {
   id: string;
@@ -143,7 +212,13 @@ export interface ConceptDetail {
   name: string;
   description?: string;
   topic: { id: string; name: string };
-  chapter: { id: string; name: string; grade: string };
+  chapter: {
+    id: string;
+    name: string;
+    grade: string;
+    code?: string;
+    subject?: { id: string; name: string; code: string };
+  };
   mastery: { level: string; score: number; attempts: number } | null;
   content: ContentItem[];
   practiceQuestions: Array<{ id: string; text: string; type: string; marks: number; difficulty?: string; options: Array<{ id: string; text: string; order: number }> }>;
@@ -163,6 +238,15 @@ export function useCompleteContent() {
   return useMutation({
     mutationFn: (contentId: string) =>
       apiAuthed(`/learning/content/${contentId}/complete`, { method: 'POST' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['learning'] }),
+  });
+}
+
+export function useUncompleteContent() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (contentId: string) =>
+      apiAuthed(`/learning/content/${contentId}/complete`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['learning'] }),
   });
 }
@@ -188,7 +272,8 @@ export interface PracticeSubmitResponse {
 
 export function useStartPractice() {
   return useMutation({
-    mutationFn: (data: { conceptId: string; questionCount?: number }) =>
+    // A practice set covers either ONE concept or ONE whole chapter.
+    mutationFn: (data: { conceptId?: string; chapterId?: string; questionCount?: number }) =>
       apiAuthed<PracticeStartResponse>('/learning/practice/start', {
         method: 'POST',
         body: data,
@@ -219,13 +304,21 @@ export function useSubmitPractice() {
 
 // ─── Gamification ────────────────────────────────────────
 export interface GamificationProfile {
-  profile: { userId: string; totalXp: number; currentStreak: number; longestStreak: number; averageMastery: number; level: number; rank: string } | null;
+  xp: number;
+  level: number;
+  xpInLevel: number;
+  xpForLevel: number;
+  rank: number;
+  streakDays: number;
+  achievementCount: number;
+  recentAchievements: Achievement[];
 }
 
-export function useGamificationProfile() {
+export function useGamificationProfile({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<GamificationProfile>({
     queryKey: ['gamification', 'profile'],
     queryFn: () => apiAuthed<GamificationProfile>('/learning/gamification/profile'),
+    enabled,
   });
 }
 
@@ -237,10 +330,16 @@ export interface Achievement {
   unlockedAt?: string;
 }
 
-export function useAchievements() {
-  return useQuery<{ achievements: Achievement[] }>({
+export interface AchievementsResponse {
+  earned: Achievement[];
+  locked: Achievement[];
+}
+
+export function useAchievements({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery<AchievementsResponse>({
     queryKey: ['gamification', 'achievements'],
-    queryFn: () => apiAuthed<{ achievements: Achievement[] }>('/learning/gamification/achievements'),
+    queryFn: () => apiAuthed<AchievementsResponse>('/learning/gamification/achievements'),
+    enabled,
   });
 }
 
@@ -255,30 +354,33 @@ export interface LeaderboardResponse {
   entries?: LeaderboardEntry[];
   leaderboard?: LeaderboardEntry[];
   rows?: LeaderboardEntry[];
+  groups?: Array<{ id: string; name: string; grade?: string | null }>;
 }
 
-export function useLeaderboard(period: string) {
+export function useLeaderboard(period: string, groupId?: string | null) {
   return useQuery<LeaderboardResponse>({
-    queryKey: ['gamification', 'leaderboard', period],
-    queryFn: () => apiAuthed<LeaderboardResponse>(`/learning/gamification/leaderboard?period=${period}`),
+    queryKey: ['gamification', 'leaderboard', period, groupId ?? 'school'],
+    queryFn: () =>
+      apiAuthed<LeaderboardResponse>(
+        `/learning/gamification/leaderboard?period=${period}${groupId ? `&groupId=${groupId}` : ''}`,
+      ),
     enabled: !!period,
   });
 }
 
 // ─── Progress ────────────────────────────────────────────
 export interface LearningProgress {
-  totalContent: number;
-  completedContent: number;
-  totalConcepts: number;
-  masteredConcepts: number;
-  averageMastery: number;
+  student: { id: string; name: string; grade: string | null };
+  contentProgress: { totalContent: number; completedContent: number; percentComplete: number };
+  mastery: { averageScore: number; totalConcepts: number; byLevel: Record<string, number> };
   recentActivity: Array<{ id: string; title: string; type: string; completedAt: string }>;
 }
 
-export function useLearningProgress() {
+export function useLearningProgress({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<LearningProgress>({
     queryKey: ['learning', 'progress'],
     queryFn: () => apiAuthed<LearningProgress>('/learning/progress'),
+    enabled,
   });
 }
 
@@ -402,10 +504,47 @@ export interface MyAssessments {
   assignments: AssignmentRow[];
 }
 
-export function useMyAssessments() {
+export function useMyAssessments({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery<MyAssessments>({
     queryKey: ['assessments', 'my'],
     queryFn: () => apiAuthed<MyAssessments>('/assessments/my'),
+    enabled,
+  });
+}
+
+export interface AssessmentPaper {
+  id: string;
+  title: string;
+  subject: { id: string; name: string; code: string } | null;
+  chapter: { id: string; name: string; grade: string } | null;
+  totalMarks: number;
+  durationMinutes: number;
+  status: string;
+  mode: string;
+  startsAt: string | null;
+  dueAt: string | null;
+  attemptsAllowed: number;
+  attemptsUsed: number;
+  attemptsLeft: number;
+  isOpen: boolean;
+  questionCount: number;
+  questions: Array<{
+    id: string;
+    text: string;
+    type: string;
+    marks: number;
+    order: number;
+    options: Array<{ text: string; order: number }>;
+  }>;
+}
+
+/** The question paper a student is about to attempt (no answers). */
+export function useAssessmentPaper(id?: string) {
+  const token = useAuthStore((s) => s.token);
+  return useQuery<AssessmentPaper>({
+    queryKey: ['assessment-paper', id],
+    queryFn: () => apiAuthed<AssessmentPaper>(`/assessments/${id}/paper`),
+    enabled: !!token && !!id,
   });
 }
 
@@ -424,6 +563,7 @@ export interface AttemptDetail {
     submittedAt: string | null;
   };
   assessment: { title: string; subject: string; totalMarks: number };
+  weakConcepts?: Array<{ id: string; name: string }>;
   questions: Array<{
     id: string;
     text: string;
@@ -477,8 +617,12 @@ export function useSaveAnswers() {
 
 export function useAskAI() {
   return useMutation({
-    mutationFn: (data: { message: string; context?: { conceptId?: string; questionId?: string; assessmentId?: string } }) =>
-      apiAuthed<{ answer?: string; explanation?: string; reply?: string }>('/ai/chat', {
+    mutationFn: (data: {
+      message: string;
+      history?: Array<{ role: 'user' | 'assistant'; content: string }>;
+      context?: { conceptId?: string; chapterId?: string; questionId?: string; assessmentId?: string };
+    }) =>
+      apiAuthed<{ answer?: string; explanation?: string; reply?: string; truncated?: boolean }>('/ai/chat', {
         method: 'POST',
         body: data,
       }),
@@ -503,10 +647,50 @@ export interface WeakConcept {
   attemptCount: number;
 }
 
-export function useMyDiagnosis() {
-  return useQuery<{ weakConcepts: WeakConcept[] }>({
+/** The real shape of `GET /diagnosis/my`. */
+export interface DiagnosisMasteryRow {
+  id: string;
+  conceptId: string;
+  score: number;
+  attempts: number;
+  correct: number;
+  level: string;
+  concept: {
+    id: string;
+    name: string;
+    topic?: { name: string; chapter?: { id: string; name: string; grade?: string } } | null;
+  } | null;
+}
+
+export interface MyDiagnosisResponse {
+  studentId: string;
+  averageScore: number;
+  concepts: DiagnosisMasteryRow[];
+}
+
+const WEAK_LEVELS = new Set(['WEAK', 'NEEDS_INTERVENTION']);
+
+export function useMyDiagnosis({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery<{ weakConcepts: WeakConcept[]; averageScore: number }>({
     queryKey: ['diagnosis', 'my'],
-    queryFn: () => apiAuthed<{ weakConcepts: WeakConcept[] }>('/diagnosis/my'),
+    queryFn: async () => {
+      const data = await apiAuthed<MyDiagnosisResponse>('/diagnosis/my');
+      const rows = data?.concepts ?? [];
+      const weakConcepts = rows
+        .filter((row) => WEAK_LEVELS.has(row.level))
+        .sort((a, b) => a.score - b.score)
+        .map((row) => ({
+          conceptId: row.conceptId,
+          conceptName: row.concept?.name ?? 'Concept',
+          chapterName: row.concept?.topic?.chapter?.name ?? '',
+          subjectName: '',
+          masteryLevel: row.level,
+          masteryScore: row.score,
+          attemptCount: row.attempts,
+        }));
+      return { weakConcepts, averageScore: data?.averageScore ?? 0 };
+    },
+    enabled,
   });
 }
 

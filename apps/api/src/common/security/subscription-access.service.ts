@@ -298,7 +298,7 @@ export class SubscriptionAccessService {
         code: 'USER_LIMIT_REACHED',
         message:
           'User limit reached. Please contact your SANRO administrator to increase your subscription limit.',
-        details: { current, requested: additional, limit },
+        details: { current, requested: additional, limit, available: Math.max(0, limit - current) },
       });
     }
   }

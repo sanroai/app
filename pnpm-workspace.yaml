@@ -3,3 +3,37 @@ packages:
   - "packages/*"
 
 dangerouslyAllowAllBuilds: true
+
+# pnpm reads overrides from HERE (pnpm >=10). The npm-style top-level
+# "overrides" field in package.json is ignored by pnpm - do not use it.
+overrides:
+  # --- audit-driven security overrides (2026-10-20) ---
+  multer: 2.4.0                     # CVE in file upload handling (Nest platform-express)
+  postcss: 8.5.31                   # arbitrary file read / info disclosure via sourceMappingURL
+  sharp: 0.35.5                     # heap overflow in image processing
+  fast-uri: 3.1.8                   # ReDoS in ajv's URI parser
+  decode-uri-component: 0.5.0       # ReDoS
+  deepmerge-ts: 8.0.0               # prototype pollution via @prisma/config
+  markdown-it: 14.3.3               # ReDoS chain (mobile markdown rendering) - RUNTIME path
+  linkify-it: 5.0.2                 # quadratic-complexity DoS
+  minimatch@3>brace-expansion: 1.1.21
+  minimatch@9>brace-expansion: 2.1.7
+  minimatch@10>brace-expansion: 5.0.12
+  postcss-selector-parser: 7.1.6       # ReDoS (tailwind/postcss-nested) - validated by next build
+  js-yaml: 5.4.3                    # CPU DoS via merge keys (@nestjs/swagger) - same major
+  # --- carried over from the previously inert package.json "overrides" block ---
+  tar: 7.5.22
+  proxy-addr: 2.0.8
+  shell-quote: 1.12.0
+
+# Deliberately NOT pinned (see docs/SECURITY_TRIAGE.md §5 for the evidence):
+#   image-size  1.2.1 -> 2.x breaks metro: `require("image-size")` is a callable
+#               in v1 but a named-export object in v2, and metro/src/Assets.js
+#               calls it directly. Build tooling, not attacker-reachable.
+#   node-forge  1.4.0 is the latest release and still inside the vulnerable
+#               range (<=1.4.0) - no patched version exists upstream.
+#   braces      3.0.3 is the latest release and still inside the vulnerable
+#               range (<=3.0.3) - no patched version exists upstream.
+#   sprintf-js  1.0.3, no patched version upstream. Dev tooling only.
+#   uuid        7.0.3 -> 11.x is a major bump; the advisory needs the `buf`
+#               argument, which no caller in this tree passes.

@@ -1,39 +1,27 @@
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { PDFParse } = require('pdf-parse');
+const { resolveSubject, argOf } = require('./subjects.cjs');
+const { pdfjsAssetOptions } = require('./pdfjs-assets.cjs');
+
 /**
- * Extract everything from the CBSE Class 10 Science PDFs:
+ * Extract everything from a CBSE book (any subject, any class):
  *   - text layer  (per page + full document)  -> chapters/<slug>/text.txt, pages.json
  *   - page screenshots (raster renders)       -> chapters/<slug>/screenshots/pNNN.png
  *   - embedded images (diagrams/figures)      -> chapters/<slug>/images/
  *   - metadata (title, sha256, outline, ...)  -> chapters/<slug>/meta.json
  *   - manifest                                -> manifest.json
  *
- * Usage: node scripts/books/extract.cjs [--width 1240] [--no-images]
+ * Usage: node scripts/books/extract.cjs [--subject science|mathematics|english] [--class 9|10] [--width 1240] [--no-images]
  */
-const fs = require('fs');
-const path = require('path');
-const crypto = require('crypto');
-const { PDFParse } = require('pdf-parse');
-
-const ROOT = path.join(__dirname, '..', '..', 'books', 'cbse', 'class-10', 'science');
-const SRC = path.join(ROOT, 'source');
-const CH = path.join(ROOT, 'chapters');
-
-const CHAP = [
-  ['jesc1ps.pdf', '00-prelims', 'Front matter (foreword, preface, contents, committees)'],
-  ['jesc101.pdf', '01-chemical-reactions-and-equations', 'Chemical Reactions and Equations'],
-  ['jesc102.pdf', '02-acids-bases-and-salts', 'Acids, Bases and Salts'],
-  ['jesc103.pdf', '03-metals-and-non-metals', 'Metals and Non-metals'],
-  ['jesc104.pdf', '04-carbon-and-its-compounds', 'Carbon and its Compounds'],
-  ['jesc105.pdf', '05-life-processes', 'Life Processes'],
-  ['jesc106.pdf', '06-control-and-coordination', 'Control and Coordination'],
-  ['jesc107.pdf', '07-how-do-organisms-reproduce', 'How do Organisms Reproduce?'],
-  ['jesc108.pdf', '08-heredity', 'Heredity'],
-  ['jesc109.pdf', '09-light-reflection-and-refraction', 'Light - Reflection and Refraction'],
-  ['jesc110.pdf', '10-the-human-eye-and-the-colourful-world', 'The Human Eye and the Colourful World'],
-  ['jesc111.pdf', '11-electricity', 'Electricity'],
-  ['jesc112.pdf', '12-magnetic-effects-of-electric-current', 'Magnetic Effects of Electric Current'],
-  ['jesc113.pdf', '13-our-environment', 'Our Environment'],
-  ['jesc1an.pdf', '99-answers', 'Answers to Exercises'],
-];
+const SUBJECT_SLUG = argOf(process.argv, '--subject', 'science');
+const CLASS_NUMBER = argOf(process.argv, '--class', '10');
+const SUBJECT = resolveSubject(SUBJECT_SLUG, CLASS_NUMBER);
+const ROOT = SUBJECT.root;
+const SRC = SUBJECT.source;
+const CH = SUBJECT.chaptersDir;
+const CHAP = SUBJECT.chapters;
 
 function arg(name, def) {
   const i = process.argv.indexOf(name);
@@ -41,6 +29,8 @@ function arg(name, def) {
 }
 const WIDTH = Number(arg('--width', '1240'));
 const WITH_IMAGES = !process.argv.includes('--no-images');
+// image extraction re-rasterises every embedded bitmap - the bigger books need more than a minute
+const IMAGE_TIMEOUT = Number(arg('--image-timeout', '300000'));
 
 const sha256 = (b) => crypto.createHash('sha256').update(b).digest('hex');
 const clean = (s) => (s || '').replace(/\u0000/g, '').replace(/[ \t]+$/gm, '');
@@ -63,8 +53,12 @@ async function processOne(file, slug, title) {
   const imgDir = path.join(dir, 'images');
   fs.mkdirSync(shotDir, { recursive: true });
   fs.mkdirSync(imgDir, { recursive: true });
+  // a re-run must not leave figures of a previous extraction behind
+  for (const f of fs.readdirSync(imgDir)) {
+    if (f.endsWith('.png')) fs.unlinkSync(path.join(imgDir, f));
+  }
 
-  const parser = new PDFParse({ data: new Uint8Array(buf) });
+  const parser = new PDFParse({ data: new Uint8Array(buf), ...pdfjsAssetOptions() });
   try {
     const info = await raceTimeout(parser.getInfo(), 60000, 'getInfo');
     const textRes = await raceTimeout(parser.getText({ pageJoiner: '\n' }), 120000, 'getText');
@@ -96,20 +90,44 @@ async function processOne(file, slug, title) {
     }
 
     let imgCount = 0;
-    let imageNote = 'ok';
+    const imageErrors = [];
+    const collectImages = async (partial) => {
+      const imgs = await raceTimeout(
+        parser.getImage({ partial, imageBuffer: true, imageDataUrl: false, imageThreshold: 120 }),
+        IMAGE_TIMEOUT,
+        'getImage',
+      );
+      for (const pg of imgs.pages || []) {
+        for (const im of pg.images || []) {
+          fs.writeFileSync(path.join(imgDir, `p${String(pg.pageNumber).padStart(3, '0')}_${imgCount}.png`), Buffer.from(im.data));
+          imgCount++;
+        }
+      }
+    };
     if (WITH_IMAGES) {
-      try {
-        const imgs = await raceTimeout(parser.getImage({ imageBuffer: true, imageDataUrl: false, imageThreshold: 120 }), 45000, 'getImage');
-        for (const pg of imgs.pages || []) {
-          for (const im of pg.images || []) {
-            fs.writeFileSync(path.join(imgDir, `p${String(pg.pageNumber).padStart(3, '0')}_${imgCount}.png`), Buffer.from(im.data));
-            imgCount++;
+      // page by page in small batches: one slow or broken page must not lose the whole chapter
+      for (let start = 1; start <= total; start += BATCH) {
+        const partial = [];
+        for (let n = start; n < Math.min(start + BATCH, total + 1); n++) partial.push(n);
+        try {
+          await collectImages(partial);
+        } catch (e) {
+          // a single unresolvable image breaks the whole batch - retry page by page
+          for (const page of partial) {
+            try {
+              await collectImages([page]);
+            } catch (pageErr) {
+              imageErrors.push(`page ${page}: ${pageErr.message}`);
+            }
           }
         }
-      } catch (e) {
-        imageNote = e.message;
-        console.log(`   [${slug}] embedded images skipped: ${e.message}`);
       }
+    }
+    const imageNote = imageErrors.length
+      ? `${imageErrors.length} page(s) failed: ${imageErrors.slice(0, 5).join(' | ')}${imageErrors.length > 5 ? ' | …' : ''}`
+      : 'ok';
+    if (imageErrors.length) {
+      console.log(`   [${slug}] embedded images: ${imgCount} extracted, ${imageErrors.length} page(s) failed -> ${imageNote}`);
     }
 
     const meta = {
@@ -157,9 +175,9 @@ async function main() {
     JSON.stringify(
       {
         board: 'CBSE',
-        class: '10',
-        subject: 'Science',
-        edition: 'NCERT Science Textbook for Class X, Reprint 2026-27',
+        class: String(SUBJECT.classNumber),
+        subject: SUBJECT.label,
+        edition: SUBJECT.edition,
         extractedAt: new Date().toISOString(),
         tooling: { extract: 'scripts/books/extract.cjs (pdf-parse@2.4.5)', screenshot: `pdfjs render @${WIDTH}px width` },
         books: manifest,
@@ -176,7 +194,7 @@ async function main() {
     ),
     'utf8',
   );
-  console.log('\nmanifest written -> books/cbse/class-10/science/manifest.json');
+  console.log(`\nmanifest written -> books/cbse/${SUBJECT.classDirName}/${SUBJECT.folder}/manifest.json`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

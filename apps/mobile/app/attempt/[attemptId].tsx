@@ -1,15 +1,20 @@
 import { View, ScrollView, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Keyboard } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { apiAuthed, OfflineError } from '../../lib/api';
+import { OfflineError } from '../../lib/api';
 import { useAttemptDetail, useSubmitAttempt, useSaveAnswers } from '../../lib/hooks';
 import { QuizQuestionCard, QuizQuestion } from '../../components/QuizQuestion';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
 const draftKey = (attemptId: string) => `sanro-attempt-draft:${attemptId}`;
+
+/** How often the answers are pushed to the server while the attempt is open. */
+const AUTOSAVE_INTERVAL_MS = 15000;
+/** How long the screen waits after the last change before it saves. */
+const AUTOSAVE_DEBOUNCE_MS = 800;
 
 export default function AttemptScreen() {
   const { attemptId = '' } = useLocalSearchParams<{ attemptId: string }>();
@@ -22,6 +27,29 @@ export default function AttemptScreen() {
 
   const attempt = data?.attempt;
   const isSubmitted = attempt?.status === 'SUBMITTED' || attempt?.status === 'AUTO_SUBMITTED';
+
+  // The autosave interval is created once, so the answers it sends have to be
+  // read from a ref. A state dependency would tear the interval down (and
+  // fire a save) on every keystroke - one save per keystroke.
+  const answersRef = useRef<Record<string, string>>({});
+  const isSubmittedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const saveNowRef = useRef<() => Promise<boolean>>(async () => true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
+  useEffect(() => {
+    isSubmittedRef.current = isSubmitted;
+  }, [isSubmitted]);
 
   useEffect(() => {
     if (!attemptId) return;
@@ -42,31 +70,49 @@ export default function AttemptScreen() {
     if (isSubmitted) AsyncStorage.removeItem(draftKey(attemptId)).catch(() => {});
   }, [isSubmitted, attemptId]);
 
-  const saveAnswersNow = async () => {
-    const entries = Object.entries(answers);
-    if (entries.length === 0 || isSubmitted) return;
-    setSaving(true);
+  const saveAnswersNow = useCallback(async (): Promise<boolean> => {
+    const entries = Object.entries(answersRef.current);
+    if (entries.length === 0 || isSubmittedRef.current) return true;
+    if (mountedRef.current) setSaving(true);
     try {
       await save.mutateAsync({
         attemptId,
         answers: entries.map(([qid, answer]) => ({ snapshotQuestionId: qid, answer })),
       });
+      return true;
     } catch {
       /* autosave is best-effort; draft is persisted locally */
+      return false;
     } finally {
-      setSaving(false);
+      if (mountedRef.current) setSaving(false);
     }
-  };
+  }, [attemptId, save.mutateAsync]);
 
+  // the stable timers always call the latest save function
+  useEffect(() => {
+    saveNowRef.current = saveAnswersNow;
+  });
+
+  // debounced save: one request after the student stops changing answers
+  useEffect(() => {
+    if (Object.keys(answers).length === 0 || isSubmitted) return;
+    const timer = setTimeout(() => {
+      void saveNowRef.current();
+    }, AUTOSAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [answers, isSubmitted]);
+
+  // stable interval: it is never re-created, so it never fires per keystroke
   useEffect(() => {
     const id = setInterval(() => {
-      saveAnswersNow();
-    }, 15000);
+      void saveNowRef.current();
+    }, AUTOSAVE_INTERVAL_MS);
     return () => {
       clearInterval(id);
-      saveAnswersNow();
+      // flush the final answers - the request is fired, not awaited
+      void saveNowRef.current();
     };
-  }, [answers]);
+  }, []);
 
   if (isLoading) {
     return (
@@ -115,6 +161,35 @@ export default function AttemptScreen() {
             <Text style={styles.statLabel}>Skipped</Text>
           </View>
         </View>
+
+        {/* What to fix next: the concepts behind the wrong answers, each one tap
+            from practice. The result screen used to stop at the score. */}
+        {data.weakConcepts && data.weakConcepts.length > 0 ? (
+          <View style={styles.fixCard}>
+            <Text style={styles.fixTitle}>What to fix next</Text>
+            <Text style={styles.fixSub}>These concepts carried the answers you missed.</Text>
+            <View style={styles.fixChips}>
+              {data.weakConcepts.map((concept) => (
+                <TouchableOpacity
+                  key={concept.id}
+                  style={styles.fixChip}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/concept/[conceptId]',
+                      params: { conceptId: concept.id, tab: 'practice' },
+                    })
+                  }
+                >
+                  <Ionicons name="play-circle-outline" size={14} color={Colors.primary} />
+                  <Text style={styles.fixChipText} numberOfLines={1}>
+                    {concept.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <Text style={styles.reviewTitle}>Answer review</Text>
         {data.questions.map((q) => (
           <View key={q.id} style={styles.reviewCard}>
@@ -142,9 +217,18 @@ export default function AttemptScreen() {
     );
   }
 
-  const questions = data.questions as unknown as QuizQuestion[];
+  // The attempt API strips the option id (sanitizeOptions), so the options are
+  // typed as { text, order } and keyed by their position in the list.
+  const questions: QuizQuestion[] = data.questions.map((q) => ({
+    id: q.id,
+    text: q.text,
+    type: q.type,
+    marks: q.marks,
+    options: (q.options ?? []).map((o, oi) => ({ text: o.text, order: o.order ?? oi })),
+  }));
 
   const handleSubmit = () => {
+    if (submit.isPending) return;
     Alert.alert('Submit assessment', 'Are you sure you want to submit? You can no longer change answers.', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -186,12 +270,24 @@ export default function AttemptScreen() {
             index={i}
             total={questions.length}
             selected={answers[q.id] ?? null}
-            onSelect={(optId) => { Keyboard.dismiss(); setAnswers((prev) => ({ ...prev, [q.id]: optId })); }}
+            // the API grades the option text, so that is what is stored and submitted
+            onSelect={(optionText) => {
+              Keyboard.dismiss();
+              setAnswers((prev) => ({ ...prev, [q.id]: optionText }));
+            }}
+            textAnswer={answers[q.id] ?? ''}
+            onTextChange={(value) => setAnswers((prev) => ({ ...prev, [q.id]: value }))}
           />
         ))}
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} accessibilityLabel="Submit assessment" accessibilityRole="button">
+        <TouchableOpacity
+          style={[styles.submitBtn, submit.isPending && styles.submitBtnDisabled]}
+          onPress={handleSubmit}
+          disabled={submit.isPending}
+          accessibilityLabel="Submit assessment"
+          accessibilityRole="button"
+        >
           <Ionicons name="checkmark-done" size={18} color={Colors.white} />
-          <Text style={styles.submitText}>Submit Assessment</Text>
+          <Text style={styles.submitText}>{submit.isPending ? 'Submitting…' : 'Submit Assessment'}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -207,6 +303,7 @@ const styles = StyleSheet.create({
   savingText: { fontSize: 12, color: Colors.textMuted },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   submitBtn: { flexDirection: 'row', backgroundColor: Colors.primary, borderRadius: BorderRadius.lg, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.md },
+  submitBtnDisabled: { backgroundColor: Colors.textMuted },
   submitText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   resultContent: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   resultHeader: { alignItems: 'center' },
@@ -215,6 +312,12 @@ const styles = StyleSheet.create({
   scoreCircle: { width: 150, height: 150, borderRadius: 75, borderWidth: 8, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginTop: Spacing.xl },
   scoreNum: { fontSize: 26, fontWeight: '800' },
   scorePct: { fontSize: 14, fontWeight: '700', color: Colors.textSecondary, marginTop: 2 },
+  fixCard: { marginHorizontal: Spacing.lg, marginTop: Spacing.lg, borderRadius: BorderRadius.xl, borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.surface, padding: Spacing.lg },
+  fixTitle: { fontSize: 15, fontWeight: '800', color: Colors.text },
+  fixSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  fixChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: Spacing.md },
+  fixChip: { flexDirection: 'row', alignItems: 'center', gap: 5, maxWidth: '100%', borderRadius: BorderRadius.full, backgroundColor: Colors.primaryLight + '22', paddingHorizontal: 12, paddingVertical: 7 },
+  fixChipText: { fontSize: 12, fontWeight: '700', color: Colors.primary, maxWidth: 220 },
   statsRow: { flexDirection: 'row', gap: Spacing.sm, marginTop: Spacing.xl },
   stat: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, paddingVertical: Spacing.md, alignItems: 'center' },
   statVal: { fontSize: 20, fontWeight: '700', color: Colors.text },

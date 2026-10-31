@@ -30,24 +30,22 @@ export default function AssessmentsScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Assessments</Text>
-        <Text style={styles.subHeader}>Create and manage assessments for your students</Text>
+        <Text style={styles.subHeader}>See how your classes are doing and open their results</Text>
       </View>
 
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
-          <Ionicons name="add-circle" size={28} color={Colors.primary} />
-          <Text style={styles.actionLabel}>New{'\n'}Assessment</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
-          <Ionicons name="file-tray" size={28} color="#10b981" />
-          <Text style={styles.actionLabel}>Question{'\n'}Bank</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} onPress={() => router.push('/(tabs)/assessments')}>
-          <Ionicons name="document-text" size={28} color="#f59e0b" />
-          <Text style={styles.actionLabel}>Generate{'\n'}Paper</Text>
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.sectionTitle}>Create on the web</Text>
+      <Card style={styles.webOnlyCard}>
+        <View style={styles.webOnlyRow}>
+          <Ionicons name="desktop-outline" size={26} color={Colors.primary} />
+          <View style={styles.webOnlyText}>
+            <Text style={styles.webOnlyTitle}>Authoring lives on the web app</Text>
+            <Text style={styles.webOnlySub}>
+              Create an assessment, build a question paper or generate one from the bank at app.sanroai.com -
+              this app is where you review what your students have done.
+            </Text>
+          </View>
+        </View>
+      </Card>
 
       <Text style={styles.sectionTitle}>Recent Assessments</Text>
       {isLoading ? (
@@ -112,6 +110,11 @@ const styles = StyleSheet.create({
   subHeader: { color: Colors.primaryLight, fontSize: 12, marginTop: Spacing.sm },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: Colors.text, marginTop: Spacing.xl, marginHorizontal: Spacing.lg, marginBottom: Spacing.md },
   actionsRow: { flexDirection: 'row', marginHorizontal: Spacing.lg, gap: Spacing.md },
+  webOnlyCard: { marginHorizontal: Spacing.lg, padding: Spacing.lg },
+  webOnlyRow: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  webOnlyText: { flex: 1 },
+  webOnlyTitle: { fontSize: 14, fontWeight: '800', color: Colors.text },
+  webOnlySub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2, lineHeight: 18 },
   actionBtn: {
     flex: 1,
     backgroundColor: Colors.surface,

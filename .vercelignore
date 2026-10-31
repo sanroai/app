@@ -1,0 +1,14 @@
+# Keep the Vercel upload to what the web app actually needs.
+# books/ (NCERT PDFs + page renders) is local-only and huge; artifacts/ holds QA
+# screenshots; apps/mobile and apps/api are other deployables.
+books/
+artifacts/
+apps/mobile/
+apps/api/
+docs/
+scripts/
+**/node_modules/
+**/.next/
+**/dist/
+*.log
+.env*

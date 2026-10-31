@@ -84,6 +84,23 @@ describe('Validation Constraints (e2e) — documented contract', () => {
     });
   });
 
+  describe('Strict schemas reject unknown keys (FINDING-H)', () => {
+    it('POST /admin/curriculum/access rejects an unknown field with 400', async () => {
+      // Most schemas are parsed with a plain z.object().safeParse, which STRIPS
+      // unknown keys (see the login test above). A few endpoints opt into
+      // z.object().strict(), which instead REJECTS an unknown key with 400. This
+      // asserts that the strict path is honoured. Non-existent IDs are used so no
+      // grant can be created even if validation were bypassed.
+      const res = await api(app, 'post', '/admin/curriculum/access', superAdminToken, {
+        institutionId: 'no-such-institution-for-strict-test',
+        boardId: 'no-such-board-for-strict-test',
+        bogusStrictField: 1,
+      });
+      expect(res.status).toBe(400);
+      expect(res.body.code ?? res.body.message).toBeTruthy();
+    });
+  });
+
   describe('Super-admin mutation constraints (documented, landed)', () => {
     it('PATCH /status rejects an invalid status value with 400', async () => {
       const res = await api(app, 'patch', `/admin/institutions/${instId}/status`, superAdminToken, {

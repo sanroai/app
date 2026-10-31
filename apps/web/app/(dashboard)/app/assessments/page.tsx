@@ -23,7 +23,7 @@ import { formatDate, formatScore, titleCase } from '@/lib/format';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LearningPath } from '@/components/learning-path';
 import { toast } from 'sonner';
-import { Play, RotateCw, Eye, ClipboardList, FileText, Search, X } from 'lucide-react';
+import { Play, RotateCw, Eye, ClipboardList, FileText, BookOpenCheck, Search, X } from 'lucide-react';
 
 export default function AssessmentsPage() {
   const user = useAuthStore((s) => s.user);
@@ -218,6 +218,12 @@ function StudentAssessments() {
         </TabsContent>
 
         <TabsContent value="tests">
+          <div className="mb-4 flex justify-end">
+            <Button variant="outline" onClick={() => router.push('/app/assessments/exams')}>
+              <BookOpenCheck className="h-4 w-4" />
+              Exam library
+            </Button>
+          </div>
           {isLoading ? (
             <Spinner label="Loading assessments…" />
           ) : error ? (
@@ -244,10 +250,19 @@ function StudentAssessments() {
                             Resume attempt
                           </Button>
                         ) : (
-                          <Button onClick={() => start(row.assessmentId)}>
-                            <Play className="h-4 w-4" />
-                            Start
-                          </Button>
+                          <>
+                            <Button
+                              variant="outline"
+                              onClick={() => router.push(`/app/assessments/${row.assessmentId}/paper`)}
+                            >
+                              <FileText className="h-4 w-4" />
+                              View paper
+                            </Button>
+                            <Button onClick={() => start(row.assessmentId)}>
+                              <Play className="h-4 w-4" />
+                              Start
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>

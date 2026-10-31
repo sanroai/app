@@ -72,6 +72,10 @@ closing.
 | Concurrent admin ops (two set-subscription calls) | Both new rows are created; each `updateMany` cancels prior ACTIVE/TRIAL — last-created wins by `createdAt` ordering; no locking/version guard today |
 | Seat limit exactly full | `assertSeatAvailable` → `400 USER_LIMIT_REACHED` on student/teacher/parent create; `seatAvailability()` → `400 USER_LIMIT_REACHED` before bulk import writes. Both wired |
 | Bulk import past limit | **Enforced since 2026-09-26** for `STUDENTS`/`TEACHERS`/`PARENTS`: `imports.service.commit` calls `subscription.seatAvailability(institutionId, job.rows.length)` before the transaction and throws `400 USER_LIMIT_REACHED {current, requested, available, limit}`. `CONTENT`/`QUESTIONS` rows never consume seats |
+| Student created **with parent fields** at limit−1 | `createStudent` asserts **2** seats when the contact resolves to a new parent (1 if it matches an existing parent) — otherwise the parent row overshoots the allowance by one. `400 USER_LIMIT_REACHED` when only one seat is free |
+| `POST /students/:id/link-parent` at limit | New parent → `400 USER_LIMIT_REACHED` before the `parent.create`; re-linking an existing parent (matched by email, else phone) stays seat-free and succeeds at the limit |
+| Reactivate a deactivated/archived student or teacher at limit | `setStatus(..., 'ACTIVE')` asserts 1 seat when the record was not already `ACTIVE`; `400 USER_LIMIT_REACHED`, and the same call succeeds once the limit is raised |
+| Super-admin creates/transfers people into a full institution | **Not blocked by design**: `admin/admin-people` routes are `SUPER_ADMIN`-only and the super admin can already raise the seat limit, so no check runs (documented exemption) |
 | User disabled / membership deactivated | `USER_DISABLED`/`MEMBERSHIP_DEACTIVATED` checked BEFORE entitlement → blocked even if tenant is healthy |
 | Entitlement cache staleness | Admin mutations do not invalidate → decision lags ≤15 s; force `evaluate(institutionId, true)` for immediate read |
 

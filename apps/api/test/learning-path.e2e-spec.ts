@@ -13,6 +13,7 @@ describe('Learning path & student retest (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaClient;
   let studentToken: string;
+  let scopedToken: string;
   let teacherToken: string;
   let parentToken: string;
   let studentId: string;
@@ -25,6 +26,12 @@ describe('Learning path & student retest (e2e)', () => {
     const student = await login(app, 'student@sanroai.com', QA_PASSWORD);
     expect(student.status).toBe(200);
     studentToken = student.body.accessToken;
+
+    // The demo account is enrolled in every class, so the path-scope rule is
+    // exercised with the single-class account.
+    const scoped = await login(app, 'student8@sanroai.com', QA_PASSWORD);
+    expect(scoped.status).toBe(200);
+    scopedToken = scoped.body.accessToken;
 
     const teacher = await login(app, 'teacher@sanroai.com', QA_PASSWORD);
     expect(teacher.status).toBe(200);
@@ -142,11 +149,19 @@ describe('Learning path & student retest (e2e)', () => {
     });
 
     it('scoped the path to the student grade', async () => {
-      const res = await api(app, 'get', '/learning/path', studentToken);
+      const res = await api(app, 'get', '/learning/path', scopedToken);
       expect(res.status).toBe(200);
       const grades = new Set(res.body.track.map((t: { grade: string }) => t.grade));
       expect(grades.size).toBeLessThanOrEqual(1);
       if (grades.size === 1) expect([...grades][0]).toBe(res.body.student.grade);
+    });
+
+    it('lets the all-classes demo account see every class', async () => {
+      const res = await api(app, 'get', '/learning/path', studentToken);
+      expect(res.status).toBe(200);
+      expect(res.body.student.allGrades).toBe(true);
+      const grades = new Set(res.body.track.map((t: { grade: string }) => t.grade));
+      expect(grades.size).toBeGreaterThan(1);
     });
   });
 
@@ -218,7 +233,6 @@ describe('Learning path & student retest (e2e)', () => {
       });
       if (!stray || stray.institutionId === null) return;
       const teacherMembership = await prisma.institutionMember.findFirst({
-        where: { userId: { not: null } },
         select: { institutionId: true },
       });
       if (!teacherMembership || teacherMembership.institutionId === stray.institutionId) return;

@@ -180,7 +180,7 @@ describe('SubscriptionAccessService', () => {
       const error = await service.assertSeatAvailable('inst-1').catch((e: any) => e);
       expect(error).toBeInstanceOf(BadRequestException);
       expect((error.getResponse() as any).code).toBe('USER_LIMIT_REACHED');
-      expect((error.getResponse() as any).details).toEqual({ current: 16, requested: 1, limit: 15 });
+      expect((error.getResponse() as any).details).toEqual({ current: 16, requested: 1, limit: 15, available: 0 });
     });
   });
 

@@ -97,7 +97,7 @@ export default function PaperDetailPage() {
         <div className="flex flex-wrap items-center gap-2">
           {validate.data ? (
             <span className="text-sm text-surface-500 mr-2">
-              {validate.data.valid ? '✓ Valid' : '⚠ Needs attention'} · {validate.data.totalMarks ?? '—'} marks
+              {validate.data.valid ? 'Valid' : 'Needs attention'} · {validate.data.totalMarks ?? '—'} marks
             </span>
           ) : null}
           <Button onClick={createAssessment} loading={creating}>

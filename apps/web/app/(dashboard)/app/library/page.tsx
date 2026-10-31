@@ -11,21 +11,16 @@ import { Badge } from '@/components/ui/badge';
 import { Spinner, ErrorBanner } from '@/components/ui';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/cn';
+import { useIdlePrefetch } from '@/lib/use-idle-prefetch';
 import {
   Search,
   Film,
   FileText,
-  HelpCircle,
   Layers,
-  Boxes,
   Zap,
   Brain,
-  Gamepad2,
-  ImageIcon,
   ClipboardList,
-  RotateCcw,
   RefreshCw,
-  ScrollText,
   BookOpen,
   ChevronLeft,
   ChevronRight,
@@ -35,21 +30,24 @@ import {
 const TYPE_META: Record<string, { label: string; icon: typeof Film; color: string; bg: string }> = {
   VIDEO: { label: 'Video', icon: Film, color: 'text-blue-600', bg: 'bg-blue-50' },
   NOTES: { label: 'Notes', icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-  ARTICLE: { label: 'Article', icon: ScrollText, color: 'text-teal-600', bg: 'bg-teal-50' },
-  READING: { label: 'Reading', icon: BookOpen, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-  PDF: { label: 'PDF', icon: FileText, color: 'text-rose-600', bg: 'bg-rose-50' },
-  QUIZ: { label: 'Quiz', icon: HelpCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-  PRACTICE_SET: { label: 'Practice', icon: Layers, color: 'text-violet-600', bg: 'bg-violet-50' },
-  FLASHCARDS: { label: 'Flashcards', icon: RefreshCw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
-  EXAMPLE: { label: 'Example', icon: Brain, color: 'text-indigo-600', bg: 'bg-indigo-50' },
   WORKSHEET: { label: 'Worksheet', icon: ClipboardList, color: 'text-orange-600', bg: 'bg-orange-50' },
-  IMAGE: { label: 'Figure', icon: ImageIcon, color: 'text-pink-600', bg: 'bg-pink-50' },
   INTERACTIVE: { label: 'Interactive', icon: Zap, color: 'text-lime-600', bg: 'bg-lime-50' },
-  MODEL_3D: { label: '3D Model', icon: Boxes, color: 'text-sky-600', bg: 'bg-sky-50' },
-  AR: { label: 'AR', icon: Boxes, color: 'text-sky-700', bg: 'bg-sky-50' },
-  GAME: { label: 'Challenge', icon: Gamepad2, color: 'text-red-600', bg: 'bg-red-50' },
-  REVISION: { label: 'Revision', icon: RotateCcw, color: 'text-purple-600', bg: 'bg-purple-50' },
-  OTHER: { label: 'Other', icon: Layers, color: 'text-surface-500', bg: 'bg-surface-100' },
+  EXAMPLE: { label: 'Example', icon: Brain, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  OTHER: { label: 'Resource', icon: Layers, color: 'text-surface-500', bg: 'bg-surface-100' },
+};
+
+const LEGACY_TYPE_ALIAS: Record<string, string> = {
+  ARTICLE: 'NOTES',
+  READING: 'NOTES',
+  PDF: 'NOTES',
+  MODEL_3D: 'INTERACTIVE',
+  GAME: 'INTERACTIVE',
+  AR: 'INTERACTIVE',
+  QUIZ: 'OTHER',
+  PRACTICE_SET: 'OTHER',
+  IMAGE: 'OTHER',
+  REVISION: 'OTHER',
+  FLASHCARDS: 'OTHER',
 };
 
 const SORT_OPTIONS = [
@@ -59,7 +57,7 @@ const SORT_OPTIONS = [
 ];
 
 function typeMeta(type: string) {
-  return TYPE_META[type] ?? TYPE_META.OTHER;
+  return TYPE_META[LEGACY_TYPE_ALIAS[type] ?? type] ?? TYPE_META.OTHER;
 }
 
 function ItemCard({ item }: { item: LibraryItem }) {
@@ -68,18 +66,20 @@ function ItemCard({ item }: { item: LibraryItem }) {
   const youtubeId = item.type === 'VIDEO' ? parseYouTubeId(item.url) : null;
   const thumbnail = item.thumbnailUrl ?? (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg` : null);
   const duration = formatDuration(item.durationSeconds);
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const showThumb = Boolean(thumbnail) && !thumbFailed;
 
   return (
     <Link
       href={`/app/library/item/${item.id}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-surface-200 bg-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
     >
-      <div className={cn('relative aspect-video w-full overflow-hidden', thumbnail ? 'bg-surface-100' : meta.bg)}>
-        {thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
+      <div className={cn('relative aspect-video w-full overflow-hidden', showThumb ? 'bg-surface-100' : meta.bg)}>
+        {showThumb ? (
           <img
-            src={thumbnail}
+            src={thumbnail!}
             alt=""
+            onError={() => setThumbFailed(true)}
             className="h-full w-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
@@ -118,6 +118,10 @@ function LibraryView() {
   const router = useRouter();
   const params = useSearchParams();
   const [searchDraft, setSearchDraft] = useState(params.get('search') ?? '');
+
+  // "Browse by subject" is the next click from the library list, so its route is
+  // warmed during idle time.
+  useIdlePrefetch('/app/library/subjects');
 
   const type = params.get('type') ?? '';
   const chapterId = params.get('chapterId') ?? '';
@@ -162,7 +166,7 @@ function LibraryView() {
         <div>
           <h1 className="text-2xl font-bold text-surface-900">Library</h1>
           <p className="mt-1 text-sm text-surface-500">
-            Browse every lesson — videos, notes, figures, exercises and more.
+            Browse every lesson - videos, notes, worksheets, interactive lessons and more.
           </p>
         </div>
         <Button variant="outline" size="sm" asChild>

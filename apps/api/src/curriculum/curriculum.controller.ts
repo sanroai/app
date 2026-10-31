@@ -36,13 +36,21 @@ export class CurriculumController {
     return this.service.listChapters(user, subjectId);
   }
 
+  // A missing required filter reaches Prisma as a non-UUID and throws P2023
+  // (previously surfaced as 500). Validate at the boundary: 400 instead.
   @Get('topics')
-  topics(@CurrentUser() user: RequestUser, @Query('chapterId') chapterId: string) {
+  topics(
+    @CurrentUser() user: RequestUser,
+    @Query('chapterId', new ZodValidationPipe(z.string().uuid())) chapterId: string,
+  ) {
     return this.service.listTopics(user, chapterId);
   }
 
   @Get('concepts')
-  concepts(@CurrentUser() user: RequestUser, @Query('topicId') topicId: string) {
+  concepts(
+    @CurrentUser() user: RequestUser,
+    @Query('topicId', new ZodValidationPipe(z.string().uuid())) topicId: string,
+  ) {
     return this.service.listConcepts(user, topicId);
   }
 
@@ -88,25 +96,7 @@ export class CurriculumController {
   }
 }
 
-const ContentTypes = [
-  'VIDEO',
-  'NOTES',
-  'PDF',
-  'QUIZ',
-  'MODEL_3D',
-  'AR',
-  'GAME',
-  'PRACTICE_SET',
-  'ARTICLE',
-  'IMAGE',
-  'WORKSHEET',
-  'REVISION',
-  'FLASHCARDS',
-  'INTERACTIVE',
-  'EXAMPLE',
-  'READING',
-  'OTHER',
-] as const;
+const ContentTypes = ['VIDEO', 'NOTES', 'WORKSHEET', 'INTERACTIVE', 'EXAMPLE', 'OTHER'] as const;
 
 const ContentBrowseSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -170,6 +160,21 @@ export class ContentController {
     return this.service.removeVideo(user, id);
   }
 
+  // The literal routes below must be declared BEFORE `@Get(':id')`: Nest
+  // registers routes in declaration order, so a wildcard declared first would
+  // shadow them and `/content/matrix/completeness` would be matched by `:id`.
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Get('matrix/completeness')
+  completeness(@CurrentUser() user: RequestUser, @Query('boardId') boardId?: string, @Query('grade') grade?: string) {
+    return this.service.completenessMatrix(user, boardId, grade);
+  }
+
+  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
+  @Get('report/quality')
+  quality(@CurrentUser() user: RequestUser) {
+    return this.service.qualityReport(user);
+  }
+
   @Get(':id')
   detail(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.service.detail(user, id);
@@ -190,18 +195,6 @@ export class ContentController {
   @Patch(':id/status')
   updateStatus(@CurrentUser() user: RequestUser, @Param('id') id: string, @Body() body: { status: string }) {
     return this.service.updateStatus(user, id, body.status as any);
-  }
-
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
-  @Get('matrix/completeness')
-  completeness(@CurrentUser() user: RequestUser, @Query('boardId') boardId?: string, @Query('grade') grade?: string) {
-    return this.service.completenessMatrix(user, boardId, grade);
-  }
-
-  @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)
-  @Get('report/quality')
-  quality(@CurrentUser() user: RequestUser) {
-    return this.service.qualityReport(user);
   }
 
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN)

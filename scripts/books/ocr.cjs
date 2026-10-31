@@ -1,16 +1,18 @@
 /**
  * OCR pass over the rendered page screenshots + cross-check against the
- * PDF text layer, for CBSE / Class 10 / Science.
+ * PDF text layer, for any CBSE subject / class.
  *
- * Usage:  node scripts/books/ocr.cjs [--workers N] [--limit N]
+ * Usage:  node scripts/books/ocr.cjs [--subject science|mathematics|english] [--class 9|10] [--workers N] [--limit N]
  */
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 const { createWorker } = require('tesseract.js');
 
-const ROOT = path.join(__dirname, '..', '..', 'books', 'cbse', 'class-10', 'science');
-const CH = path.join(ROOT, 'chapters');
+const { resolveSubject, argOf } = require('./subjects.cjs');
+const SUBJECT = resolveSubject(argOf(process.argv, '--subject', 'science'), argOf(process.argv, '--class', '10'));
+const ROOT = SUBJECT.root;
+const CH = SUBJECT.chaptersDir;
 
 function parseArgs(argv) {
   const out = { workers: 4, limit: 0 };
@@ -129,7 +131,16 @@ async function main() {
   await Promise.all(Array.from({ length: Math.max(1, args.workers) }, () => runWorker()));
 
   // ---- write per-chapter OCR + cross-check against text layer ----
-  const report = { generatedAt: new Date().toISOString(), pages: 0, avgConfidence: 0, avgSimilarity: 0, chapters: [] };
+  const report = {
+    generatedAt: new Date().toISOString(),
+    class: String(SUBJECT.classNumber),
+    subject: SUBJECT.label,
+    edition: SUBJECT.edition,
+    pages: 0,
+    avgConfidence: 0,
+    avgSimilarity: 0,
+    chapters: [],
+  };
   let confSum = 0;
   let simSum = 0;
   let simN = 0;

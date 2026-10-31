@@ -1,0 +1,308 @@
+﻿### academics.controller.ts  (/academics)  classRoles=[Role.INSTITUTION_ADMIN]
+  GET academic-years  ->  Role.INSTITUTION_ADMIN
+  POST academic-years  ->  Role.INSTITUTION_ADMIN
+  POST academic-years/:id/activate  ->  Role.INSTITUTION_ADMIN
+  GET groups  ->  Role.INSTITUTION_ADMIN
+  POST groups  ->  Role.INSTITUTION_ADMIN
+  GET groups/:id  ->  Role.INSTITUTION_ADMIN
+  PATCH groups/:id  ->  Role.INSTITUTION_ADMIN
+
+### admin.controller.ts  (/admin)  classRoles=['SUPER_ADMIN']
+  GET institutions  ->  'SUPER_ADMIN'
+  GET institutions/export  ->  'SUPER_ADMIN'
+  GET institutions/:id  ->  'SUPER_ADMIN'
+  POST institutions  ->  'SUPER_ADMIN'
+  PATCH institutions/:id  ->  'SUPER_ADMIN'
+  PATCH institutions/:id/status  ->  'SUPER_ADMIN'
+  POST institutions/:id/activate  ->  'SUPER_ADMIN'
+  POST institutions/:id/suspend  ->  'SUPER_ADMIN'
+  POST institutions/:id/archive  ->  'SUPER_ADMIN'
+  POST institutions/:id/restore  ->  'SUPER_ADMIN'
+  POST institutions/:id/expire  ->  'SUPER_ADMIN'
+  POST institutions/:id/subscription  ->  'SUPER_ADMIN'
+  POST institutions/:id/subscription/renew  ->  'SUPER_ADMIN'
+  POST institutions/:id/subscription/expire  ->  'SUPER_ADMIN'
+  PATCH institutions/:id/user-limit  ->  'SUPER_ADMIN'
+  GET institutions/:id/users  ->  'SUPER_ADMIN'
+  PATCH institutions/:id/admin  ->  'SUPER_ADMIN'
+  POST institutions/:id/users/:userId/disable  ->  'SUPER_ADMIN'
+  POST institutions/:id/users/:userId/enable  ->  'SUPER_ADMIN'
+  GET institutions/:id/subscription-history  ->  'SUPER_ADMIN'
+  GET institutions/:id/audit  ->  'SUPER_ADMIN'
+  GET plans  ->  'SUPER_ADMIN'
+  GET dashboard  ->  'SUPER_ADMIN'
+  GET curriculum  ->  'SUPER_ADMIN'
+  POST curriculum/boards  ->  'SUPER_ADMIN'
+  POST curriculum/grades/:boardId  ->  'SUPER_ADMIN'
+  POST curriculum/subjects  ->  'SUPER_ADMIN'
+  POST curriculum/chapters  ->  'SUPER_ADMIN'
+  POST curriculum/topics  ->  'SUPER_ADMIN'
+  POST curriculum/concepts  ->  'SUPER_ADMIN'
+  GET audit  ->  'SUPER_ADMIN'
+  GET subscriptions  ->  'SUPER_ADMIN'
+  GET leads  ->  'SUPER_ADMIN'
+
+### admin-curriculum.controller.ts  (/admin/curriculum)  classRoles=[Role.SUPER_ADMIN]
+  PATCH nodes/:kind/:id  ->  Role.SUPER_ADMIN
+  DELETE nodes/:kind/:id  ->  Role.SUPER_ADMIN
+  POST import/preview  ->  Role.SUPER_ADMIN
+  GET import/:jobId  ->  Role.SUPER_ADMIN
+  POST import/:jobId/commit  ->  Role.SUPER_ADMIN
+  GET access  ->  Role.SUPER_ADMIN
+  POST access  ->  Role.SUPER_ADMIN
+  DELETE access/:id  ->  Role.SUPER_ADMIN
+
+### admin-dashboard.controller.ts  (/admin/super-admin/dashboard)  classRoles=['SUPER_ADMIN']
+  GET overview  ->  'SUPER_ADMIN'
+  GET health  ->  'SUPER_ADMIN'
+  GET attention  ->  'SUPER_ADMIN'
+  GET activity  ->  'SUPER_ADMIN'
+
+### admin-people.controller.ts  (/admin/people)  classRoles=['SUPER_ADMIN']
+  GET students  ->  'SUPER_ADMIN'
+  GET students/institution/:institutionId  ->  'SUPER_ADMIN'
+  GET students/search  ->  'SUPER_ADMIN'
+  GET students/:id  ->  'SUPER_ADMIN'
+  POST students  ->  'SUPER_ADMIN'
+  PATCH students/:id  ->  'SUPER_ADMIN'
+  POST students/:id/transfer  ->  'SUPER_ADMIN'
+  POST students/:id/status  ->  'SUPER_ADMIN'
+  POST students/:id/direct-subscription  ->  'SUPER_ADMIN'
+  POST students/:id/disable  ->  'SUPER_ADMIN'
+  POST students/:id/enable  ->  'SUPER_ADMIN'
+  GET teachers  ->  'SUPER_ADMIN'
+  GET teachers/:id  ->  'SUPER_ADMIN'
+  POST teachers  ->  'SUPER_ADMIN'
+  PATCH teachers/:id  ->  'SUPER_ADMIN'
+  POST teachers/:id/transfer  ->  'SUPER_ADMIN'
+  POST teachers/:id/status  ->  'SUPER_ADMIN'
+  POST teachers/:id/disable  ->  'SUPER_ADMIN'
+  POST teachers/:id/enable  ->  'SUPER_ADMIN'
+  GET parents  ->  'SUPER_ADMIN'
+  GET parents/:id  ->  'SUPER_ADMIN'
+  POST parents  ->  'SUPER_ADMIN'
+  PATCH parents/:id  ->  'SUPER_ADMIN'
+  POST parents/:id/students/:studentId/link  ->  'SUPER_ADMIN'
+  POST parents/:id/students/:studentId/unlink  ->  'SUPER_ADMIN'
+  POST parents/:id/status  ->  'SUPER_ADMIN'
+  POST parents/:id/disable  ->  'SUPER_ADMIN'
+  POST parents/:id/enable  ->  'SUPER_ADMIN'
+  POST parents/:id/link-child  ->  'SUPER_ADMIN'
+  POST parents/:id/unlink-child  ->  'SUPER_ADMIN'
+
+### ai.controller.ts  (/ai)  classRoles=[]
+  POST explain  ->  (none)
+  POST chat  ->  (none)
+
+### ar.controller.ts  (/ar)  classRoles=[Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN]
+  GET admin/list  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET admin/usage  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST admin  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET admin/:id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  PATCH admin/:id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST admin/:id/model  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST admin/:id/preview  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST admin/:id/replace  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST admin/:id/transition  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET admin/:id/versions  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  DELETE admin/:id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET teacher  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET concept/:conceptId  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET :id/quick-check  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST :id/quick-check  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  POST :id/activity  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET :id/model-url  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+  GET :id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN
+
+### assessments.controller.ts  (/assessments)  classRoles=[]
+  GET my  ->  (none)
+  GET attempts/:attemptId  ->  (none)
+  GET :id  ->  (none)
+  POST :id/publish  ->  (none)
+  GET :id/attempts  ->  (none)
+  POST :id/start  ->  (none)
+  POST attempts/:attemptId/answers  ->  (none)
+  POST attempts/:attemptId/submit  ->  (none)
+
+### auth.controller.ts  (/auth)  classRoles=[]
+  POST register-institution  ->  (none)
+  POST login  ->  (none)
+  POST refresh  ->  (none)
+  POST logout  ->  (none)
+  POST switch-context  ->  (none)
+  GET account-state  ->  (none)
+  POST change-password  ->  (none)
+  POST forgot-password  ->  (none)
+  POST reset-password  ->  (none)
+  GET me  ->  (none)
+
+### chat.controller.ts  (/chat)  classRoles=[]
+  POST ask-sanro  ->  (none)
+
+### content-import.controller.ts  (/content-import)  classRoles=[Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER]
+  POST upload  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST upload-multiple  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST youtube  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET :id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/process  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### content-ingest.controller.ts  (/content/ingest)  classRoles=[Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER]
+  GET :id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/approve  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/reject  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### content-library.controller.ts  (/admin/library)  classRoles=['SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER']
+  GET content  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  GET content/:id  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  POST content  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  PATCH content/:id  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  POST content/:id/transition  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  POST content/:id/assign  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  DELETE content/:id/assign/:institutionId  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  POST content/:id/archive  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  DELETE content/:id  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  PATCH content/:id/availability  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+  GET assignments  ->  'SUPER_ADMIN', 'INSTITUTION_ADMIN', 'TEACHER'
+
+### curriculum.controller.ts  (/curriculum)  classRoles=[Role.SUPER_ADMIN]
+  GET boards  ->  Role.SUPER_ADMIN
+  GET grades  ->  Role.SUPER_ADMIN
+  GET subjects  ->  Role.SUPER_ADMIN
+  GET chapters  ->  Role.SUPER_ADMIN
+  GET topics  ->  Role.SUPER_ADMIN
+  GET concepts  ->  Role.SUPER_ADMIN
+  GET tree  ->  Role.SUPER_ADMIN
+  POST boards  ->  Role.SUPER_ADMIN
+  POST subjects  ->  Role.SUPER_ADMIN
+  POST chapters  ->  Role.SUPER_ADMIN
+  POST topics  ->  Role.SUPER_ADMIN
+  POST concepts  ->  Role.SUPER_ADMIN
+  POST grades  ->  Role.SUPER_ADMIN
+  GET browse  ->  Role.SUPER_ADMIN
+  GET videos  ->  Role.SUPER_ADMIN
+  POST videos  ->  Role.SUPER_ADMIN
+  DELETE videos/:id  ->  Role.SUPER_ADMIN
+  GET :id  ->  Role.SUPER_ADMIN
+  POST :id/progress  ->  Role.SUPER_ADMIN
+  PATCH :id/status  ->  Role.SUPER_ADMIN
+  GET matrix/completeness  ->  Role.SUPER_ADMIN
+  GET report/quality  ->  Role.SUPER_ADMIN
+  GET :id/versions  ->  Role.SUPER_ADMIN
+  POST :id/versions/:version/restore  ->  Role.SUPER_ADMIN
+
+### dashboard.controller.ts  (/dashboard)  classRoles=['STUDENT']
+  GET student  ->  'STUDENT'
+  GET teacher  ->  'STUDENT'
+  GET institution  ->  'STUDENT'
+  GET parent  ->  'STUDENT'
+  GET super-admin  ->  'STUDENT'
+
+### diagnosis.controller.ts  (/diagnosis)  classRoles=[]
+  GET my  ->  (none)
+  GET students/:studentId  ->  (none)
+  GET concepts/:conceptId/distribution  ->  (none)
+
+### files.controller.ts  (/files)  classRoles=[]
+  GET pdfs/:name  ->  (none)
+  GET ar/models/:name  ->  (none)
+  GET ar/previews/:name  ->  (none)
+
+### health.controller.ts  (/health)  classRoles=[]
+
+### imports.controller.ts  (/imports)  classRoles=[Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN]
+  POST upload  ->  Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN
+  POST :jobId/commit  ->  Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN
+  GET :jobId  ->  Role.INSTITUTION_ADMIN, Role.TEACHER, Role.SUPER_ADMIN
+
+### institutions.controller.ts  (/institutions)  classRoles=[Role.INSTITUTION_ADMIN]
+  GET mine  ->  Role.INSTITUTION_ADMIN
+  PATCH mine  ->  Role.INSTITUTION_ADMIN
+  GET mine/stats  ->  Role.INSTITUTION_ADMIN
+
+### knowledge-base.controller.ts  (/knowledge-base)  classRoles=[Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER]
+  GET stats  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET search  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET :id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/chunks  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  PATCH :id/status  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  DELETE :id  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/process  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/generate-flashcards  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/generate-notes  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET :id/summary  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/process-async  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET jobs  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET jobs/:jobId  ->  Role.SUPER_ADMIN, Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### learning.controller.ts  (/learning)  classRoles=['STUDENT']
+  GET home  ->  'STUDENT'
+  GET boards/:boardId/grades/:grade/subjects/:subjectId/chapters  ->  'STUDENT'
+  GET chapters/:chapterId  ->  'STUDENT'
+  GET concepts/:conceptId  ->  'STUDENT'
+  POST content/:contentId/complete  ->  'STUDENT'
+  GET progress  ->  'STUDENT'
+  GET path  ->  'STUDENT'
+  POST practice/start  ->  'STUDENT'
+  GET practice/:practiceId  ->  'STUDENT'
+  POST practice/:practiceId/answer  ->  'STUDENT'
+  POST practice/:practiceId/submit  ->  'STUDENT'
+  POST flashcards/:questionId/rate  ->  'STUDENT'
+  GET gamification/profile  ->  'STUDENT'
+  GET gamification/leaderboard  ->  'STUDENT'
+  GET gamification/achievements  ->  'STUDENT'
+
+### papers.controller.ts  (/papers)  classRoles=[Role.INSTITUTION_ADMIN, Role.TEACHER]
+  GET :id  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/duplicate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/regenerate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET :id/validate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET :id/preview  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/export  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  PATCH :id/status  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### people.controller.ts  (/students)  classRoles=[Role.INSTITUTION_ADMIN, Role.TEACHER]
+  GET :id  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  PATCH :id  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/deactivate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/activate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/move  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/link-parent  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/deactivate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/activate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/assign-groups  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/link-student  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET me/dashboard  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### questions.controller.ts  (/questions)  classRoles=[Role.INSTITUTION_ADMIN, Role.TEACHER]
+  GET :id  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  PATCH :id  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  DELETE :id  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST :id/review  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST ai-generate  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST generate-from-knowledge-base  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### remediation.controller.ts  (/remediation)  classRoles=[Role.INSTITUTION_ADMIN, Role.TEACHER]
+  GET my  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET plans  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  GET weak  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST items/:id/status  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+  POST retest  ->  Role.INSTITUTION_ADMIN, Role.TEACHER
+
+### reports.controller.ts  (/reports)  classRoles=['TEACHER', 'INSTITUTION_ADMIN', 'SUPER_ADMIN']
+  GET class/:groupId  ->  'TEACHER', 'INSTITUTION_ADMIN', 'SUPER_ADMIN'
+  GET student/:studentId  ->  'TEACHER', 'INSTITUTION_ADMIN', 'SUPER_ADMIN'
+  GET assessment/:assessmentId  ->  'TEACHER', 'INSTITUTION_ADMIN', 'SUPER_ADMIN'
+  GET improvement  ->  'TEACHER', 'INSTITUTION_ADMIN', 'SUPER_ADMIN'
+  GET concept-performance  ->  'TEACHER', 'INSTITUTION_ADMIN', 'SUPER_ADMIN'
+
+### site.controller.ts  (/site)  classRoles=[]
+  POST contact  ->  (none)
+
+### users.controller.ts  (/users)  classRoles=[]
+  GET me  ->  (none)
+  PATCH me  ->  (none)
+  GET me/notifications  ->  (none)
+  GET me/notifications/unread  ->  (none)
+  POST me/notifications/:id/read  ->  (none)
+  POST me/notifications/read-all  ->  (none)
+

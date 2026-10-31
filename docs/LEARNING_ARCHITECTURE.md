@@ -17,13 +17,14 @@ Menu: **Library** — web `/app/library`, mobile `learn` tab (title `Library`).
 - Continue learning (resume last concept)
 - Search across curriculum + content (role/tenant/publication filtered)
 - Bookmark/save concepts
-- Concept page modalities:
+- Concept page modalities — **three**, one surface per kind of evidence
+  (the 7 → 3 cut and its rationale are in `docs/ROADMAP.md` §9):
   - Learn (video + notes + quick revision)
   - Practice (backend-driven quiz w/ mastery tracking)
-  - Quick Quiz (5 concept questions from DB)
-  - Flashcards (real questions, Again/Hard/Good/Easy)
-  - Challenge (timed 60s / 10 Qs / 50 XP max)
-  - AR/3D (where assets mapped)
+  - Quick Quiz (5 concept questions from DB) -- CUT 2026-10-21 (same pool as Practice; XP never awarded)
+  - Flashcards (real questions, self-rated Again/Hard/Good/Easy) -- now a FORMAT inside Practice, not a mode
+  - Challenge (timed 60s / 10 Qs / 50 XP max) -- CUT 2026-10-21 (routed to the same screen as Practice)
+  - AR/3D (where assets mapped) -- moved INSIDE Learn (lesson content, not a peer mode)
   - Ask SANRO (context-aware AI)
 
 ## 2. Path B: The Assessments learning Path (diagnosis-driven)

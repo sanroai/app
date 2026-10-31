@@ -12,7 +12,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService, NotificationsService } from '../common/services/audit-notifications.service';
 import { StudentIdentityService } from '../common/services/student-identity.service';
-import { MasteryService } from '../diagnosis/mastery.service';
+import { MasteryService, normaliseAnswerToOptionText } from '../diagnosis/mastery.service';
+import { awardStudentXp } from '../common/xp';
 import { RemediationService } from '../remediation/remediation.service';
 import { snapshotQuestions } from './assessment.snapshot';
 
@@ -446,9 +447,15 @@ export class AssessmentsService {
         continue;
       }
 
+      // The graded answer is the option text; resolve an option id sent by a client
+      // so a correct answer can never be marked wrong.
+      const gradedAnswer = normaliseAnswerToOptionText(
+        { options: (aq.options ?? []) as Array<{ id: string; text: string }> },
+        studentAns.answer,
+      );
       const graded = this.mastery.gradeAssessmentQuestion(
         { id: aq.id, type: aq.type, marks: aq.marks, answer: aq.answer, options: aq.options },
-        studentAns.answer,
+        gradedAnswer,
       );
       const isCorrect = graded?.correct ?? false;
       const marksAwarded = isCorrect ? aq.marks : 0;
@@ -470,7 +477,7 @@ export class AssessmentsService {
     }
 
     const maxScore = attempt.assessment.totalMarks;
-    const diagnosis = await this.mastery.applyAttemptEvidence(student.id, attempt.id, [...conceptEvidence.values()]);
+    const diagnosis = await this.mastery.applyAttemptEvidence(student.id, { attemptId: attempt.id }, [...conceptEvidence.values()]);
 
     const weak = diagnosis.filter((d) => d.weak).map((d) => ({ conceptId: d.conceptId }));
     if (weak.length > 0) {
@@ -493,22 +500,9 @@ export class AssessmentsService {
       },
     });
 
-    const profile = await this.prisma.gamificationProfile.upsert({
-      where: { studentId: student.id },
-      create: { studentId: student.id, xp: 0, streakDays: 1, lastActiveAt: new Date() },
-      update: {},
-    });
-    const isConsecutiveDay =
-      profile.lastActiveAt !== null &&
-      new Date(profile.lastActiveAt.getTime() + 86400000).toDateString() === new Date().toDateString();
-    await this.prisma.gamificationProfile.update({
-      where: { studentId: student.id },
-      data: {
-        xp: { increment: score },
-        streakDays: isConsecutiveDay ? { increment: 1 } : 1,
-        lastActiveAt: new Date(),
-      },
-    });
+    // one implementation of the XP + streak rules (the old inline copy reset the
+    // streak to 1 whenever a student did a second activity on the same day)
+    await awardStudentXp(this.prisma, student.id, score, 'ASSESSMENT_COMPLETED');
 
     if (student.userId) {
       await this.notifications.create({
@@ -560,7 +554,12 @@ export class AssessmentsService {
   async attemptDetail(user: RequestUser, attemptId: string) {
     const resolvedId = this.tenant.assertInstitutionAccess(user);
     const attemptWhere: Prisma.AssessmentAttemptWhereInput = { id: attemptId };
-    if (resolvedId) {
+    // Only staff may read another user's attempt. Students (and any non-staff
+    // role) are scoped to attempts whose Student row is linked to their own
+    // account — the previous `OR student.institutionId` clause let any
+    // same-tenant student read a classmate's attempt, name and roll number.
+    const isStaff = user.role === 'INSTITUTION_ADMIN' || user.role === 'TEACHER' || user.role === 'SUPER_ADMIN';
+    if (isStaff && resolvedId) {
       attemptWhere.OR = [{ student: { institutionId: resolvedId } }, { student: { userId: user.sub } }];
     } else {
       attemptWhere.student = { userId: user.sub };
@@ -583,6 +582,27 @@ export class AssessmentsService {
     const answerMap = new Map(attempt.answers.map((a) => [a.assessmentQuestionId, a]));
     const showResult = isStudentOwner && attempt.status === 'SUBMITTED';
 
+    // What to fix next: the concepts behind the questions the student got wrong.
+    // The result screen used to end at the score, which left the DIAGNOSE step of
+    // ASSESS -> DIAGNOSE -> FIX with no way forward.
+    let weakConcepts: Array<{ id: string; name: string }> = [];
+    if (showResult) {
+      const wrongConceptIds = [
+        ...new Set(
+          questions
+            .filter((q) => q.conceptId && answerMap.get(q.id)?.isCorrect === false)
+            .map((q) => q.conceptId as string),
+        ),
+      ];
+      if (wrongConceptIds.length > 0) {
+        weakConcepts = await this.prisma.concept.findMany({
+          where: { id: { in: wrongConceptIds } },
+          select: { id: true, name: true },
+          take: 6,
+        });
+      }
+    }
+
     return {
       attempt: {
         id: attempt.id,
@@ -603,6 +623,7 @@ export class AssessmentsService {
         totalMarks: attempt.assessment.totalMarks,
       },
       student: isStudentOwner ? undefined : attempt.student,
+      weakConcepts,
       questions: questions.map((q) => {
         const a = answerMap.get(q.id);
         return {
@@ -621,6 +642,71 @@ export class AssessmentsService {
           conceptId: isStudentOwner ? undefined : q.conceptId,
         };
       }),
+    };
+  }
+
+  /**
+   * The question paper as the student will see it, before starting.
+   *
+   * `startAttempt` already returns the questions, but only after an attempt row
+   * exists - so a student could not look at a paper (sections, marks, duration)
+   * without committing to an attempt. This returns the same questions with no
+   * attempt, no answers and no `isCorrect` flags.
+   */
+  async paperForStudent(user: RequestUser, assessmentId: string) {
+    const student = await this.getStudentAttempt(user);
+    const assessment = await this.prisma.assessment.findFirst({
+      where: {
+        id: assessmentId,
+        ...(student.institutionId ? { institutionId: student.institutionId } : {}),
+      },
+      include: {
+        subject: { select: { id: true, name: true, code: true } },
+        chapter: { select: { id: true, name: true, grade: true } },
+        questions: { orderBy: { order: 'asc' } },
+      },
+    });
+    if (!assessment) throw new NotFoundException('Assessment not found');
+
+    const assignment = await this.prisma.assessmentAssignment.findUnique({
+      where: { assessmentId_studentId: { assessmentId, studentId: student.id } },
+    });
+    if (!assignment) throw new ForbiddenException('This assessment was not assigned to you');
+
+    const attemptsUsed = await this.prisma.assessmentAttempt.count({
+      where: { assessmentId, studentId: student.id },
+    });
+    const now = new Date();
+    const opensAt = assessment.startsAt;
+    const isOpen =
+      assessment.status === 'PUBLISHED' &&
+      (!opensAt || now >= opensAt) &&
+      (!assessment.dueAt || now <= assessment.dueAt);
+
+    return {
+      id: assessment.id,
+      title: assessment.title,
+      subject: assessment.subject ? { id: assessment.subject.id, name: assessment.subject.name, code: assessment.subject.code } : null,
+      chapter: assessment.chapter ? { id: assessment.chapter.id, name: assessment.chapter.name, grade: assessment.chapter.grade } : null,
+      totalMarks: assessment.totalMarks,
+      durationMinutes: assessment.durationMinutes,
+      status: assessment.status,
+      mode: assessment.mode,
+      startsAt: assessment.startsAt,
+      dueAt: assessment.dueAt,
+      attemptsAllowed: assessment.attemptsAllowed,
+      attemptsUsed,
+      attemptsLeft: Math.max(0, assessment.attemptsAllowed - attemptsUsed),
+      isOpen,
+      questionCount: assessment.questions.length,
+      questions: assessment.questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        marks: q.marks,
+        order: q.order,
+        options: sanitizeOptions(q.options),
+      })),
     };
   }
 
@@ -670,7 +756,7 @@ export class AssessmentsService {
     });
 
     if (answerRow.question.conceptId && answerRow.answer) {
-      await this.mastery.applyAttemptEvidence(attempt.studentId, attempt.id, [
+      await this.mastery.applyAttemptEvidence(attempt.studentId, { attemptId: attempt.id }, [
         {
           conceptId: answerRow.question.conceptId,
           questions: 1,

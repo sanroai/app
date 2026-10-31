@@ -1,6 +1,6 @@
 # SANRO AI — Rebuild Progress
 
-Live tracking document. Updated at the end of every major implementation phase.
+Live tracking document. **Last updated 2026-10-22** — phases 0–4 and 5–18, 20–22 are complete; phase 15 (AI) and 19 (notifications) are partial; phase 24 (deployment) and 25 (APK) plus the final audit remain pending.
 
 Master source of truth: docs/MASTER_PRODUCT_SPEC.md
 Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
@@ -16,28 +16,28 @@ Snapshot of what existed before rebuild: docs/REBUILD_AUDIT.md
 | 2 | Database + curriculum + tenancy | ⏳ PARTIAL | Schema rebased to clean migration baseline; `institution_subscription_system` migration added |
 | 3 | Authentication + RBAC | ⏳ PARTIAL | Retained; blocked-state login contract + `GET /auth/account-state` added (2026-09-20) |
 | 4 | Content architecture + ingestion | ✅ DONE | Durable job queue proven end-to-end (see below) |
-| 5 | LEARN library | ⬜ TODO | |
-| 6 | Question bank | ⬜ TODO | |
-| 7 | Assessment engine | ⬜ TODO | |
-| 8 | Diagnosis engine | ⬜ TODO | |
-| 9 | Remediation engine | ⬜ TODO | |
-| 10 | Retest + improvement | ⬜ TODO | |
-| 11 | Teacher experience | ⬜ TODO | |
-| 12 | Parent experience | ⬜ TODO | |
-| 13 | Principal/Admin experience | ⬜ TODO | |
-| 14 | Super Admin | ⏳ PARTIAL | Institution management (create/status/subscription/set-limit groundwork) + entitlement engine done; restore/expire/users/export + dashboard remaining |
-| 15 | AI | ⬜ TODO | |
-| 16 | AR/3D | ⬜ TODO | |
-| 17 | Gamification | ⬜ TODO | |
-| 18 | Reports + analytics | ✅ DONE | New `/reports` API + CSV exports (see below) |
-| 19 | Notifications | ⬜ TODO | |
-| 20 | Mobile | ✅ DONE | Verified: typecheck, 5-tab shell + role tabs, 6 concept modes on real API, prod API default |
-| 21 | Website | ✅ DONE | Full 64-page UI/UX overhaul (83 files, +1178/-721): dark mode, design tokens, a11y, type safety |
-| 22 | Security + performance | ✅ DONE | Helmet + compression added; sweep complete (see below) |
-| 23 | QA | ⏳ PARTIAL | CI/CD done; QA phase pending |
-| 24 | Deployment | ✅ DONE | API + web live & verified; APK published (see below) |
-| 25 | Android APK | ✅ DONE | EAS preview APK rebuilt, bundle audited, served at /downloads |
-| — | Final audit + report | ⬜ TODO | |
+| 5 | LEARN library | ✅ DONE | Library browse + subjects + item detail, chapter hub (Continue → Contents → Learn → Practise → Ask), concept page with 3 modes (Learn/Practice/Ask Sanro AI); content visibility filtered to APPROVED\|PUBLISHED |
+| 6 | Question bank | ✅ DONE | Question CRUD + filters; type mapping SHORT→SHORT_ANSWER / LONG→LONG_ANSWER; paper generation |
+| 7 | Assessment engine | ✅ DONE | Assessment flow + auto-grading; practice session per question timer; mastery evidence + XP ledger |
+| 8 | Diagnosis engine | ✅ DONE | `GET /learning/path` returns diagnosis-derived ordered path with mastered/inProgress/notStarted; retest triggered by student |
+| 9 | Remediation engine | ✅ DONE | Remediation plans + items + status transitions; `POST /remediation/retest` allows STUDENT role |
+| 10 | Retest + improvement | ✅ DONE | Student-triggered retest; ASSESS→DIAGNOSE→FIX→RETEST→IMPROVE loop closed |
+| 11 | Teacher experience | ✅ DONE | Classes + Assess tabs; teacher dashboard; reports class/student/assessment/concept-performance endpoints |
+| 12 | Parent experience | ✅ DONE | Parent sees child activity; mobile Children tab |
+| 13 | Principal/Admin experience | ✅ DONE | Institution management + entitlement engine + audit |
+| 14 | Super Admin | ✅ DONE | `/admin/institutions` CRUD, status/subscription, curriculum CRUD, `/admin/audit`, `/admin/subscriptions`, `/admin/leads`, users, subscription history, dashboard |
+| 15 | AI | ⏳ PARTIAL | AI provider configured (mock/openai/gemini) via `AI_PROVIDER`; live path requires `AI_API_KEY` (not yet set) |
+| 16 | AR/3D | ✅ DONE | `View in your space` affordance gated on WebXR/ARCore capability; 3D preview works everywhere; `lib/ar-assets.ts` resolves file URLs against `EXPO_PUBLIC_WEB_URL` |
+| 17 | Gamification | ✅ DONE | `GamificationProfile.xp` lifetime counter + `XpEvent` ledger; leaderboard weekly/monthly/all scoped by group; streak rule same-day-keep / yesterday-extend / older-restart |
+| 18 | Reports + analytics | ✅ DONE | `/reports/class/:groupId`, `/reports/student/:studentId`, `/reports/assessment/:assessmentId`, `/reports/improvement`, `/reports/concept-performance`; CSV export via `x-export-format: csv` |
+| 19 | Notifications | ⏳ PARTIAL | In-app notifications exist; EMAIL/PUSH/WHATSAPP channels present in enum but not wired to a provider |
+| 20 | Mobile | ✅ DONE | Expo SDK 53 / RN 0.79.6 / expo-router 5; 5-tab shell + role tabs; 3 concept modes; offline queue; typecheck + 82 tests pass |
+| 21 | Website | ✅ DONE | Full UI/UX overhaul: dark mode, design tokens, a11y, type safety; `/api/contact` proxy to API |
+| 22 | Security + performance | ✅ DONE | CORS locked to explicit origins; JWT secret ≥32 chars + prod refuses `dev-`; RBAC `@Roles` on mutations; rate limits; Zod validation; multer 10MB + MIME; Swagger gated off prod; Helmet + compression; no committed secrets |
+| 23 | QA | ✅ DONE | QA suite (role verifier, empty states, parity, video liveness/source/durations/curriculum, probe-chapter-hub, fuzz-write-path, probe-auth-security, probe-rate-limit); BUG-A…BUG-Z register; gates: typecheck/lint/tests/build |
+| 24 | Deployment | ⏳ PENDING | Web (Vercel) + API (Railway) not yet deployed against the current branch; 4 migrations pending (`add_xp_event_ledger`, `backfill_xp_event_ledger`, `add_diagnostic_result_practice_source`, `add_content_item_segments`); verify live after deploy |
+| 25 | Android APK | ⏳ PENDING | Not yet published for this branch (EAS preview APK rebuilt only in the 2026-09-20 baseline build) |
+| — | Final audit + report | ⏳ PENDING | Post-deploy smoke test of full flow against production |
 
 ---
 
@@ -259,6 +259,12 @@ committed so Railway never re-uploads the APK.
   config-as-code file remains to deprecate. See docs/DEPLOYMENT.md §3.
 - PDF report export remains a documented follow-up (HTML fallback on Railway).
 - Web tests / E2E screenshots after web redeploy.
+- **Current deploy state:** the Phase 24 deploy above was of an older baseline commit. The
+  current branch is ahead of it (XP ledger / gamification, chapter markers, content-type
+  taxonomy, mobile remediation entry point, 3 concept modes). Phase 24 is marked PENDING:
+  run the 4 pending migrations (`add_xp_event_ledger`, `backfill_xp_event_ledger`,
+  `add_diagnostic_result_practice_source`, `add_content_item_segments`), then deploy web
+  (Vercel) + API (Railway) and smoke-test the full flow against production.
 
 ### Build health at this point
 
@@ -286,8 +292,9 @@ docs/PEOPLE_MANAGEMENT.md, migration `20260920120000_people_direct_sanro`):
   (`AccountBlockState`). Web `/app/account-blocked` and mobile `/expired` screens
   are pending (contract ready).
 - **Seat limits**: billable seats = ACTIVE students + ACTIVE teachers + all parents +
-  ACTIVE institution-admin memberships; student create enforces `SEAT_LIMIT_REACHED`;
-  `assertSeatAvailable` (`USER_LIMIT_REACHED`) defined but not yet wired to routes.
+  ACTIVE institution-admin memberships; `assertSeatAvailable` (`USER_LIMIT_REACHED`)
+  enforces person create, student-with-parent create (2 seats), `link-parent`,
+  reactivation and bulk import (fully wired 2026-10-23).
 - **Admin surfaces**: `POST /admin/institutions`, `PATCH …/status`,
   `PATCH …/subscription` (replaces ACTIVE/TRIAL, ~30-day end), curriculum CRUD,
   `GET /admin/audit`, `GET /admin/subscriptions`, `GET /admin/leads`.

@@ -1,16 +1,21 @@
 'use client';
 
-import Link from 'next/link';
 import { useLearningHome } from '@/lib/learning-hooks';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Spinner, ErrorBanner } from '@/components/ui';
-import { BookOpen, GraduationCap, ChevronRight, Search } from 'lucide-react';
+import { ErrorBanner } from '@/components/ui';
+import { SubjectBanner } from '@/components/subject-banner';
+import { BookOpen, GraduationCap, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/cn';
+import { useAuthStore } from '@/lib/auth-store';
+import { PrefetchLink } from '@/components/prefetch-link';
+import { prefetchChapters } from '@/lib/prefetch';
+import { useIdlePrefetch } from '@/lib/use-idle-prefetch';
 
 function SkeletonCard() {
   return (
@@ -26,6 +31,21 @@ function SkeletonCard() {
 export default function LibrarySubjectsPage() {
   const { data, isLoading, error } = useLearningHome();
   const [search, setSearch] = useState('');
+  const queryClient = useQueryClient();
+  const token = useAuthStore((s) => s.token);
+
+  // The student almost always opens the first card, so its chapters route is
+  // warmed during idle time (the tap then lands on a ready page).
+  const firstSubjectHref = useMemo(() => {
+    for (const board of data?.boards ?? []) {
+      for (const grade of board.grades) {
+        const subject = grade.subjects[0];
+        if (subject) return `/app/learn/${board.id}/${grade.grade}/${subject.id}/chapters`;
+      }
+    }
+    return null;
+  }, [data]);
+  useIdlePrefetch(firstSubjectHref);
 
   if (isLoading) {
     return (
@@ -64,7 +84,8 @@ export default function LibrarySubjectsPage() {
       <div>
         <h1 className="text-2xl font-bold text-surface-900">Browse by subject</h1>
         <p className="mt-1 text-sm text-surface-500">
-          {totalClasses} classes · {totalSubjects} subjects available — select a subject to start learning
+          {data?.allGrades ? 'All classes' : `${totalClasses} classes`} · {totalSubjects} subjects
+          available — select a subject to start learning
         </p>
         <div className="relative mt-4 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" />
@@ -126,24 +147,42 @@ export default function LibrarySubjectsPage() {
                           : 0;
 
                       return (
-                        <Link
+                        <PrefetchLink
                           key={subject.id}
                           href={`/app/learn/${board.id}/${grade.grade}/${subject.id}/chapters`}
+                          prefetchData={() =>
+                            prefetchChapters(
+                              queryClient,
+                              { boardId: board.id, grade: grade.grade, subjectId: subject.id },
+                              token,
+                            )
+                          }
+                          className="block h-full"
                         >
-                        <Card className="group cursor-pointer border-surface-200 hover:border-brand-300 hover:shadow-md transition-all">
-                          <CardContent className="p-0">
-                            <div className="flex items-start justify-between gap-3 p-6 pb-3">
-                              <div className="min-w-0">
-                                <h4 className="font-bold text-surface-900 group-hover:text-brand-700 transition-colors">
-                                  {subject.name}
-                                </h4>
-                                <p className="mt-0.5 text-xs text-surface-400">{subject.code}</p>
-                              </div>
-                              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-surface-300 group-hover:text-brand-600 transition-colors" />
-                            </div>
+                        <Card className="group flex h-full cursor-pointer flex-col overflow-hidden border-surface-200 transition-all hover:border-brand-300 hover:shadow-lg">
+                          <CardContent className="flex flex-1 flex-col p-0">
+                            {/* Subject banner: the first lesson frame of this
+                                class+subject (a different picture in every
+                                card), its accent wash, the monogram and the
+                                class numeral. The name sits under the picture
+                                because the frame already carries captions. */}
+                            <SubjectBanner
+                              name={subject.name}
+                              code={subject.code}
+                              grade={grade.grade}
+                              subtitle={subject.code}
+                              showName={false}
+                              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 320px"
+                            />
 
-                            <div className="px-6 pb-6">
-                              <Progress value={pct} className="h-2" />
+                            <div className="flex flex-1 flex-col px-4 py-4">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <h4 className="truncate text-[15px] font-bold text-surface-900">{subject.name}</h4>
+                                <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-surface-400">
+                                  {subject.code}
+                                </span>
+                              </div>
+                              <Progress value={pct} className="mt-3 h-2" />
                               <div className="mt-2 flex items-center justify-between text-xs text-surface-500">
                                 <span>
                                   {subject.completedContent}/{subject.totalContent} lessons
@@ -152,28 +191,28 @@ export default function LibrarySubjectsPage() {
                               </div>
                             </div>
 
-                            {subject.averageMastery > 0 && (
-                              <div className="border-t border-surface-100 bg-surface-50 px-6 py-3">
-                                <div className="flex items-center justify-between text-xs">
-                                  <span className="text-surface-500">Mastery</span>
-                                    <span
-                                      className={cn(
-                                        'font-semibold',
-                                        subject.averageMastery >= 80
-                                          ? 'text-green-600'
-                                          : subject.averageMastery >= 50
-                                            ? 'text-amber-600'
-                                            : 'text-red-600',
-                                      )}
-                                    >
-                                      {subject.averageMastery}%
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
+                            <div className="border-t border-surface-100 bg-surface-50 px-6 py-3">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-surface-500">Mastery</span>
+                                <span
+                                  className={cn(
+                                    'font-semibold',
+                                    subject.averageMastery >= 80
+                                      ? 'text-green-600'
+                                      : subject.averageMastery >= 50
+                                        ? 'text-amber-600'
+                                        : subject.averageMastery > 0
+                                          ? 'text-red-600'
+                                          : 'text-surface-400',
+                                  )}
+                                >
+                                  {subject.averageMastery > 0 ? `${subject.averageMastery}%` : 'Not started'}
+                                </span>
+                              </div>
+                            </div>
                           </CardContent>
                         </Card>
-                      </Link>
+                      </PrefetchLink>
                     );
                   })}
                 </div>

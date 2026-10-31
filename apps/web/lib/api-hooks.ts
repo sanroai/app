@@ -55,6 +55,8 @@ export type AttemptDetail = {
     submittedAt: string | null;
   };
   assessment: { title: string; subject: string; totalMarks: number };
+  student?: { id: string; name: string; rollNumber: string | null } | null;
+  weakConcepts?: Array<{ id: string; name: string }>;
   questions: Array<{
     id: string;
     text: string;
@@ -66,6 +68,8 @@ export type AttemptDetail = {
     correctAnswer: string | null;
     isCorrect: boolean | null;
     marksAwarded: number | null;
+    maxMarks?: number;
+    gradedByTeacher?: boolean;
   }>;
 };
 
@@ -93,6 +97,99 @@ function useAuthedQuery<T>(key: unknown[], path: string, enabled: boolean = true
 
 export function useBoards() {
   return useAuthedQuery<Board[]>(['boards'], '/curriculum/boards');
+}
+
+export type SubscriptionSummary = {
+  plan: {
+    key: string;
+    name: string;
+    priceMonthly: number | null;
+    priceYearly: number | null;
+    perSeat: number;
+  } | null;
+  status: string | null;
+  scope: 'USER' | 'INSTITUTION' | null;
+  startedAt: string | null;
+  endsAt: string | null;
+  daysRemaining: number | null;
+  seatLimit: number | null;
+  institution: { id: string; name: string } | null;
+  access: boolean;
+  blockState: string | null;
+  message: string | null;
+};
+
+export type AssessmentPaper = {
+  id: string;
+  title: string;
+  subject: { id: string; name: string; code: string } | null;
+  chapter: { id: string; name: string; grade: string } | null;
+  totalMarks: number;
+  durationMinutes: number;
+  status: string;
+  mode: string;
+  startsAt: string | null;
+  dueAt: string | null;
+  attemptsAllowed: number;
+  attemptsUsed: number;
+  attemptsLeft: number;
+  isOpen: boolean;
+  questionCount: number;
+  questions: Array<{
+    id: string;
+    text: string;
+    type: string;
+    marks: number;
+    order: number;
+    options: Array<{ text: string; order: number }>;
+  }>;
+};
+
+/** The question paper a student is about to attempt (no answers). */
+export function useAssessmentPaper(id?: string) {
+  return useAuthedQuery<AssessmentPaper>(['assessment-paper', id], `/assessments/${id}/paper`, !!id);
+}
+
+export type AssessmentAttemptRow = {
+  id: string;
+  attemptIndex: number;
+  status: string;
+  score: number | null;
+  maxScore: number | null;
+  submittedAt: string | null;
+  student?: { id: string; name: string; rollNumber: string | null } | null;
+};
+
+/** Staff: the attempts submitted for one assessment. */
+export function useAssessmentAttempts(id?: string) {
+  return useAuthedQuery<AssessmentAttemptRow[]>(['assessment-attempts', id], `/assessments/${id}/attempts`, !!id);
+}
+
+/** One attempt with its answers (staff may read any attempt in the institution). */
+export function useAttemptDetail(attemptId?: string) {
+  return useAuthedQuery<AttemptDetail>(['attempt', attemptId], `/assessments/attempts/${attemptId}`, !!attemptId);
+}
+
+export type ExamLibraryItem = {
+  key: string;
+  title: string;
+  blueprint: string;
+  blueprintLabel: string;
+  grade: string;
+  subject: { id: string; name: string; code: string };
+  questionCount: number;
+  totalMarks: number;
+  durationMinutes: number;
+};
+
+/** Ready-made term / class-test papers generated from the question bank. */
+export function useExamLibrary() {
+  return useAuthedQuery<{ exams: ExamLibraryItem[] }>(['exam-library'], '/learning/exams');
+}
+
+/** The plan that governs this account (own plan, else the institution's). */
+export function useSubscription() {
+  return useAuthedQuery<SubscriptionSummary>(['subscription'], '/auth/subscription');
 }
 
 export function useGrades(boardId?: string) {

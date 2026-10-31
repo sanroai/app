@@ -1,6 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import MarkdownDisplay from 'react-native-markdown-display';
 import { Colors, Spacing } from '../constants/theme';
+import { normalizeMarkdown } from '../lib/markdown-normalize';
 
 const rules = StyleSheet.create({
   body: { fontSize: 14, lineHeight: 22, color: Colors.text },
@@ -8,8 +9,11 @@ const rules = StyleSheet.create({
   heading2: { fontSize: 17, fontWeight: '700', color: Colors.text, marginTop: Spacing.md, marginBottom: Spacing.xs },
   heading3: { fontSize: 15, fontWeight: '600', color: Colors.text, marginTop: Spacing.md, marginBottom: Spacing.xs },
   heading4: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm, marginBottom: Spacing.xs },
+  heading5: { fontSize: 13, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm, marginBottom: Spacing.xs },
+  heading6: { fontSize: 12, fontWeight: '600', color: Colors.textMuted, marginTop: Spacing.sm, marginBottom: Spacing.xs },
   strong: { fontWeight: '700', color: Colors.text },
   em: { fontStyle: 'italic' },
+  s: { textDecorationLine: 'line-through', color: Colors.textSecondary },
   link: { color: Colors.primary, textDecorationLine: 'underline' },
   bullet_list: { marginBottom: Spacing.sm },
   ordered_list: { marginBottom: Spacing.sm },
@@ -61,15 +65,39 @@ const rules = StyleSheet.create({
 export function Markdown({
   children,
   style,
+  selectable = false,
 }: {
   children?: string | null;
   style?: StyleSheet.NamedStyles<unknown>;
+  /** Let a student long-press the text to select and copy it (chapter notes). */
+  selectable?: boolean;
 }) {
   if (!children || !children.trim()) return null;
   const merged = style ? ({ ...rules, ...style } as StyleSheet.NamedStyles<any>) : rules;
+  // Every leaf of the markdown tree is rendered by the `text` rule and wrapped by
+  // `textgroup`; Android only honours `selectable` on the outermost Text, so both
+  // are overridden when the caller asks for copyable text.
+  const overrides = selectable
+    ? {
+        text: (node: { key: string; content?: string }, _children: unknown, _parent: unknown, styles: { text: unknown }) => (
+          <Text key={node.key} selectable style={styles.text as never}>
+            {node.content}
+          </Text>
+        ),
+        // Inline runs are wrapped by `textgroup`; selection only works on the
+        // outermost Text, so it has to be selectable as well.
+        textgroup: (node: { key: string }, children: unknown, _parent: unknown, styles: { textgroup: unknown }) => (
+          <Text key={node.key} selectable style={styles.textgroup as never}>
+            {children as never}
+          </Text>
+        ),
+      }
+    : undefined;
   return (
     <View>
-      <MarkdownDisplay style={merged}>{children}</MarkdownDisplay>
+      <MarkdownDisplay style={merged} rules={overrides as never}>
+        {normalizeMarkdown(children)}
+      </MarkdownDisplay>
     </View>
   );
 }

@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { QA_PASSWORD } from './helpers';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
@@ -26,7 +27,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'parent@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'parent@sanroai.com', password: QA_PASSWORD });
       parentToken = res.body.accessToken;
     });
 
@@ -70,20 +71,25 @@ describe('Authorization (e2e)', () => {
   describe('Student grade isolation', () => {
     let studentToken: string;
 
+    // student@sanroai.com is the demo account enrolled in all ten classes, so
+    // the isolation rule is asserted with the single-class account (class 8).
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'student@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'student8@sanroai.com', password: QA_PASSWORD });
       studentToken = res.body.accessToken;
     });
 
-    it('GET /learning/home should return only student grade', async () => {
+    it('GET /learning/home should list only the classes the student may read', async () => {
       const res = await request(app.getHttpServer())
         .get('/api/v1/learning/home')
         .set('Authorization', `Bearer ${studentToken}`);
       expect(res.status).toBe(200);
       const grades = res.body.boards?.flatMap((b: any) => b.grades?.map((g: any) => g.grade)) ?? [];
-      expect(grades.every((g: string) => g === '10')).toBe(true);
+      expect(grades.length).toBeGreaterThan(0);
+      expect(grades.every((g: string) => g === '8')).toBe(true);
+      expect(res.body.allGrades).toBe(false);
+      expect(res.body.studentGrades).toEqual(['8']);
     });
 
     it('GET /learning/chapters/:id should return 403 for wrong grade', async () => {
@@ -100,7 +106,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'student@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'student@sanroai.com', password: QA_PASSWORD });
       studentToken = res.body.accessToken;
     });
 
@@ -125,7 +131,7 @@ describe('Authorization (e2e)', () => {
     beforeAll(async () => {
       const res = await request(app.getHttpServer())
         .post('/api/v1/auth/login')
-        .send({ email: 'admin@sanroai.com', password: 'Sanro@123' });
+        .send({ email: 'admin@sanroai.com', password: QA_PASSWORD });
       superAdminToken = res.body.accessToken;
     });
 

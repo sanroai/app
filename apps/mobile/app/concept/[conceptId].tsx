@@ -1,38 +1,54 @@
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, FlatList, Linking, Alert, ActivityIndicator } from 'react-native';
-import { useState } from 'react';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, FlatList, Linking, Alert, ActivityIndicator, Modal, Image } from 'react-native';
+import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { useConceptDetail, useCompleteContent, useStartPractice } from '../../lib/hooks';
+import { useConceptDetail, useCompleteContent, useUncompleteContent, useStartPractice, useChapterHub } from '../../lib/hooks';
+import { subjectBanner } from '../../lib/subject-art';
 import { useConceptAr } from '../../lib/ar-hooks';
-import { Colors, Spacing, BorderRadius } from '../../constants/theme';
+import { normalizeSegments, formatTimestamp, sectionStartForConcept, type VideoSegment } from '../../lib/chapter-hub';
+import { Icon3D } from '../../components/Icon3D';
+import { Colors, Spacing, BorderRadius, Pastel } from '../../constants/theme';
 import { Card } from '../../components/Card';
 import { EmptyState } from '../../components/EmptyState';
 import { ArConceptPanel } from '../../components/ArConceptPanel';
+import { CONCEPT_MODES } from '../../components/concept-modes';
 import { YouTubePlayer } from '../../components/YouTubePlayer';
 import { Markdown } from '../../components/Markdown';
 
-const TABS = [
-  { id: 'learn', label: 'Learn', icon: 'play-circle' as const, color: Colors.info },
-  { id: 'practice', label: 'Practice', icon: 'flash' as const, color: Colors.purple },
-  { id: 'quiz', label: 'Quick Quiz', icon: 'battery-charging' as const, color: Colors.warning },
-  { id: 'flashcards', label: 'Flashcards', icon: 'sync' as const, color: Colors.pink },
-  { id: 'challenge', label: 'Challenge', icon: 'game-controller' as const, color: Colors.error },
-  { id: 'ask', label: 'Ask Sanro AI', icon: 'fitness' as const, color: Colors.primary },
-];
-
-const AR_TAB = { id: 'ar', label: 'AR / 3D', icon: 'cube' as const, color: Colors.indigo };
+const TABS = CONCEPT_MODES;
 
 export default function ConceptDetailScreen() {
-  const { conceptId = '' } = useLocalSearchParams<{ conceptId: string }>();
+  const { conceptId = '', t, video: videoParam, tab: tabParam } = useLocalSearchParams<{
+    conceptId: string;
+    t?: string;
+    video?: string;
+    tab?: string;
+  }>();
+  const parsedStart = Number.parseInt(t ?? '', 10);
+  const startAt = Number.isFinite(parsedStart) && parsedStart > 0 ? parsedStart : 0;
+  const [fromStart, setFromStart] = useState(false);
   const router = useRouter();
-  const [tab, setTab] = useState('learn');
+  const [tab, setTab] = useState(tabParam === 'practice' || tabParam === 'ask' ? tabParam : 'learn');
   const [openNote, setOpenNote] = useState<string | null>(null);
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
+  const uncompleteContent = useUncompleteContent();
   const startPractice = useStartPractice();
   const { data: arItems } = useConceptAr(conceptId);
   const arContent = arItems ?? [];
-  const tabs = arContent.length > 0 ? [...TABS.slice(0, 5), AR_TAB, ...TABS.slice(5)] : TABS;
+  const [arOpen, setArOpen] = useState(false);
+
+  // The chapter hub owns the chapter markers (the points a video lesson is
+  // split at). The concept screen borrows them for the videos it shows.
+  const { data: chapterHub } = useChapterHub(concept?.chapter?.id ?? '');
+  const markersByContentId = useMemo(() => {
+    const map = new Map<string, VideoSegment[]>();
+    for (const video of chapterHub?.videos ?? []) {
+      const markers = normalizeSegments(video.segments);
+      if (video.contentId && markers.length > 0) map.set(video.contentId, markers);
+    }
+    return map;
+  }, [chapterHub]);
 
   if (isLoading) {
     return (
@@ -54,18 +70,39 @@ export default function ConceptDetailScreen() {
   const videos = concept.content.filter((c) => c.type === 'VIDEO');
   const notes = concept.content.filter((c) => c.type === 'NOTES' || c.type === 'ARTICLE');
   const questions = concept.practiceQuestions ?? [];
+  const markersFor = (video: { id: string; segments?: VideoSegment[] | null }) =>
+    normalizeSegments(video.segments ?? markersByContentId.get(video.id) ?? null);
+  // The chapter hub names the exact video + timestamp that teaches this concept.
+  // A chapter can carry several chapter-wide videos, so when the named clip is
+  // not one of this concept's own lessons we use that lesson's own marker for
+  // this concept - applying the other clip's offset would start in the middle of
+  // the previous concept.
+  const requestedVideo = startAt > 0 ? (videos.find((v) => v.id === videoParam) ?? null) : null;
+  const fallbackVideo = startAt > 0 && !requestedVideo ? (videos[0] ?? null) : null;
+  const targetVideoId = requestedVideo?.id ?? fallbackVideo?.id ?? null;
+  const targetStart = requestedVideo
+    ? startAt
+    : fallbackVideo
+      ? sectionStartForConcept(markersFor(fallbackVideo), concept.name)
+      : 0;
 
   const startMode = (count: number) => {
-    if (questions.length === 0) {
-      Alert.alert('No questions', 'No questions are available for this concept yet.');
-      return;
-    }
     startPractice.mutate(
-      { conceptId, questionCount: Math.min(count, questions.length) },
+      { conceptId, questionCount: Math.min(Math.max(count, 5), 10) },
       {
         onSuccess: (data) => {
-          const practiceId = ((data as unknown) as { practiceId: string }).practiceId;
+          const practiceId = data?.practiceId;
+          if (!practiceId) {
+            // without a practice id there is nothing to open - say so instead
+            // of navigating to a broken route
+            Alert.alert('Could not start practice', 'The practice set did not start. Please try again.');
+            return;
+          }
           router.push({ pathname: '/practice/[practiceId]', params: { practiceId } });
+        },
+        onError: (err) => {
+          const e = err as { message?: string };
+          Alert.alert('Could not start practice', e.message || 'Please try again in a moment.');
         },
       },
     );
@@ -73,26 +110,50 @@ export default function ConceptDetailScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Hero: the class+subject artwork behind the concept name, like the chapter hub */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{concept.name}</Text>
-        <Text style={styles.headerSub}>
-          {concept.chapter?.name ?? ''} • {concept.topic?.name ?? ''}
-        </Text>
-        {mastery && (
-          <View style={styles.masteryRow}>
-            <View style={[styles.masteryChip, { backgroundColor: weak ? Colors.error + '20' : Colors.success + '20' }]}>
-              <Text style={[styles.masteryText, { color: weak ? Colors.error : Colors.success }]}>
-                Mastery {mastery.score}% • {mastery.level.replace(/_/g, ' ')}
-              </Text>
+        <Image
+          source={subjectBanner(concept.chapter?.subject?.name, concept.chapter?.subject?.code, concept.chapter?.grade)}
+          style={styles.headerBanner}
+          resizeMode="cover"
+        />
+        <View style={styles.headerScrim} />
+        <View style={styles.headerBody}>
+          <Text style={styles.headerEyebrow}>
+            {concept.chapter?.subject?.name ?? 'Subject'}
+            {concept.chapter?.grade ? ` · Class ${concept.chapter.grade}` : ''}
+          </Text>
+          <Text style={styles.headerTitle}>{concept.name}</Text>
+          <Text style={styles.headerSub}>
+            <Text
+              style={styles.headerLink}
+              onPress={() =>
+                concept.chapter?.id
+                  ? router.push({ pathname: '/chapter/[chapterId]', params: { chapterId: concept.chapter.id } })
+                  : undefined
+              }
+            >
+              {concept.chapter?.name ?? ''}
+            </Text>
+            {' • '}
+            {concept.topic?.name ?? ''}
+          </Text>
+          {mastery && (
+            <View style={styles.masteryRow}>
+              <View style={styles.masteryChip}>
+                <View style={[styles.masteryDot, { backgroundColor: weak ? '#dc2626' : '#059669' }]} />
+                <Text style={[styles.masteryText, { color: weak ? '#b91c1c' : '#047857' }]}>
+                  Mastery {mastery.score}% · {mastery.level.replace(/_/g, ' ')}
+                </Text>
+              </View>
             </View>
-          </View>
-        )}
+          )}
+        </View>
       </View>
 
       {/* Tab bar */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar} contentContainerStyle={styles.tabBarContent}>
-        {tabs.map((t) => (
+        {TABS.map((t) => (
           <TouchableOpacity
             key={t.id}
             style={[styles.tab, tab === t.id && styles.tabActive]}
@@ -107,34 +168,106 @@ export default function ConceptDetailScreen() {
       </ScrollView>
 
       {/* Tab content */}
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView style={styles.contentScroll} contentContainerStyle={styles.content}>
         {tab === 'learn' && (
           <>
             {videos.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Video Lessons</Text>
-                {videos.map((v) => (
-                  <Card key={v.id} style={styles.itemCard}>
-                    <YouTubePlayer
-                      url={v.url}
-                      videoId={v.videoId}
-                      title={v.title}
-                      thumbnailUrl={v.thumbnailUrl}
-                      durationSeconds={v.durationSeconds}
-                    />
-                    <Text style={styles.itemTitle}>{v.title}</Text>
-                    {v.description ? <Text style={styles.itemDesc}>{v.description}</Text> : null}
-                    <TouchableOpacity
-                      style={styles.doneBtn}
-                      onPress={() => completeContent.mutate(v.id)}
-                      accessibilityLabel="Mark as complete"
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-                      <Text style={styles.doneBtnText}>Mark as done</Text>
-                    </TouchableOpacity>
-                  </Card>
-                ))}
+                {videos.map((v) => {
+                  const done = v.progress?.state === 'COMPLETED';
+                  const isTarget = v.id === targetVideoId;
+                  const effectiveStart = isTarget ? (fromStart ? 0 : targetStart) : 0;
+                  return (
+                    <Card key={v.id} style={styles.itemCard}>
+                      <Text style={styles.itemTitle}>{v.title}</Text>
+                      {isTarget && targetStart > 0 ? (
+                        <View style={styles.startRow}>
+                          <View style={styles.startChip}>
+                            <Ionicons name="play-forward" size={12} color={Colors.primary} />
+                            <Text style={styles.startChipText}>
+                              Starting at {formatTimestamp(effectiveStart)}
+                            </Text>
+                          </View>
+                          {!fromStart ? (
+                            <TouchableOpacity
+                              onPress={() => setFromStart(true)}
+                              accessibilityRole="button"
+                              accessibilityLabel="Play the lesson from the start"
+                            >
+                              <Text style={styles.startLink}>Play from the start</Text>
+                            </TouchableOpacity>
+                          ) : null}
+                        </View>
+                      ) : null}
+                      <YouTubePlayer
+                        key={`${v.id}-${effectiveStart}`}
+                        url={v.url}
+                        videoId={v.videoId}
+                        title={v.title}
+                        thumbnailUrl={v.thumbnailUrl}
+                        durationSeconds={v.durationSeconds}
+                        startSeconds={effectiveStart}
+                        autoPlay={isTarget && targetStart > 0}
+                        segments={markersFor(v)}
+                      />
+                      {v.description ? <Text style={styles.itemDesc}>{v.description}</Text> : null}
+                      {done ? (
+                        <View style={styles.doneRow}>
+                          <View style={[styles.doneBtn, styles.doneBtnInline]}>
+                            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                            <Text style={styles.doneBtnText}>Completed</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => uncompleteContent.mutate(v.id)}
+                            disabled={uncompleteContent.isPending}
+                            accessibilityLabel="Mark as not done"
+                            accessibilityRole="button"
+                          >
+                            <Text style={styles.undoText}>Undo</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.doneBtn}
+                          onPress={() => completeContent.mutate(v.id)}
+                          disabled={completeContent.isPending}
+                          accessibilityLabel="Mark as done"
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name="ellipse-outline" size={16} color={Colors.textSecondary} />
+                          <Text style={[styles.doneBtnText, styles.doneBtnIdle]}>Mark as done</Text>
+                        </TouchableOpacity>
+                      )}
+                    </Card>
+                  );
+                })}
+              </View>
+            )}
+
+            {arContent.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Interactive 3D Model</Text>
+                <Card style={styles.itemCard}>
+                  <TouchableOpacity
+                    style={styles.arEntry}
+                    onPress={() => setArOpen(true)}
+                    accessibilityLabel="Open the 3D viewer"
+                    accessibilityRole="button"
+                  >
+                    <View style={[styles.modeIcon, { backgroundColor: Colors.indigo + '20' }]}>
+                      <Icon3D name="puzzle" size={30} />
+                    </View>
+                    <View style={styles.modeInfo}>
+                      <Text style={styles.modeTitle}>Open the 3D viewer</Text>
+                      <Text style={styles.modeSub}>
+                        {arContent.length} interactive model{arContent.length === 1 ? '' : 's'} · rotate, tap the labels,
+                        then try the quick check
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                </Card>
               </View>
             )}
 
@@ -144,6 +277,7 @@ export default function ConceptDetailScreen() {
                 {notes.map((n) => {
                   const noteUrl = n.url;
                   const open = openNote === n.id;
+                  const done = n.progress?.state === 'COMPLETED';
                   return (
                     <Card key={n.id} style={styles.itemCard}>
                       <TouchableOpacity
@@ -170,10 +304,33 @@ export default function ConceptDetailScreen() {
                           <Markdown>{n.description}</Markdown>
                         </View>
                       ) : null}
-                      <TouchableOpacity style={styles.doneBtn} onPress={() => completeContent.mutate(n.id)} accessibilityLabel="Mark as complete" accessibilityRole="button">
-                        <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-                        <Text style={styles.doneBtnText}>Mark as read</Text>
-                      </TouchableOpacity>
+                      {done ? (
+                        <View style={styles.doneRow}>
+                          <View style={[styles.doneBtn, styles.doneBtnInline]}>
+                            <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                            <Text style={styles.doneBtnText}>Completed</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => uncompleteContent.mutate(n.id)}
+                            disabled={uncompleteContent.isPending}
+                            accessibilityLabel="Mark as unread"
+                            accessibilityRole="button"
+                          >
+                            <Text style={styles.undoText}>Undo</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <TouchableOpacity
+                          style={styles.doneBtn}
+                          onPress={() => completeContent.mutate(n.id)}
+                          disabled={completeContent.isPending}
+                          accessibilityLabel="Mark as read"
+                          accessibilityRole="button"
+                        >
+                          <Ionicons name="ellipse-outline" size={16} color={Colors.textSecondary} />
+                          <Text style={[styles.doneBtnText, styles.doneBtnIdle]}>Mark as read</Text>
+                        </TouchableOpacity>
+                      )}
                     </Card>
                   );
                 })}
@@ -218,12 +375,12 @@ export default function ConceptDetailScreen() {
         {tab === 'practice' && (
           <Card style={styles.modeCard}>
             <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: Colors.purple + '20' }]}>
-                <Ionicons name="flash" size={24} color={Colors.purple} />
+              <View style={[styles.modeIcon, { backgroundColor: Pastel.violet }]}>
+                <Icon3D name="rocket" size={30} />
               </View>
               <View style={styles.modeInfo}>
                 <Text style={styles.modeTitle}>Practice Mode</Text>
-                <Text style={styles.modeSub}>Backend-graded with mastery tracking</Text>
+                <Text style={styles.modeSub}>Instant feedback with mastery tracking</Text>
               </View>
             </View>
             <View style={styles.statsGrid}>
@@ -233,16 +390,20 @@ export default function ConceptDetailScreen() {
               </View>
               <View style={[styles.statBox, { backgroundColor: Colors.purple + '15' }]}>
                 <Text style={[styles.statNum, { color: Colors.purple }]}>5 XP</Text>
-                <Text style={styles.statLabel}>Per question</Text>
+                <Text style={styles.statLabel}>Per correct answer</Text>
               </View>
               <View style={[styles.statBox, { backgroundColor: Colors.success + '15' }]}>
                 <Text style={[styles.statNum, { color: Colors.success }]}>80%</Text>
                 <Text style={styles.statLabel}>To master</Text>
               </View>
             </View>
+            <Text style={styles.modeSub}>
+              Earn 5 XP per correct answer plus 10 XP for finishing. Your result updates your mastery and the
+              leaderboard.
+            </Text>
             <TouchableOpacity
               style={styles.primaryBtn}
-              onPress={() => startMode(Math.min(questions.length, 10))}
+              onPress={() => startMode(Math.min(Math.max(questions.length, 5), 10))}
               disabled={startPractice.isPending}
             >
               {startPractice.isPending ? (
@@ -250,81 +411,9 @@ export default function ConceptDetailScreen() {
               ) : (
                 <>
                   <Ionicons name="play" size={18} color={Colors.white} />
-                  <Text style={styles.primaryBtnText}>Start Practice</Text>
+                  <Text style={styles.primaryBtnText}>Start practice</Text>
                 </>
               )}
-            </TouchableOpacity>
-          </Card>
-        )}
-
-        {tab === 'quiz' && (
-          <Card style={styles.modeCard}>
-            <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: Colors.warning + '20' }]}>
-                <Ionicons name="battery-charging" size={24} color={Colors.warning} />
-              </View>
-              <View style={styles.modeInfo}>
-                <Text style={styles.modeTitle}>Quick Quiz</Text>
-                <Text style={styles.modeSub}>5 questions • ~2 minutes • +25 XP</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: Colors.warning }]}
-              onPress={() => router.push({ pathname: '/quiz/[conceptId]', params: { conceptId } })}
-              disabled={questions.length === 0}
-            >
-              <Ionicons name="battery-charging" size={18} color={Colors.white} />
-              <Text style={styles.primaryBtnText}>Start Quick Quiz</Text>
-            </TouchableOpacity>
-            {questions.length === 0 && (
-              <Text style={styles.noQText}>No questions available for this concept yet.</Text>
-            )}
-          </Card>
-        )}
-
-        {tab === 'flashcards' && (
-          <Card style={styles.modeCard}>
-            <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: Colors.pink + '20' }]}>
-                <Ionicons name="sync" size={24} color={Colors.pink} />
-              </View>
-              <View style={styles.modeInfo}>
-                <Text style={styles.modeTitle}>Flashcards</Text>
-                <Text style={styles.modeSub}>Flip + confidence: Again / Hard / Good / Easy</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: Colors.pink }]}
-              onPress={() => router.push({ pathname: '/flashcards/[conceptId]', params: { conceptId } })}
-              disabled={questions.length === 0}
-            >
-              <Ionicons name="sync" size={18} color={Colors.white} />
-              <Text style={styles.primaryBtnText}>Start Flashcards</Text>
-            </TouchableOpacity>
-            {questions.length === 0 && (
-              <Text style={styles.noQText}>No cards available for this concept yet.</Text>
-            )}
-          </Card>
-        )}
-
-        {tab === 'challenge' && (
-          <Card style={styles.modeCard}>
-            <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: Colors.error + '20' }]}>
-                <Ionicons name="game-controller" size={24} color={Colors.error} />
-              </View>
-              <View style={styles.modeInfo}>
-                <Text style={styles.modeTitle}>Timed Challenge</Text>
-                <Text style={styles.modeSub}>60 seconds • 10 questions • 50 XP max</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: Colors.error }]}
-              onPress={() => router.push({ pathname: '/challenge/[conceptId]', params: { conceptId } })}
-              disabled={questions.length === 0}
-            >
-              <Ionicons name="game-controller" size={18} color={Colors.white} />
-              <Text style={styles.primaryBtnText}>Start Challenge</Text>
             </TouchableOpacity>
             {questions.length === 0 && (
               <Text style={styles.noQText}>No questions available for this concept yet.</Text>
@@ -335,8 +424,8 @@ export default function ConceptDetailScreen() {
         {tab === 'ask' && (
           <Card style={styles.modeCard}>
             <View style={styles.modeHeader}>
-              <View style={[styles.modeIcon, { backgroundColor: Colors.primary + '20' }]}>
-                <Ionicons name="fitness" size={24} color={Colors.primary} />
+              <View style={[styles.modeIcon, { backgroundColor: Pastel.lavender }]}>
+                <Icon3D name="speech-balloon" size={30} />
               </View>
               <View style={styles.modeInfo}>
                 <Text style={styles.modeTitle}>Ask Sanro AI</Text>
@@ -352,11 +441,25 @@ export default function ConceptDetailScreen() {
             </TouchableOpacity>
           </Card>
         )}
-
-        {tab === 'ar' && arContent.length > 0 && (
-          <ArConceptPanel conceptId={conceptId} items={arContent} />
-        )}
       </ScrollView>
+
+      {/* 3D viewer - opened from the Learn tab */}
+      <Modal visible={arOpen} animationType="slide" onRequestClose={() => setArOpen(false)} transparent={false}>
+        <View style={styles.arModalRoot}>
+          <View style={styles.arModalHeader}>
+            <Text style={styles.arModalTitle}>Interactive 3D model</Text>
+            <TouchableOpacity
+              onPress={() => setArOpen(false)}
+              accessibilityLabel="Close the 3D viewer"
+              accessibilityRole="button"
+              hitSlop={8}
+            >
+              <Ionicons name="close" size={24} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          <ArConceptPanel conceptId={conceptId} items={arContent} />
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -366,38 +469,67 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
   errorText: { color: Colors.error, fontSize: 15, fontWeight: '600', textAlign: 'center', marginTop: Spacing.md },
   header: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.lg,
+    backgroundColor: Colors.primaryDark,
     borderBottomLeftRadius: BorderRadius.xxl,
     borderBottomRightRadius: BorderRadius.xxl,
+    overflow: 'hidden',
+    minHeight: 210,
+    justifyContent: 'flex-end',
   },
-  headerTitle: { color: Colors.white, fontSize: 22, fontWeight: '700' },
-  headerSub: { color: Colors.primaryLight, fontSize: 13, marginTop: 4 },
+  headerBanner: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  headerScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15,23,42,0.45)',
+  },
+  headerBody: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.xxl, paddingBottom: Spacing.lg },
+  headerEyebrow: {
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+  },
+  headerTitle: { color: Colors.white, fontSize: 28, fontWeight: '800', marginTop: 4 },
+  headerSub: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 4 },
+  headerLink: { textDecorationLine: 'underline', fontWeight: '600' },
   masteryRow: { marginTop: Spacing.md },
-  masteryChip: { alignSelf: 'flex-start', borderRadius: BorderRadius.full, paddingHorizontal: 12, paddingVertical: 5 },
-  masteryText: { fontSize: 12, fontWeight: '700' },
-  tabBar: { flexGrow: 0, backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  tabBarContent: { padding: Spacing.sm, gap: 6 },
+  masteryChip: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: BorderRadius.full, paddingHorizontal: 12, paddingVertical: 6, gap: 6 },
+  masteryDot: { width: 8, height: 8, borderRadius: 4 },
+  masteryText: { fontSize: 12, fontWeight: '800' },
+  tabBar: { flexGrow: 0, flexShrink: 0, backgroundColor: Colors.surface, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  tabBarContent: { paddingLeft: Spacing.sm, paddingRight: Spacing.lg, paddingVertical: Spacing.sm, gap: 6 },
   tab: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 14, paddingVertical: 8, borderRadius: BorderRadius.full, backgroundColor: Colors.surfaceSecondary },
   tabActive: { backgroundColor: Colors.primary },
   tabText: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
   tabTextActive: { color: Colors.white },
+  contentScroll: { flex: 1 },
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   section: { marginBottom: Spacing.lg },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
   itemCard: { marginBottom: Spacing.md, padding: Spacing.md },
-  videoThumb: { height: 160, borderRadius: BorderRadius.lg, backgroundColor: Colors.info, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  playBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.3)', alignItems: 'center', justifyContent: 'center' },
-  duration: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', color: Colors.white, fontSize: 12, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
-  itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginTop: Spacing.sm },
+  itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: Spacing.sm },
+  startRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm, marginBottom: Spacing.sm },
+  startChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Colors.primary + '12',
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  startChipText: { fontSize: 11, fontWeight: '700', color: Colors.primary },
+  startLink: { fontSize: 11, fontWeight: '700', color: Colors.primary, textDecorationLine: 'underline' },
   itemDesc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   itemTitleF: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.text },
   noteRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   noteIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.success + '20', alignItems: 'center', justifyContent: 'center' },
   doneBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'flex-start' },
   doneBtnText: { fontSize: 13, fontWeight: '600', color: Colors.success },
+  doneBtnIdle: { color: Colors.textSecondary },
+  doneRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: Spacing.sm, alignSelf: 'flex-start' },
+  doneBtnInline: { marginTop: 0 },
+  undoText: { fontSize: 13, fontWeight: '600', color: Colors.primary, textDecorationLine: 'underline' },
   revisionCard: { backgroundColor: Colors.amber, borderWidth: 1, borderColor: Colors.amberBorder, padding: Spacing.lg },
   revisionHeader: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   revisionTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
@@ -416,6 +548,11 @@ const styles = StyleSheet.create({
   statNum: { fontSize: 18, fontWeight: '700' },
   statLabel: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
   primaryBtn: { flexDirection: 'row', backgroundColor: Colors.primary, borderRadius: BorderRadius.lg, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: Spacing.lg },
+  primaryBtnDisabled: { backgroundColor: '#a8a29e' },
   primaryBtnText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   noQText: { color: Colors.textSecondary, fontSize: 13, marginTop: Spacing.md, textAlign: 'center' },
+  arEntry: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  arModalRoot: { flex: 1, backgroundColor: Colors.background },
+  arModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing.lg, paddingVertical: Spacing.md },
+  arModalTitle: { fontSize: 17, fontWeight: '700', color: Colors.text },
 });

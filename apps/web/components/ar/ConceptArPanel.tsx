@@ -44,6 +44,7 @@ export function ConceptArPanel({ conceptId, items }: { conceptId: string; items:
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const openedRef = useRef<Set<string>>(new Set());
+  const startedRef = useRef<Set<string>>(new Set());
 
   const recordActivity = useRecordArActivity();
   const { data: model, isLoading: modelLoading, isError: modelError } = useArModelUrl(selected?.id, Boolean(selected?.id));
@@ -59,6 +60,7 @@ export function ConceptArPanel({ conceptId, items }: { conceptId: string; items:
     setShowQuickCheck(false);
     setSubmitted(false);
     setAnswers({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recordActivity is intentionally not a dependency: adding it re-arms this effect on every mutation and re-creates the activity request storm (BUG-L).
   }, [selected?.id, conceptId]);
 
   const hotspots = useMemo<ArHotspot[]>(() => selected?.hotspots ?? [], [selected]);
@@ -147,7 +149,11 @@ export function ConceptArPanel({ conceptId, items }: { conceptId: string; items:
               hotspots={hotspots}
               activeHotspot={activeHotspot}
               onHotspotSelect={onHotspotSelect}
-              onReady={() => recordActivity.mutate({ id: selected.id, type: 'AR_STARTED' })}
+              onReady={() => {
+                if (startedRef.current.has(selected.id)) return;
+                startedRef.current.add(selected.id);
+                recordActivity.mutate({ id: selected.id, type: 'AR_STARTED' });
+              }}
             />
           )}
 
@@ -318,7 +324,7 @@ export function ConceptArPanel({ conceptId, items }: { conceptId: string; items:
                     Score: {submit.data?.score} / {submit.data?.total}
                   </p>
                   <div className="flex gap-2">
-                    <Link href={`/app/learn/practice?conceptId=${conceptId}`}>
+                    <Link href={`/app/learn/concepts/${conceptId}?tab=practice`}>
                       <Button size="sm" variant="outline" className="rounded-xl bg-white">
                         Practice this concept
                       </Button>

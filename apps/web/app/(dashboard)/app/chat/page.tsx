@@ -3,17 +3,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useChat } from '@/lib/ai-hooks';
+import { useChapterHub } from '@/lib/chapter-hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bot, Send, Brain, Loader2 } from 'lucide-react';
+import { Markdown } from '@/components/markdown';
+import { Bot, Send, Brain, Loader2, ArrowRight } from 'lucide-react';
 
 type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  /** The reply was cut at the output cap - offer the rest without retyping. */
+  truncated?: boolean;
 };
 
 const SUGGESTED_QUESTIONS = [
@@ -28,7 +32,7 @@ export default function ChatPage() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm Sanro AI — your AI study assistant. Ask me anything about your studies.",
+      content: 'Hello, I am Sanro — your study assistant. Ask me anything about your studies.',
       timestamp: new Date(),
     },
   ]);
@@ -36,6 +40,10 @@ export default function ChatPage() {
   const chatMutation = useChat();
   const searchParams = useSearchParams();
   const conceptId = searchParams.get('conceptId') ?? undefined;
+  // The chapter hub links here with ?chapterId=... - the tutor has to know the
+  // chapter, otherwise the answer is a generic one with no grounding.
+  const chapterId = searchParams.get('chapterId') ?? undefined;
+  const { data: chapter } = useChapterHub(chapterId, { enabled: Boolean(chapterId) });
   const prefill = searchParams.get('q') ?? '';
   const autoSentRef = useRef(false);
 
@@ -69,7 +77,17 @@ export default function ChatPage() {
     setInput('');
 
     chatMutation.mutate(
-      { message, context: conceptId ? { conceptId } : undefined },
+      {
+        message,
+        history: messages
+          .filter((msg) => msg.id !== 'welcome')
+          .slice(-20)
+          .map(({ role, content }) => ({ role, content })),
+        context: {
+          ...(conceptId ? { conceptId } : {}),
+          ...(chapterId ? { chapterId } : {}),
+        },
+      },
       {
         onSuccess: (data) => {
           setMessages((prev) => [
@@ -79,6 +97,7 @@ export default function ChatPage() {
               role: 'assistant',
               content: data.reply,
               timestamp: new Date(),
+              truncated: data.truncated === true,
             },
           ]);
         },
@@ -97,6 +116,12 @@ export default function ChatPage() {
     );
   }
 
+  const contextLabel = chapter?.name
+    ? `About ${chapter.name}`
+    : conceptId
+      ? 'Context-aware tutor'
+      : 'Get instant help with concepts, practice problems, and study tips';
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <div className="mb-4">
@@ -104,9 +129,7 @@ export default function ChatPage() {
           <Brain className="h-6 w-6 text-brand-500" />
           Ask Sanro AI
         </h1>
-        <p className="text-surface-500 text-sm mt-1">
-          Get instant help with concepts, practice problems, and study tips
-        </p>
+        <p className="text-surface-500 text-sm mt-1">{contextLabel}</p>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden">
@@ -135,7 +158,26 @@ export default function ChatPage() {
                           : 'bg-surface-100 text-surface-900 rounded-tl-sm'
                       }`}
                     >
-                      {msg.content}
+                      {msg.role === 'assistant' ? (
+                        <>
+                          <Markdown className="text-sm text-surface-900">{msg.content}</Markdown>
+                          {msg.truncated && msg.id === messages[messages.length - 1]?.id ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleSend('Continue the answer from exactly where you stopped.')
+                              }
+                              disabled={chatMutation.isPending}
+                              className="mt-2 inline-flex items-center gap-1 rounded-full bg-brand-600 px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-60"
+                            >
+                              <ArrowRight className="h-3 w-3" />
+                              Continue
+                            </button>
+                          ) : null}
+                        </>
+                      ) : (
+                        msg.content
+                      )}
                     </div>
                   </div>
                 </div>

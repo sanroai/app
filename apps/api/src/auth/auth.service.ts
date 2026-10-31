@@ -457,6 +457,73 @@ export class AuthService {
     return safe;
   }
 
+  /**
+   * The subscription that governs this account, for the profile screen.
+   *
+   * A user-level subscription wins; otherwise the institution's subscription is
+   * reported (a student does not buy a plan, their school does). Nothing here is
+   * a secret: the plan name, status, dates and seat limit are what the profile
+   * shows, plus the same access state the app gate uses.
+   */
+  async subscription(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        memberships: {
+          where: { status: 'ACTIVE' },
+          select: { role: true, institutionId: true, institution: { select: { id: true, name: true } } },
+          take: 1,
+        },
+      },
+    });
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const membership = user.memberships[0] ?? null;
+    const institutionId = membership?.institutionId ?? null;
+
+    const subscription = await this.prisma.subscription.findFirst({
+      where: {
+        OR: [{ userId }, ...(institutionId ? [{ institutionId }] : [])],
+      },
+      include: { plan: true },
+      orderBy: [{ userId: 'desc' }, { createdAt: 'desc' }],
+    });
+
+    const state = await this.subscriptionAccess.getAccountState(
+      userId,
+      (membership?.role as Role) ?? Role.STUDENT,
+      institutionId ?? undefined,
+    );
+
+    const endsAt = subscription?.endsAt ?? null;
+    const daysRemaining = endsAt
+      ? Math.max(0, Math.ceil((endsAt.getTime() - Date.now()) / 86_400_000))
+      : null;
+
+    return {
+      plan: subscription
+        ? {
+            key: subscription.plan.key,
+            name: subscription.plan.name,
+            priceMonthly: subscription.plan.priceMonthly,
+            priceYearly: subscription.plan.priceYearly,
+            perSeat: subscription.plan.perSeat,
+          }
+        : null,
+      status: subscription?.status ?? null,
+      scope: subscription?.userId ? 'USER' : subscription ? 'INSTITUTION' : null,
+      startedAt: subscription?.startedAt ?? null,
+      endsAt,
+      daysRemaining,
+      seatLimit: subscription?.seatLimit ?? null,
+      institution: membership?.institution ?? null,
+      access: state.access,
+      blockState: state.state ?? null,
+      message: state.message ?? null,
+    };
+  }
+
   async sendWelcomeNotification(userId: string): Promise<void> {
     await this.notifications.create({
       recipientUserId: userId,
