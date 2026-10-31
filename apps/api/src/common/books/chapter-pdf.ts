@@ -140,6 +140,20 @@ export function chapterBookFile(code: string | null | undefined): string | null 
   return `${parsed.book.prefix}${String(parsed.chapterNumber).padStart(2, '0')}.pdf`;
 }
 
+/**
+ * The official NCERT URL of a chapter PDF, or null when the code is not a book chapter.
+ *
+ * The book tree is git-ignored and local-only, so a deployed API has no files on
+ * disk. NCERT publishes every chapter under the same file name the book tree uses
+ * (`jesc104.pdf`, `iemh103.pdf`), so a deployment can still send a student to the
+ * real textbook instead of showing "not available".
+ */
+export function chapterPdfRemoteUrl(code: string | null | undefined): string | null {
+  const file = chapterBookFile(code);
+  if (!file) return null;
+  return `https://ncert.nic.in/textbook/pdf/${file}`;
+}
+
 /** The absolute path of a chapter PDF on disk, or null when it is not available. */
 export function chapterPdfPath(code: string | null | undefined): string | null {
   const parsed = parseChapterCode(code);

@@ -8,7 +8,7 @@ import { StudentGradeAccessService } from '../common/services/student-grade-acce
 import { ContentScopeService } from '../common/content/content-scope.service';
 import { canonicalContentType } from '../common/content/content-types';
 import { normalizeChapterSegments, deriveConceptSegments, clipSegmentsToDuration } from '../common/books/chapter-segments';
-import { chapterPdfPath, chapterPdfFileName } from '../common/books/chapter-pdf';
+import { chapterPdfPath, chapterPdfFileName, chapterPdfRemoteUrl } from '../common/books/chapter-pdf';
 import { chapterPageFiles } from '../common/books/chapter-pages';
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
@@ -694,6 +694,7 @@ export class LearningService {
       subjectName: chapter.subject.name,
       summary: this.buildChapterSummary(chapter, items, concepts, itemsByConcept, masteryMap),
       pdfUrl: chapterPdfPath(chapter.code) ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf` : null,
+      externalPdfUrl: chapterPdfPath(chapter.code) ? null : chapterPdfRemoteUrl(chapter.code),
       chapterContent,
       concepts: concepts.map((c) => ({
         ...c,

@@ -69,6 +69,8 @@ export interface ChapterHub {
   order: number;
   summary: string | null;
   pdfUrl: string | null;
+  /** The official NCERT PDF of the same chapter, when this deployment ships no book files. */
+  externalPdfUrl: string | null;
   concepts: ChapterConcept[];
   videos: ChapterVideo[];
   progress: ChapterProgress;
@@ -246,6 +248,7 @@ export function normalizeChapterHub(raw: unknown): ChapterHub {
     order: num(rec.order) ?? 0,
     summary: text(rec.summary) ?? text(rec.description),
     pdfUrl: text(rec.pdfUrl),
+    externalPdfUrl: text(rec.externalPdfUrl),
     concepts: fallbackConcepts,
     videos: fallbackVideos,
     progress: {
