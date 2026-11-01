@@ -522,8 +522,8 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
 - Seeded: **229 chapters**, **1089 concepts**, **543 topics**, **241 video + 241 notes lessons**
-  and **2759 practice questions** (1309 original, 26 authored top-ups in
-  `apps/api/prisma/question-topups.ts`, and 1428 authored concept-coverage questions).
+  and **3335 practice questions** (1309 original, 26 authored top-ups in
+  `apps/api/prisma/question-topups.ts`, and 2004 authored concept-coverage questions).
   Every chapter in every class carries at least one video, one notes lesson and three questions,
   and **every one of the 1089 concepts now carries at least one question** — before the
   2026-11-01 coverage batch, 167 concepts had none, so their mastery could never leave
@@ -543,15 +543,15 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
     Science + Mathematics stay at 2 chapters each (class 3 Science has 3)
 - **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
   the seed are the real YouTube lengths, enforced by `audit-video-durations.mjs --min 120`.
-- All ten classes are **practisable**: 2759 questions cover every chapter and every concept,
+- All ten classes are **practisable**: 3335 questions cover every chapter and every concept,
   authored from the chapter's own textbook text where a book exists. The chapter-coverage audit
   (`audit-question-coverage.mjs`) fails when any chapter
   loses its questions. Class 10 carries >= 2 questions on every concept (a curated +184 batch:
   one MCQ per concept, one written question per chapter), and the 2026-11-01 coverage batches
-  gave every one of the 167 concepts that had **no** question three MCQs of its own. **782 of
-  the 1089 concepts now carry the three pieces of evidence mastery needs**; the other 307 carry
-  one or two, which reach mastery over repeat sessions but are still the target of
-  `scripts/qa/generate-concept-questions.mjs` — see `docs/QUESTION_BANK_GROWTH.md`.
+  gave every one of the 167 concepts that had **no** question three MCQs of its own. **All 1089
+  concepts now carry the three pieces of evidence mastery needs** — the 2026-11-01 coverage
+  batches topped every concept up to three, so no practice session can end in
+  `INSUFFICIENT_EVIDENCE` for want of content.
 - The NCERT **books** for classes 8, 9 and 10 are all extracted (see the section above) and their
   chapters are seeded; adding a class means adding its chapters, topics, concepts and lessons to
   `seed.ts`.
