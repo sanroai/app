@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-01 — The site was 7-19 s per request: the API ran in Singapore, the database in Virginia
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-01 |
+| Task | Move the API next to the database and fix the malformed-id 500 it exposed |
+| Reason | Every endpoint took 7-19 s even warm (login 15.5 s, `/learning/home` 15.5 s, `/learning/chapters/:id` 31 s). The Render service was created in **singapore** while Neon lives in **us-east-1 (Virginia)**, so each of the dozens of Prisma queries per request crossed the Pacific (~250 ms RTT) on a 0.1-CPU free instance. The reported "unable to log in" was the login request timing out before the 15 s client patience, not a wrong password - all five demo accounts authenticated fine with `Sanro@2026` (the local dev password is `Sanro@123`, which is what the error message was actually about) |
+| Entities affected | new Render service `sanro-api-va` (`srv-dbjecim7bikc73f774hg`, region `virginia`), Cloudflare DNS `api.sanroai.com`, `apps/api/src/common/filters/all-exceptions.filter.ts` |
+| Database changes | none |
+| API changes | a malformed `:id` now returns **400 `VALIDATION_ERROR`** even when Prisma reports it as an unknown request error (`Inconsistent column data: Error creating UUID`). Before, only the `P2023` code was recognised, so `/papers/:id`, `/questions/:id` and `/assessments/:id` with a non-UUID returned **500** |
+| Frontend changes | none |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | Latency through `api.sanroai.com` after the move: health **480 ms** (was 1.7-2.0 s), login **1.2 s** (was 15.5 s), `/learning/home` **459 ms** (was 15.5 s), `/learning/path` **654 ms** (was 15.9 s), chapters **898 ms** (was 31 s). Browser login on `https://sanroai.com/login` lands on the dashboard in **3.5 s**. `live-sweep.mjs` **50/50** and `live-sweep-2.mjs` **56/56** through the new host; CORS returns `access-control-allow-origin: https://sanroai.com`; APK still 80,831,728 bytes. Old Singapore service **suspended** |
+| Known issues | Render routes by `Host` header, so a CNAME change alone was not enough - the custom domain had to move from the old service to the new one (`api.sanroai.com` was `unverified` there and the request kept hitting Singapore) |
+
 ### 2026-11-01 — Concept coverage: every concept can now be practised (BUG-AA)
 
 | Field | Detail |
