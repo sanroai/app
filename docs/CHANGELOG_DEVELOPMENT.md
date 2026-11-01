@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-01 — Concept coverage: every concept can now be practised (BUG-AA)
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-01 |
+| Task | Author questions for the 167 concepts that had none, so their mastery can leave `INSUFFICIENT_EVIDENCE` |
+| Reason | The shipped APK showed `Excellent! Score: 100` followed by `INSUFFICIENT EVIDENCE` because mastery needs 3 answered questions (`MASTERY_EVIDENCE_MIN_QUESTIONS`) and that concept offered 1. A production audit found **167 of 1089 concepts had no question at all** - they could not be practised, diagnosed or mastered, so the core loop terminated for 15% of the curriculum |
+| Entities affected | `apps/api/prisma/seed.ts` (+499 questions in the bank and the `QUESTION_CONCEPT` map), `artifacts/qa/2026-11-01/questions-*.json` (9 authored fragments, 501 questions), `AGENTS.md`, `docs/qa/BUG_REPORT.md` (BUG-AA closed) |
+| Database changes | `sanro_dev`: 1335 -> **1830 questions**, 167 -> **0** concepts without a question, 105 -> **271** concepts with >= 3. Production `neondb`: +495 questions imported by natural key (`import-questions.mjs`), 0 failed |
+| API changes | none - the mastery rule and its thresholds are unchanged; the content that feeds it is now complete |
+| Frontend changes | none |
+| Seed/import changes | `apps/api/import-questions.mjs` rewritten to preload the target state in two queries and write only the missing rows (the earlier per-row version hung behind `connection_limit=1`) |
+| Migration | none - data only |
+| Verification | `validate-question-fragments.mjs`: 501 questions, **0 problems** (chapter and concept exist, four options with exactly one correct, `answer` equals the correct option text, no duplicate texts). `pnpm --filter @sanro/api typecheck` clean. `db:seed:demo` re-run; DB query shows 1830 questions, 0 zero-question concepts, 271 at >= 3. Every question was authored against the chapter's own seeded study notes |
+| Known issues | 818 concepts still carry one or two questions; they reach mastery over repeat sessions but three distinct items each is the target (`docs/QUESTION_BANK_GROWTH.md`) |
+
 ### 2026-11-01 — Mobile "All Time" leaderboard was serving the weekly window; unknown periods now rejected
 
 | Field | Detail |

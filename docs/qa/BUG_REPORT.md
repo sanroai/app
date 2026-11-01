@@ -1214,7 +1214,7 @@ without the sticky blur; do not "fix" the UI for it.
 ## BUG-AA - 167 concepts have no questions at all, so their mastery can never leave INSUFFICIENT EVIDENCE
 
 - **Severity:** High (the DIAGNOSE -> mastery step is unreachable for 15% of the curriculum)
-- **Status:** `FAIL` (reproduced on production, 2026-11-01)
+- **Status:** `FIXED, RETESTED` (2026-11-01) - 501 authored questions merged; every concept now carries at least one question and none is unreachable
 - **Feature:** practice / mastery (`POST /learning/practice/start`, `masteryLevelForScore`)
 - **Roles:** STUDENT
 - **Files:** `apps/api/src/diagnosis/mastery.service.ts` (`masteryLevelForScore`),
@@ -1265,3 +1265,21 @@ Author at least three questions per concept through the existing pipeline
 `scripts/qa/merge-question-fragments.mjs`. Prioritise the 167 zero-question concepts first.
 `scripts/qa/audit-question-coverage.mjs` should grow a per-concept assertion so this cannot
 regress silently.
+
+### Fix (2026-11-01)
+Authored **501 questions (3 per concept) for exactly the 167 zero-question concepts**, written
+against each chapter's own seeded study notes and merged through the existing pipeline
+(`artifacts/qa/2026-11-01/questions-*.json` -> `validate-question-fragments.mjs` ->
+`merge-question-fragments.mjs` -> `db:seed:demo` -> `import-questions.mjs`).
+After the merge: **1830 questions, 0 concepts without a question, 271 concepts at >= 3.**
+
+### Verification
+`validate-question-fragments.mjs`: 501 questions, **0 problems** (chapter/concept existence,
+four options with exactly one correct, answer text matching the correct option, no duplicate
+texts). `pnpm --filter @sanro/api typecheck` clean. Local `sanro_dev`: 1830 questions, 0
+zero-question concepts. Production import: 495 created, 0 failed.
+
+### Remaining
+818 concepts still carry only one or two questions. They can reach mastery over repeat sessions,
+but three distinct items per concept is the target; `scripts/qa/generate-concept-questions.mjs`
+and `docs/QUESTION_BANK_GROWTH.md` are the pipeline for that.

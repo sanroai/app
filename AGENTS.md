@@ -522,9 +522,12 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
 - Seeded: **229 chapters**, **1089 concepts**, **543 topics**, **241 video + 241 notes lessons**
-  and **1335 practice questions** (1309 plus 26 authored top-ups in
-  `apps/api/prisma/question-topups.ts` for the chapters that only had three). Every chapter in
-  every class carries at least one video, one notes lesson and three questions.
+  and **1830 practice questions** (1309 original, 26 authored top-ups in
+  `apps/api/prisma/question-topups.ts`, and 499 authored concept-coverage questions).
+  Every chapter in every class carries at least one video, one notes lesson and three questions,
+  and **every one of the 1089 concepts now carries at least one question** — before the
+  2026-11-01 coverage batch, 167 concepts had none, so their mastery could never leave
+  `INSUFFICIENT_EVIDENCE` (see BUG-AA in `docs/qa/BUG_REPORT.md`).
   - Class 10: 13 Science + 15 Math + 9 English chapters (the 2026 maths book has **14**
     chapters - *Constructions* was rationalised out - so `MAT-10-1..14` follow the book and
     *Constructions* is `MAT-10-15`, the one chapter with no textbook PDF)
@@ -540,12 +543,14 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
     Science + Mathematics stay at 2 chapters each (class 3 Science has 3)
 - **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
   the seed are the real YouTube lengths, enforced by `audit-video-durations.mjs --min 120`.
-- All ten classes are **practisable**: 1335 questions cover every chapter (class 1-4: 36/36/40/36,
-  class 5: 180, class 6: 152, class 7: 148, class 8: 122, class 9: 152, class 10: 407), authored
-  from the chapter's own textbook text where a book exists. The chapter-coverage audit
-  (`audit-question-coverage.mjs`) fails when any chapter loses its questions. Class 10 carries
-  >= 2 questions on every concept (a curated +184 batch: one MCQ per concept, one written question
-  per chapter); the rest of the bank is being topped up through
+- All ten classes are **practisable**: 1830 questions cover every chapter and every concept
+  (class 1-10: 81/80/83/80/300/214/282/151/152/407), authored from the chapter's own textbook
+  text where a book exists. The chapter-coverage audit (`audit-question-coverage.mjs`) fails when any chapter
+  loses its questions. Class 10 carries >= 2 questions on every concept (a curated +184 batch:
+  one MCQ per concept, one written question per chapter), and the 2026-11-01 coverage batch
+  gave every one of the 167 concepts that had **no** question three MCQs of its own. 271
+  concepts now carry the three pieces of evidence mastery needs; the other 818 carry one or two,
+  which reach mastery over repeat sessions but are still the target of
   `scripts/qa/generate-concept-questions.mjs` — see `docs/QUESTION_BANK_GROWTH.md`.
 - The NCERT **books** for classes 8, 9 and 10 are all extracted (see the section above) and their
   chapters are seeded; adding a class means adding its chapters, topics, concepts and lessons to
