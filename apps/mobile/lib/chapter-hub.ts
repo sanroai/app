@@ -63,6 +63,8 @@ export interface ChapterHub {
   order?: number;
   summary?: string | null;
   pdfUrl?: string | null;
+  /** The official NCERT PDF of the same chapter, when this deployment ships no book files. */
+  externalPdfUrl?: string | null;
   /** First video lesson's poster - a real frame from this chapter's lesson. */
   thumbnailUrl?: string | null;
   concepts?: ChapterConcept[];

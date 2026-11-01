@@ -50,6 +50,8 @@ export default function ChapterHubScreen() {
   const percent = progressPercent(chapter?.progress?.percent);
   const practice = chapter?.practice;
   const pdfUrl = chapter?.pdfUrl ?? null;
+  const externalPdfUrl = chapter?.externalPdfUrl ?? null;
+  const textbookAvailable = Boolean(pdfUrl || externalPdfUrl);
 
   const openConcept = (conceptId: string, section?: ConceptSection | null) =>
     router.push({
@@ -98,9 +100,15 @@ export default function ChapterHubScreen() {
     // The textbook is read as page images in the app: Android's WebView cannot
     // render a PDF, and a plain link only downloads it. Chapters without rendered
     // pages fall back to the signed PDF link opened by the platform viewer.
-    if (!pdfUrl || pdfBusy) return;
+    // A deployment that ships no book files at all sends `externalPdfUrl` instead
+    // (the official NCERT PDF), which opens in the browser.
+    if (!textbookAvailable || pdfBusy) return;
     setPdfBusy(true);
     try {
+      if (!pdfUrl && externalPdfUrl) {
+        await Linking.openURL(externalPdfUrl);
+        return;
+      }
       const pages = await apiAuthed<{ count: number }>(`/learning/chapters/${chapterId}/pages`);
       if (pages.count > 0) {
         router.push({ pathname: '/textbook/[chapterId]', params: { chapterId } });
@@ -364,12 +372,12 @@ export default function ChapterHubScreen() {
 
           <Card style={styles.actionCard}>
             <TouchableOpacity
-              style={[styles.actionRow, !pdfUrl && styles.actionRowDisabled]}
+              style={[styles.actionRow, !textbookAvailable && styles.actionRowDisabled]}
               onPress={openPdf}
-              disabled={!pdfUrl || pdfBusy}
+              disabled={!textbookAvailable || pdfBusy}
               accessibilityRole="button"
               accessibilityLabel="Open the chapter textbook"
-              accessibilityState={{ disabled: !pdfUrl || pdfBusy }}
+              accessibilityState={{ disabled: !textbookAvailable || pdfBusy }}
             >
               <View style={[styles.actionIcon, { backgroundColor: Pastel.sky }]}>
                 <Ionicons name="book" size={18} color={Colors.info} />
@@ -377,11 +385,13 @@ export default function ChapterHubScreen() {
               <View style={styles.actionInfo}>
                 <Text style={styles.actionTitle}>Read the textbook</Text>
                 <Text style={styles.actionSub}>
-                  {pdfUrl
-                    ? pdfBusy
-                      ? 'Opening the textbook…'
-                      : 'The NCERT chapter, page by page in the app'
-                    : 'No textbook available for this chapter yet'}
+                  {pdfBusy
+                    ? 'Opening the textbook…'
+                    : pdfUrl
+                      ? 'The NCERT chapter, page by page in the app'
+                      : externalPdfUrl
+                        ? 'The same chapter on the official NCERT site'
+                        : 'No textbook available for this chapter yet'}
                 </Text>
               </View>
               <Ionicons name="open-outline" size={18} color={Colors.textMuted} />

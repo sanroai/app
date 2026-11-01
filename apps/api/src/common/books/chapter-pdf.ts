@@ -24,6 +24,22 @@ interface SubjectBook {
  * `SCI-5-1`   -> class 5 EVS `eeev101.pdf` (the class-5 folder is `world`)
  */
 const CLASS_BOOKS: Record<string, Record<string, SubjectBook>> = {
+  '1': {
+    ENG: { prefix: 'aemr1', folder: 'english' },
+  },
+  '2': {
+    ENG: { prefix: 'bemr1', folder: 'english' },
+  },
+  '3': {
+    SCI: { prefix: 'ceev1', folder: 'world' },
+    MAT: { prefix: 'cemm1', folder: 'math' },
+    ENG: { prefix: 'cesa1', folder: 'english' },
+  },
+  '4': {
+    SCI: { prefix: 'deev1', folder: 'world' },
+    MAT: { prefix: 'demm1', folder: 'math' },
+    ENG: { prefix: 'desa1', folder: 'english' },
+  },
   '5': {
     SCI: { prefix: 'eeev1', folder: 'world' },
     MAT: { prefix: 'eemm1', folder: 'math' },

@@ -106,11 +106,17 @@ export class LearningController {
   async chapterPdfLink(
     @CurrentUser() user: RequestUser,
     @Param('chapterId') chapterId: string,
-  ): Promise<{ path: string; expiresAt: string }> {
+  ): Promise<{ path: string; expiresAt: string | null }> {
     this.uuidOrBadRequest(chapterId);
     const pdf = await this.service.getChapterPdf(user, chapterId);
-    if (!pdf) throw new NotFoundException('Chapter PDF not available');
-    return this.pdfTickets.issue(chapterId);
+    if (pdf) return this.pdfTickets.issue(chapterId);
+
+    // No book file on this deployment: hand back the official NCERT PDF instead of
+    // a 404. Clients open an absolute `path` unchanged, so a student still gets the
+    // chapter textbook.
+    const external = await this.service.getChapterExternalPdf(chapterId);
+    if (!external) throw new NotFoundException('Chapter PDF not available');
+    return { path: external, expiresAt: null };
   }
 
   /**

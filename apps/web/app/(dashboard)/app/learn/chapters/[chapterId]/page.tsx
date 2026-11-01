@@ -470,15 +470,22 @@ export default function ChapterHubPage() {
               <div className="min-w-0">
                 <p className="font-semibold text-surface-900">Read the textbook</p>
                 <p className="text-xs text-surface-400">
-                  {chapter.pdfUrl
-                    ? 'The NCERT chapter, page by page in the app'
-                    : chapter.externalPdfUrl
-                      ? 'The same chapter on the official NCERT site'
+                  {chapter.externalPdfUrl
+                    ? 'The same chapter on the official NCERT site'
+                    : chapter.pdfUrl
+                      ? 'The NCERT chapter, page by page in the app'
                       : 'No textbook available for this chapter yet'}
                 </p>
               </div>
             </div>
-            {chapter.pdfUrl ? (
+            {chapter.externalPdfUrl ? (
+              <Button variant="outline" className="rounded-xl" asChild>
+                <a href={chapter.externalPdfUrl} target="_blank" rel="noreferrer noopener">
+                  <BookOpen className="h-4 w-4" />
+                  Read on NCERT
+                </a>
+              </Button>
+            ) : chapter.pdfUrl ? (
               <Button
                 variant="outline"
                 className="rounded-xl"
@@ -493,13 +500,6 @@ export default function ChapterHubPage() {
               >
                 <BookOpen className="h-4 w-4" />
                 {textbook.data?.count ? 'Open textbook' : 'View chapter PDF'}
-              </Button>
-            ) : chapter.externalPdfUrl ? (
-              <Button variant="outline" className="rounded-xl" asChild>
-                <a href={chapter.externalPdfUrl} target="_blank" rel="noreferrer noopener">
-                  <BookOpen className="h-4 w-4" />
-                  Read on NCERT
-                </a>
               </Button>
             ) : (
               <Tooltip>

@@ -693,7 +693,11 @@ export class LearningService {
       subjectInfo: chapter.subject,
       subjectName: chapter.subject.name,
       summary: this.buildChapterSummary(chapter, items, concepts, itemsByConcept, masteryMap),
-      pdfUrl: chapterPdfPath(chapter.code) ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf` : null,
+      pdfUrl: chapterPdfPath(chapter.code)
+        ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf`
+        : chapterPdfRemoteUrl(chapter.code)
+          ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf`
+          : null,
       externalPdfUrl: chapterPdfPath(chapter.code) ? null : chapterPdfRemoteUrl(chapter.code),
       chapterContent,
       concepts: concepts.map((c) => ({
@@ -1702,6 +1706,24 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     const path = chapterPdfPath(chapter.code);
     if (!path) return null;
     return { path, fileName: chapterPdfFileName(chapter.name, chapter.code) };
+  }
+
+  /**
+   * The official NCERT PDF for a chapter this deployment ships no book file for,
+   * or null when the chapter has no book at all.
+   *
+   * Used by the signed-link route so a client still gets a usable textbook: the
+   * response carries an absolute URL, and both clients open an absolute `path`
+   * unchanged.
+   */
+  async getChapterExternalPdf(chapterId: string): Promise<string | null> {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      select: { code: true },
+    });
+    if (!chapter) return null;
+    if (chapterPdfPath(chapter.code)) return null;
+    return chapterPdfRemoteUrl(chapter.code);
   }
 
   /** One rendered page of a chapter textbook (1-based), or null when absent. */
