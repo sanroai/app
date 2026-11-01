@@ -1210,3 +1210,58 @@ render the page twice with an offset ghost. The DOM is single (`1 header`, `1 ma
 11 cards) and element screenshots (`main`) plus the on-device captures are clean, so this is
 a headless compositor artifact. QA captures should use element screenshots or a viewport
 without the sticky blur; do not "fix" the UI for it.
+
+## BUG-AA - 167 concepts have no questions at all, so their mastery can never leave INSUFFICIENT EVIDENCE
+
+- **Severity:** High (the DIAGNOSE -> mastery step is unreachable for 15% of the curriculum)
+- **Status:** `FAIL` (reproduced on production, 2026-11-01)
+- **Feature:** practice / mastery (`POST /learning/practice/start`, `masteryLevelForScore`)
+- **Roles:** STUDENT
+- **Files:** `apps/api/src/diagnosis/mastery.service.ts` (`masteryLevelForScore`),
+  `packages/config` (`MASTERY_EVIDENCE_MIN_QUESTIONS = 3`), the seed question bank
+
+### Reproduction
+1. Install the shipped release APK (`https://sanroai.com/downloads/sanroai.apk`) and sign in
+   as `student@sanroai.com`.
+2. Library -> Class 1 Science -> Chapter 1 *Plants and Animals* -> concept *Flowers and Fruits*
+   -> Practice. The screen offers **1 question**.
+3. Answer it correctly and submit.
+
+### Expected
+The concept advances out of `INSUFFICIENT_EVIDENCE` once the evidence rule is satisfied.
+
+### Actual
+`Excellent! Score: 100 - Accuracy 100% - Mastery updated` followed by
+`INSUFFICIENT EVIDENCE - 100% overall`. A concept needs `MASTERY_EVIDENCE_MIN_QUESTIONS = 3`
+answered questions; this one can only ever supply 1 per session.
+
+### Scope (production `neondb`, 1089 concepts)
+| Class | Concepts | 0 questions | 1-2 questions | >= 3 (can master) |
+|---|---|---|---|---|
+| 1 | 36 | 15 | 16 | 5 |
+| 2 | 36 | 15 | 16 | 5 |
+| 3 | 40 | 15 | 20 | 5 |
+| 4 | 36 | 15 | 16 | 5 |
+| 5 | 209 | 40 | 169 | 0 |
+| 6 | 151 | 20 | 131 | 0 |
+| 7 | 189 | 45 | 144 | 0 |
+| 8 | 128 | 2 | 121 | 5 |
+| 9 | 116 | 0 | 110 | 6 |
+| 10 | 148 | 0 | 69 | 79 |
+
+Only **105 of 1089 concepts (9.6%)** carry the three questions the rule needs. The 167
+zero-question concepts are concentrated in primary English (classes 1-5: 80), class 5 Science
+(20), and classes 6-7 (65 across English, Mathematics and Science) - those cannot be practised
+or diagnosed at all.
+
+### Why it is not simply "the rule is strict"
+`applyAttemptEvidence` accumulates `attempts` across sessions, so a 1-question concept *can*
+reach three pieces of evidence after three sessions of the same item - weak pedagogy, but not
+blocked. A 0-question concept is genuinely unreachable.
+
+### Fix
+Author at least three questions per concept through the existing pipeline
+(`scripts/qa/generate-concept-questions.mjs`, `docs/QUESTION_BANK_GROWTH.md`) and merge with
+`scripts/qa/merge-question-fragments.mjs`. Prioritise the 167 zero-question concepts first.
+`scripts/qa/audit-question-coverage.mjs` should grow a per-concept assertion so this cannot
+regress silently.
