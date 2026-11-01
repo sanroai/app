@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-01 — Keep-warm so the free instance stops sleeping between visits
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-01 |
+| Task | Stop the Render free instance from spinning down, which made the first request after a quiet period take ~50 s |
+| Reason | Render's free plan sleeps a web service after ~15 minutes without traffic. With the API now in Virginia every warm request is under 1 s, so the cold start had become the dominant cost: a student opening the app after a break waited 30-60 s for the first screen and often gave up (it reads as "the site is broken") |
+| Entities affected | Cloudflare Worker `sanro-api-keepwarm` (account `bb1ee0676e07043815c4c0e60d258ab5`, workers.dev subdomain `sanroaiapp`), cron `*/5 * * * *` |
+| Database changes | none |
+| API changes | none - the worker only GETs `/api/v1/health` |
+| Frontend changes | none |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | Worker uploaded (200) and the schedule registered (`*/5 * * * *`); Render `/instances` shows one `RUNNING` instance. The worker pings only between 00:30 and 17:30 UTC (06:00-23:00 IST) so a month of keep-warm is ~510 of the 750 free instance-hours, leaving headroom. On-device: release APK login to dashboard **5.7 s** (previously 15-50 s) |
+| Known issues | Outside the keep-warm window the service still sleeps, so a 3 a.m. visit pays the cold start once; the window is a deliberate trade to stay inside the free instance-hour budget |
+
 ### 2026-11-01 — The site was 7-19 s per request: the API ran in Singapore, the database in Virginia
 
 | Field | Detail |
