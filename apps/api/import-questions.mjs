@@ -1,44 +1,45 @@
-// Imports every question from the local export into the target database,
-// resolving chapter/concept by natural key. Idempotent: a question is skipped
-// when the same text already exists in the same chapter.
+// Imports the local question bank into another database, resolving chapter and
+// concept by natural key. Idempotent: a question is skipped when the same text
+// already exists in the same chapter.
+//
+// The whole target state is preloaded in two queries and only the missing rows
+// are written, so this is ~N writes instead of 2N round trips.
 import fs from 'node:fs';
 import { PrismaClient } from '@prisma/client';
 
 const rows = JSON.parse(fs.readFileSync('../../artifacts/qa/2026-10-30/question-export.json', 'utf8'));
 const prisma = new PrismaClient({ datasources: { db: { url: process.env.DATABASE_URL } } });
 
+const started = Date.now();
+const step = (label) => console.log(`[${((Date.now() - started) / 1000).toFixed(1)}s] ${label}`);
+
 const admin = await prisma.user.findFirst({ where: { isSuperAdmin: true }, select: { id: true } });
-if (!admin) {
-  console.error('no super admin on the target database');
-  process.exit(1);
-}
+step(`connected; super admin ${admin ? 'found' : 'MISSING'}`);
+if (!admin) process.exit(1);
 
 const chapters = await prisma.chapter.findMany({
   select: { id: true, code: true, grade: true, subjectId: true, subject: { select: { boardId: true } } },
 });
 const chapterByCode = new Map(chapters.map((c) => [c.code, c]));
+step(`chapters ${chapters.length}`);
+
+const existing = await prisma.question.findMany({ select: { chapterId: true, text: true } });
+const existingKeys = new Set(existing.map((q) => `${q.chapterId}::${q.text}`));
+step(`existing questions ${existing.length}`);
+
+const pending = [];
+for (const row of rows) {
+  const chapter = chapterByCode.get(row.chapterCode);
+  if (!chapter) continue;
+  if (existingKeys.has(`${chapter.id}::${row.text}`)) continue;
+  pending.push({ row, chapter });
+}
+step(`missing ${pending.length}`);
 
 let created = 0;
-let skipped = 0;
 let failed = 0;
-let options = 0;
-
-for (const [index, row] of rows.entries()) {
-  const chapter = chapterByCode.get(row.chapterCode);
-  if (!chapter) {
-    skipped += 1;
-    continue;
-  }
+for (const [index, { row, chapter }] of pending.entries()) {
   try {
-    const existing = await prisma.question.findFirst({
-      where: { text: row.text, chapterId: chapter.id },
-      select: { id: true },
-    });
-    if (existing) {
-      skipped += 1;
-      continue;
-    }
-
     const concept = row.conceptName
       ? await prisma.concept.findFirst({
           where: { name: row.conceptName, topic: { chapterId: chapter.id } },
@@ -70,13 +71,13 @@ for (const [index, row] of rows.entries()) {
       },
     });
     created += 1;
-    options += row.options?.length ?? 0;
   } catch (error) {
     failed += 1;
-    if (failed <= 3) console.log('failed row', index, String(error).slice(0, 160));
+    console.log('failed:', String(error).slice(0, 200));
   }
-  if ((index + 1) % 100 === 0) console.log(`progress ${index + 1}/${rows.length} created=${created} skipped=${skipped}`);
+  if ((index + 1) % 10 === 0) step(`progress ${index + 1}/${pending.length} created=${created} failed=${failed}`);
 }
 
-console.log(`done: created=${created} options=${options} skipped=${skipped} failed=${failed}`);
+const total = await prisma.question.count();
+step(`done: created=${created} failed=${failed} total=${total}`);
 await prisma.$disconnect();

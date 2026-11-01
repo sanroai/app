@@ -64,9 +64,9 @@ Copy this block for each new entry:
 | Database changes | none |
 | API changes | `GET /learning/gamification/leaderboard?period=` accepts `weekly|monthly|all|allTime` (case-insensitive) and returns **400** for anything else; the response `period` field is now the resolved value (`allTime` → `all`) |
 | Frontend changes | none needed - the mobile app already sends `allTime`; the web app sends `weekly|monthly|all` |
-| Seed/import changes | `apps/api/import-questions.mjs` added: imports the local question bank into another database by chapter code, skipping a question that already exists in that chapter |
+| Seed/import changes | `apps/api/import-questions.mjs` added: imports the local question bank into another database by chapter code, preloading the target state in two queries and writing only the missing rows. Run against Neon it closed a **106-question gap** (1229 → **1335**, matching the local bank; 4212 options, every question concept-linked) |
 | Migration | none - data only |
-| Verification | `pnpm --filter @sanro/api typecheck` clean; `pnpm --filter @sanro/api test` **639/639**; Render deploy `dep-dbj82k0ae00c73dfi16g` live; `period=weekly/monthly/all/allTime` all 200 with `period` echoing the resolved window and `period=nonsense` **400**; `live-sweep.mjs` **50/50**; `live-sweep-2.mjs` **56/56** (completion round trip with undo, retest, parent/teacher/admin detail paths, 12 auth edges) |
+| Verification | `pnpm --filter @sanro/api typecheck` clean; `pnpm --filter @sanro/api test` **639/639**; Render deploy `dep-dbj82k0ae00c73dfi16g` live; `period=weekly/monthly/all/allTime` all 200 with `period` echoing the resolved window and `period=nonsense` **400**; `live-sweep.mjs` **50/50**; `live-sweep-2.mjs` **56/56** (completion round trip with undo, retest, parent/teacher/admin detail paths, 12 auth edges); Neon: **0 chapters under 3 questions** (fewest 4, most 17); live practice start returns 4 / 7 / 9 questions for class 1 / 8 / 10 |
 | Known issues | `GET /parents/me/dashboard` answers 200 with `children: []` for non-parents. That is the documented contract (`test/role-permission-matrix.e2e-spec.ts` asserts SA/IA/TEACHER/STUDENT may call it) and it exposes no data, so the guard was deliberately not added |
 
 ### 2026-10-31 — Production textbook fallback + the two hosting faults behind the failed deploys
