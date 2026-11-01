@@ -21,15 +21,18 @@ interface ErrorBody {
 }
 
 /**
- * Prisma throws P2023 when a value that must be a UUID is not parseable as one,
- * e.g. a client sent `not-a-uuid` on a `:id` route. Treat it as a 400.
+ * Prisma rejects a value that must be a UUID but is not parseable as one. Depending
+ * on the client version that surfaces either as a `P2023` known error or as an
+ * unknown request error whose message starts `Inconsistent column data: Error
+ * creating UUID`. Both mean the same thing - a client sent `not-a-uuid` on an
+ * `:id` route - so both are treated as a bad request rather than a server fault.
  */
 function isMalformedUuid(exception: unknown): boolean {
-  return (
-    typeof exception === 'object' &&
-    exception !== null &&
-    (exception as { code?: unknown }).code === 'P2023'
-  );
+  if (typeof exception !== 'object' || exception === null) return false;
+  const code = (exception as { code?: unknown }).code;
+  if (code === 'P2023') return true;
+  const message = (exception as { message?: unknown }).message;
+  return typeof message === 'string' && /Inconsistent column data: Error creating UUID/i.test(message);
 }
 
 /**
