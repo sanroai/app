@@ -232,6 +232,10 @@ export class LearningController {
     @Query('period') period?: string,
     @Query('groupId') groupId?: string,
   ) {
+    const allowed = ['weekly', 'monthly', 'all', 'alltime'];
+    if (period && !allowed.includes(period.toLowerCase())) {
+      throw new BadRequestException(`period must be one of ${allowed.join(', ')}`);
+    }
     return this.service.getLeaderboard(user, period ?? 'weekly', groupId);
   }
 

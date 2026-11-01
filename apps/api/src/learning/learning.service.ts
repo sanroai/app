@@ -2088,7 +2088,10 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     // A window is read from the XP ledger, the lifetime from the profile
     // counter: the counter is the lifetime, the ledger is what happened inside
     // the window.
-    const periodKey = period.toLowerCase();
+    const rawPeriod = period.toLowerCase();
+    // The mobile client has always sent `allTime`; treat it as the all-time window
+    // instead of silently falling back to the weekly one.
+    const periodKey = rawPeriod === 'alltime' ? 'all' : rawPeriod;
     const windowDays = periodKey in LEADERBOARD_PERIOD_DAYS ? LEADERBOARD_PERIOD_DAYS[periodKey] : 7;
     // "This week" must mean the calendar week, not a rolling 7x24h window - otherwise
     // Monday's XP counts into last week and the label lies.
@@ -2139,7 +2142,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     return {
       entries,
       myRank,
-      period,
+      period: periodKey,
       groupId: groupId ?? null,
       groups: scopes.map((g) => ({ id: g.id, name: g.name, grade: g.grade })),
     };
