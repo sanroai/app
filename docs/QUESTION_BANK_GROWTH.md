@@ -103,3 +103,17 @@ zero validator problems) and left the generator ready for the rest.
 2. Curate classes 5-7, where concepts are simpler and one MCQ per concept is
    enough only if there are four concepts.
 3. Classes 1-4 stay at 4 questions per chapter by design (young learners).
+
+## Option order (added 2026-11-01)
+
+An authored batch tends to list the correct option first, which teaches students to tap the
+first choice. Two rules keep that from happening:
+
+- After a merge + seed, run `node apps/api/normalise-option-order.mjs` (with `DATABASE_URL`
+  pointing at the target database, run it once per database). It gives every question's options
+  a distinct `0..n-1` `order` and then rotates that order per question, with the rotation also
+  advancing within a concept so consecutive questions do not share the same slot. Before it ran,
+  4728 of 6192 options sat at `order = 0` and the display order was whatever Postgres returned.
+- Grading is unaffected: the answer a student submits is the option **text**
+  (`Question.answer`), so reordering can never change what is correct.
+  `probe-practice-scoring.mjs` and the live practice sweep still score 100 after a reorder.
