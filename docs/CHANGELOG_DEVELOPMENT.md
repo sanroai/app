@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-01 — Mobile "All Time" leaderboard was serving the weekly window; unknown periods now rejected
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-01 |
+| Task | Make the leaderboard honour the mobile client's `allTime` period and refuse genuinely unknown periods |
+| Reason | The second live sweep called `?period=nonsense` and got 200. Reading the resolver showed why: `LEADERBOARD_PERIOD_DAYS` holds `weekly/monthly/all`, and anything else falls back to **7 days**. The mobile app sends `allTime` (`apps/mobile/app/leaderboard.tsx`), so its "All Time" tab had always shown a weekly board - and the shipped APK cannot be changed server-side, only the API can |
+| Entities affected | `apps/api/src/learning/learning.controller.ts` (period allow-list, 400 on unknown), `apps/api/src/learning/learning.service.ts` (`allTime` → `all`, response `period` returns the resolved window) |
+| Database changes | none |
+| API changes | `GET /learning/gamification/leaderboard?period=` accepts `weekly|monthly|all|allTime` (case-insensitive) and returns **400** for anything else; the response `period` field is now the resolved value (`allTime` → `all`) |
+| Frontend changes | none needed - the mobile app already sends `allTime`; the web app sends `weekly|monthly|all` |
+| Seed/import changes | `apps/api/import-questions.mjs` added: imports the local question bank into another database by chapter code, skipping a question that already exists in that chapter |
+| Migration | none - data only |
+| Verification | `pnpm --filter @sanro/api typecheck` clean; `pnpm --filter @sanro/api test` **639/639**; Render deploy `dep-dbj82k0ae00c73dfi16g` live; `period=weekly/monthly/all/allTime` all 200 with `period` echoing the resolved window and `period=nonsense` **400**; `live-sweep.mjs` **50/50**; `live-sweep-2.mjs` **56/56** (completion round trip with undo, retest, parent/teacher/admin detail paths, 12 auth edges) |
+| Known issues | `GET /parents/me/dashboard` answers 200 with `children: []` for non-parents. That is the documented contract (`test/role-permission-matrix.e2e-spec.ts` asserts SA/IA/TEACHER/STUDENT may call it) and it exposes no data, so the guard was deliberately not added |
+
 ### 2026-10-31 — Production textbook fallback + the two hosting faults behind the failed deploys
 
 | Field | Detail |
