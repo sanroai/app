@@ -273,7 +273,13 @@ export class AssessmentsService {
     const rows = await this.prisma.assessmentAssignment.findMany({
       where: { studentId: student.id },
       include: {
-        assessment: { include: { subject: { select: { name: true } } } },
+        assessment: {
+          include: {
+            subject: { select: { name: true } },
+            // The Tests tab shows "N questions"; it was hardcoded to 0.
+            _count: { select: { questions: true } },
+          },
+        },
       },
       orderBy: { assignedAt: 'desc' },
     });
@@ -283,18 +289,21 @@ export class AssessmentsService {
     });
     return {
       studentId: student.id,
-      assignments: rows.map((r) => ({
-        ...r,
-        questionCount: 0,
-        attempts: attempts.filter((a) => a.assessmentId === r.assessmentId).map((a) => ({
-          id: a.id,
-          attemptIndex: a.attemptIndex,
-          status: a.status,
-          score: a.score,
-          maxScore: a.maxScore,
-          startedAt: a.startedAt,
-          submittedAt: a.submittedAt,
-        })),
+      assignments: rows.map(({ assessment: { _count, ...assessment }, ...assignment }) => ({
+        ...assignment,
+        assessment,
+        questionCount: _count.questions,
+        attempts: attempts
+          .filter((a) => a.assessmentId === assignment.assessmentId)
+          .map((a) => ({
+            id: a.id,
+            attemptIndex: a.attemptIndex,
+            status: a.status,
+            score: a.score,
+            maxScore: a.maxScore,
+            startedAt: a.startedAt,
+            submittedAt: a.submittedAt,
+          })),
       })),
     };
   }
@@ -324,25 +333,35 @@ export class AssessmentsService {
       throw new ForbiddenException('Assessment deadline has passed');
     }
 
+    // Resume before counting. The old code derived the attempt index from the
+    // attempt count, so tapping Start again (backgrounding the app, a dropped
+    // connection, a second device) either created a second attempt and orphaned
+    // the first, or - with attemptsAllowed = 1 - threw "Attempt limit reached" at
+    // a student who had not submitted anything.
+    const inProgress = await this.prisma.assessmentAttempt.findFirst({
+      where: { assessmentId, studentId: student.id, status: 'IN_PROGRESS' },
+      orderBy: { attemptIndex: 'asc' },
+    });
+
     const attemptCount = await this.prisma.assessmentAttempt.count({
       where: { assessmentId, studentId: student.id },
     });
-    if (attemptCount >= assessment.attemptsAllowed) {
+    if (!inProgress && attemptCount >= assessment.attemptsAllowed) {
       throw new ForbiddenException('Attempt limit reached for this assessment');
     }
 
-    const attemptIndex = attemptCount + 1;
-    const existing = await this.prisma.assessmentAttempt.findUnique({
-      where: {
-        assessmentId_studentId_attemptIndex: { assessmentId, studentId: student.id, attemptIndex },
-      },
-    });
+    const attemptIndex = inProgress?.attemptIndex ?? attemptCount + 1;
     const attempt =
-      existing && existing.status === 'IN_PROGRESS'
-        ? existing
-        : await this.prisma.assessmentAttempt.create({
-            data: { assessmentId, studentId: student.id, attemptIndex, status: 'IN_PROGRESS', startedAt: now },
-          });
+      inProgress ??
+      (await this.prisma.assessmentAttempt.create({
+        data: { assessmentId, studentId: student.id, attemptIndex, status: 'IN_PROGRESS', startedAt: now },
+      }));
+
+    // The paper is over when the clock says so, even if the client never said so.
+    const expiresAt = attempt.startedAt
+      ? new Date(attempt.startedAt.getTime() + assessment.durationMinutes * 60_000)
+      : null;
+    const expired = Boolean(expiresAt && now > expiresAt);
 
     const questions = await this.prisma.assessmentQuestion.findMany({
       where: { assessmentId },
@@ -351,6 +370,10 @@ export class AssessmentsService {
     return {
       attemptId: attempt.id,
       attemptIndex,
+      resumed: Boolean(inProgress),
+      startedAt: attempt.startedAt,
+      expiresAt,
+      expired,
       durationMinutes: assessment.durationMinutes,
       dueAt: assessment.dueAt,
       autoSubmitOnExpiry: assessment.autoSubmitOnExpiry,
@@ -377,6 +400,16 @@ export class AssessmentsService {
     });
     if (!attempt) throw new NotFoundException('Attempt not found');
     if (attempt.status !== 'IN_PROGRESS') throw new ConflictException('Attempt is already submitted');
+
+    // The timer is enforced server-side too: once it has run out the saved answers
+    // are frozen and the student must submit what they have, rather than the client
+    // timer being the only thing that ever expires.
+    if (attempt.assessment.autoSubmitOnExpiry && attempt.startedAt) {
+      const elapsed = (Date.now() - attempt.startedAt.getTime()) / 1000;
+      if (elapsed > attempt.assessment.durationMinutes * 60 + 60) {
+        throw new ConflictException('The timer has run out — submit your attempt to finish it');
+      }
+    }
 
     const allowedIds = new Set(attempt.assessment.questions.map((q) => q.id));
     const marksById = new Map(attempt.assessment.questions.map((q) => [q.id, q.marks]));
@@ -416,6 +449,12 @@ export class AssessmentsService {
     const timeSpentSeconds = attempt.startedAt
       ? Math.round((submittedAt.getTime() - attempt.startedAt.getTime()) / 1000)
       : 0;
+    // `autoSubmitOnExpiry` is not decorative: an attempt that ran past its duration
+    // (plus a minute of clock drift) is recorded as AUTO_SUBMITTED, so a teacher can
+    // tell it apart from a normal finish instead of both looking identical.
+    const ranOut =
+      attempt.assessment.autoSubmitOnExpiry &&
+      timeSpentSeconds > attempt.assessment.durationMinutes * 60 + 60;
 
     let score = 0;
     let correctCount = 0;
@@ -487,7 +526,7 @@ export class AssessmentsService {
     const updated = await this.prisma.assessmentAttempt.update({
       where: { id: attempt.id },
       data: {
-        status: 'SUBMITTED',
+        status: ranOut ? 'AUTO_SUBMITTED' : 'SUBMITTED',
         submittedAt,
         score,
         maxScore,
@@ -523,6 +562,7 @@ export class AssessmentsService {
       wrongCount,
       skippedCount,
       pendingGrading: pendingCount,
+      expired: ranOut,
       diagnosis,
       note: pendingCount > 0 ? 'Subjective answers are being reviewed by your teacher.' : 'All questions graded.',
     };
@@ -559,8 +599,13 @@ export class AssessmentsService {
     // account — the previous `OR student.institutionId` clause let any
     // same-tenant student read a classmate's attempt, name and roll number.
     const isStaff = user.role === 'INSTITUTION_ADMIN' || user.role === 'TEACHER' || user.role === 'SUPER_ADMIN';
-    if (isStaff && resolvedId) {
-      attemptWhere.OR = [{ student: { institutionId: resolvedId } }, { student: { userId: user.sub } }];
+    if (isStaff) {
+      // An institution admin/teacher is confined to their own institution; a super
+      // admin has no institution scope and may read any attempt (the old code
+      // scoped them to their own user id, so every review 404'd).
+      if (resolvedId) {
+        attemptWhere.OR = [{ student: { institutionId: resolvedId } }, { student: { userId: user.sub } }];
+      }
     } else {
       attemptWhere.student = { userId: user.sub };
     }
@@ -634,6 +679,8 @@ export class AssessmentsService {
           order: q.order,
           options: isStudentOwner ? sanitizeOptions(q.options) : q.options,
           yourAnswer: a?.answer ?? null,
+          /** The answer row id, so a grading screen can address one answer. */
+          answerId: a?.id ?? null,
           correctAnswer: showResult ? q.answer : isStudentOwner ? null : q.answer,
           isCorrect: a?.isCorrect ?? null,
           marksAwarded: a?.marksAwarded ?? null,
@@ -711,6 +758,11 @@ export class AssessmentsService {
   }
 
   async gradeAnswer(user: RequestUser, attemptId: string, answerId: string, marksAwarded: number) {
+    // A missing or non-numeric mark used to reach Prisma as NaN and surface as a
+    // 500. It is a client mistake, so it is a 400.
+    if (!Number.isFinite(marksAwarded) || marksAwarded < 0) {
+      throw new BadRequestException('marksAwarded must be a number of zero or more');
+    }
     const resolvedId = this.tenant.assertInstitutionAccess(user);
     await this.requireStaffRole(user);
     const attemptWhere: Prisma.AssessmentAttemptWhereInput = { id: attemptId };
@@ -721,10 +773,20 @@ export class AssessmentsService {
     });
     if (!attempt) throw new NotFoundException('Attempt not found');
 
-    const answerRow = await this.prisma.studentAnswer.findUnique({
-      where: { id: answerId },
-      include: { question: true },
-    });
+    const answerRow =
+      (await this.prisma.studentAnswer.findUnique({
+        where: { id: answerId },
+        include: { question: true },
+      })) ??
+      // The grading screen only has the question id from the attempt payload, not
+      // the answer row id, so it sent a question id and every save 404'd. Accept
+      // both: an answer row id, or the question it belongs to in this attempt.
+      (await this.prisma.studentAnswer.findUnique({
+        where: {
+          attemptId_assessmentQuestionId: { attemptId: attempt.id, assessmentQuestionId: answerId },
+        },
+        include: { question: true },
+      }));
     if (!answerRow || answerRow.attemptId !== attempt.id) throw new NotFoundException('Answer not found');
 
     const maxMarks = answerRow.maxMarks ?? answerRow.question.marks;
@@ -732,7 +794,8 @@ export class AssessmentsService {
     const isCorrect = awarded >= Math.ceil(maxMarks / 2);
 
     await this.prisma.studentAnswer.update({
-      where: { id: answerId },
+      // `answerRow.id`, not `answerId`: the caller may have sent a question id.
+      where: { id: answerRow.id },
       data: { marksAwarded: awarded, isCorrect, gradedByTeacher: true, gradedById: user.sub, gradedAt: new Date() },
     });
 
