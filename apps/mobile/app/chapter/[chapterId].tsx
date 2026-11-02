@@ -269,10 +269,10 @@ export default function ChapterHubScreen() {
           </Card>
         ) : null}
 
-        {/* Contents - the chapter's map, in curriculum order */}
+        {/* Concepts - the chapter's map, in curriculum order */}
         <View style={styles.section}>
           <View style={styles.sectionHead}>
-            <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Contents</Text>
+            <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Concepts</Text>
             <Text style={styles.sectionCount}>
               {concepts.length} concept{concepts.length === 1 ? '' : 's'}
             </Text>

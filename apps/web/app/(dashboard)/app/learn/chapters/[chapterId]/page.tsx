@@ -329,13 +329,13 @@ export default function ChapterHubPage() {
 
       {practiceError ? <ErrorBanner message={practiceError} /> : null}
 
-      {/* Contents - the chapter's map, in the order it is taught. Every row
+      {/* Concepts - the chapter's map, in the order it is taught. Every row
           carries the part of the video that teaches it, so a tap lands there. */}
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-3">
           <h2 className="flex items-center gap-2 text-lg font-bold text-surface-900">
             <Brain className="h-5 w-5 text-brand-600" />
-            Contents
+            Concepts
           </h2>
           <span className="text-xs text-surface-400">
             {chapter.concepts.length} concept{chapter.concepts.length === 1 ? '' : 's'}

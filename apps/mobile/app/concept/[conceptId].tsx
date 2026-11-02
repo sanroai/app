@@ -14,6 +14,7 @@ import { ArConceptPanel } from '../../components/ArConceptPanel';
 import { CONCEPT_MODES } from '../../components/concept-modes';
 import { YouTubePlayer } from '../../components/YouTubePlayer';
 import { Markdown } from '../../components/Markdown';
+import * as Clipboard from 'expo-clipboard';
 
 const TABS = CONCEPT_MODES;
 
@@ -29,7 +30,28 @@ export default function ConceptDetailScreen() {
   const [fromStart, setFromStart] = useState(false);
   const router = useRouter();
   const [tab, setTab] = useState(tabParam === 'practice' || tabParam === 'ask' ? tabParam : 'learn');
-  const [openNote, setOpenNote] = useState<string | null>(null);
+  // Notes are open by default (a student who must tap twice to read them just
+  // leaves); `closedNotes` records the exceptions so nothing depends on the async
+  // content arriving before the first render.
+  const [closedNotes, setClosedNotes] = useState<string[]>([]);
+  const [copiedNote, setCopiedNote] = useState<string | null>(null);
+
+  /**
+   * Copy a note (or all notes) to the clipboard.
+   *
+   * The button is the reliable path on Android; long-press selection still works
+   * on the text itself because the notes render with `selectable`.
+   */
+  const copyNote = async (id: string, text: string) => {
+    if (!text.trim()) return;
+    try {
+      await Clipboard.setStringAsync(text);
+      setCopiedNote(id);
+      setTimeout(() => setCopiedNote((current) => (current === id ? null : current)), 2000);
+    } catch {
+      Alert.alert('Copy', 'Long-press the text to select and copy it.');
+    }
+  };
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
   const completeContent = useCompleteContent();
   const uncompleteContent = useUncompleteContent();
@@ -271,19 +293,80 @@ export default function ConceptDetailScreen() {
               </View>
             )}
 
+            <Card style={styles.revisionCard}>
+              <View style={styles.revisionHeader}>
+                <Ionicons name="bulb" size={20} color={Colors.warning} />
+                <Text style={styles.revisionTitle}>Quick Revision</Text>
+              </View>
+              {concept.description ? (
+                <View style={{ marginTop: Spacing.sm }}>
+                  <Markdown selectable>{concept.description}</Markdown>
+                </View>
+              ) : null}
+              {notes.length > 0 ? (
+                <View style={{ marginTop: Spacing.sm, gap: 4 }}>
+                  {notes.slice(0, 4).map((n) => {
+                    const noteUrl = n.url ?? (n as { body?: string }).body ?? '';
+                    return (
+                      <TouchableOpacity
+                        key={n.id}
+                        style={styles.revisionItem}
+                        onPress={() => noteUrl ? Linking.openURL(noteUrl) : null}
+                      >
+                        <Ionicons name="document-text-outline" size={14} color={Colors.textMuted} />
+                        <Text style={styles.revisionItemText} numberOfLines={1}>{n.title}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text style={styles.revisionBody}>
+                  Review the key definitions above before your next test, then use Practice to test yourself.
+                </Text>
+              )}
+            </Card>
+
+            {/* Study notes last on the page: the reading material follows the video
+                and the summary, and every note is selectable and copyable. */}
             {notes.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Study Notes</Text>
+                <View style={styles.sectionHead}>
+                  <Text style={[styles.sectionTitle, styles.sectionTitleInline]}>Study notes</Text>
+                  <TouchableOpacity
+                    style={styles.copyBtn}
+                    onPress={() =>
+                      void copyNote(
+                        'all',
+                        notes.map((n) => `${n.title}\n\n${n.description ?? ''}`).join('\n\n---\n\n'),
+                      )
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel="Copy all study notes"
+                  >
+                    <Ionicons
+                      name={copiedNote === 'all' ? 'checkmark' : 'copy-outline'}
+                      size={14}
+                      color={copiedNote === 'all' ? Colors.success : Colors.primary}
+                    />
+                    <Text style={[styles.copyBtnText, copiedNote === 'all' && styles.copyBtnTextDone]}>
+                      {copiedNote === 'all' ? 'Copied' : 'Copy all'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
                 {notes.map((n) => {
                   const noteUrl = n.url;
-                  const open = openNote === n.id;
+                  const open = !closedNotes.includes(n.id);
                   const done = n.progress?.state === 'COMPLETED';
                   return (
                     <Card key={n.id} style={styles.itemCard}>
                       <TouchableOpacity
                         style={styles.noteRow}
                         disabled={!n.description}
-                        onPress={() => setOpenNote(open ? null : n.id)}
+                        onPress={() =>
+                          setClosedNotes((prev) =>
+                            prev.includes(n.id) ? prev.filter((id) => id !== n.id) : [...prev, n.id],
+                          )
+                        }
                         accessibilityRole={n.description ? 'button' : 'text'}
                         accessibilityState={{ expanded: open }}
                       >
@@ -299,9 +382,29 @@ export default function ConceptDetailScreen() {
                           </TouchableOpacity>
                         ) : null}
                       </TouchableOpacity>
+                      {n.description ? (
+                        <View style={styles.noteActions}>
+                          <TouchableOpacity
+                            style={styles.copyBtn}
+                            onPress={() => void copyNote(n.id, n.description ?? '')}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Copy ${n.title}`}
+                          >
+                            <Ionicons
+                              name={copiedNote === n.id ? 'checkmark' : 'copy-outline'}
+                              size={14}
+                              color={copiedNote === n.id ? Colors.success : Colors.primary}
+                            />
+                            <Text style={[styles.copyBtnText, copiedNote === n.id && styles.copyBtnTextDone]}>
+                              {copiedNote === n.id ? 'Copied' : 'Copy'}
+                            </Text>
+                          </TouchableOpacity>
+                          <Text style={styles.noteHint}>Long-press to select any line</Text>
+                        </View>
+                      ) : null}
                       {open && n.description ? (
                         <View style={styles.noteBody}>
-                          <Markdown>{n.description}</Markdown>
+                          <Markdown selectable>{n.description}</Markdown>
                         </View>
                       ) : null}
                       {done ? (
@@ -336,39 +439,6 @@ export default function ConceptDetailScreen() {
                 })}
               </View>
             )}
-
-            <Card style={styles.revisionCard}>
-              <View style={styles.revisionHeader}>
-                <Ionicons name="bulb" size={20} color={Colors.warning} />
-                <Text style={styles.revisionTitle}>Quick Revision</Text>
-              </View>
-              {concept.description ? (
-                <View style={{ marginTop: Spacing.sm }}>
-                  <Markdown>{concept.description}</Markdown>
-                </View>
-              ) : null}
-              {notes.length > 0 ? (
-                <View style={{ marginTop: Spacing.sm, gap: 4 }}>
-                  {notes.slice(0, 4).map((n) => {
-                    const noteUrl = n.url ?? (n as { body?: string }).body ?? '';
-                    return (
-                      <TouchableOpacity
-                        key={n.id}
-                        style={styles.revisionItem}
-                        onPress={() => noteUrl ? Linking.openURL(noteUrl) : null}
-                      >
-                        <Ionicons name="document-text-outline" size={14} color={Colors.textMuted} />
-                        <Text style={styles.revisionItemText} numberOfLines={1}>{n.title}</Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              ) : (
-                <Text style={styles.revisionBody}>
-                  Review the key definitions above before your next test, then use Practice to test yourself.
-                </Text>
-              )}
-            </Card>
           </>
         )}
 
@@ -506,6 +576,35 @@ const styles = StyleSheet.create({
   content: { padding: Spacing.lg, paddingBottom: Spacing.xxxl },
   section: { marginBottom: Spacing.lg },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
+  sectionTitleInline: { marginBottom: 0 },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  copyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  copyBtnText: { fontSize: 12, fontWeight: '700', color: Colors.primary },
+  copyBtnTextDone: { color: Colors.success },
+  noteActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  noteHint: { flexShrink: 1, fontSize: 11, color: Colors.textMuted },
   itemCard: { marginBottom: Spacing.md, padding: Spacing.md },
   itemTitle: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: Spacing.sm },
   startRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.sm, marginBottom: Spacing.sm },

@@ -37,6 +37,9 @@ export default function NewPaperPage() {
   ]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // The bank always answers first; the AI only writes the questions the bank is
+  // short of (and they are saved as drafts for review, never silently published).
+  const [useAI, setUseAI] = useState(false);
 
   const totalMarks = dist.reduce((sum, d) => sum + (Number(d.count) || 0) * (Number(d.marks) || 0), 0);
 
@@ -60,6 +63,7 @@ export default function NewPaperPage() {
           durationMinutes: Number(durationMinutes),
           distribution,
           language: 'EN',
+          autoGenerateWithAI: useAI,
         },
       });
       router.push(`/app/papers/${res.paper.id}`);
@@ -162,6 +166,27 @@ export default function NewPaperPage() {
             ))}
           </div>
           <p className="mt-2 text-sm text-surface-500">Total marks: <span className="font-semibold text-surface-800">{totalMarks}</span></p>
+        </div>
+
+        <div className="rounded-xl border border-surface-200 bg-surface-50 p-4">
+          <label className="flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              checked={useAI}
+              onChange={(e) => setUseAI(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-brand-600"
+            />
+            <span>
+              <span className="block text-sm font-semibold text-surface-900">
+                Let AI write the questions the bank is short of
+              </span>
+              <span className="mt-0.5 block text-xs text-surface-500">
+                The question bank is always used first. Only the gap is generated, from the
+                chapter you are closest to, and every generated question is saved as a{' '}
+                <strong>draft</strong> for you to review before it reaches a student.
+              </span>
+            </span>
+          </label>
         </div>
 
         <ErrorBanner message={error} />

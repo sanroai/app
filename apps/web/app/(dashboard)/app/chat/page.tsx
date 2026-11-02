@@ -107,7 +107,8 @@ export default function ChatPage() {
             {
               id: `err-${Date.now()}`,
               role: 'assistant',
-              content: 'Sorry, something went wrong. Please try again.',
+              content:
+                "**I couldn't reach the server just now**\n\nThat is a connection problem, not a problem with your question. Check your internet and send it again — the notes on the concept page cover the same topic while you wait.",
               timestamp: new Date(),
             },
           ]);

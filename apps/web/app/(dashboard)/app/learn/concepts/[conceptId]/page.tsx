@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Spinner, ErrorBanner } from '@/components/ui';
 import { VideoWithSegments } from '@/components/video-segments';
 import { Markdown } from '@/components/markdown';
+import { CopyTextButton } from '@/components/copy-text-button';
 import { useChapterHub } from '@/lib/chapter-hooks';
 import { normalizeSegments, formatTimestamp, sectionStartForConcept, type VideoSegment } from '@/lib/video-segments';
 import { subjectArt, subjectBannerFor } from '@/lib/subject-art';
@@ -85,7 +86,7 @@ export default function ConceptDetailPage() {
   const videoParam = searchParams.get('video');
   const [fromStart, setFromStart] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'practice' ? 'practice' : 'learn');
-  const [openNotes, setOpenNotes] = useState<string[]>([]);
+  const [closedNotes, setClosedNotes] = useState<string[]>([]);
   const [arOpen, setArOpen] = useState(false);
 
   const { data: concept, isLoading, error } = useConceptDetail(conceptId);
@@ -174,8 +175,11 @@ export default function ConceptDetailPage() {
       ? sectionStartForConcept(segmentsForVideo(fallbackVideo), concept.name ?? '')
       : 0;
   const notes = contentItems.filter((c: ContentItem) => c.type === 'NOTES' || c.type === 'ARTICLE');
+  // Notes are open by default: the revision sheet is the point of the section, and a
+  // student who has to click twice to read it just leaves. `closedNotes` tracks the
+  // exceptions so nothing has to be initialised once the async content arrives.
   const toggleNote = (id: string) =>
-    setOpenNotes((prev) => (prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]));
+    setClosedNotes((prev) => (prev.includes(id) ? prev.filter((n) => n !== id) : [...prev, id]));
 
   return (
     <div className="space-y-6">
@@ -442,89 +446,7 @@ export default function ConceptDetailPage() {
             </section>
           )}
 
-          {/* Study Notes */}
-          {notes.length > 0 && (
-            <section>
-              <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-surface-900">
-                <FileText className="h-5 w-5 text-emerald-600" />
-                Study Notes
-              </h2>
-              <div className="space-y-2">
-                {notes.map((item: ContentItem) => {
-                  const open = openNotes.includes(item.id);
-                  return (
-                    <div key={item.id} className="overflow-hidden rounded-xl border border-surface-100 bg-surface-50 transition-all hover:bg-white hover:shadow-sm">
-                      <div className="flex items-center gap-4 p-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
-                          <FileText className="h-5 w-5 text-emerald-600" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-surface-900">{item.title}</p>
-                          <div className="mt-0.5 flex items-center gap-2 text-xs text-surface-400">
-                            <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
-                            {(item.durationSeconds ?? 0) > 0 && (
-                              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.ceil((item.durationSeconds ?? 0) / 60)} min</span>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {item.description ? (
-                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => toggleNote(item.id)} aria-expanded={open}>
-                              {open ? 'Hide' : 'Read'}
-                              {open ? <ChevronUp className="h-3.5 w-3.5 ml-1" /> : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
-                            </Button>
-                          ) : item.url ? (
-                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(item.url, '_blank')}>
-                              <ExternalLink className="h-3.5 w-3.5 mr-1" /> Read
-                            </Button>
-                          ) : (
-                            <Button variant="outline" size="sm" className="h-8 text-xs" disabled>Read</Button>
-                          )}
-                          {item.progress?.state === 'COMPLETED' ? (
-                            <>
-                              <span className="flex items-center text-xs font-semibold text-green-600" title="Completed">
-                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Completed
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                                onClick={() => uncompleteContent.mutate(item.id)}
-                                disabled={uncompleteContent.isPending}
-                                title="Mark as unread"
-                                aria-label="Mark as unread"
-                              >
-                                Undo
-                              </Button>
-                            </>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 text-xs text-surface-500 hover:text-green-700 hover:bg-green-50"
-                              onClick={() => completeContent.mutate(item.id)}
-                              disabled={completeContent.isPending}
-                              title="Mark as read"
-                              aria-label="Mark as read"
-                            >
-                              <Circle className="h-3.5 w-3.5" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      {open && item.description ? (
-                        <div className="border-t border-surface-100 bg-white px-4 py-4">
-                          <Markdown>{item.description}</Markdown>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {/* Revision Summary */}
+          {/* Revision summary - the short version, above the full notes. */}
           <section>
             <Card className="border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50">
               <CardContent className="p-6">
@@ -570,6 +492,98 @@ export default function ConceptDetailPage() {
               </CardContent>
             </Card>
           </section>
+
+          {/* Study Notes - last on the page on purpose: the reading material comes
+              after the video and the summary, and its text is selectable/copyable. */}
+          {notes.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h2 className="flex items-center gap-2 text-lg font-bold text-surface-900">
+                  <FileText className="h-5 w-5 text-emerald-600" />
+                  Study notes
+                </h2>
+                <CopyTextButton
+                  text={notes.map((item: ContentItem) => `${item.title}\n\n${item.description ?? ''}`).join('\n\n---\n\n')}
+                  label="Copy all"
+                  copiedLabel="Copied"
+                />
+              </div>
+              <div className="space-y-2">
+                {notes.map((item: ContentItem) => {
+                  const open = !closedNotes.includes(item.id);
+                  return (
+                    <div key={item.id} className="overflow-hidden rounded-xl border border-surface-100 bg-surface-50 transition-all hover:bg-white hover:shadow-sm">
+                      <div className="flex items-center gap-4 p-4">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-50">
+                          <FileText className="h-5 w-5 text-emerald-600" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-surface-900">{item.title}</p>
+                          <div className="mt-0.5 flex items-center gap-2 text-xs text-surface-400">
+                            <Badge variant="secondary" className="text-[10px]">{item.type}</Badge>
+                            {(item.durationSeconds ?? 0) > 0 && (
+                              <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{Math.ceil((item.durationSeconds ?? 0) / 60)} min</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {item.description ? (
+                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => toggleNote(item.id)} aria-expanded={open}>
+                              {open ? 'Hide' : 'Read'}
+                              {open ? <ChevronUp className="h-3.5 w-3.5 ml-1" /> : <ChevronDown className="h-3.5 w-3.5 ml-1" />}
+                            </Button>
+                          ) : item.url ? (
+                            <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => window.open(item.url, '_blank')}>
+                              <ExternalLink className="h-3.5 w-3.5 mr-1" /> Read
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" className="h-8 text-xs" disabled>Read</Button>
+                          )}
+                          <CopyTextButton text={item.description} className="h-8 text-xs" />
+                          {item.progress?.state === 'COMPLETED' ? (
+                            <>
+                              <span className="flex items-center text-xs font-semibold text-green-600" title="Completed">
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Completed
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-xs text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                onClick={() => uncompleteContent.mutate(item.id)}
+                                disabled={uncompleteContent.isPending}
+                                title="Mark as unread"
+                                aria-label="Mark as unread"
+                              >
+                                Undo
+                              </Button>
+                            </>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-xs text-surface-500 hover:text-green-700 hover:bg-green-50"
+                              onClick={() => completeContent.mutate(item.id)}
+                              disabled={completeContent.isPending}
+                              title="Mark as read"
+                              aria-label="Mark as read"
+                            >
+                              <Circle className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {open && item.description ? (
+                        <div className="select-text border-t border-surface-100 bg-white px-4 py-4">
+                          <Markdown>{item.description}</Markdown>
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
         </div>
       )}
 

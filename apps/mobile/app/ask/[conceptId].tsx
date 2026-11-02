@@ -50,9 +50,14 @@ export default function AskScreen() {
       const reply = res?.answer ?? res?.reply ?? res?.explanation ?? 'I could not find an answer. Please try again.';
       const truncated = (res as { truncated?: boolean } | undefined)?.truncated === true;
       setMessages((prev) => [...prev, { role: 'assistant', text: reply, truncated }]);
-    } catch (err: unknown) {
-      const e = err as { message?: string };
-      setMessages((prev) => [...prev, { role: 'assistant', text: `Error: ${e.message || 'Something went wrong.'}` }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: "I couldn't reach the server just now — that is a connection problem, not your question. Check your internet and try again; the study notes on this page cover the same topic.",
+        },
+      ]);
     } finally {
       setWaiting(false);
     }

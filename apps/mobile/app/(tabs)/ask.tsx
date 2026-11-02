@@ -48,7 +48,14 @@ export default function AskScreen() {
       const truncated = (res as { truncated?: boolean }).truncated === true;
       setMessages((prev) => [...prev, { id: `${Date.now()}-ai`, role: 'assistant', text: reply, truncated }]);
     } catch {
-      setMessages((prev) => [...prev, { id: `${Date.now()}-err`, role: 'assistant', text: 'Something went wrong. Please try again.' }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-err`,
+          role: 'assistant',
+          text: "I couldn't reach the server just now — that is a connection problem, not your question. Check your internet and send it again.",
+        },
+      ]);
     }
   };
 

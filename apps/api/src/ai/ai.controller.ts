@@ -87,6 +87,9 @@ export class AiController {
       chapterDescription?: string;
       questionText?: string;
       relatedContent?: string[];
+      boardName?: string;
+      grade?: string;
+      notes?: Array<{ title: string; body?: string | null }>;
     } = {};
 
     // The chapter hub's "Ask about this chapter" sends chapterId, so the model
@@ -95,7 +98,7 @@ export class AiController {
       const chapter = await this.prisma.chapter.findUnique({
         where: { id: ctx.chapterId },
         include: {
-          subject: { select: { name: true } },
+          subject: { select: { name: true, board: { select: { name: true } } } },
           topics: {
             orderBy: { order: 'asc' },
             include: { concepts: { orderBy: { order: 'asc' }, select: { name: true } } },
@@ -105,8 +108,24 @@ export class AiController {
       if (chapter) {
         result.chapterName = chapter.name;
         result.subjectName = chapter.subject.name;
+        result.boardName = chapter.subject.board?.name ?? undefined;
+        result.grade = chapter.grade;
         result.chapterConcepts = chapter.topics.flatMap((t) => t.concepts.map((c) => c.name));
         result.chapterDescription = chapter.description ?? undefined;
+
+        // Chapter-level chat has no single concept, so pull the chapter's own
+        // written notes: the answer must still come from the book first.
+        if (!ctx.conceptId) {
+          const notes = await this.prisma.contentItem.findMany({
+            where: { chapterId: chapter.id, status: 'APPROVED', description: { not: null } },
+            select: { title: true, description: true },
+            orderBy: { order: 'asc' },
+            take: 2,
+          });
+          result.notes = notes
+            .filter((item) => item.description && item.description.trim())
+            .map((item) => ({ title: item.title, body: item.description }));
+        }
       }
     }
 
@@ -117,12 +136,23 @@ export class AiController {
       });
       if (!concept) return result;
       result.conceptName = concept.name;
+      if (!result.chapterName) {
+        result.chapterName = concept.topic?.chapter?.name;
+        result.subjectName = concept.topic?.chapter?.subject?.name;
+        result.boardName = concept.topic?.chapter?.subject?.board?.name ?? undefined;
+        result.grade = concept.topic?.chapter?.grade;
+      }
       const content = await this.prisma.contentItem.findMany({
         where: { conceptId: ctx.conceptId, status: 'APPROVED' },
-        select: { title: true },
+        select: { title: true, description: true },
         take: 3,
       });
       result.relatedContent = content.map((c) => c.title);
+      // The written lesson itself: this is what makes the answer book-first and
+      // what lets the API answer without calling the model at all.
+      result.notes = content
+        .filter((c) => c.description && c.description.trim())
+        .map((c) => ({ title: c.title, body: c.description }));
     }
     if (ctx.questionId) {
       const question = await this.prisma.question.findUnique({ where: { id: ctx.questionId } });
