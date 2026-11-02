@@ -237,9 +237,14 @@ committed). The tree is deployed to Cloudflare Pages as **https://books.sanroai.
 has no book files (`expiresAt: null`) and signed API URLs when it does - both clients pass an
 absolute URL through unchanged, so this fixed the installed APK with **no rebuild**.
 `/pdf-link` falls back to the official NCERT PDF. Classes 1-4 English are the NCERT Marigold
-units (`scripts/qa/publish-primary-textbook.mjs`); classes 1-4 Science/Mathematics are our own
-lesson sets, not NCERT chapters, so they correctly report no textbook. Full reasoning:
-`docs/TEXTBOOK_CDN.md`.
+units (`scripts/qa/publish-primary-textbook.mjs`). Classes 1-4 Science/Mathematics are our own
+lesson sets, **not** NCERT chapters - so they deliberately have no per-chapter PDF (mapping
+`SCI-3-1` onto `ceev101.pdf` showed *unit 1* for every chapter). Classes **3-4** fall back to
+the class's **whole textbook** instead (`scripts/qa/publish-primary-books.mjs` -> `BOOK-SCI-3`,
+`BOOK-MAT-3`, `BOOK-SCI-4`, `BOOK-MAT-4`, 760 pages); `/pages` returns it with `bookLevel: true`
+and both clients label it "the full Class N textbook". Classes **1-2 Science** have no NCERT
+book at all (EVS starts at class 3), so those chapters correctly report no textbook. Full
+reasoning: `docs/TEXTBOOK_CDN.md`.
 
 ## Sanro AI - the book first, then the world
 `POST /ai/chat` answers from a **ladder**, cheapest first: a pre-written answer for a
@@ -492,6 +497,20 @@ Markdown component, which first runs `normalizeMarkdown`
 (`<br>`, `<b>`, `<ul><li>`) becomes Markdown, entities are decoded, LaTeX delimiters become
 code, and a heading glued to the paragraph above gets its blank line. User messages stay plain
 text. Without this the model's `**`, `#` and `<br>` reach the student literally.
+
+**Every assistant reply is selectable and has a Copy button.** The bubble is `select-text`
+(web) / `selectable` (mobile) so a student can copy one line, and the Copy button writes the
+whole reply (`expo-clipboard` on mobile, `copyToClipboard` with a `textarea` fallback on web)
+and flips to a green tick + "Copied" for 2 s. A reply with no copy path was reported as
+missing.
+
+**Video captions are forced off, not merely hinted.** `cc_load_policy=0` only *suggests* it —
+YouTube still shows subtitles when the viewer's own YouTube preference has them on, which is
+what a signed-in student sees. Both players therefore clear the active track through the
+player API after load (`setOption('captions','track',{})`): the web player posts it to the
+iframe (on load and again on the first `message` event), and the mobile wrapper HTML posts it
+to its inner iframe at 600/1500/3000/5000 ms. The CC button stays, so a student who wants
+subtitles can switch them on.
 
 ## Assessment / Path / Test — invariants that must not regress
 `docs/ASSESSMENT_EDGE_CASES.md` is the full list; `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs`

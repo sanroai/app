@@ -30,8 +30,8 @@ _headers                       Cache-Control: immutable, CORS: *
 | | |
 |---|---|
 | Chapters | **233** (212 real chapters + 21 prelims/answers folders) |
-| Pages | **5,058** |
-| Size | **~666 MB** (from 3.0 GB of PNGs) |
+| Pages | **5,818** (5,058 chapter pages + 760 pages of the four primary class books) |
+| Size | **~790 MB** (from 3.0 GB of PNGs) |
 | Host | Cloudflare Pages project `sanro-books` |
 | URL | **https://books.sanroai.com** (CNAME -> `sanro-books.pages.dev`, proxied) |
 | Cost | free — Pages has no bandwidth charge and no egress fee |
@@ -69,6 +69,8 @@ when there is no local file, so "Download PDF" still yields a real file.
 
 ## Primary classes (1-4)
 
+### English — exact NCERT units
+
 Their English chapters are exactly the units of the NCERT Marigold books, one
 seeded chapter per unit, so the official chapter PDF is the right textbook:
 
@@ -79,6 +81,41 @@ node scripts/qa/publish-primary-textbook.mjs
 
 `ncert.nic.in` resets Node's TLS, so download the PDFs with PowerShell first into
 `artifacts/qa/<date>/ncert-cache/`; the script reuses the cache.
+
+### Science and Mathematics — the whole class book
+
+Classes 1-4 Science and Mathematics are **Sanro's own lesson sets**, not NCERT
+chapters ("Numbers up to 100", "The World of Plants"). Mapping `SCI-3-1` onto
+`ceev101.pdf` showed *unit 1* ("Our Families and Communities") for every chapter —
+wrong content, which is worse than no textbook. Those entries were removed from
+`CLASS_BOOKS`.
+
+What exists is the class's real textbook, so a chapter with no book of its own falls
+back to **the whole class book**:
+
+| Grade | Subject | NCERT prefix | Book key | Pages |
+|---|---|---|---|---|
+| 3 | Science (EVS) | `ceev1` | `BOOK-SCI-3` | 164 |
+| 3 | Mathematics | `cemm1` | `BOOK-MAT-3` | 208 |
+| 4 | Science (EVS) | `deev1` | `BOOK-SCI-4` | 164 |
+| 4 | Mathematics | `demm1` | `BOOK-MAT-4` | 224 |
+
+```bash
+# download first (PowerShell - Node's fetch is reset by ncert.nic.in)
+#   artifacts/qa/2026-11-02/primary-book-cache/<prefix>/<prefix>NN.pdf
+node scripts/qa/publish-primary-books.mjs          # 760 pages
+npx wrangler pages deploy artifacts/qa/2026-11-02/textbook-cdn \
+  --project-name=sanro-books --branch=main --commit-dirty=true
+```
+
+`FULL_BOOKS` in `chapter-pages.ts` maps `<grade>-<subject>` to the book key, and
+`chapterPageRemoteUrls` returns the book's pages when the chapter has none of its
+own. `chapterPagesAreBookLevel(code)` tells the clients, so the card reads
+**"The full Class 3 Science textbook"** and the reader says the chapter's topic is
+inside and to scroll to find it.
+
+Classes **1-2 Science** have no NCERT book at all (EVS starts at class 3), so those
+chapters still report no textbook — correctly, not as a bug.
 
 **Classes 1-4 Science and Mathematics are not NCERT chapters** — they are our own
 lesson sets ("Numbers up to 10000", "The World of Plants"), so mapping them onto a

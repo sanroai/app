@@ -53,6 +53,38 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-02 — Classes 3-4 now open their real textbook; classes 1-4 Sci/Maths stopped showing the wrong unit
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Make "Read the textbook" work for the last classes that had none, and stop showing the wrong page |
+| Reason | Two separate problems. (1) Classes 1-4 Science/Mathematics are Sanro's own lesson sets, so `SCI-3-1` was mapped onto `ceev101.pdf` — **unit 1 for every chapter**, i.e. a real NCERT unit that is not the student's chapter. (2) With that mapping removed, those 17 chapters would have said "no textbook", which is what the student reported as a bug |
+| Entities affected | CDN: 4 new books (`BOOK-SCI-3`, `BOOK-MAT-3`, `BOOK-SCI-4`, `BOOK-MAT-4`), **760 pages**; `chapter-pdf.ts` (removed 3-4 SCI/MAT), `chapter-pages.ts` (`FULL_BOOKS`, `chapterPagesAreBookLevel`), `learning.service.ts` (`bookLevel`, `hasTextbookPages`, `textbookBookLevel`), web + mobile textbook card |
+| Database changes | none |
+| API changes | `/learning/chapters/:id/pages` returns `bookLevel`; the chapter hub returns `hasTextbookPages` + `textbookBookLevel`; `pdfUrl`/`externalPdfUrl` are now null for classes 3-4 Sci/Maths instead of pointing at the wrong unit |
+| Frontend changes | Web card reads "The full Class N <subject> textbook" and the dialog explains the chapter's topic is inside; mobile card says the same and the reader shows a "full Class N textbook, scroll to find it" line |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `publish-primary-books.mjs` -> 164 + 208 + 164 + 224 pages; wrangler uploaded 760 files; `pnpm -r typecheck` clean; live `/pages` for a class 3 Science chapter returns the book with `bookLevel: true` |
+| Known issues | Classes 1-2 Science has no NCERT book at all (EVS starts at class 3), so those chapters still say no textbook. A whole book opens at page 1, not at the chapter |
+
+### 2026-11-02 — Chat replies can be selected and copied; video captions forced off
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Copy/select an AI reply; keep captions off on every video |
+| Reason | The reply bubble was plain rendered Markdown with no copy affordance and, on mobile, `Text` is not selectable unless asked. `cc_load_policy=0` is only a hint - YouTube still shows subtitles when the viewer's own YouTube preference has them on, which is what a signed-in student sees |
+| Entities affected | Web `/app/chat`, mobile Ask tab, mobile concept Ask, `components/youtube-player.tsx`, `components/YouTubePlayer.tsx` |
+| Database changes | none |
+| API changes | none |
+| Frontend changes | Every assistant reply has a **Copy** button (green tick + "Copied" for 2 s) and `select-text`/`selectable` text. Captions are cleared through the player API (`setOption('captions','track',{})`) after load on web and through the wrapper script on mobile; the CC button stays so a student can switch subtitles on |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `pnpm --filter @sanro/web typecheck` + `@sanro/mobile typecheck` clean; on the phone the reply copy button flips to "Copied" |
+| Known issues | Captions are cleared a moment after the player starts, so a video can flash subtitles for ~1 s on a slow device |
+
 ### 2026-11-02 — Assessment / Path / Test audit: seven defects fixed
 
 | Field | Detail |
