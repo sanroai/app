@@ -95,10 +95,10 @@ Copy this block for each new entry:
 | Entities affected | Web `concept/[conceptId]`, mobile `concept/[conceptId]`, new `apps/web/components/copy-text-button.tsx` |
 | Database changes | none |
 | API changes | none |
-| Frontend changes | Learn order is now Videos -> 3D model -> Quick Revision -> Study notes. Notes are **open by default** (tracked as `closedNotes`, so async content needs no initialisation). Every note has a Copy button ("Copied" for 2 s) plus "Copy all"; the body is `select-text` on web and `selectable` on mobile. The web copy helper falls back to `textarea` + `execCommand` when the Clipboard API is unavailable (plain-http schools) |
+| Frontend changes | Learn order is now Videos -> 3D model -> Quick Revision -> Study notes. Notes are **open by default** (tracked as `closedNotes`, so async content needs no initialisation). The **Copy** button sits in each note's header row (always reachable, not above a long body) and the section header has **Copy all**; both flip to a green tick + "Copied" for 2 s. The body is `select-text` on web and `selectable` on mobile, with a "Long-press any line to select and copy just that part" hint. The web copy helper falls back to `textarea` + `execCommand` when the Clipboard API is unavailable (plain-http schools) |
 | Seed/import changes | none |
 | Migration | none |
-| Verification | `pnpm -r typecheck` clean, `pnpm -r lint` 0 errors, browser check of the live concept page |
+| Verification | `pnpm -r typecheck` clean, `pnpm -r lint` 0 errors; live web: notes section is the **last** of 4, `user-select: text`, Copy + Copy all present; on the phone (release APK 1.1.2): "Study notes" + "Copy all" + per-note "Copy" render, tapping Copy shows the green "Copied", and the page scrolls normally |
 | Known issues | Android long-press selection inside a markdown list still selects the whole run, not a single word, on some OEM builds — the Copy button is the reliable path there |
 
 ### 2026-11-02 — Chapter hub section renamed "Contents" -> "Concepts"

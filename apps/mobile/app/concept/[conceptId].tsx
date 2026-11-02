@@ -359,31 +359,29 @@ export default function ConceptDetailScreen() {
                   const done = n.progress?.state === 'COMPLETED';
                   return (
                     <Card key={n.id} style={styles.itemCard}>
-                      <TouchableOpacity
-                        style={styles.noteRow}
-                        disabled={!n.description}
-                        onPress={() =>
-                          setClosedNotes((prev) =>
-                            prev.includes(n.id) ? prev.filter((id) => id !== n.id) : [...prev, n.id],
-                          )
-                        }
-                        accessibilityRole={n.description ? 'button' : 'text'}
-                        accessibilityState={{ expanded: open }}
-                      >
-                        <View style={styles.noteIcon}>
-                          <Ionicons name="document-text" size={20} color={Colors.success} />
-                        </View>
-                        <Text style={styles.itemTitleF}>{n.title}</Text>
-                        {n.description ? (
-                          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
-                        ) : noteUrl ? (
-                          <TouchableOpacity onPress={() => Linking.openURL(noteUrl)}>
+                      <View style={styles.noteRow}>
+                        <TouchableOpacity
+                          style={styles.noteRowMain}
+                          disabled={!n.description}
+                          onPress={() =>
+                            setClosedNotes((prev) =>
+                              prev.includes(n.id) ? prev.filter((id) => id !== n.id) : [...prev, n.id],
+                            )
+                          }
+                          accessibilityRole={n.description ? 'button' : 'text'}
+                          accessibilityState={{ expanded: open }}
+                        >
+                          <View style={styles.noteIcon}>
+                            <Ionicons name="document-text" size={20} color={Colors.success} />
+                          </View>
+                          <Text style={styles.itemTitleF}>{n.title}</Text>
+                          {n.description ? (
+                            <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
+                          ) : noteUrl ? (
                             <Ionicons name="open-outline" size={18} color={Colors.textMuted} />
-                          </TouchableOpacity>
-                        ) : null}
-                      </TouchableOpacity>
-                      {n.description ? (
-                        <View style={styles.noteActions}>
+                          ) : null}
+                        </TouchableOpacity>
+                        {n.description ? (
                           <TouchableOpacity
                             style={styles.copyBtn}
                             onPress={() => void copyNote(n.id, n.description ?? '')}
@@ -399,12 +397,22 @@ export default function ConceptDetailScreen() {
                               {copiedNote === n.id ? 'Copied' : 'Copy'}
                             </Text>
                           </TouchableOpacity>
-                          <Text style={styles.noteHint}>Long-press to select any line</Text>
-                        </View>
-                      ) : null}
+                        ) : noteUrl ? (
+                          <TouchableOpacity
+                            style={styles.copyBtn}
+                            onPress={() => Linking.openURL(noteUrl)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`Open ${n.title}`}
+                          >
+                            <Ionicons name="open-outline" size={14} color={Colors.primary} />
+                            <Text style={styles.copyBtnText}>Open</Text>
+                          </TouchableOpacity>
+                        ) : null}
+                      </View>
                       {open && n.description ? (
                         <View style={styles.noteBody}>
                           <Markdown selectable>{n.description}</Markdown>
+                          <Text style={styles.noteHint}>Long-press any line to select and copy just that part</Text>
                         </View>
                       ) : null}
                       {done ? (
@@ -622,6 +630,7 @@ const styles = StyleSheet.create({
   itemDesc: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   itemTitleF: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.text },
   noteRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
+  noteRowMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   noteIcon: { width: 36, height: 36, borderRadius: 10, backgroundColor: Colors.success + '20', alignItems: 'center', justifyContent: 'center' },
   doneBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm, alignSelf: 'flex-start' },
   doneBtnText: { fontSize: 13, fontWeight: '600', color: Colors.success },
