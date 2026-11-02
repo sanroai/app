@@ -470,15 +470,34 @@ export default function ChapterHubPage() {
               <div className="min-w-0">
                 <p className="font-semibold text-surface-900">Read the textbook</p>
                 <p className="text-xs text-surface-400">
-                  {chapter.externalPdfUrl
-                    ? 'The same chapter on the official NCERT site'
-                    : chapter.pdfUrl
-                      ? 'The NCERT chapter, page by page in the app'
-                      : 'No textbook available for this chapter yet'}
+                  {textbook.data?.count
+                    ? 'The NCERT chapter, page by page in the app'
+                    : textbook.isLoading
+                      ? 'Checking this chapter’s textbook…'
+                      : chapter.externalPdfUrl
+                        ? 'The same chapter on the official NCERT site'
+                        : 'No textbook available for this chapter yet'}
                 </p>
               </div>
             </div>
-            {chapter.externalPdfUrl ? (
+            {textbook.data?.count ? (
+              <Button
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => {
+                  pdf.closePdf();
+                  setReaderOpen(true);
+                }}
+              >
+                <BookOpen className="h-4 w-4" />
+                Open textbook
+              </Button>
+            ) : textbook.isLoading ? (
+              <Button variant="outline" className="rounded-xl" disabled>
+                <BookOpen className="h-4 w-4" />
+                Textbook
+              </Button>
+            ) : chapter.externalPdfUrl ? (
               <Button variant="outline" className="rounded-xl" asChild>
                 <a href={chapter.externalPdfUrl} target="_blank" rel="noreferrer noopener">
                   <BookOpen className="h-4 w-4" />
@@ -489,17 +508,10 @@ export default function ChapterHubPage() {
               <Button
                 variant="outline"
                 className="rounded-xl"
-                onClick={() => {
-                  if (textbook.data?.count) {
-                    pdf.closePdf();
-                    setReaderOpen(true);
-                  } else {
-                    void pdf.openPdf(chapterId, chapter.pdfUrl);
-                  }
-                }}
+                onClick={() => void pdf.openPdf(chapterId, chapter.pdfUrl)}
               >
                 <BookOpen className="h-4 w-4" />
-                {textbook.data?.count ? 'Open textbook' : 'View chapter PDF'}
+                View chapter PDF
               </Button>
             ) : (
               <Tooltip>
@@ -674,7 +686,14 @@ export default function ChapterHubPage() {
                 <p className="text-xs text-surface-400">
                   {textbook.data.count} page{textbook.data.count === 1 ? '' : 's'} &middot; NCERT chapter
                 </p>
-                {chapter.pdfUrl ? (
+                {chapter.externalPdfUrl ? (
+                  <Button variant="outline" className="rounded-xl" asChild>
+                    <a href={chapter.externalPdfUrl} target="_blank" rel="noreferrer noopener">
+                      <Download className="h-4 w-4" />
+                      Download PDF
+                    </a>
+                  </Button>
+                ) : chapter.pdfUrl ? (
                   <Button
                     variant="outline"
                     className="rounded-xl"

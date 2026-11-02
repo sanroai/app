@@ -20,6 +20,15 @@ describe('Chapter textbook pages (e2e)', () => {
   let studentToken: string;
   let chapterId: string;
 
+  /**
+   * A deployment that ships no book files answers with public CDN URLs instead of
+   * signed API paths. The signature/traversal cases below only apply to the latter.
+   */
+  function isSignedPage(body: { pages?: Array<{ path?: string }> }): boolean {
+    const first = String(body.pages?.[0]?.path ?? '');
+    return first.startsWith('/');
+  }
+
   async function open(path: string) {
     const res = await request(app.getHttpServer())
       .get(`${BASE}${path.replace(/^\/api\/v1/, '')}`)
@@ -62,25 +71,32 @@ describe('Chapter textbook pages (e2e)', () => {
     expect(res.status).toBe(401);
   });
 
-  it('lists signed page URLs for an authenticated student', async () => {
+  it('lists page URLs for an authenticated student', async () => {
     const res = await api(app, 'get', `/learning/chapters/${chapterId}/pages`, studentToken);
     expect(res.status).toBe(200);
     expect(typeof res.body.count).toBe('number');
-    expect(res.body.expiresAt).toBeTruthy();
     expect(Array.isArray(res.body.pages)).toBe(true);
     // The books tree is git-ignored, so a machine without it legitimately has no
     // pages; every machine with the book must expose one URL per page.
     expect(res.body.pages.length).toBe(res.body.count);
     for (const page of res.body.pages) {
+      if (/^https:\/\//.test(String(page.path))) {
+        // Published to the static CDN: public, immutable, no signature needed.
+        expect(page.path).toContain(`/${page.index.toString().padStart(3, '0')}.jpg`);
+        expect(res.body.expiresAt).toBeNull();
+        continue;
+      }
       expect(page.path).toContain(`/learning/pdf/${chapterId}/pages/${page.index}`);
       expect(page.path).toMatch(/exp=\d+/);
       expect(page.path).toMatch(/sig=[\w-]+/);
+      expect(res.body.expiresAt).toBeTruthy();
     }
   });
 
   it('serves each page as an embeddable PNG without a token', async () => {
     const listed = await api(app, 'get', `/learning/chapters/${chapterId}/pages`, studentToken);
     if (!listed.body.count) return; // no books on this machine
+    if (!isSignedPage(listed.body)) return; // pages are public CDN URLs
 
     const first = await open(String(listed.body.pages[0].path));
     expect(first.status).toBe(200);
@@ -97,6 +113,7 @@ describe('Chapter textbook pages (e2e)', () => {
   it('rejects a page that does not exist', async () => {
     const listed = await api(app, 'get', `/learning/chapters/${chapterId}/pages`, studentToken);
     if (!listed.body.count) return;
+    if (!isSignedPage(listed.body)) return;
 
     const beyond = String(listed.body.pages[0].path).replace(
       /pages\/\d+/,
@@ -109,6 +126,7 @@ describe('Chapter textbook pages (e2e)', () => {
   it('rejects a forged or re-bound page ticket', async () => {
     const listed = await api(app, 'get', `/learning/chapters/${chapterId}/pages`, studentToken);
     if (!listed.body.count) return;
+    if (!isSignedPage(listed.body)) return;
 
     const forged = await open(String(listed.body.pages[0].path).replace(/sig=[^&]+/, 'sig=deadbeef'));
     expect(forged.status).toBe(401);

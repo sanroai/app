@@ -288,7 +288,8 @@ export interface ChapterPage {
 
 export interface ChapterPages {
   count: number;
-  expiresAt: string;
+  /** `null` when the pages are public CDN URLs (no signature needed). */
+  expiresAt: string | null;
   pages: ChapterPage[];
 }
 

@@ -123,22 +123,39 @@ export class LearningController {
    * The rendered pages of this chapter's textbook.
    *
    * Clients read the book as images (a WebView cannot render PDF on Android, and
-   * a PDF link downloads). `pages` are short-lived signed image URLs, so an
-   * `<img>`/`<Image>` tag works without attaching the bearer token.
+   * a PDF link downloads). Pages are either short-lived signed image URLs (a
+   * deployment that ships the book on disk) or public CDN URLs (every deployment,
+   * via `scripts/qa/publish-textbook-cdn.mjs`), so an `<img>`/`<Image>` tag works
+   * without attaching the bearer token.
    */
   @SetMetadata(PARENT_RESTRICTED_KEY, true)
   @Get('chapters/:chapterId/pages')
   async chapterPages(
     @CurrentUser() user: RequestUser,
     @Param('chapterId') chapterId: string,
-  ): Promise<{ count: number; pages: Array<{ index: number; path: string }>; expiresAt: string }> {
+  ): Promise<{
+    count: number;
+    pages: Array<{ index: number; path: string }>;
+    expiresAt: string | null;
+  }> {
     this.uuidOrBadRequest(chapterId);
-    const { files } = await this.service.getChapterPages(user, chapterId);
-    const { paths, expiresAt } = this.pdfTickets.chapterPages(chapterId, files.length);
+    const { files, remote } = await this.service.getChapterPages(user, chapterId);
+
+    if (files.length) {
+      const { paths, expiresAt } = this.pdfTickets.chapterPages(chapterId, files.length);
+      return {
+        count: files.length,
+        expiresAt,
+        pages: paths.map((path, index) => ({ index: index + 1, path })),
+      };
+    }
+
+    // No book files on this deployment: the pages are published to the static CDN
+    // and need no signature, so the reader works exactly the same.
     return {
-      count: files.length,
-      expiresAt,
-      pages: paths.map((path, index) => ({ index: index + 1, path })),
+      count: remote.length,
+      expiresAt: null,
+      pages: remote.map((path, index) => ({ index: index + 1, path })),
     };
   }
 

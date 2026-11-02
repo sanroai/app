@@ -9,7 +9,7 @@ import { ContentScopeService } from '../common/content/content-scope.service';
 import { canonicalContentType } from '../common/content/content-types';
 import { normalizeChapterSegments, deriveConceptSegments, clipSegmentsToDuration } from '../common/books/chapter-segments';
 import { chapterPdfPath, chapterPdfFileName, chapterPdfRemoteUrl } from '../common/books/chapter-pdf';
-import { chapterPageFiles } from '../common/books/chapter-pages';
+import { chapterPageFiles, chapterPageRemoteUrls } from '../common/books/chapter-pages';
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
 import { Prisma } from '@prisma/client';
@@ -1658,12 +1658,21 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
   /**
    * The rendered pages of a chapter's textbook, in reading order.
    *
-   * Same authorisation as the PDF; an empty list means this deployment does not
-   * ship the book on disk (the `books/` tree is git-ignored).
+   * Same authorisation as the PDF. `files` are on-disk page images (a local
+   * checkout with the `books/` tree); `remote` are public CDN URLs published by
+   * `scripts/qa/publish-textbook-cdn.mjs`, which is what a deployment uses. Both
+   * empty means the chapter has no book at all.
    */
-  async getChapterPages(user: RequestUser, chapterId: string): Promise<{ code: string; files: string[] }> {
+  async getChapterPages(
+    user: RequestUser,
+    chapterId: string,
+  ): Promise<{ code: string; files: string[]; remote: string[] }> {
     const chapter = await this.chapterForUser(user, chapterId);
-    return { code: chapter.code, files: chapterPageFiles(chapter.code) };
+    return {
+      code: chapter.code,
+      files: chapterPageFiles(chapter.code),
+      remote: chapterPageRemoteUrls(chapter.code),
+    };
   }
 
   /**
