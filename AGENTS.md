@@ -495,7 +495,7 @@ text. Without this the model's `**`, `#` and `<br>` reach the student literally.
 
 ## Assessment / Path / Test — invariants that must not regress
 `docs/ASSESSMENT_EDGE_CASES.md` is the full list; `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs`
-(**53 checks**, run it alone - login is limited to 10/min) is the guard.
+(**54 checks**, run it alone - login is limited to 10/min) is the guard.
 
 - **Starting twice resumes, never duplicates.** `startAttempt` returns the existing
   `IN_PROGRESS` attempt (`resumed: true`). Deriving the index from the attempt count
@@ -508,6 +508,9 @@ text. Without this the model's `**`, `#` and `<br>` reach the student literally.
   late submit is recorded as `AUTO_SUBMITTED` (`expired: true`).
 - **Written answers are pending, never wrong**; the correct answer is hidden until
   the student submits; a non-numeric mark is a 400.
+- **A retest is reused while it is unstarted** (`POST /remediation/retest` returns
+  `reused: true`) and older unstarted duplicates are cleared. Creating a new row
+  every time filled the Tests tab with identical "Retest" entries.
 
 ## Student Dashboard — "What should I do today?"
 - **Your Focus Today**: Weak concept "Fix This" CTA + upcoming assessment "Prepare"

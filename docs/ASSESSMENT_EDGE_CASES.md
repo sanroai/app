@@ -35,7 +35,7 @@ teacher creates -> publishes -> student sees it in Tests -> reads the paper
 | Grading | `pendingGrading` is reported; a **question id works** (that is what the screen sends); a non-numeric mark is a **400, not a 500**; a student gets a 403; marks land on the answer and the score updates; nothing stays pending |
 | Attempt limit | a second attempt is allowed when `attemptsAllowed = 2`; the third is a 403 |
 | Path | 1,089 concepts with `state` + `level`; a `next` action; a summary; weak concepts listed |
-| Retest | a student can request one for a concept; an empty list is a 400; another student's id is a 403 |
+| Retest | a student can request one for a concept; an empty list is a 400; another student's id is a 403; **a second request reuses the pending retest** |
 | Bad input | a malformed attempt id is a 400; an unknown assessment is a 404 |
 
 ## Bugs this found and fixed
@@ -62,6 +62,12 @@ teacher creates -> publishes -> student sees it in Tests -> reads the paper
    could be saved and submitted hours late. The server now refuses to save past
    `durationMinutes` + 60 s and records a late submit as `AUTO_SUBMITTED`, so a
    teacher can tell the two apart. `expired` is returned to the client.
+8. **Every retest was a new assessment.** Asking for a retest twice produced two
+   identical "Retest" rows in the Tests tab (the demo account had collected 17).
+   A student's **unstarted** retest is now reused (`reused: true`) — its questions
+   are re-snapshotted for the newly requested concepts — and older unstarted
+   duplicates created by the same user for the same student are removed. A retest
+   with an attempt on it is never touched.
 
 ## Rules the API enforces
 
@@ -85,8 +91,9 @@ teacher creates -> publishes -> student sees it in Tests -> reads the paper
 - `submitAttempt` grades whatever was saved. If the network dropped before the last
   `saveAnswers`, those answers are simply skipped — there is no offline replay for
   attempts (practice sets have one; assessments deliberately do not).
-- A retest always creates a **new** assessment row (`title: "Retest"`), so a student
-  who retests often accumulates them. That is the documented "student-triggered
-  retest" design, not a leak, but the Tests tab should group them.
+- A retest is **reused while it is unstarted**, so a student who retests often keeps
+  exactly one pending retest row. The questions are replaced with the newly
+  requested concepts, which means a retest opened before the second request will
+  show the newer questions. Once an attempt exists it is never reused or removed.
 - Grading a written answer re-applies mastery evidence for that concept, so
   re-grading the same answer twice counts twice. Marks are clamped, evidence is not.

@@ -175,12 +175,61 @@ export class RemediationService {
     if (questions.length === 0) throw new BadRequestException('No questions available for the selected concepts');
 
     const subjectId = questions[0].subjectId;
+    const totalMarks = questions.reduce((a, q) => a + (q.marks ?? 1), 0);
+
+    // Reuse a retest this student has not started, instead of piling up another.
+    // Every retest used to create a brand-new assessment, so the Tests tab filled
+    // with identical "Retest" rows (the demo account collected 17). A started
+    // attempt is left alone - its answers must not be swapped underneath it.
+    const pending = await this.prisma.assessment.findFirst({
+      where: {
+        institutionId,
+        title: 'Retest',
+        createdById: user.sub,
+        status: 'PUBLISHED',
+        attempts: { none: {} },
+        assignments: { some: { studentId } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (pending) {
+      await this.prisma.assessmentQuestion.deleteMany({ where: { assessmentId: pending.id } });
+      await this.prisma.assessment.update({
+        where: { id: pending.id },
+        data: { subjectId, totalMarks, durationMinutes: 30 },
+      });
+      await snapshotQuestions(
+        this.prisma,
+        pending.id,
+        questions.map((q) => ({ ...q, marks: q.marks ?? 1 })),
+      );
+      // Clear the older unstarted duplicates this fix exists to prevent, so an
+      // account that already collected a backlog heals on its next retest. Only
+      // retests this same user created, assigned to this same student, with no
+      // attempt on them - nothing a student has started is touched.
+      await this.prisma.assessment
+        .deleteMany({
+          where: {
+            institutionId,
+            title: 'Retest',
+            createdById: user.sub,
+            status: 'PUBLISHED',
+            id: { not: pending.id },
+            attempts: { none: {} },
+            assignments: { some: { studentId } },
+          },
+        })
+        .catch(() => ({ count: 0 }));
+      return { id: pending.id, title: pending.title, reused: true };
+    }
+
     const assessment = await this.prisma.assessment.create({
       data: {
         institutionId,
         title: 'Retest',
         subjectId,
-        totalMarks: questions.reduce((a, q) => a + (q.marks ?? 1), 0),
+        totalMarks,
         durationMinutes: 30,
         status: 'PUBLISHED',
         attemptsAllowed: 1,
@@ -211,7 +260,7 @@ export class RemediationService {
       });
     }
 
-    return { id: assessment.id, title: assessment.title };
+    return { id: assessment.id, title: assessment.title, reused: false };
   }
 
   async detectWeakConcepts(user: RequestUser, requestedStudentId?: string) {
