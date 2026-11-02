@@ -82,7 +82,7 @@ Copy this block for each new entry:
 | Frontend changes | Every assistant reply has a **Copy** button (green tick + "Copied" for 2 s) and `select-text`/`selectable` text. Captions are cleared through the player API (`setOption('captions','track',{})`) after load on web and through the wrapper script on mobile; the CC button stays so a student can switch subtitles on |
 | Seed/import changes | none |
 | Migration | none |
-| Verification | `pnpm --filter @sanro/web typecheck` + `@sanro/mobile typecheck` clean; on the phone the reply copy button flips to "Copied" |
+| Verification | `pnpm --filter @sanro/web typecheck` + `@sanro/mobile typecheck` clean; live web chat: 2 Copy buttons, bubble `user-select: text`; on the phone (release **1.1.3**): the reply's Copy button flips to a green "Copied" |
 | Known issues | Captions are cleared a moment after the player starts, so a video can flash subtitles for ~1 s on a slow device |
 
 ### 2026-11-02 — Assessment / Path / Test audit: seven defects fixed
