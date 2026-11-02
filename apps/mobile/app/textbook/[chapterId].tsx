@@ -3,13 +3,11 @@ import type { ElementRef } from 'react';
 import {
   ActivityIndicator,
   Dimensions,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native-gesture-handler';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ZoomablePage } from '../../components/ZoomablePage';
@@ -22,6 +20,18 @@ const PAGE_ASPECT = 1689 / 1240;
 
 /** The "Page n of m" line under a page, plus its margins. */
 const CAPTION_HEIGHT = 30;
+
+/**
+ * How many rows are kept mounted around the viewport.
+ *
+ * A decoded 1240 px page is ~8 MB in memory, so a whole book (164-224 pages now
+ * that classes 3-4 open their full textbook) cannot be a plain stack of children:
+ * laying out and decoding every page is what made scrolling hang. The list is
+ * virtualised, and only the visible row plus one either side is mounted.
+ */
+const WINDOW_SIZE = 3;
+
+type TextbookPage = { index: number; path: string };
 
 /**
  * The chapter textbook, read as page images inside the app.
@@ -49,8 +59,7 @@ export default function TextbookScreen() {
   // A zoomed page is larger than the screen and is moved with one finger, so the
   // scroller must not scroll underneath it (the tap gesture then reports zoom out).
   const [zoomed, setZoomed] = useState(false);
-  const [visibleIndex, setVisibleIndex] = useState(0);
-  const scrollRef = useRef<React.ElementRef<typeof ScrollView>>(null);
+  const scrollRef = useRef<FlatList<TextbookPage>>(null);
 
   const width = Dimensions.get('window').width;
   const pageHeight = Math.round(width * PAGE_ASPECT);
@@ -61,15 +70,6 @@ export default function TextbookScreen() {
     setFailed({});
     void refetch();
   }, [refetch]);
-
-  const onScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const next = Math.round(event.nativeEvent.contentOffset.y / stride);
-      const clamped = Math.min(Math.max(next, 0), Math.max(pages.length - 1, 0));
-      setVisibleIndex((current) => (current === clamped ? current : clamped));
-    },
-    [pages.length, stride],
-  );
 
   if (isLoading) {
     return (
@@ -122,42 +122,52 @@ export default function TextbookScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.background }}>
       <Stack.Screen options={{ title: chapter?.name ?? 'Textbook' }} />
-      <ScrollView
+      <FlatList<TextbookPage>
         ref={scrollRef}
+        data={pages}
+        keyExtractor={(page) => String(page.index)}
         style={{ flex: 1 }}
         scrollEnabled={!zoomed}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: Spacing.sm, paddingBottom: Spacing.xl }}
-      >
-        <Text
-          style={{
-            marginHorizontal: Spacing.lg,
-            marginBottom: Spacing.sm,
-            textAlign: 'center',
-            fontSize: 12,
-            color: Colors.textMuted,
-          }}
-        >
-          Tap a page to zoom · pinch to adjust · tap again to fit
-        </Text>
-        {data?.bookLevel ? (
-          <Text
-            style={{
-              marginHorizontal: Spacing.lg,
-              marginBottom: Spacing.sm,
-              textAlign: 'center',
-              fontSize: 12,
-              fontWeight: '600',
-              color: Colors.primary,
-            }}
-          >
-            The full Class {chapter?.grade ?? ''} textbook — your chapter’s topic is inside, scroll to find it
-          </Text>
-        ) : null}
-        {pages.map((page, index) => (
-          <View key={page.index} style={{ marginBottom: Spacing.sm }}>
-            {failed[page.index] ? (
+        // Every row is exactly the same height, so the list can jump straight to a
+        // scroll offset instead of measuring 200 rows first.
+        getItemLayout={(_, index) => ({ length: stride, offset: stride * index, index })}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        windowSize={WINDOW_SIZE}
+        updateCellsBatchingPeriod={50}
+        ListHeaderComponent={
+          <>
+            <Text
+              style={{
+                marginHorizontal: Spacing.lg,
+                marginBottom: Spacing.sm,
+                textAlign: 'center',
+                fontSize: 12,
+                color: Colors.textMuted,
+              }}
+            >
+              Tap a page to zoom · pinch to adjust · tap again to fit
+            </Text>
+            {data?.bookLevel ? (
+              <Text
+                style={{
+                  marginHorizontal: Spacing.lg,
+                  marginBottom: Spacing.sm,
+                  textAlign: 'center',
+                  fontSize: 12,
+                  fontWeight: '600',
+                  color: Colors.primary,
+                }}
+              >
+                The full Class {chapter?.grade ?? ''} textbook — your chapter’s topic is inside, scroll to find it
+              </Text>
+            ) : null}
+          </>
+        }
+        renderItem={({ item }) => (
+          <View style={{ height: stride }}>
+            {failed[item.index] ? (
               <TouchableOpacity
                 onPress={retry}
                 style={{
@@ -169,58 +179,58 @@ export default function TextbookScreen() {
               >
                 <Ionicons name="refresh" size={28} color={Colors.textMuted} />
                 <Text style={{ marginTop: Spacing.xs, color: Colors.textMuted }}>
-                  Page {page.index} did not load — tap to retry
+                  Page {item.index} did not load — tap to retry
                 </Text>
               </TouchableOpacity>
-            ) : Math.abs(index - visibleIndex) <= 1 ? (
+            ) : (
               <ZoomablePage
-                uri={absoluteApiUrl(page.path)}
+                uri={absoluteApiUrl(item.path)}
                 width={width}
                 height={pageHeight}
-                label={`${chapter?.name ?? 'Chapter'} page ${page.index}`}
+                label={`${chapter?.name ?? 'Chapter'} page ${item.index}`}
                 zoomed={zoomed}
                 onZoomChange={setZoomed}
                 scrollRef={scrollRef}
-                onError={() => setFailed((current) => ({ ...current, [page.index]: true }))}
+                onError={() => setFailed((current) => ({ ...current, [item.index]: true }))}
               />
-            ) : (
-              <View style={{ width, height: pageHeight, backgroundColor: Colors.surface }} />
             )}
             <Text
               style={{
-                marginTop: Spacing.xs,
-                marginBottom: Spacing.xs,
+                height: CAPTION_HEIGHT,
+                lineHeight: CAPTION_HEIGHT,
                 textAlign: 'center',
                 fontSize: 12,
                 color: Colors.textMuted,
               }}
             >
-              Page {page.index} of {pages.length}
+              Page {item.index} of {pages.length}
             </Text>
           </View>
-        ))}
-        <View style={{ alignItems: 'center', paddingTop: Spacing.lg, paddingBottom: Spacing.xl }}>
-          <Text style={{ color: Colors.textMuted, fontSize: 12 }}>
-            End of chapter · {pages.length} page{pages.length === 1 ? '' : 's'}
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{
-              marginTop: Spacing.md,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: Spacing.xs,
-              paddingHorizontal: Spacing.lg,
-              paddingVertical: Spacing.sm,
-              borderRadius: BorderRadius.lg,
-              backgroundColor: Colors.primary,
-            }}
-          >
-            <Ionicons name="arrow-back" size={16} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '700' }}>Back to the chapter</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+        )}
+        ListFooterComponent={
+          <View style={{ alignItems: 'center', paddingTop: Spacing.lg, paddingBottom: Spacing.xl }}>
+            <Text style={{ color: Colors.textMuted, fontSize: 12 }}>
+              End of chapter · {pages.length} page{pages.length === 1 ? '' : 's'}
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{
+                marginTop: Spacing.md,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: Spacing.xs,
+                paddingHorizontal: Spacing.lg,
+                paddingVertical: Spacing.sm,
+                borderRadius: BorderRadius.lg,
+                backgroundColor: Colors.primary,
+              }}
+            >
+              <Ionicons name="arrow-back" size={16} color="#fff" />
+              <Text style={{ color: '#fff', fontWeight: '700' }}>Back to the chapter</Text>
+            </TouchableOpacity>
+          </View>
+        }
+      />
     </View>
   );
 }

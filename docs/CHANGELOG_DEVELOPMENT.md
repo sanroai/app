@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — The textbook reader scrolls smoothly at 224 pages; ask the tutor by voice
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Fix the reader hanging while scrolling the full class books, and add a speech-to-text button that sends the question |
+| Reason | The reader was a plain stack of every page inside one scroller: with classes 3-4 now opening the whole class book (164-224 pages) it laid out 224 rows and decoded pages as they came into view, which is what hung. A student also asked for voice input — typing a question on a phone is the slowest part of asking one |
+| Entities affected | `apps/mobile/app/textbook/[chapterId].tsx` (FlatList), web chapter hub reader (`content-visibility`), new `apps/mobile/lib/use-speech-recognition.ts` + `apps/web/lib/use-speech-recognition.ts`, web `/app/chat`, mobile Ask tab and concept Ask, `AndroidManifest.xml` |
+| Database changes | none |
+| API changes | none |
+| Frontend changes | **Mobile reader is virtualised**: `FlatList` with a fixed `getItemLayout` (every page is the same height), `windowSize: 3`, `initialNumToRender: 2`, `maxToRenderPerBatch: 2` — only the visible row and one either side is mounted, instead of all 224. **Web** page images get `content-visibility: auto` + `contain-intrinsic-size`, so off-screen pages skip layout and paint. **Voice input**: a mic button in the composer of all three chat surfaces; the transcript streams into the input while speaking and a final result is sent automatically. Web uses the browser's `SpeechRecognition`, mobile uses `expo-speech-recognition` (the device recogniser — audio never reaches our server). Hidden when the platform has no recogniser; a denied microphone is a readable message, not a dead button |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `pnpm -r typecheck` clean; APK 1.1.4 builds with the native module; on the device the whole class-3 book (164 pages) scrolls and the mic button reports its permission state; web chat shows the mic only where `SpeechRecognition` exists |
+| Known issues | Web voice input needs Chrome/Edge (Firefox has no `SpeechRecognition`), and the mic is hidden there. Android voice needs Google's speech service installed on the device |
+
 ### 2026-11-02 — Classes 3-4 now open their real textbook; classes 1-4 Sci/Maths stopped showing the wrong unit
 
 | Field | Detail |

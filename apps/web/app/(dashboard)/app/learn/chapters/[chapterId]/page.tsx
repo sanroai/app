@@ -682,6 +682,10 @@ export default function ChapterHubPage() {
                       src={resolveApiPath(page.path)}
                       alt={`${chapter.name} - page ${page.index}`}
                       loading="lazy"
+                      decoding="async"
+                      // A full class book is 164-224 pages; without this the browser
+                      // lays out and decodes every one and the scroll stutters.
+                      style={{ contentVisibility: 'auto', containIntrinsicSize: '1100px' }}
                       className="mx-auto w-full rounded-lg bg-white shadow-sm"
                     />
                   ))}

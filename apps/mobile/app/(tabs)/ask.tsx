@@ -6,6 +6,7 @@ import { useAskAI } from '../../lib/hooks';
 import { Icon3D } from '../../components/Icon3D';
 import { Colors, Spacing, BorderRadius, Shadow, Pastel } from '../../constants/theme';
 import { Markdown } from '../../components/Markdown';
+import { useSpeechRecognition } from '../../lib/use-speech-recognition';
 
 interface Message {
   id: string;
@@ -72,6 +73,9 @@ export default function AskScreen() {
       ]);
     }
   };
+
+  // Asking by voice sends the question as soon as the recogniser finishes.
+  const speech = useSpeechRecognition({ onFinal: (text) => handleSend(text) });
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -157,24 +161,44 @@ export default function AskScreen() {
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
-          value={input}
+          value={speech.listening ? speech.interim : input}
           onChangeText={setInput}
-          placeholder="Ask a question…"
+          placeholder={speech.listening ? 'Listening… speak your question' : 'Ask a question…'}
           placeholderTextColor={Colors.textMuted}
+          editable={!speech.listening}
           multiline
         />
+        {speech.supported ? (
+          <TouchableOpacity
+            style={[styles.micBtn, speech.listening && styles.micBtnActive]}
+            onPress={() => (speech.listening ? speech.stop() : void speech.start())}
+            disabled={askAI.isPending}
+            accessibilityRole="button"
+            accessibilityLabel={speech.listening ? 'Stop listening' : 'Ask by voice'}
+          >
+            <Ionicons
+              name={speech.listening ? 'stop' : 'mic'}
+              size={20}
+              color={speech.listening ? Colors.white : Colors.primary}
+            />
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity
-          style={[styles.sendBtn, (!input.trim() || askAI.isPending) && styles.sendBtnDisabled]}
-          disabled={!input.trim() || askAI.isPending}
+          style={[
+            styles.sendBtn,
+            (!input.trim() || askAI.isPending || speech.listening) && styles.sendBtnDisabled,
+          ]}
+          disabled={!input.trim() || askAI.isPending || speech.listening}
           onPress={() => handleSend()}
         >
           <Ionicons
             name="arrow-up"
             size={22}
-            color={!input.trim() || askAI.isPending ? Colors.textMuted : Colors.white}
+            color={!input.trim() || askAI.isPending || speech.listening ? Colors.textMuted : Colors.white}
           />
         </TouchableOpacity>
       </View>
+      {speech.error ? <Text style={styles.speechError}>{speech.error}</Text> : null}
     </KeyboardAvoidingView>
   );
 }
@@ -230,4 +254,21 @@ const styles = StyleSheet.create({
   input: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: 14, color: Colors.text, maxHeight: 100 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: '#e3ddd3' },
+  micBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+  },
+  micBtnActive: { backgroundColor: Colors.primary },
+  speechError: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.sm,
+    fontSize: 12,
+    color: Colors.warning,
+  },
 });

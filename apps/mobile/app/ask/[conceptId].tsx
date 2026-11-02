@@ -6,6 +6,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useConceptDetail, useAskAI, useChapterHub } from '../../lib/hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { Markdown } from '../../components/Markdown';
+import { useSpeechRecognition } from '../../lib/use-speech-recognition';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -76,6 +77,9 @@ export default function AskScreen() {
       setWaiting(false);
     }
   };
+
+  // Asking by voice sends the question as soon as the recogniser finishes.
+  const speech = useSpeechRecognition({ onFinal: (text) => send(text) });
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -155,21 +159,37 @@ export default function AskScreen() {
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
-          value={input}
+          value={speech.listening ? speech.interim : input}
           onChangeText={setInput}
-          placeholder="Ask a question…"
+          placeholder={speech.listening ? 'Listening… speak your question' : 'Ask a question…'}
           placeholderTextColor={Colors.textMuted}
           multiline
-          editable={!waiting}
+          editable={!waiting && !speech.listening}
         />
+        {speech.supported ? (
+          <TouchableOpacity
+            style={[styles.micBtn, speech.listening && styles.micBtnActive]}
+            onPress={() => (speech.listening ? speech.stop() : void speech.start())}
+            disabled={waiting}
+            accessibilityRole="button"
+            accessibilityLabel={speech.listening ? 'Stop listening' : 'Ask by voice'}
+          >
+            <Ionicons
+              name={speech.listening ? 'stop' : 'mic'}
+              size={18}
+              color={speech.listening ? Colors.white : Colors.primary}
+            />
+          </TouchableOpacity>
+        ) : null}
         <TouchableOpacity
-          style={[styles.sendBtn, (!input.trim() || waiting) && styles.sendBtnDisabled]}
-          disabled={!input.trim() || waiting}
+          style={[styles.sendBtn, (!input.trim() || waiting || speech.listening) && styles.sendBtnDisabled]}
+          disabled={!input.trim() || waiting || speech.listening}
           onPress={() => send(input)}
         >
           <Ionicons name="send" size={18} color={Colors.white} />
         </TouchableOpacity>
       </View>
+      {speech.error ? <Text style={styles.speechError}>{speech.error}</Text> : null}
     </KeyboardAvoidingView>
   );
 }
@@ -220,4 +240,21 @@ const styles = StyleSheet.create({
   input: { flex: 1, backgroundColor: Colors.surfaceSecondary, borderRadius: BorderRadius.lg, padding: Spacing.md, fontSize: 14, maxHeight: 120, color: Colors.text },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { opacity: 0.5 },
+  micBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surface,
+  },
+  micBtnActive: { backgroundColor: Colors.primary },
+  speechError: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.sm,
+    fontSize: 12,
+    color: Colors.warning,
+  },
 });

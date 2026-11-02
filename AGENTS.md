@@ -246,6 +246,14 @@ and both clients label it "the full Class N textbook". Classes **1-2 Science** h
 book at all (EVS starts at class 3), so those chapters correctly report no textbook. Full
 reasoning: `docs/TEXTBOOK_CDN.md`.
 
+**A 224-page book must be virtualised.** The mobile reader (`app/textbook/[chapterId].tsx`) is a
+`FlatList` with a fixed `getItemLayout` (every page is the same height), `windowSize: 3`,
+`initialNumToRender: 2` and `maxToRenderPerBatch: 2`, so only the visible row plus one either
+side is mounted - a decoded 1240 px page is ~8 MB, and a plain stack of 224 of them is what
+made scrolling hang. The web reader relies on `content-visibility: auto` +
+`contain-intrinsic-size` on each `<img>` so off-screen pages skip layout and paint. Keep both
+when touching the reader.
+
 ## Sanro AI - the book first, then the world
 `POST /ai/chat` answers from a **ladder**, cheapest first: a pre-written answer for a
 **suggested chip** -> the open **concept/chapter's own notes** -> the student's own
@@ -511,6 +519,17 @@ player API after load (`setOption('captions','track',{})`): the web player posts
 iframe (on load and again on the first `message` event), and the mobile wrapper HTML posts it
 to its inner iframe at 600/1500/3000/5000 ms. The CC button stays, so a student who wants
 subtitles can switch them on.
+
+**A question can be asked by voice.** All three chat composers have a mic button backed by
+`apps/{web,mobile}/lib/use-speech-recognition.ts`. The transcript streams into the input while
+the student speaks and the **final** result is sent automatically. Web uses the browser's
+`SpeechRecognition` and renders the button only where it exists (Chrome/Edge; Firefox has no
+API, so no dead button). Mobile uses `expo-speech-recognition`, i.e. the device recogniser, so
+the audio never reaches our server; `RECORD_AUDIO` is declared in
+`android/app/src/main/AndroidManifest.xml` (the module ships an empty manifest and a runtime
+request for an undeclared permission is refused) along with a `<queries>` entry for
+`android.speech.RecognitionService`, without which `isRecognitionAvailable()` reports false on
+Android 11+.
 
 ## Assessment / Path / Test — invariants that must not regress
 `docs/ASSESSMENT_EDGE_CASES.md` is the full list; `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs`

@@ -10,7 +10,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Markdown } from '@/components/markdown';
 import { CopyTextButton } from '@/components/copy-text-button';
-import { Bot, Send, Brain, Loader2, ArrowRight } from 'lucide-react';
+import { useSpeechRecognition } from '@/lib/use-speech-recognition';
+import { Bot, Send, Brain, Loader2, ArrowRight, Mic } from 'lucide-react';
 
 type Message = {
   id: string;
@@ -39,6 +40,9 @@ export default function ChatPage() {
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const chatMutation = useChat();
+  // Speak a question and it is sent; the transcript lands in the input while the
+  // student talks, so it never looks like the words vanished.
+  const speech = useSpeechRecognition({ onFinal: (text) => handleSend(text) });
   const searchParams = useSearchParams();
   const conceptId = searchParams.get('conceptId') ?? undefined;
   // The chapter hub links here with ?chapterId=... - the tutor has to know the
@@ -232,22 +236,49 @@ export default function ChatPage() {
               className="flex gap-2"
             >
               <Input
-                value={input}
+                value={speech.listening ? speech.interim : input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your question..."
+                placeholder={
+                  speech.listening ? 'Listening… speak your question' : 'Type your question…'
+                }
                 aria-label="Type your question"
                 className="flex-1"
-                disabled={chatMutation.isPending}
+                disabled={chatMutation.isPending || speech.listening}
+                readOnly={speech.listening}
               />
+              {speech.supported ? (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant={speech.listening ? 'default' : 'outline'}
+                  aria-label={speech.listening ? 'Stop listening' : 'Ask by voice'}
+                  title={
+                    speech.listening ? 'Stop listening' : 'Ask by voice (speak your question)'
+                  }
+                  onClick={() => {
+                    if (speech.listening) speech.stop();
+                    else speech.start();
+                  }}
+                  disabled={chatMutation.isPending}
+                  className={speech.listening ? 'animate-pulse' : ''}
+                >
+                  <Mic className="h-4 w-4" />
+                </Button>
+              ) : null}
               <Button
                 type="submit"
                 size="icon"
                 aria-label="Send message"
-                disabled={!input.trim() || chatMutation.isPending}
+                disabled={!input.trim() || chatMutation.isPending || speech.listening}
               >
                 <Send className="h-4 w-4" />
               </Button>
             </form>
+            {speech.error ? (
+              <p className="mt-2 text-xs text-amber-700" role="alert">
+                {speech.error}
+              </p>
+            ) : null}
           </div>
         </CardContent>
       </Card>
