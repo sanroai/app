@@ -515,7 +515,11 @@ export class AssessmentsService {
       }
     }
 
-    const maxScore = attempt.assessment.totalMarks;
+    // `assessment.totalMarks` is whatever the creator typed; the questions are what
+    // actually get marked. Taking the maximum from the questions stops a paper from
+    // scoring 3 out of 2 (over 100%) when the two disagree.
+    const maxScore =
+      attempt.assessment.questions.reduce((sum, q) => sum + (q.marks ?? 1), 0) || attempt.assessment.totalMarks;
     const diagnosis = await this.mastery.applyAttemptEvidence(student.id, { attemptId: attempt.id }, [...conceptEvidence.values()]);
 
     const weak = diagnosis.filter((d) => d.weak).map((d) => ({ conceptId: d.conceptId }));
@@ -735,7 +739,7 @@ export class AssessmentsService {
       title: assessment.title,
       subject: assessment.subject ? { id: assessment.subject.id, name: assessment.subject.name, code: assessment.subject.code } : null,
       chapter: assessment.chapter ? { id: assessment.chapter.id, name: assessment.chapter.name, grade: assessment.chapter.grade } : null,
-      totalMarks: assessment.totalMarks,
+      totalMarks: assessment.questions.reduce((sum, q) => sum + (q.marks ?? 1), 0) || assessment.totalMarks,
       durationMinutes: assessment.durationMinutes,
       status: assessment.status,
       mode: assessment.mode,
@@ -769,7 +773,7 @@ export class AssessmentsService {
     if (resolvedId) attemptWhere.student = { institutionId: resolvedId };
     const attempt = await this.prisma.assessmentAttempt.findFirst({
       where: attemptWhere,
-      include: { student: true },
+      include: { student: true, assessment: { select: { totalMarks: true } } },
     });
     if (!attempt) throw new NotFoundException('Attempt not found');
 
@@ -807,10 +811,18 @@ export class AssessmentsService {
     const skipped = answers.filter((x) => !x.answer).length;
     const pending = answers.filter((x) => x.answer && x.marksAwarded === null).length;
 
+    // Same rule as submit: the maximum comes from the questions, not the header.
+    const questions = await this.prisma.assessmentQuestion.findMany({
+      where: { assessmentId: attempt.assessmentId },
+      select: { marks: true },
+    });
+    const maxScore = questions.reduce((sum, q) => sum + (q.marks ?? 1), 0) || attempt.assessment.totalMarks;
+
     await this.prisma.assessmentAttempt.update({
       where: { id: attempt.id },
       data: {
         score,
+        maxScore,
         correctCount: correct,
         wrongCount: wrong,
         skippedCount: skipped,
