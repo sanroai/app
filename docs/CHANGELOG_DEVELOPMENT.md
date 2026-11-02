@@ -53,6 +53,17 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — Full QA sweep: every gate re-run after the AI, textbook and assessment work
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Run every gate and audit the repo defines, and fix what they surfaced |
+| Reason | A lot landed in one pass (AI answer ladder, textbook CDN + primary books, assessment fixes, virtualised reader, voice input). The gates had not all been run since |
+| Results | `pnpm -r typecheck` **clean** · `pnpm -r lint` **0 errors** (0 api / 0 web, warnings only) · `pnpm build` **6/6** · API suite **649/649** · `web-walkthrough.mts` **69 pages, 62 PASS, 7 EXPECTED (RBAC), 0 console errors, 0 failed/5xx** · `audit-web-mobile-parity` **22/22 PASS** · question coverage **every chapter** · curriculum coverage **229/229 chapters with a video, 0 lessons without a URL** · live probes: assessment **13/13**, AI **16/16** |
+| Fixed | `audit-video-durations.mjs` could not read any duration: YouTube answers **429** to a burst from one IP, so the watch page has no `lengthSeconds` and all 241 videos came back `UNKNOWN`. The script now separates **BLOCKED** from **UNKNOWN**, stops after five consecutive 429s, exits 0 when the only problem was the rate limit, and still fails on a genuinely short or unavailable video. Before this, the gate was silently meaningless (and could fail a clean tree) |
+| Known issues | The duration gate could not be completed from this IP today; re-run `node scripts/qa/audit-video-durations.mjs` when YouTube is not rate-limiting to reconfirm the 241 durations |
+
 ### 2026-11-03 — The textbook reader scrolls smoothly at 224 pages; ask the tutor by voice
 
 | Field | Detail |
