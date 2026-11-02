@@ -234,7 +234,7 @@ export const SUGGESTED_ANSWERS: Record<string, string> = {
     '- **Displacement:** a more reactive metal displaces a less reactive one. Zn + CuSO₄ → ZnSO₄ + Cu (blue fades, red-brown copper forms).',
     '- **Acids:** metals **above hydrogen** displace H₂ from dilute acids. Copper, silver and gold do not.',
     '',
-    '**Why it matters** — it predicts whether a reaction happens at all, which is what "will this react?" questions test.',
+    '**Takeaway** — the series predicts whether a reaction happens at all, which is what "will this react?" questions test.',
   ].join('\n'),
 
   'why is methane a covalent compound': [

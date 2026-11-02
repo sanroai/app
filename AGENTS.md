@@ -11,6 +11,8 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 - `docs/NAVIGATION_PERFORMANCE.md` — instant-navigation design (intent prefetch, idle prefetch of the next screen, route skeletons), measured numbers, and why Turbopack dev is parked.
 - `docs/VIDEO_CHAPTER_MARKERS.md` — real creator chapters vs the derived concept split, and the probe that guards it.
 - `docs/AI_PROVIDER.md` — Gemini wiring, measured latencies, free-tier limits (20 text/day, 0 images).
+- `docs/AI_ANSWERS.md` — why the tutor answers from the book first, the instant-answer ladder, and the guards.
+- `docs/TEXTBOOK_CDN.md` — how the NCERT page images reach a deployed site (Cloudflare Pages, the manifest, publishing).
 - `docs/QUESTION_BANK_GROWTH.md` — the author → validate → merge → reseed pipeline and current counts.
 
 ## Commands
@@ -66,6 +68,9 @@ node scripts/qa/audit-web-mobile-parity.mjs  # Fails when a student capability e
 node scripts/qa/probe-chapter-hub.mjs        # Probes the chapter hub contract (payload, PDF, practice, 404s)
 node scripts/qa/probe-multi-class.mjs        # One student, several classes: home/chapters/pages/practice/chat + 403 for the class not enrolled
 node scripts/qa/probe-chapter-pages.mjs      # Textbook pages: signed list, PNG bytes, 404 past the last page, 401 forged
+node scripts/qa/publish-textbook-cdn.mjs     # Render every extracted page to JPEG + write the CDN manifest (then wrangler pages deploy)
+node scripts/qa/publish-primary-textbook.mjs # Classes 1-4 English: NCERT Marigold chapter PDFs -> CDN pages
+node artifacts/qa/2026-11-02/probe-ai-speed.mjs # AI: chips are instant, answers are grounded, no 5xx, Markdown formatting
 npx tsx scripts/qa/probe-textbook-reader.mts # Web reader: "Read the textbook" opens the pages (naturalWidth > 0) + Download PDF
 node scripts/qa/probe-video-segments.mjs      # Every lesson video exposes jumpable markers (real or derived); --grade 8|9
 node scripts/qa/generate-concept-questions.mjs --grades 10 --target 4 --batch 5   # AI-assisted authoring (see docs/QUESTION_BANK_GROWTH.md)
@@ -161,7 +166,7 @@ large ghost class numeral. No two classes of a subject ever show the same pictur
 ## Chapter hub + chapter markers
 The concept page's parent is the **chapter hub** (`/app/learn/chapters/[chapterId]` web,
 `/chapter/[chapterId]` mobile). One scroll, five sections, in learning-loop order:
-**Continue** (the first unmastered concept) -> **Contents** (every concept with its mastery)
+**Continue** (the first unmastered concept) -> **Concepts** (every concept with its mastery)
 -> **Learn** (the chapter's videos **split by time**, the overall chapter notes, and the
 **textbook chapter PDF**) -> **Practise** (one session over the whole
 chapter) -> **Ask** (Ask SANRO AI about this chapter). The API is
@@ -219,6 +224,35 @@ Full reasoning: `docs/VIDEO_CHAPTER_MARKERS.md`.
 (the class-8 maths book is split into two volumes, so volume 2 needs the \`MAT-8P2-n\` code).
 The books are git-ignored and local-only: in production \`pdfUrl\` is \`null\` and the route 404s
 unless the NCERT books ship with the API.
+
+**The page images are published to a CDN, because no deployment ships `books/`.**
+`scripts/qa/publish-textbook-cdn.mjs` renders every extracted page to a 1240 px JPEG
+(quality 70) as `<CHAPTER_CODE>/pNNN.jpg` and writes
+`apps/api/src/common/books/chapter-pages-manifest.json` (chapter code -> page numbers,
+committed). The tree is deployed to Cloudflare Pages as **https://books.sanroai.com**
+(project `sanro-books`; 233 chapters, 5,058 pages, ~666 MB, free and unmetered).
+`GET /learning/chapters/:id/pages` returns those **absolute CDN URLs** when the deployment
+has no book files (`expiresAt: null`) and signed API URLs when it does - both clients pass an
+absolute URL through unchanged, so this fixed the installed APK with **no rebuild**.
+`/pdf-link` falls back to the official NCERT PDF. Classes 1-4 English are the NCERT Marigold
+units (`scripts/qa/publish-primary-textbook.mjs`); classes 1-4 Science/Mathematics are our own
+lesson sets, not NCERT chapters, so they correctly report no textbook. Full reasoning:
+`docs/TEXTBOOK_CDN.md`.
+
+## Sanro AI - the book first, then the world
+`POST /ai/chat` answers from a **ladder**, cheapest first: a pre-written answer for a
+**suggested chip** -> the open **concept/chapter's own notes** -> the student's own
+**mastery rows** ("what am I weak in?") -> an in-process **reply cache** -> **the model**.
+Steps 1-3 never touch Gemini, so they return in ~270-350 ms instead of 3-6 s and cannot be
+rate limited; the free tier's ~20 requests/day only covers genuinely outside questions.
+Grounding only fires when the question actually names the open concept/chapter (a unit test
+pins the "reading Life Processes, asking about the reactivity series" case), and the model
+prompt is explicit: **answer from the lesson notes first, general knowledge second, and say
+when it is doing the latter**. Chat is capped at 1600 output tokens with a 20 s abort.
+`answerChat` **never throws** - a model outage degrades to a book/notes answer, so the client
+never sees "Something went wrong". `SUGGESTED_ANSWERS` in
+`apps/api/src/ai/grounded-answer.ts` holds the chips: **a new chip must be added there too**,
+or it falls through to the model. Full reasoning: `docs/AI_ANSWERS.md`.
 
 ## Web <-> mobile parity (one rule)
 Every **student-facing** capability exists on both platforms with the same behaviour and the
@@ -398,7 +432,12 @@ Purple/violet primary (#7c3aed), rounded cards (2xl/3xl), soft shadows, gradient
 The concept detail page (`/app/learn/concepts/[conceptId]`) has a **3-mode** interface:
 1. **Learn** - video lessons (YouTube, plays inline, captions off), study notes, quick revision,
    and the **Interactive 3D Model** card (opens the viewer in a dialog/modal - it is lesson
-   content, not a peer mode, and the heavy viewer only mounts on demand)
+   content, not a peer mode, and the heavy viewer only mounts on demand).
+   **Order inside Learn: Videos -> 3D model -> Quick Revision -> Study notes.** The reading
+   material is deliberately **last**, and it is **selectable and copyable**: notes are open by
+   default, each has a Copy button (plus "Copy all"), and the body is `select-text` on web and
+   `selectable` on mobile. Web copy falls back to `textarea` + `execCommand` when the Clipboard
+   API is unavailable (plain-http schools).
 2. **Practice** - one action, a server-side quiz session (`POST /learning/practice/start` ->
    `/learning/practice/[practiceId]`) with a per-question timer. Submitting records mastery
    evidence and XP - this is the ASSESS -> DIAGNOSE edge. The page honours `?tab=practice`

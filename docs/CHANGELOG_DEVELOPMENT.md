@@ -53,6 +53,76 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-02 — "Read the textbook" now works in production: the pages live on a CDN
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Make the chapter textbook readable inside both apps on the deployed site, not just on a developer machine |
+| Reason | The in-app reader shows the NCERT chapter as **page images** (Android's WebView cannot render a PDF and a PDF link only downloads it). Those images live in `books/`, which is git-ignored, so production had no pages: `/pages` returned `count: 0` and the clients fell back to a link to `ncert.nic.in`, which Chrome cannot display either — the reported "cannot display pdf, cannot be opened". Locally it worked because the book tree was on disk |
+| Entities affected | 233 chapters (212 real + 21 prelims/answers folders), 5,058 images, ~666 MB |
+| Database changes | none |
+| API changes | `chapter-pages.ts` gained `chapterPageRemoteUrls()` + `chapter-pages-manifest.json` (chapter code -> page numbers). `GET /learning/chapters/:id/pages` returns public CDN URLs when the deployment ships no book files (`expiresAt: null`), and signed API URLs when it does. `/pdf-link` falls back to the official NCERT PDF when there is no local file |
+| Frontend changes | Web chapter hub prefers the reader when pages exist, then "Read on NCERT", then a disabled state; "Download PDF" links to the NCERT file. Mobile already passed absolute URLs through, so the **shipped APK started working with no rebuild** |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `https://books.sanroai.com/SCI-10-4/p001.jpg` -> 200 `image/jpeg`, `immutable`; live `/pages` -> `count: 16` with `https://books.sanroai.com/...`; 20/20 class 1-4 English chapters rendered from their NCERT PDFs; `probe-ai-speed.mjs` asserts the pages contract |
+| Known issues | Classes 1-4 **Science and Mathematics** (17 chapters) are our own lesson sets, not NCERT chapters, so they legitimately have no textbook page; classes 1-2 have no NCERT science book at all. The book tree still has to exist locally to publish |
+
+### 2026-11-02 — Sanro AI answers from the book first, and answers the suggested chips instantly
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Fix slow replies and the "something went wrong" dead end, and make answers curriculum-grounded before general knowledge |
+| Reason | Every question waited for Gemini (3-6 s warm, up to 45 s before the abort), and the free tier allows ~20 text requests a day — once exhausted, chat failed and the clients showed an error. Most questions are about the concept already open, whose answer is in the lesson notes we already hold |
+| Entities affected | `apps/api/src/ai/grounded-answer.ts` (new), `ai.service.ts`, `ai.controller.ts`, web chat, mobile Ask tab and concept Ask screen |
+| Database changes | none |
+| API changes | `answerChat` is now a ladder: pre-written answer for a suggested chip -> the open concept/chapter's own notes -> the student's own mastery rows -> an in-process reply cache -> the model. `buildContext` sends the lesson notes and board/grade with the request. Chat `maxOutputTokens` 4096 -> 1600, abort 45 s -> 20 s |
+| Frontend changes | Error copy is now actionable ("that is a connection problem"), never "Something went wrong" |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `probe-ai-speed.mjs`: 7/7 suggested chips `instant: true` in 269-735 ms (was 3-6 s), concept explanation 352 ms, chapter summary 312 ms, weakness insight 350 ms, off-topic question 4.25 s via the model, no 5xx. `src/ai/grounded-answer.spec.ts` 10/10 (including "refuses to answer about a different topic from these notes") |
+| Known issues | The reply cache is per process, so a second Render instance would miss it. A model outage still degrades to the book/notes answer rather than a perfect one — by design |
+
+### 2026-11-02 — Concept notes at the bottom, selectable, with a copy button
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Notes are the last thing on the concept page, the text can be selected line by line, and there is a copy button |
+| Reason | Reading material competed with the video at the top of Learn, and mobile `Text` is not selectable unless asked |
+| Entities affected | Web `concept/[conceptId]`, mobile `concept/[conceptId]`, new `apps/web/components/copy-text-button.tsx` |
+| Database changes | none |
+| API changes | none |
+| Frontend changes | Learn order is now Videos -> 3D model -> Quick Revision -> Study notes. Notes are **open by default** (tracked as `closedNotes`, so async content needs no initialisation). Every note has a Copy button ("Copied" for 2 s) plus "Copy all"; the body is `select-text` on web and `selectable` on mobile. The web copy helper falls back to `textarea` + `execCommand` when the Clipboard API is unavailable (plain-http schools) |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `pnpm -r typecheck` clean, `pnpm -r lint` 0 errors, browser check of the live concept page |
+| Known issues | Android long-press selection inside a markdown list still selects the whole run, not a single word, on some OEM builds — the Copy button is the reliable path there |
+
+### 2026-11-02 — Chapter hub section renamed "Contents" -> "Concepts"
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Name the section after what it lists |
+| Reason | The rows are concepts with their mastery; "Contents" reads like a table of contents of the book |
+| Entities affected | Web chapter hub, mobile chapter hub |
+| Verification | `pnpm -r typecheck`, `pnpm -r lint` |
+
+### 2026-11-02 — AI gap-fill exposed in the paper builder
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Let a teacher generate a paper even when the question bank is short |
+| Reason | `autoGenerateWithAI` already existed in the API and the paper service, but nothing in the UI could set it |
+| Entities affected | `apps/web/app/(dashboard)/app/papers/new/page.tsx` |
+| API changes | none (the field already existed on `CreatePaperSchema`) |
+| Frontend changes | "Let AI write the questions the bank is short of" toggle; the bank is always used first, only the gap is generated, and generated questions are saved as **drafts** |
+| Verification | `pnpm --filter @sanro/web typecheck` |
+
 ### 2026-11-01 — Keep-warm so the free instance stops sleeping between visits
 
 | Field | Detail |
