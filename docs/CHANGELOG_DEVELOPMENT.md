@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-02 — Assessment / Path / Test audit: seven defects fixed
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Walk the whole assessment lifecycle, the Path and retest for edge cases and fix what breaks |
+| Reason | Three of these were user-facing dead ends: a student could not resume an attempt, a teacher could not grade a written answer at all, and a paper could report a score above its own total |
+| Entities affected | `apps/api/src/assessments/assessments.service.ts` |
+| Database changes | none |
+| API changes | `startAttempt` returns `resumed`/`expiresAt`/`expired` and **reuses** an in-progress attempt; `gradeAnswer` accepts a question id **or** an answer row id and updates `answerRow.id`; `maxScore` is derived from the question marks in submit, grading and `paperForStudent`; `myAssignments.questionCount` is real; `marksAwarded` is validated (400 not 500); a super admin can read any attempt; `saveAnswers` refuses after the timer and `submitAttempt` records `AUTO_SUBMITTED`; `attemptDetail` exposes `answerId` |
+| Frontend changes | none needed — the grading screen already sent the question id, which now works |
+| Seed/import changes | none |
+| Migration | none |
+| Verification | `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs` **53/53**; browser: teacher opened the grading screen, entered 2, "Save marks" flipped to **graded** and the attempt score updated; `learning-path` + `attempt-read-scoping` + `practice-flow` + `role-permission-matrix` + `authorization` **343/343**; `pnpm -r typecheck` clean, `pnpm -r lint` 0 errors |
+| Known issues | Re-grading the same written answer re-applies mastery evidence (marks are clamped, evidence is not); a retest always creates a new assessment row. Both recorded in `docs/ASSESSMENT_EDGE_CASES.md` |
+
 ### 2026-11-02 — Mobile 1.1.2 shipped to /downloads
 
 | Field | Detail |

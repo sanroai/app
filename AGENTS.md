@@ -13,6 +13,7 @@ Sanro AI — Multi-tenant academic platform for Indian schools (ASSESS → DIAGN
 - `docs/AI_PROVIDER.md` — Gemini wiring, measured latencies, free-tier limits (20 text/day, 0 images).
 - `docs/AI_ANSWERS.md` — why the tutor answers from the book first, the instant-answer ladder, and the guards.
 - `docs/TEXTBOOK_CDN.md` — how the NCERT page images reach a deployed site (Cloudflare Pages, the manifest, publishing).
+- `docs/ASSESSMENT_EDGE_CASES.md` — the assessment lifecycle's invariants, the 53-check probe, and the seven defects it found.
 - `docs/QUESTION_BANK_GROWTH.md` — the author → validate → merge → reseed pipeline and current counts.
 
 ## Commands
@@ -71,6 +72,7 @@ node scripts/qa/probe-chapter-pages.mjs      # Textbook pages: signed list, PNG 
 node scripts/qa/publish-textbook-cdn.mjs     # Render every extracted page to JPEG + write the CDN manifest (then wrangler pages deploy)
 node scripts/qa/publish-primary-textbook.mjs # Classes 1-4 English: NCERT Marigold chapter PDFs -> CDN pages
 node artifacts/qa/2026-11-02/probe-ai-speed.mjs # AI: chips are instant, answers are grounded, no 5xx, Markdown formatting
+node artifacts/qa/2026-11-02/probe-assessment-edge.mjs # Assessment/Path/Test: 53 edge cases (run alone - 10 logins/min)
 npx tsx scripts/qa/probe-textbook-reader.mts # Web reader: "Read the textbook" opens the pages (naturalWidth > 0) + Download PDF
 node scripts/qa/probe-video-segments.mjs      # Every lesson video exposes jumpable markers (real or derived); --grade 8|9
 node scripts/qa/generate-concept-questions.mjs --grades 10 --target 4 --batch 5   # AI-assisted authoring (see docs/QUESTION_BANK_GROWTH.md)
@@ -490,6 +492,22 @@ Markdown component, which first runs `normalizeMarkdown`
 (`<br>`, `<b>`, `<ul><li>`) becomes Markdown, entities are decoded, LaTeX delimiters become
 code, and a heading glued to the paragraph above gets its blank line. User messages stay plain
 text. Without this the model's `**`, `#` and `<br>` reach the student literally.
+
+## Assessment / Path / Test — invariants that must not regress
+`docs/ASSESSMENT_EDGE_CASES.md` is the full list; `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs`
+(**53 checks**, run it alone - login is limited to 10/min) is the guard.
+
+- **Starting twice resumes, never duplicates.** `startAttempt` returns the existing
+  `IN_PROGRESS` attempt (`resumed: true`). Deriving the index from the attempt count
+  made a second Start orphan the first or throw "Attempt limit reached".
+- **The grading screen sends a question id**, not an answer row id. `gradeAnswer`
+  accepts both and updates `answerRow.id`.
+- **`maxScore` comes from the question marks**, not `assessment.totalMarks`, so a
+  paper can never report `3/2`.
+- **The timer is server-side**: answers freeze after `durationMinutes` + 60 s and a
+  late submit is recorded as `AUTO_SUBMITTED` (`expired: true`).
+- **Written answers are pending, never wrong**; the correct answer is hidden until
+  the student submits; a non-numeric mark is a 400.
 
 ## Student Dashboard — "What should I do today?"
 - **Your Focus Today**: Weak concept "Fix This" CTA + upcoming assessment "Prepare"
