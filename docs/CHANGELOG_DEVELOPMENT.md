@@ -53,6 +53,18 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-02 — Mobile 1.1.2 shipped to /downloads
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-02 |
+| Task | Ship the mobile UI changes (Concepts label, notes at the bottom with copy) |
+| Reason | The textbook fix was server-side and needed no rebuild, but the label and the notes UI live in the bundle |
+| Entities affected | `apps/mobile` 1.1.0 (code 2) -> **1.1.2 (code 4)** |
+| Changes | `versionCode`/`versionName` in `app.json` + `android/app/build.gradle`; release built with `EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1` (the repo `.env` points at localhost and must be overridden, not committed) |
+| Verification | `adb install -r` succeeds over the old build; dashboard, concept page and chapter hub all render; `Copy` -> green "Copied"; bundle contains `api.sanroai.com`, `Copy all`, `Concepts`, and no `localhost:4000`; live `https://sanroai.com/downloads/sanroai.apk` -> 200, 77.09 MB |
+| Known issues | Release is signed with the debug keystore (same as every previous build), so it upgrades in place but cannot go to Play Store as-is |
+
 ### 2026-11-02 — "Read the textbook" now works in production: the pages live on a CDN
 
 | Field | Detail |
