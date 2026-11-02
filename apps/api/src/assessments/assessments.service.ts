@@ -830,7 +830,10 @@ export class AssessmentsService {
       },
     });
 
-    if (answerRow.question.conceptId && answerRow.answer) {
+    // Evidence is recorded once per answer. Re-grading (a teacher correcting a
+    // mark) updates the score but must not add a second piece of mastery
+    // evidence, which used to inflate the concept's mastery on every edit.
+    if (answerRow.question.conceptId && answerRow.answer && !answerRow.gradedByTeacher) {
       await this.mastery.applyAttemptEvidence(attempt.studentId, { attemptId: attempt.id }, [
         {
           conceptId: answerRow.question.conceptId,

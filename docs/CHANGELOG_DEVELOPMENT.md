@@ -67,7 +67,7 @@ Copy this block for each new entry:
 | Seed/import changes | none |
 | Migration | none |
 | Verification | `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs` **54/54**; browser: teacher opened the grading screen, entered 2, "Save marks" flipped to **graded** and the attempt score updated; `learning-path` + `attempt-read-scoping` + `practice-flow` + `role-permission-matrix` + `authorization` **343/343**; `pnpm -r typecheck` clean, `pnpm -r lint` 0 errors |
-| Known issues | Re-grading the same written answer re-applies mastery evidence (marks are clamped, evidence is not). A retest reused while unstarted has its questions replaced, so one opened before a second request shows the newer questions |
+| Known issues | A retest reused while unstarted has its questions replaced, so one opened before a second request shows the newer questions |
 
 ### 2026-11-02 — Mobile 1.1.2 shipped to /downloads
 

@@ -95,5 +95,6 @@ teacher creates -> publishes -> student sees it in Tests -> reads the paper
   exactly one pending retest row. The questions are replaced with the newly
   requested concepts, which means a retest opened before the second request will
   show the newer questions. Once an attempt exists it is never reused or removed.
-- Grading a written answer re-applies mastery evidence for that concept, so
-  re-grading the same answer twice counts twice. Marks are clamped, evidence is not.
+- Mastery evidence for a written answer is recorded **once**, on the first grade.
+  Correcting a mark later updates the score but does not add a second piece of
+  evidence, so a re-grade cannot inflate the concept's mastery.
