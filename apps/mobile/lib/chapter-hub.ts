@@ -65,6 +65,10 @@ export interface ChapterHub {
   pdfUrl?: string | null;
   /** The official NCERT PDF of the same chapter, when this deployment ships no book files. */
   externalPdfUrl?: string | null;
+  /** True when the reader has page images for this chapter. */
+  hasTextbookPages?: boolean;
+  /** True when those pages are the class's whole textbook, not a chapter excerpt. */
+  textbookBookLevel?: boolean;
   /** First video lesson's poster - a real frame from this chapter's lesson. */
   thumbnailUrl?: string | null;
   concepts?: ChapterConcept[];

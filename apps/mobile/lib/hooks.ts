@@ -162,7 +162,9 @@ export function useChapterDetail(chapterId: string) {
 
 export interface ChapterPages {
   count: number;
-  expiresAt: string;
+  expiresAt: string | null;
+  /** True when the book shown is the class's whole textbook, not a chapter excerpt. */
+  bookLevel?: boolean;
   pages: Array<{ index: number; path: string }>;
 }
 

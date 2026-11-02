@@ -9,7 +9,7 @@ import { ContentScopeService } from '../common/content/content-scope.service';
 import { canonicalContentType } from '../common/content/content-types';
 import { normalizeChapterSegments, deriveConceptSegments, clipSegmentsToDuration } from '../common/books/chapter-segments';
 import { chapterPdfPath, chapterPdfFileName, chapterPdfRemoteUrl } from '../common/books/chapter-pdf';
-import { chapterPageFiles, chapterPageRemoteUrls } from '../common/books/chapter-pages';
+import { chapterPageFiles, chapterPageRemoteUrls, chapterPagesAreBookLevel } from '../common/books/chapter-pages';
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
 import { Prisma } from '@prisma/client';
@@ -699,6 +699,11 @@ export class LearningService {
           ? `${API_PREFIX}/learning/chapters/${chapter.id}/pdf`
           : null,
       externalPdfUrl: chapterPdfPath(chapter.code) ? null : chapterPdfRemoteUrl(chapter.code),
+      /** True when the reader has pages for this chapter (its own or its class's book). */
+      hasTextbookPages:
+        chapterPageFiles(chapter.code).length > 0 || chapterPageRemoteUrls(chapter.code).length > 0,
+      /** True when those pages are the class's whole textbook, not a chapter excerpt. */
+      textbookBookLevel: chapterPagesAreBookLevel(chapter.code),
       chapterContent,
       concepts: concepts.map((c) => ({
         ...c,
@@ -1666,12 +1671,13 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
   async getChapterPages(
     user: RequestUser,
     chapterId: string,
-  ): Promise<{ code: string; files: string[]; remote: string[] }> {
+  ): Promise<{ code: string; files: string[]; remote: string[]; bookLevel: boolean }> {
     const chapter = await this.chapterForUser(user, chapterId);
     return {
       code: chapter.code,
       files: chapterPageFiles(chapter.code),
       remote: chapterPageRemoteUrls(chapter.code),
+      bookLevel: chapterPagesAreBookLevel(chapter.code),
     };
   }
 

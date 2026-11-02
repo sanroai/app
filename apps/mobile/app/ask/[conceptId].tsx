@@ -1,7 +1,8 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useConceptDetail, useAskAI, useChapterHub } from '../../lib/hooks';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 import { Markdown } from '../../components/Markdown';
@@ -23,6 +24,19 @@ export default function AskScreen() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [waiting, setWaiting] = useState(false);
+  const [copiedAt, setCopiedAt] = useState<number | null>(null);
+
+  /** Copy one reply. The text is also `selectable`, so a partial copy still works. */
+  const copyReply = async (index: number, text: string) => {
+    if (!text.trim()) return;
+    try {
+      await Clipboard.setStringAsync(text);
+      setCopiedAt(index);
+      setTimeout(() => setCopiedAt((current) => (current === index ? null : current)), 2000);
+    } catch {
+      Alert.alert('Copy', 'Long-press the reply to select and copy part of it.');
+    }
+  };
 
   const suggestions = concept
     ? [
@@ -97,7 +111,22 @@ export default function AskScreen() {
           <View key={i} style={[styles.bubble, m.role === 'user' ? styles.userBubble : styles.aiBubble]}>
             {m.role === 'assistant' ? (
               <>
-                <Markdown>{m.text}</Markdown>
+                <Markdown selectable>{m.text}</Markdown>
+                <TouchableOpacity
+                  style={styles.copyBtn}
+                  onPress={() => void copyReply(i, m.text)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Copy this reply"
+                >
+                  <Ionicons
+                    name={copiedAt === i ? 'checkmark' : 'copy-outline'}
+                    size={13}
+                    color={copiedAt === i ? Colors.success : Colors.primary}
+                  />
+                  <Text style={[styles.copyText, copiedAt === i && styles.copyTextDone]}>
+                    {copiedAt === i ? 'Copied' : 'Copy'}
+                  </Text>
+                </TouchableOpacity>
                 {m.truncated && i === messages.length - 1 ? (
                   <TouchableOpacity
                     style={styles.continueBtn}
@@ -172,6 +201,21 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   continueText: { fontSize: 11, fontWeight: '700', color: Colors.white },
+  copyBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  copyText: { fontSize: 11, fontWeight: '700', color: Colors.primary },
+  copyTextDone: { color: Colors.success },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.surface, gap: Spacing.sm },
   input: { flex: 1, backgroundColor: Colors.surfaceSecondary, borderRadius: BorderRadius.lg, padding: Spacing.md, fontSize: 14, maxHeight: 120, color: Colors.text },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },

@@ -290,6 +290,8 @@ export interface ChapterPages {
   count: number;
   /** `null` when the pages are public CDN URLs (no signature needed). */
   expiresAt: string | null;
+  /** True when the book shown is the class's whole textbook, not a chapter excerpt. */
+  bookLevel?: boolean;
   pages: ChapterPage[];
 }
 

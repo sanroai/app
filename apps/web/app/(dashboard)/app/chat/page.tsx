@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Markdown } from '@/components/markdown';
+import { CopyTextButton } from '@/components/copy-text-button';
 import { Bot, Send, Brain, Loader2, ArrowRight } from 'lucide-react';
 
 type Message = {
@@ -156,7 +157,7 @@ export default function ChatPage() {
                       className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === 'user'
                           ? 'bg-brand-600 text-white rounded-tr-sm'
-                          : 'bg-surface-100 text-surface-900 rounded-tl-sm'
+                          : 'select-text bg-surface-100 text-surface-900 rounded-tl-sm'
                       }`}
                     >
                       {msg.role === 'assistant' ? (
@@ -175,6 +176,14 @@ export default function ChatPage() {
                               Continue
                             </button>
                           ) : null}
+                          <div className="mt-2 flex items-center gap-2">
+                            <CopyTextButton
+                              text={msg.content}
+                              label="Copy"
+                              copiedLabel="Copied"
+                              className="h-7 border-surface-300 bg-white px-2.5 text-[11px]"
+                            />
+                          </div>
                         </>
                       ) : (
                         msg.content

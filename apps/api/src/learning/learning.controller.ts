@@ -137,15 +137,18 @@ export class LearningController {
     count: number;
     pages: Array<{ index: number; path: string }>;
     expiresAt: string | null;
+    /** True when this is the class's whole textbook, not a chapter excerpt. */
+    bookLevel: boolean;
   }> {
     this.uuidOrBadRequest(chapterId);
-    const { files, remote } = await this.service.getChapterPages(user, chapterId);
+    const { files, remote, bookLevel } = await this.service.getChapterPages(user, chapterId);
 
     if (files.length) {
       const { paths, expiresAt } = this.pdfTickets.chapterPages(chapterId, files.length);
       return {
         count: files.length,
         expiresAt,
+        bookLevel: false,
         pages: paths.map((path, index) => ({ index: index + 1, path })),
       };
     }
@@ -155,6 +158,7 @@ export class LearningController {
     return {
       count: remote.length,
       expiresAt: null,
+      bookLevel,
       pages: remote.map((path, index) => ({ index: index + 1, path })),
     };
   }

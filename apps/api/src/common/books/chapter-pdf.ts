@@ -31,13 +31,13 @@ const CLASS_BOOKS: Record<string, Record<string, SubjectBook>> = {
     ENG: { prefix: 'bemr1', folder: 'english' },
   },
   '3': {
-    SCI: { prefix: 'ceev1', folder: 'world' },
-    MAT: { prefix: 'cemm1', folder: 'math' },
+    // Class 3-4 Science and Mathematics are Sanro's own lesson sets, not NCERT
+    // chapters, so there is no per-chapter file to map. `FULL_BOOKS` in
+    // `chapter-pages.ts` serves the class's whole textbook instead; naming a
+    // chapter PDF here would show unit 1 for every chapter.
     ENG: { prefix: 'cesa1', folder: 'english' },
   },
   '4': {
-    SCI: { prefix: 'deev1', folder: 'world' },
-    MAT: { prefix: 'demm1', folder: 'math' },
     ENG: { prefix: 'desa1', folder: 'english' },
   },
   '5': {

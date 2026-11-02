@@ -166,6 +166,29 @@ export const YouTubePlayer = forwardRef<
     return true;
   }, []);
 
+  /**
+   * Turn captions off once the embed is up.
+   *
+   * `cc_load_policy=0` is a hint, not a guarantee: YouTube still shows subtitles
+   * when the viewer's own YouTube preference has them on, which is exactly what a
+   * signed-in student sees. Clearing the active track through the player API is the
+   * only reliable way, and it leaves the CC button in place so a student who wants
+   * subtitles can still switch them on.
+   */
+  const postCaptionsOff = useCallback(() => {
+    iframeRef.current?.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'setOption', args: ['captions', 'track', {}] }),
+      '*',
+    );
+  }, []);
+
+  const captionsClearedRef = useRef(false);
+  const clearCaptionsOnce = useCallback(() => {
+    if (captionsClearedRef.current) return;
+    captionsClearedRef.current = true;
+    postCaptionsOff();
+  }, [postCaptionsOff]);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -213,6 +236,7 @@ export const YouTubePlayer = forwardRef<
       const message = parseYouTubeMessage(event.data);
       if (!message) return;
       readyRef.current = true;
+      clearCaptionsOnce();
       const pending = pendingSeekRef.current;
       if (pending === null) return;
       const currentTime =
@@ -226,7 +250,15 @@ export const YouTubePlayer = forwardRef<
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [playing, postSeek]);
+  }, [playing, postSeek, clearCaptionsOnce]);
+
+  // Belt and braces: if the embed never broadcasts a message (a video that starts
+  // paused), the timed posts still clear the track once the player has booted.
+  useEffect(() => {
+    if (!playing) return;
+    const timers = [700, 1600, 3000].map((ms) => window.setTimeout(postCaptionsOff, ms));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [playing, postCaptionsOff]);
 
   if (!id) {
     if (!url) return null;

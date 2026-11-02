@@ -51,7 +51,8 @@ export default function ChapterHubScreen() {
   const practice = chapter?.practice;
   const pdfUrl = chapter?.pdfUrl ?? null;
   const externalPdfUrl = chapter?.externalPdfUrl ?? null;
-  const textbookAvailable = Boolean(pdfUrl || externalPdfUrl);
+  const bookLevel = chapter?.textbookBookLevel === true;
+  const textbookAvailable = Boolean(chapter?.hasTextbookPages || pdfUrl || externalPdfUrl);
 
   const openConcept = (conceptId: string, section?: ConceptSection | null) =>
     router.push({
@@ -387,11 +388,13 @@ export default function ChapterHubScreen() {
                 <Text style={styles.actionSub}>
                   {pdfBusy
                     ? 'Opening the textbook…'
-                    : pdfUrl
-                      ? 'The NCERT chapter, page by page in the app'
-                      : externalPdfUrl
-                        ? 'The same chapter on the official NCERT site'
-                        : 'No textbook available for this chapter yet'}
+                    : bookLevel
+                      ? `The full Class ${chapter?.grade ?? ''} ${chapter?.subject ?? ''} textbook`
+                      : pdfUrl
+                        ? 'The NCERT chapter, page by page in the app'
+                        : externalPdfUrl
+                          ? 'The same chapter on the official NCERT site'
+                          : 'No textbook available for this chapter yet'}
                 </Text>
               </View>
               <Ionicons name="open-outline" size={18} color={Colors.textMuted} />

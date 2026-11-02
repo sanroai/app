@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useAskAI } from '../../lib/hooks';
 import { Icon3D } from '../../components/Icon3D';
 import { Colors, Spacing, BorderRadius, Shadow, Pastel } from '../../constants/theme';
@@ -26,7 +27,20 @@ const SUGGESTIONS = [
 export default function AskScreen() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const askAI = useAskAI();
+
+  /** Copy one reply. The text is also `selectable`, so a partial copy still works. */
+  const copyReply = async (id: string, text: string) => {
+    if (!text.trim()) return;
+    try {
+      await Clipboard.setStringAsync(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 2000);
+    } catch {
+      Alert.alert('Copy', 'Long-press the reply to select and copy part of it.');
+    }
+  };
 
   const handleSend = async (override?: string) => {
     const text = (override ?? input).trim();
@@ -103,7 +117,7 @@ export default function AskScreen() {
             <View style={[styles.bubble, item.role === 'user' ? styles.userBubble : styles.aiBubble]}>
               {item.role === 'assistant' ? (
                 <>
-                  <Markdown>{item.text}</Markdown>
+                  <Markdown selectable>{item.text}</Markdown>
                   {item.truncated && index === messages.length - 1 ? (
                     <TouchableOpacity
                       style={styles.continueBtn}
@@ -116,6 +130,21 @@ export default function AskScreen() {
                       <Text style={styles.continueText}>Continue</Text>
                     </TouchableOpacity>
                   ) : null}
+                  <TouchableOpacity
+                    style={styles.copyBtn}
+                    onPress={() => void copyReply(item.id, item.text)}
+                    accessibilityRole="button"
+                    accessibilityLabel="Copy this reply"
+                  >
+                    <Ionicons
+                      name={copiedId === item.id ? 'checkmark' : 'copy-outline'}
+                      size={13}
+                      color={copiedId === item.id ? Colors.success : Colors.primary}
+                    />
+                    <Text style={[styles.copyText, copiedId === item.id && styles.copyTextDone]}>
+                      {copiedId === item.id ? 'Copied' : 'Copy'}
+                    </Text>
+                  </TouchableOpacity>
                 </>
               ) : (
                 <Text style={[styles.bubbleText, styles.userText]}>{item.text}</Text>
@@ -182,6 +211,21 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   continueText: { fontSize: 11, fontWeight: '700', color: Colors.white },
+  copyBtn: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  copyText: { fontSize: 11, fontWeight: '700', color: Colors.primary },
+  copyTextDone: { color: Colors.success },
   inputRow: { flexDirection: 'row', alignItems: 'flex-end', padding: Spacing.md, gap: Spacing.sm, borderTopWidth: 1, borderTopColor: Colors.border },
   input: { flex: 1, backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, fontSize: 14, color: Colors.text, maxHeight: 100 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },

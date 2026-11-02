@@ -141,6 +141,20 @@ export default function TextbookScreen() {
         >
           Tap a page to zoom · pinch to adjust · tap again to fit
         </Text>
+        {data?.bookLevel ? (
+          <Text
+            style={{
+              marginHorizontal: Spacing.lg,
+              marginBottom: Spacing.sm,
+              textAlign: 'center',
+              fontSize: 12,
+              fontWeight: '600',
+              color: Colors.primary,
+            }}
+          >
+            The full Class {chapter?.grade ?? ''} textbook — your chapter’s topic is inside, scroll to find it
+          </Text>
+        ) : null}
         {pages.map((page, index) => (
           <View key={page.index} style={{ marginBottom: Spacing.sm }}>
             {failed[page.index] ? (

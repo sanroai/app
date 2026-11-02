@@ -93,6 +93,14 @@ export function youTubeEmbedHtml(videoId: string, startSeconds?: number | null):
     '<style>html,body{margin:0;padding:0;height:100%;background:#000;overflow:hidden}',
     '#player{width:100%;height:100%;border:0;display:block}</style></head><body>',
     `<iframe id="player" src="${src}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`,
+    // `cc_load_policy=0` is only a hint - a viewer whose YouTube preference has
+    // subtitles on still gets them over the lesson. Clearing the active caption
+    // track through the player API is the reliable way; the CC button stays, so a
+    // student who wants subtitles can still switch them on.
+    '<script>(function(){var f=document.getElementById("player");',
+    'function off(){try{f.contentWindow.postMessage(JSON.stringify({event:"command",func:"setOption",args:["captions","track",{}]}),"*");}catch(e){}}',
+    'f.addEventListener("load",function(){[600,1500,3000,5000].forEach(function(ms){setTimeout(off,ms);});});',
+    '})();</script>',
     '</body></html>',
   ].join('');
 }

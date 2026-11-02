@@ -470,13 +470,15 @@ export default function ChapterHubPage() {
               <div className="min-w-0">
                 <p className="font-semibold text-surface-900">Read the textbook</p>
                 <p className="text-xs text-surface-400">
-                  {textbook.data?.count
-                    ? 'The NCERT chapter, page by page in the app'
-                    : textbook.isLoading
-                      ? 'Checking this chapter’s textbook…'
-                      : chapter.externalPdfUrl
-                        ? 'The same chapter on the official NCERT site'
-                        : 'No textbook available for this chapter yet'}
+                  {textbook.data?.bookLevel
+                    ? `The full Class ${chapter.grade} ${chapter.subject} textbook`
+                    : textbook.data?.count
+                      ? 'The NCERT chapter, page by page in the app'
+                      : textbook.isLoading
+                        ? 'Checking this chapter’s textbook…'
+                        : chapter.externalPdfUrl
+                          ? 'The same chapter on the official NCERT site'
+                          : 'No textbook available for this chapter yet'}
                 </p>
               </div>
             </div>
@@ -664,6 +666,9 @@ export default function ChapterHubPage() {
             <DialogDescription>
               {chapter.name} &middot; {chapter.subject}
               {chapter.grade ? ` · Class ${chapter.grade}` : ''}
+              {textbook.data?.bookLevel
+                ? ' · the full class textbook, so your chapter’s topic is inside — scroll or use the page count'
+                : ''}
             </DialogDescription>
           </DialogHeader>
 
