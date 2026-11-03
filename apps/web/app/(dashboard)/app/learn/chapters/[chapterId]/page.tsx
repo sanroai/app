@@ -697,9 +697,11 @@ export default function ChapterHubPage() {
                 </p>
                 {chapter.externalPdfUrl ? (
                   <Button variant="outline" className="rounded-xl" asChild>
+                    {/* A cross-origin URL cannot be force-downloaded (browsers ignore
+                        `download`), so the label says what it does: open it. */}
                     <a href={chapter.externalPdfUrl} target="_blank" rel="noreferrer noopener">
-                      <Download className="h-4 w-4" />
-                      Download PDF
+                      <BookOpen className="h-4 w-4" />
+                      Open PDF
                     </a>
                   </Button>
                 ) : chapter.pdfUrl ? (

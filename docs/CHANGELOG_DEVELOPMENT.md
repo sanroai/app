@@ -53,6 +53,19 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — Every remaining probe run; the reader probe was stale and "Download PDF" was mislabelled
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Run the rest of the repo's QA probes and fix what they surfaced |
+| Reason | The reader, the pages contract and the chapter-hub payload all changed this week; those probes had not been re-run |
+| Results | chapter-pages **PASS** · chapter-hub **9/9** · multi-class **PASS** · practice-scoring **PASS** (100/100 on 3 chapters) · video-segments **PASS** (241 videos, 86 creator + 155 derived) · fuzz-write-path **11/11** · auth-security **10/10** · rate-limit **5/5** · files-proxy **9/9** · audit-chapter-pdfs: 191/191 expected PDFs on disk, 0 unexpectedly missing · audit-book-alignment: only cosmetic wording differences |
+| Fixed (1) | `probe-textbook-reader.mts` was **stale**: it waited for an `h1:has-text("Chapters")` that the chapter list no longer renders (the h1 is the subject name), and it opened the first subject card, which is **class 1 Science** — a chapter that legitimately has no book, so the probe could never pass. It now opens a class-10 subject, waits for the chapter links, and accepts either a same-origin download or the external "Open PDF" tab |
+| Fixed (2) | The reader's PDF action said **"Download PDF"** while pointing at `ncert.nic.in`. A cross-origin URL cannot be force-downloaded (browsers ignore `download` across origins), so the label promised something it could not do. It now reads **"Open PDF"** when it is the external NCERT file and stays "Download PDF" for our own API file, and the probe asserts whichever applies |
+| Verification | probe-textbook-reader **PASS** (16 pages, first page `naturalWidth 1240`, real download of `Chemical Reactions and Equations (SCI-10-1).pdf`); `pnpm -r typecheck` clean |
+| Known issues | `probe-video-segments` exceeds the 120 req/min limiter (it fetches 229 chapter hubs), so it needs `RATE_LIMIT_MAX=5000` on the API for a local run; the throttle itself is covered by `probe-rate-limit` |
+
 ### 2026-11-03 — Full QA sweep: every gate re-run after the AI, textbook and assessment work
 
 | Field | Detail |
