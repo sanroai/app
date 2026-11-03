@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — Deploy finding: the API does not migrate itself; the spaced-review columns were applied by hand
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Ship the learning-loop release and record how production migrations actually run |
+| Reason | The Render service has `autoDeploy: yes` on branch `deploy`, but no deploy was triggered by the push (the last deploy before this one was commit `4c2271a`, 2026-11-02 18:18Z). The deploy had to be started through the Render API, and it does **not** run `prisma migrate deploy` — the new `ConceptMastery` columns were missing, so `GET /learning/review` answered **500** and every practice submit would have failed on the upsert |
+| Entities affected | `ConceptMastery` (production) |
+| Database changes | Applied `20261103090000_concept_mastery_review_schedule` to the Neon `sanroai` project (3 columns + 1 index) and inserted its `_prisma_migrations` row (checksum `be5b0a36…f385`) so a future `prisma migrate deploy` sees it as applied |
+| API changes | none |
+| Frontend changes | Login form: `method="post"` + the submit button stays disabled until hydration. Before this, clicking Sign in before React hydrated performed the browser's native GET submit and put the **email and password in the URL** (history, access logs, Referer) |
+| Seed/import changes | none |
+| Migration | `20261103090000_concept_mastery_review_schedule` (applied by hand to production; already in the repo) |
+| Verification | `GET /learning/review` 401 unauth / 200 auth after the fix; `node scripts/qa/probe-review-queue.mjs --api https://api.sanroai.com/api/v1` **12/12**; `npx tsx scripts/qa/probe-learning-ui.mts` **9/9** (review card, Start review, verdict + reason on screen, no console errors) |
+| Known issues | Render's auto-deploy does not fire from a push on this service, and its preDeploy does not migrate. **Every schema change needs the migration applied explicitly** (Neon SQL or `prisma migrate deploy` against the production `DATABASE_URL`) before the new code serves traffic, or the endpoints that touch the new columns will 500 |
+
 ### 2026-11-03 — The learning loop: real explanations, spaced review, practice that can't be memorised
 
 | Field | Detail |

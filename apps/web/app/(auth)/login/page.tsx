@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LoginSchema, type Login } from '@sanro/validation';
 import { useAuthStore, type LoginResponse } from '@/lib/auth-store';
 import { api, ApiError } from '@/lib/api';
@@ -41,6 +41,13 @@ export default function LoginPage() {
   const setBlocked = useAuthStore((s) => s.setBlocked);
   const [serverError, setServerError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  // Until React has hydrated, `onSubmit` does not exist and the browser performs
+  // the form's own submission - a GET, which put the email and password in the
+  // URL (history, access logs, Referer). `method="post"` closes that leak, and the
+  // button stays disabled until the handler is attached so an early click cannot
+  // submit at all.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const {
     register,
     handleSubmit,
@@ -94,7 +101,7 @@ export default function LoginPage() {
 
       <Card className="border-0 shadow-xl">
         <CardContent className="p-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} method="post" className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-surface-700">Email</Label>
               <div className="relative">
@@ -162,7 +169,7 @@ export default function LoginPage() {
               type="submit"
               className="w-full h-12 text-base"
               size="lg"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !hydrated}
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">

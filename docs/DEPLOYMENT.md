@@ -34,29 +34,31 @@ Mobile env: EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1 (all EAS profiles
 ## 3. Deploy Procedure
 
 1. Run CI: typecheck → test → build → E2E.
-2. Deploy API: **direct deploy from the repo root** — run `railway up
-   --service api` from the repo root (not `apps/api`). preDeploy runs
-   `prisma migrate deploy` + idempotent `db:seed`; health check
-   `GET /api/v1/health`.
-   - **No config-as-code file**: `railway.json` was removed. Railway's GitHub
-     App could not snapshot `sanroai/app` ("Failed to snapshot repository"),
-     which blocked every deploy. Deploy config (start command
-     `node apps/api/dist/main.js`, health check `/api/v1/health`, preDeploy
-     migrate + seed, restart policy) is now **stored on the Railway service
-     itself** and does not depend on a repo file. This also resolves the
-     Config-as-Code deprecation warning (deadline 2026-12-01).
-   - **Do not re-add `railway.json`** — it re-triggers the repo snapshot and
-     fails the deploy. To change start/healthcheck/preDeploy, edit it in the
-     Railway dashboard service settings.
-   - The `railway` npm SDK was removed from `devDependencies`: it was unused
-     and pinned to 3.11.0, which conflicts with Railway CLI ≥5.42.1 and broke
-     `railway config` commands. The Railway CLI (`railway` global binary) is
-     the only Railway tooling needed.
-3. Push web: Vercel production deploy.
+2. Deploy API (Render, service `srv-dbjecim7bikc73f774hg`, branch `deploy`):
+   - **Auto-deploy does not fire from a push on this service.** Start the deploy
+     explicitly: `POST https://api.render.com/v1/services/<id>/deploys` with
+     `{ "clearCache": "do_not_clear" }` and an `Authorization: Bearer $RENDER_API_KEY`
+     header, then poll `GET /services/<id>/deploys/<deployId>` until `live`.
+   - **The service does not run migrations.** `prisma migrate deploy` must be run
+     against the production `DATABASE_URL` (or the SQL applied through the Neon
+     console) **before** the new code serves traffic, otherwise any endpoint that
+     touches a new column answers 500. Record the migration in
+     `_prisma_migrations` when applying the SQL by hand.
+   - Health check `GET /api/v1/health`.
+3. Push web: `npx vercel --prod --yes` **from the repo root** (the project's Root
+   Directory is `apps/web`, so running it inside `apps/web` looks for
+   `apps/web/apps/web`). The CLI often reports `deploy_failed` with
+   `ECONNRESET` while polling; the build usually succeeds anyway — confirm with
+   `npx vercel inspect <deployment-url>` that it is `Ready` and aliased to
+   `sanroai.com` before believing either outcome.
+   - The APK lives at `apps/web/public/downloads/sanroai.apk` and is
+     **git-ignored**, so it only ships with a CLI deploy (never with a git build).
 4. Verify domains, HTTPS, CORS, auth login, critical workflows, PDF, uploads,
    AI.
-5. Mobile: build APK against production API; install + smoke test; publish APK
-   to stable URL.
+5. Mobile: build APK against production API
+   (`$env:EXPO_PUBLIC_API_URL="https://api.sanroai.com/api/v1"` — `apps/mobile/.env`
+   points at localhost for development), install + smoke test, publish with
+   `node scripts/publish-apk.mjs <apk>` **before** the web deploy.
 
 ## 4. No-Nos
 
