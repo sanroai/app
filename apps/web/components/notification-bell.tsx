@@ -37,7 +37,7 @@ function timeAgo(iso: string): string {
 export function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const notifications = useNotifications();
+  const notifications = useNotifications({ enabled: open });
   const unread = useUnreadCount();
   const markRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();

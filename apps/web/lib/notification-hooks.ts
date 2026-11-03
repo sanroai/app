@@ -22,14 +22,19 @@ function useToken() {
   return useAuthStore((s) => s.token);
 }
 
-export function useNotifications() {
+/**
+ * The notification list. Loaded only when the bell is opened: every dashboard
+ * page carries the bell, and fetching the whole list on each navigation was one
+ * of four API round trips a screen had to finish before it settled.
+ */
+export function useNotifications({ enabled = true }: { enabled?: boolean } = {}) {
   const token = useToken();
   return useQuery({
     queryKey: ['notifications'],
     queryFn: () => api<NotificationItem[]>('/users/me/notifications', { token }),
-    enabled: !!token,
-    refetchInterval: 60_000,
-    staleTime: 30_000,
+    enabled: !!token && enabled,
+    refetchInterval: enabled ? 60_000 : false,
+    staleTime: 60_000,
   });
 }
 
@@ -39,8 +44,10 @@ export function useUnreadCount() {
     queryKey: ['notifications', 'unread'],
     queryFn: () => api<UnreadCount>('/users/me/notifications/unread', { token }),
     enabled: !!token,
-    refetchInterval: 30_000,
-    staleTime: 0,
+    // The badge can be two minutes old; polling it every 30 s kept a free,
+    // single-CPU API busy with a request no student asked for.
+    refetchInterval: 120_000,
+    staleTime: 60_000,
   });
 }
 
