@@ -750,4 +750,220 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'The radius at the point of contact must be **perpendicular to the tangent**. At 45° or parallel it would not touch the circle in the right way.',
   'A line segment of length 7.6 cm is divided in the ratio 5:8. State the lengths of the two parts.':
     'The parts are 7.6 x 5/13 ≈ **2.9 cm** and 7.6 x 8/13 ≈ **4.7 cm**. Dividing by 5 and 8 separately would not make the two parts add back to 7.6 cm.',
+  "What was the only thing Lencho's field of ripe corn needed as he kept watching the sky towards the north-east?":
+    'He needed **a downpour, or at least a shower**. Rain was the one thing that would turn the ripe corn into a harvest; frost, dry weather or wind would have damaged it instead.',
+  'How much money did Lencho ask God for, and how much did he actually receive?':
+    'Lencho asked for **a hundred pesos** and received **seventy** - the postmaster could not raise the full amount. That thirty-peso shortfall is exactly what makes him call the post office "a bunch of crooks".',
+  "Lencho called the post-office employees 'a bunch of crooks'. Why is this an example of irony?":
+    'The "crooks" had **collected the money from their own pockets** to help him. Lencho\'s suspicion falls on the very people who were generous, which is what makes the ending ironic rather than merely sad.',
+  "Why did the postmaster answer Lencho's letter, and what does his reply show about him?":
+    'He answered so as **not to shake Lencho\'s faith in God**: he collected money from his employees, added part of his own salary and borrowed from friends, then signed the reply "God". It shows his kindness, generosity and respect for another person\'s faith.',
+  "What destroyed Lencho's ripe corn field?":
+    'A **hailstorm**. Hail fell for an hour, left the corn flattened and the trees bare, and Lencho said the field looked as though it had been set on fire - not locusts, fire or a flood.',
+  'How much money did Lencho ask God to send him?':
+    '**One hundred pesos** - enough to sow his field again and live until the new crop came. Seventy is what he actually received, not what he asked for.',
+  "Lencho's faith in God can best be described as:":
+    '**Unshakable**: he writes to God as though to a person who will certainly reply, and when money arrives he never doubts where it came from. The story tests that faith; it never wavers.',
+  'The irony at the end of the story is that Lencho:':
+    'Lencho **suspects the post-office staff of stealing** the missing thirty pesos, when they were the ones who gave him the money. He thanks God and accuses his helpers - that is the story\'s central irony.',
+  'Why did Lencho compare the raindrops to new coins?':
+    'He knew good rain would give a good harvest and the harvest would bring money, so the drops looked like **coins** to him. The simile shows both his hope and how completely his living depended on the weather.',
+  "What destroyed Lencho's field in 'A Letter to God'?":
+    '**A hailstorm**. The hail fell for an hour, flattened the corn and stripped the trees, and Lencho said the field looked as if it had been set on fire.',
+  "What makes the ending of 'A Letter to God' ironic?":
+    'Lencho **blames the post office for stealing money that the postmen themselves had given**. His faith in God survives, but his judgement of the people who helped him is completely wrong.',
+  "How did the postmaster respond to Lencho's letter?":
+    'He **collected money from his staff**, added part of his own salary and sent it signed "God" - he did not throw the letter away, write as God himself in words alone, or call the police. The quiet generosity is the point.',
+  "Where was Nelson Mandela's inauguration ceremony held on 10 May 1994?":
+    'In the **Union Buildings amphitheatre in Pretoria**, before dignitaries from around the world - the largest gathering of international leaders ever seen on South African soil.',
+  'According to the news report given in the chapter, how many of the 400 seats did the African National Congress win in the first democratic elections of South Africa?':
+    'The ANC won **252** of the 400 seats, a clear majority that made Mandela the first black president. 148 and 140 are the other parties\' tallies.',
+  "Mandela says that the oppressor must be liberated just as surely as the oppressed. What does he mean?":
+    'He means that **taking away another person\'s freedom makes the oppressor a prisoner of hatred**, locked behind prejudice and fear, so neither is truly free until both are. Freedom is not a quantity that one side loses so the other can gain it.',
+  'Why were two national anthems sung at the inauguration, and what did the singing of both signify?':
+    'The whites sang **"Die Stem"**, the old anthem of the Republic, and the blacks sang **"Nkosi Sikelel iAfrika"**. Singing both signified the birth of a new, non-racial South Africa in which former enemies were reconciled and treated as equals.',
+  'Apartheid was a system of:':
+    '**Racial segregation enforced by law** in South Africa: people were classified by race and denied equal rights, movement and opportunity. It was not trade, a one-party system or free education.',
+  "Mandela's inauguration as South Africa's first black president was held in:":
+    '**Pretoria**, at the Union Buildings amphitheatre. Cape Town is the legislative capital, but the inauguration took place in Pretoria.',
+  "The statement 'courage was not the absence of fear but the triumph over it' is an example of:":
+    'A **paradox** - the two halves appear to contradict each other (courage without the absence of fear), and that tension is what makes the idea memorable. It is not alliteration, a pun or a simile.',
+  'Mandela says the oppressor must be liberated because:':
+    'Because the oppressor is **a prisoner of hatred**: his own prejudice robs him of freedom just as surely as the law robbed the oppressed. The line is about both sides of injustice, not about property or fear of the law.',
+  'What does Mandela mean when he says the depths of oppression create heights of character?':
+    'He means that **great suffering can produce great courage, strength and compassion** - the worst circumstances bring out remarkable human qualities. It is an observation about people, not a justification of oppression.',
+  'Apartheid was a system that':
+    'It **separated people by race and denied them equal rights**. It began in 1948 and was dismantled only in the 1990s, and it certainly did not give every citizen the same rights.',
+  'Whom did Mandela thank in his speech for the freedom of his country?':
+    'He thanked **the heroes who had sacrificed their lives** for freedom - the generations of activists who made that day possible. Not foreign governments alone, the prison guards, or his family alone.',
+  'According to Mandela, what is the greatest weapon of a leader?':
+    '**Courage that comes from standing up again after fear** - Mandela defines courage as the triumph over fear, not its absence. Silence, anger and wealth are not what the chapter calls a leader\'s weapon.',
+  'Why was the young seagull afraid to leave his ledge?':
+    'He was **certain his wings would never support him**. The fear was in his own mind, not in the wind or in a warning from his brothers - which is what makes the story about self-belief.',
+  "In 'The Black Aeroplane', in which aircraft and towards which country was the narrator flying?":
+    'An **old Dakota**, flying towards **England** from France. The black aeroplane that appears beside him is the mystery - it is not the narrator\'s aircraft.',
+  'What finally made the young seagull take his first flight?':
+    '**Hunger**, when his mother held a piece of fish just out of his reach. He dived for it and discovered his wings worked; his father and brothers did not push him off.',
+  'How does the writer describe the storm clouds that the pilot flew into?':
+    'They looked like **huge black mountains** standing across the sky. Inside, everything suddenly went black, the old Dakota jumped and twisted, and the compass and other instruments went dead.',
+  'The young seagull finally flew because:':
+    '**Hunger and his mother\'s trick with the fish** - she flew close with food and stopped just out of reach, so he dived and flew. Need overcame fear; nobody pushed him.',
+  "In 'Black Aeroplane', the narrator's Dakota was guided out of the storm by:":
+    'An **unknown pilot in a black aeroplane** who appeared beside him, signalled, and led him through the storm to the runway. There was no second Dakota and no help from the control room.',
+  "The theme shared by both stories in 'Two Stories about Flying' is:":
+    '**Overcoming fear through courage and trust** - the young seagull trusts his wings and the pilot trusts the strange black aeroplane. Neither story is about the sea, modern transport or money.',
+  "The author of 'Black Aeroplane' describes the storm clouds as:":
+    '**Black mountains** - huge dark shapes standing in front of him across the sky. Silver rivers, green fields and white cotton are the opposite of that menacing image.',
+  'Why did the pilot of the Dakota feel grateful to the black aeroplane?':
+    'The black aeroplane **guided him out of the storm when his instruments had failed**, and he reached the runway safely. When he asks about it afterwards, nobody has seen another plane - which is the story\'s mystery.',
+  "In 'His First Flight', what finally makes the young seagull fly?":
+    '**Hunger**, when his mother holds food just out of reach. He dives for it and his wings carry him - the fear was never in his wings.',
+  "In 'The Black Aeroplane', who helps the narrator land safely?":
+    '**A mysterious pilot in a black aeroplane** who comes out of the storm, signals him to follow and leads him to safety. The control room can only hear him and there is no co-pilot.',
+  'Which phrase from the flying stories creates the strongest image?':
+    '**"The sky was like a blanket of dark clouds"** - a simile that makes the cloud cover feel heavy and enclosing. "He was very hungry" or "the plane was old" are plain statements, not images.',
+  'Why did Anne Frank begin writing her diary?':
+    'The diary was a **present for her thirteenth birthday** - a red-checkered notebook. It was not a school assignment, a gift from Margot or a punishment from her maths teacher.',
+  "Why did Anne decide to call her diary 'Kitty'?":
+    'She wanted the diary to be **a real friend she could confide in**: she had no close friend to share her thoughts with, and giving the diary a name made it feel like one.',
+  "Anne writes, 'Paper has more patience than people.' What does this remark reveal about her life in hiding?":
+    'She had **no real friend in whom she could confide**, so paper became her listener - it never interrupts, judges or loses patience. The line explains why she is writing to "Kitty" at all.',
+  "How does Anne's account of her class and of Mr Keesing show that ordinary school life went on even in wartime?":
+    'Anne describes the whole class **quaking in its boots** about who will be promoted, and Mr Keesing punishing her with essays on "A Chatterbox". Her third essay in verse makes the class roar with laughter and Keesing take the joke - everyday school worries and humour carry on despite the war.',
+  'Anne Frank wrote her diary during:':
+    '**The Second World War** - the family was in hiding from the Nazis in occupied Amsterdam while she wrote.',
+  'Anne Frank called her diary:':
+    '**Kitty** - the name she gave it so that it would feel like a friend. Elli, Margot and Pim are people in her life, not the diary.',
+  "Anne's diary entries are written in the form of:":
+    '**Letters to an imaginary friend** - most entries begin "Dear Kitty". They are not newspaper reports, official records or poems to her mother.',
+  'Despite everything, Anne believed that people are:':
+    '**Good at heart** - her most famous line: "in spite of everything I still believe that people are really good at heart". It is the hope that survives the fear of hiding.',
+  'Why did Anne Frank feel the need to write a diary?':
+    'She had **no close friend she could confide in**, so the diary became the friend she could tell everything to - which is exactly why she calls it Kitty.',
+  "Why was Anne Frank's family in hiding?":
+    '**They were Jews hiding from the Nazis** during the Second World War. Not travelling, not hiding for fun, and not after a flood.',
+  "Why did Anne Frank call her diary 'Kitty'?":
+    '**She wanted a friend to confide in**, and naming the diary made it feel like one. Her teacher, her sister and the hiding place had nothing to do with the name.',
+  "What does Anne Frank's diary show about people in hard times?":
+    'That **hope and kindness can survive even in hiding** - Anne still laughs at school stories and still believes people are good at heart. It is not a story about nobody being trustworthy.',
+  'What is the traditional Goan baker, whose loaves the writer remembers, called?':
+    '**Pader** - the word for the village baker whose bread was part of every Goan childhood. Kabai is his long frock and bolinhas are the little cakes.',
+  'According to the writer, what are a must for Christmas as well as other festivals in Goa?':
+    '**Cakes and bolinhas** - the sweet breads and coconut cookies were essential to every Goan festival, Christmas included, along with the daily loaves.',
+  "The writer remembers the bread-bangles 'which we chose carefully'. What does this recollection show about the place of the baker in Goan life?":
+    'It shows that **baking was part of childhood itself** - children picked their bread-bangles carefully, so the baker was woven into daily family joy, not merely hired to supply bread. The bangles were shaped from bread, not sold as ornaments.',
+  "What did the baker wear in the Portuguese days and in the writer's childhood, and what did the baker's plump physique show?":
+    'In the Portuguese days the baker wore a single-piece long frock called the **kabai**, reaching to the knees; in the writer\'s childhood, a shirt and trousers just below the knees. His **plump, jackfruit-like body** was open testimony that baking was a profitable profession and his family never starved.',
+  'In the chapter, the traditional Goan baker is called a:':
+    '**Pader**. Peshkar, tandoor and kabai are not names for the baker - kabai is the frock he wore.',
+  "'The Bangle Sellers' is a poem written by:":
+    '**Sarojini Naidu**, the poet known as the Nightingale of India. The other names are Indian poets too, but not the author of this poem.',
+  "Which food tradition in the chapter shows Goa's Portuguese heritage?":
+    'The **sweet bread called pao**, along with the loaves and bolinhas - the baker\'s trade itself arrived with the Portuguese. Idli, sambar and tandoori roti belong to other regions.',
+  "The baker's dress that the children remembered was the:":
+    'The **kabai** - the long single-piece frock. Pader is the baker himself, not the garment.',
+  'What does the poet compare the bangle sellers and their bangles to?':
+    'She compares the bangles to the **stages of a woman\'s life** - a happy bride, a mature matron - and to the colours of the Indian landscape. The bangles carry the whole journey of Indian womanhood.',
+  "What did the baker's bread mean to the children of Goa?":
+    '**A special treat they waited for every morning** - the baker\'s horn and the bread-bangles were the high point of the day. It was not a punishment or something kept for festivals only.',
+  "Which tradition in Goa is linked to its Portuguese past?":
+    'The **baker\'s trade and the bread called "pao"** - the loaves, bolinhas and the kabai all came with the Portuguese. Gilli danda, Bihu and kabaddi belong to other regions and traditions.',
+  "In the Goa section, what is a 'kabai'?":
+    'The **long single-piece frock the baker wore**, reaching down to his knees - a Portuguese-era garment. It is not a basket, a sweet bread, a cap or an oven.',
+  'Where did Gavin Maxwell go to collect his otter?':
+    '**Basra, in Iraq** - he travelled there and was given an otter, which he named Mijbil. Nairobi, Camusfearna and London appear in the story for other reasons.',
+  'Why had Maxwell not kept a dog after Jonnie?':
+    '**Jonnie had died**, and Maxwell was too sad to think of keeping a dog again, even though life without a pet was lonely. That loneliness is what made an otter seem possible.',
+  "Zoologists christened Mij 'Lutrogale perspicillata maxwelli'. What does this detail tell us?":
+    'It tells us Mij belonged to **a kind of otter not described before**, so the subspecies was named after Maxwell. The naming is a small mark of how unusual his pet turned out to be.',
+  "Why does the first-person narration make Mijbil's story convincing? Support your answer with one incident from the text.":
+    'Maxwell narrates **what he himself saw and felt**, with exact personal details - Mij turning the chromium taps with his paws, playing with marbles - so the account reads like a true memoir rather than a report. The personal voice is what makes it convincing.',
+  'Mijbil the otter was brought from:':
+    '**Iraq** - Basra, specifically. Not England, Egypt or India.',
+  'At the end of the chapter, Mij was sent to:':
+    '**The zoo in London** - he outgrew the flat and had to be given to the zoo, which is the story\'s quiet sadness.',
+  'The story of Mijbil is told in:':
+    '**The first person, by the author himself** - "I" throughout. Not the otter\'s voice and not a third-person narrator.',
+  "Mij's favourite game in the bathroom was playing with:":
+    'Playing with **a ball** - he would send it rolling and pounce on it, along with turning the taps on and off.',
+  'Why did Maxwell decide to keep an otter as a pet?':
+    'He had **lost his dog**, and a friend suggested an otter; lonely without a pet, he decided to bring one back from Iraq.',
+  'What did Mijbil do with the water in the bathroom?':
+    '**He played in it and splashed it everywhere** - turning on the taps and revelling in the water until the bathroom was flooded.',
+  "What is the effect of telling 'Mijbil the Otter' in the first person?":
+    'It makes the writer\'s **affection and worry feel immediate and personal** - we share his anxiety on the plane and his delight at Mij\'s games. It does not hide the writer or give the otter\'s point of view.',
+  "What does the word 'somersault' mean in the story?":
+    '**A roll or tumble in which the body turns over completely** - exactly what Mij did as he played. It is not a cry, a fish or a sleeping place.',
+  "How much was the bus fare from Valli's village to the town?":
+    '**Thirty paise one way**, which is why she saved for weeks to cover the return trip too. Sixty paise is the round trip, not the single fare.',
+  "How long did the bus journey from Valli's village to the town take?":
+    '**Forty-five minutes** each way - which is exactly why she had to plan her day so carefully and be home before her mother noticed.',
+  'Why did the sight of the dead cow on the roadside dampen Valli\'s enthusiasm?':
+    'It was her **first close encounter with death**, and it made her suddenly aware of how fragile life is - a jarring note after the joy of the ride. She was not sorry about the money, the police, or who owned the cow.',
+  'Describe what Valli saw from the window of the bus on her way to town.':
+    'Along the bank of a canal she saw **palm trees, grassland, distant mountains and the blue sky** on one side, a deep ditch and green fields on the other, and further on a shopping street with glittering displays of clothes.',
+  "How much did Valli's first bus ride cost her?":
+    '**Thirty paise** each way, so sixty paise for the round trip - the money she had saved coin by coin over weeks.',
+  'On her return journey, Valli was saddened by the sight of:':
+    '**A dead cow lying by the road** - the same kind of cow she had admired on the way out, now lifeless. It is the moment the story turns from adventure to awareness.',
+  'The bus conductor teasingly calls Valli:':
+    '**Madam** - his mock-formal way of treating an eight-year-old as an honoured passenger, which she takes entirely seriously.',
+  "Valli's favourite pastime was:":
+    '**Standing at her doorway and watching the street** - the bus, the people, the everyday traffic. That is where the whole wish to ride begins.',
+  'How do we know that Valli was a careful planner?':
+    'She **saved her coins for weeks**, asked many questions about the bus, its fare and its timings, and timed the ride so she would be home before her mother noticed. Nothing about the trip was impulsive.',
+  'What did Valli save her money for?':
+    '**A bus ride to the town and back** - thirty paise each way. Not a dress, sweets or a present for her mother.',
+  'What did Valli see on her second ride that changed her mood?':
+    '**A young cow lying dead by the roadside**. She had seen a live cow on the way out, and the contrast brings home the reality of death.',
+  "Which description shows the writer's eye for small detail?":
+    'The conductor calling her **"madam"** and the canal running beside the road - small, concrete observations that make the scene real. "She was eight years old" is a fact, not the same kind of detail.',
+  'For how many years did Gautama Buddha wander before he sat down under a peepal tree to meditate?':
+    'He wandered for **seven years** before sitting under the peepal (bodhi) tree, where he attained enlightenment and became the Buddha.',
+  'What did the Buddha ask Kisa Gotami to bring him?':
+    '**A handful of mustard seeds from a house where no one had ever died**. The impossible condition is the lesson - such a house does not exist.',
+  'Why did the Buddha send Kisa Gotami from house to house instead of simply telling her that death comes to everyone?':
+    'He wanted her to **discover the truth for herself**, so the lesson would console her rather than merely inform her. Telling her outright would not have reached her grief.',
+  "What do the villagers mean when they tell Kisa Gotami, 'the living are few, but the dead are many'?":
+    'They mean that in almost every house someone has died, so **death is universal** and Kisa Gotami is not alone in her loss. Hearing it from every doorstep shows her that her grief had made her think only of her own child.',
+  'Before he attained enlightenment, the Buddha was known as:':
+    '**Prince Siddhartha Gautama**, who left his palace after seeing suffering, old age and death, and went in search of understanding.',
+  'Kisa Gotami was asked to bring a handful of mustard seed from a house where:':
+    '**No one had ever died** - she goes from door to door and fails everywhere, and that failure is the teaching.',
+  'The central teaching of the sermon is that:':
+    '**Death is common to all** and sorrow cannot be escaped by grieving - the living are few, the dead are many. Prayer alone, wealth or monkhood are not what the sermon is about.',
+  "The word 'sermon' means:":
+    '**A religious discourse** - a talk given to teach a moral or spiritual lesson. Not a farewell speech, a song of prayer or a letter.',
+  'What did Kisa Gotami learn from the mustard seed lesson?':
+    'She learned that **every house had lost someone**, so death is common to all and her grief was shared by everyone. Her sorrow turns into understanding rather than isolation.',
+  'What did the Buddha ask the grieving woman to bring him?':
+    '**A handful of mustard seeds from a house where no one had died** - not flowers, a lamp or a bowl of rice. The task is impossible, and that is the point.',
+  'What is the main purpose of a sermon?':
+    '**To teach a moral lesson and give comfort** - it addresses how to live and how to bear sorrow. It is not for jokes, royal news or political argument.',
+  "What does 'sermon' mean?":
+    '**A talk given on a moral or religious subject** - the word for the Buddha\'s address at Benares. Not a funeral song, a prayer book or a long journey.',
+  "What is the 'proposal' that gives Chekhov's one-act play its title?":
+    '**Lomov\'s request for Natalya\'s hand in marriage** - that is the reason for the visit, and everything else (Oxen Meadows, the dogs) is a detour away from it.',
+  'How old were Ivan Lomov and Natalya Stepanovna?':
+    '**Lomov was 35 and Natalya was 25**. Swapping the ages or adding five years are the easy errors - the play states both plainly.',
+  'Why is the quarrel over Oxen Meadows and then over the two dogs funny on the stage?':
+    'The neighbours **forget the proposal completely**, abuse each other over land and dogs, and then turn affectionate the moment marriage is mentioned again. Those rapid reversals are the comedy.',
+  "Write the salutation, the main request and the closing of a short formal letter from Ivan Lomov to Stepan Chubukov asking for Natalya's hand in marriage.":
+    '"Dear Sir, I have the honour to request the hand of your daughter, Natalya Stepanovna, in marriage; I shall be grateful for your consent. Yours faithfully, Ivan Vassilevitch Lomov." The salutation and closing are formal, the request is brief and polite, and the writer\'s full name ends it.',
+  'Lomov comes to the house of Chubukov to propose to:':
+    '**Natalya** - Chubukov\'s daughter. Not the doctor\'s daughter, a servant or his aunt.',
+  "The play 'The Proposal' is set in:":
+    '**Rural Russia** - Chubukov\'s country house and estate. Not Paris, London or central Moscow.',
+  'The long quarrel between Lomov and Natalya is about:':
+    '**The ownership of Oxen Meadows**, a strip of land each family claims. The two dogs become a second quarrel later in the play.',
+  'A formal letter should end with:':
+    '**Yours faithfully** - the standard formal close. "Yours lovingly", "see you soon" and "take care" belong in personal letters.',
+  "Why is 'The Proposal' a comedy even though it is about marriage?":
+    'The characters **keep quarrelling over small things** and insult each other while trying to be polite, so the audience laughs at their behaviour. The marriage is the excuse, not the subject.',
+  "Why does Lomov come to Chubukov's house in 'The Proposal'?":
+    '**To ask for Natalya\'s hand in marriage**. Not to complain about dogs, borrow money or buy the estate - those quarrels arise on the way.',
+  'What does the quarrel between Lomov and Natalya show about them?':
+    'That they **argue easily over small things but still agree to marry** - the joke is that neither of them is calm or particularly romantic.',
+  'Which opening is correct for a formal letter?':
+    '**Dear Sir or Madam,** - the formal salutation. "What\'s up", "hey there" and "hi buddy" belong in messages to friends.',
 };
