@@ -33552,6 +33552,39 @@ async function seedAchievements() {
   }
 }
 
+/**
+ * Applies the authored explanations to questions that already exist.
+ *
+ * The curriculum is seeded once (demo/QA) and is never re-seeded on a
+ * deployment, so an explanation written after that point would never reach
+ * production. This runs on **every** seed - including `--system`, which is what
+ * a deploy runs - and writes only the rows whose text is in the map and whose
+ * explanation differs: a few updates on the first run, none afterwards.
+ *
+ * A key that no longer matches a question (its text was edited) is reported, not
+ * thrown: a content typo must never block a deploy. `audit-question-explanations.mts`
+ * fails on an orphan in CI instead.
+ */
+async function syncAuthoredExplanations(db: PrismaClient) {
+  const entries = Object.entries(QUESTION_EXPLANATIONS);
+  let updated = 0;
+  const missing: string[] = [];
+  for (const [text, explanation] of entries) {
+    const existing = await db.question.findFirst({
+      where: { text },
+      select: { id: true, explanation: true, source: true },
+    });
+    if (!existing) {
+      missing.push(text);
+      continue;
+    }
+    if (existing.explanation === explanation || existing.source !== 'SEED') continue;
+    await db.question.update({ where: { id: existing.id }, data: { explanation } });
+    updated += 1;
+  }
+  return { updated, missing };
+}
+
 async function main() {
   const target = parseTarget(TARGET_URL);
   const modeLabel = MODE === 'system' ? 'system only' : MODE === 'qa' ? 'QA fixtures' : 'system + demo';
@@ -33576,6 +33609,19 @@ async function main() {
   const sys = await seedSystem(prisma);
   console.log(`[seed] system: ${sys.plans} plans, ${sys.achievements} achievements, systemInstitution=${sys.systemInstitution ?? 'present'}, superAdmin=${sys.superAdmin ?? 'missing'}${sys.superAdminCreated ? ' (created)' : ''}`);
   for (const w of sys.warnings) console.warn(`[seed] WARNING: ${w}`);
+
+  // Authored explanations travel with the deploy: the curriculum itself is not
+  // re-seeded in production, so without this a corrected explanation could never
+  // reach a student.
+  const explanations = await syncAuthoredExplanations(prisma);
+  if (explanations.updated > 0 || explanations.missing.length > 0) {
+    console.log(
+      `[seed] authored explanations: ${explanations.updated} updated, ${explanations.missing.length} orphaned`,
+    );
+    for (const text of explanations.missing.slice(0, 5)) {
+      console.warn(`[seed] WARNING: explanation has no question: ${text.slice(0, 80)}`);
+    }
+  }
 
   if (MODE === 'system') {
     console.log('[seed] system seed complete. No demo/academic data created.');
