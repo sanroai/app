@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — Authored explanations get a path to production (one map, a sync endpoint)
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Ship corrected explanations without re-seeding, and author chapters 2-4 of class 10 Science |
+| Reason | The curriculum is seeded once and the Render service runs neither `migrate deploy` nor a seed on deploy, so the 12 pilot explanations existed only in the repo and the dev database. Production still had the legacy template on **3,335/3,335** questions |
+| Entities affected | `Question.explanation` |
+| Database changes | Production: **51** questions now carry an authored explanation (verified `authored=51, legacy=3284`); dev matches |
+| API changes | **New** `POST /questions/sync-explanations` (SUPER_ADMIN, idempotent): applies the shared map, writes only rows that differ, skips non-SEED questions, returns `{ authored, updated, alreadyCorrect, skipped, orphaned, orphanedTexts }` |
+| Frontend changes | none |
+| Seed/import changes | The map moved to `apps/api/src/content/question-explanations.ts` (one copy, exported). `prisma/seed.ts` imports it and applies it in `--system` mode too, so a fresh install and a re-seed both carry it. `apply-question-explanations.mjs` and `audit-question-explanations.mts` read the new file |
+| Migration | none |
+| Verification | `pnpm --filter @sanro/api test` **670/670**; typecheck clean; `db:seed --system` restores a deliberately reverted explanation ("1 updated"); production sync returned `{"authored":51,"updated":51,"alreadyCorrect":0,"orphaned":0}` and Neon shows `authored=51, legacy=3284` |
+| Known issues | 3,284 questions still hold the legacy sentence in the database; it is treated as absent and replaced at request time by a notes quote (77.6% of all questions) or an answer restatement (20.8%). Authoring the remaining chapters is content work, not engineering |
+
 ### 2026-11-03 — Deploy finding: the API does not migrate itself; the spaced-review columns were applied by hand
 
 | Field | Detail |

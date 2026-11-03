@@ -53,6 +53,12 @@ Mobile env: EXPO_PUBLIC_API_URL=https://api.sanroai.com/api/v1 (all EAS profiles
    `sanroai.com` before believing either outcome.
    - The APK lives at `apps/web/public/downloads/sanroai.apk` and is
      **git-ignored**, so it only ships with a CLI deploy (never with a git build).
+3b. **Sync authored content** (after the API is live): log in as the super admin
+   and `POST /api/v1/questions/sync-explanations`. It is idempotent and returns
+   `{ authored, updated, alreadyCorrect, skipped, orphaned }`; `orphaned > 0`
+   means a question text was edited and its explanation needs re-keying. The
+   curriculum is never re-seeded in production, so this is the only path for a
+   corrected explanation.
 4. Verify domains, HTTPS, CORS, auth login, critical workflows, PDF, uploads,
    AI.
 5. Mobile: build APK against production API

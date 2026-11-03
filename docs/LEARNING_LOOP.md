@@ -43,25 +43,42 @@ Measured coverage on the current bank (`npx tsx scripts/qa/audit-question-explan
 
 ```
 questions     : 3335
-  authored    : 12   (0.4%)   written explanation (class 10 Science pilot)
-  notes       : 2612 (78.3%)  a sentence quoted from the lesson notes
-  answer only : 711  (21.3%)  restates the answer - authoring backlog
+  authored    : 51   (1.5%)   written explanation (class 10 Science, chapters 1-4)
+  notes       : 2589 (77.6%)  a sentence quoted from the lesson notes
+  answer only : 695  (20.8%)  restates the answer - authoring backlog
 ```
 
-The pilot chapter (`SCI-10-1 Chemical Reactions and Equations`) has all 12 of its
-questions authored; that is the shape every chapter should reach.
+Production carries the same 51 (`POST /questions/sync-explanations`, super-admin,
+reports `{"authored":51,"updated":51,"orphaned":0}`). The pilot chapters
+(`SCI-10-1` … `SCI-10-4`) have every question authored; that is the shape the
+rest should reach.
+
+### Where the content lives, and how it reaches production
+
+`apps/api/src/content/question-explanations.ts` is the **single** copy of the
+map, used by two things:
+
+- `prisma/seed.ts` applies it on every seed, including the `--system` bootstrap —
+  so a fresh install and a local re-seed both carry it;
+- `POST /questions/sync-explanations` (super-admin, idempotent) applies it to a
+  deployed database, because **the curriculum is never re-seeded in production**
+  and the free Render service runs neither migrations nor a seed on deploy.
+
+So a corrected explanation ships as: edit the map → deploy the API → call the
+sync endpoint once. Nothing else is required, and nothing is overwritten that a
+teacher authored (only `source = SEED` rows are written).
 
 ### Authoring rule (enforced)
 
 `scripts/qa/validate-question-fragments.mjs` refuses a fragment whose question has
 no `explanation`, is under 40 characters, is not a sentence, or is the legacy
 template. `scripts/qa/merge-question-fragments.mjs` writes the explanation into
-`QUESTION_EXPLANATIONS` in the seed (keyed by the question text — one store for
-every explanation). `node scripts/qa/apply-question-explanations.mjs` applies that
-map to a database that already holds history, without re-seeding.
+`QUESTION_EXPLANATIONS` for a new question. `scripts/qa/apply-question-explanations.mjs`
+applies the map to a local database.
 
-A question whose text changes loses its explanation; the audit reports the orphan
-key instead of silently showing the wrong reasoning.
+A question whose text changes loses its explanation; the audit and the sync
+endpoint both report the orphan key instead of silently showing the wrong
+reasoning.
 
 ## 2. Spacing: `nextReviewAt`
 

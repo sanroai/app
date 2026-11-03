@@ -549,9 +549,11 @@ Android 11+.
 - **`submitPractice` returns `review[]`**, one entry per question in the order the
   student saw them (text, their answer, the correct answer, graded flag, reason).
 - **A new question cannot enter the bank without an explanation**:
-  `scripts/qa/validate-question-fragments.mjs` fails the merge otherwise, and
-  `merge-question-fragments.mjs` writes it into the seed's `QUESTION_EXPLANATIONS`
-  map (keyed by question text).
+  `scripts/qa/validate-question-fragments.mjs` fails the merge otherwise. Every
+  explanation lives once, in `apps/api/src/content/question-explanations.ts`
+  (keyed by question text). The seed applies it on every seed; because production
+  is never re-seeded, `POST /questions/sync-explanations` (super-admin,
+  idempotent) applies it to a deployed database and reports orphaned keys.
 - **Spacing is one function**: `apps/api/src/common/mastery/review-schedule.ts`
   (1 → 3 → 7 → 21 → 45 days; <50% resets, ≥80% stretches). `applyAttemptEvidence`
   writes `ConceptMastery.nextReviewAt` / `reviewIntervalDays` / `lastReviewedAt`
