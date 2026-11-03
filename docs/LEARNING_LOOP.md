@@ -43,18 +43,18 @@ Measured coverage on the current bank (`npx tsx scripts/qa/audit-question-explan
 
 ```
 questions     : 3335
-  authored    : 163  (4.9%)   written explanation - every class-10 Science question
-  notes       : 2520 (75.6%)  a sentence quoted from the lesson notes
-  answer only : 652  (19.6%)  restates the answer - authoring backlog
+  authored    : 368  (11.0%)  written explanation - all of class-10 Science and Maths
+  notes       : 2429 (72.8%)  a sentence quoted from the lesson notes
+  answer only : 538  (16.1%)  restates the answer - authoring backlog
 ```
 
-**Every one of the 163 class-10 Science questions (`SCI-10-1` … `SCI-10-13`) has
-an authored explanation**, in the repo, in the dev database and in production
-(`authored=163, science10_authored=163`). That is the pattern the other classes
-should follow; the answer-only bucket is the working list.
+**All 368 questions of class 10 Science (163) and class 10 Mathematics (205) have
+an authored explanation** - in the repo, in the dev database and in production
+(`SCI 163/163`, `MAT 205/205`). That is the pattern the other classes should
+follow; the answer-only bucket is the working list.
 
 Production is synced with `POST /questions/sync-explanations`, which reported
-`{"authored":163,"updated":112,"alreadyCorrect":51,"orphaned":0}`.
+`{"authored":368,"updated":205,"alreadyCorrect":163,"orphaned":0}`.
 
 ### Where the content lives, and how it reaches production
 
