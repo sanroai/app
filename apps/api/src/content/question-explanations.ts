@@ -966,4 +966,154 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'That they **argue easily over small things but still agree to marry** - the joke is that neither of them is calm or particularly romantic.',
   'Which opening is correct for a formal letter?':
     '**Dear Sir or Madam,** - the formal salutation. "What\'s up", "hey there" and "hi buddy" belong in messages to friends.',
+  'A scientific model is a __ way of looking at a real system.':
+    'A model is a **simplified** way of looking at a real system: it keeps what matters for the question and leaves everything else out. A "complete" copy would be as complicated as the thing itself.',
+  'In making a simple model of a cricket shot for a six, which details would you keep and which would you ignore?':
+    'Keep the **mass of the ball and the speed and direction of the hit**, because those decide whether it crosses the boundary. Ignore the brand of the bat, the colour of the ball, the grass, the spin and the stitching - they make no difference to that question.',
+  'In science, a theory is __.':
+    'A theory is **an explanation based on evidence and careful testing** - a well-supported account of why something happens. It is not a law that can never change, a personal opinion or an untested guess.',
+  'Why does science use standard SI units for quantities such as mass, length and time?':
+    'So that **measurements made by different people in different places can be compared** without converting units. SI units do not remove uncertainty, do not make a measurement exact, and are the same everywhere rather than different by country.',
+  'The speed of light is denoted by the symbol c. Why is this symbol used?':
+    'It comes from the Latin **celeritas**, meaning speed. It does not stand for "constant", is not the first letter of a unit, and light does not travel in a circle.',
+  'In science, a prediction is best described as':
+    '**A reasoned expectation based on evidence, laws and models**. It is not a guess without evidence, not something untestable, and not a conclusion that later evidence cannot change.',
+  'Why do scientists use models?':
+    '**To simplify something too large or too small to observe directly** - an atom, a solar system, a cricket shot. A model never replaces real observation.',
+  'Why is a standard unit needed in science?':
+    'So that **measurements mean the same thing everywhere** - a metre in Delhi is the same metre in Paris. Shorter numbers, cheaper instruments or avoiding symbols are not the reason.',
+  'What is a scientific law?':
+    '**A statement of a pattern that holds every time it is tested** - it describes what happens. It is not an untested guess, one scientist\'s opinion or a rule made by a government.',
+  'How does a scientific theory differ from a law?':
+    'A **theory explains why**, a **law describes what happens**. A theory is not "always false" and a law is not untestable - they are different kinds of statement, not ranks of certainty.',
+  'A good prediction in science is based on':
+    '**Evidence and reasoning** - a reasoned expectation. Luck, a wish or a friend\'s opinion cannot make a prediction scientific.',
+  'Why do scientists estimate a value before measuring it exactly?':
+    '**To judge whether the final answer is reasonable** - an estimate catches a slipped decimal or a missing factor of ten. It is not a way to avoid instruments or a rule against exact values.',
+  'Most plant and animal cells are best seen with a __ microscope.':
+    'Ordinary plant and animal cells are large enough to see with a **light** microscope, which is why it is the standard classroom instrument. An electron microscope resolves far smaller structures but is not needed simply to see a cell.',
+  'How can you estimate the real size of a cell seen under a microscope?':
+    'Put a transparent ruler on the stage, focus and measure the diameter of the circular field of view in millimetres, then convert it to micrometres. Remove the ruler, focus on the onion peel, count the cells across the diameter and divide the field diameter by that number.',
+  'The organelle called the powerhouse of the cell is the __.':
+    'The **mitochondrion** releases energy from food by respiration, which is why it is called the powerhouse. The Golgi packages, lysosomes digest and ribosomes build proteins.',
+  'Mitosis produces __ daughter cells from one parent cell.':
+    'Mitosis gives **two genetically identical** daughter cells - the basis of growth and repair. Meiosis produces four different cells with half the chromosomes.',
+  'Which statement is part of the classical cell theory?':
+    '**All cells arise from pre-existing cells** - Virchow\'s addition to the theory. "All cells contain a nucleus" is false for bacteria, spontaneous generation is the opposite of the theory, and it is not limited to animal cells.',
+  'A microscope magnifies 10x with the eyepiece and 40x with the objective. What is the total magnification?':
+    'Magnifications multiply: 10 x 40 = **400x**. Adding them (50x) or multiplying incorrectly (4x) is the usual slip.',
+  'Which structure is present in a plant cell but absent in an animal cell?':
+    'The **cell wall** - a rigid layer outside the membrane. The nucleus, cell membrane and cytoplasm are found in both plant and animal cells.',
+  "What is the main function of the cell membrane?":
+    'It **controls what enters and leaves the cell** - a selectively permeable barrier. Making food is the chloroplast\'s work and colour comes from pigments, not the membrane.',
+  'In mitosis, one cell divides to form':
+    '**Two identical cells**. Four different cells is meiosis, and "one larger cell" or "no new cells" is not division at all.',
+  'Why is meiosis important for reproduction?':
+    'It **halves the chromosome number** in the gametes, so fertilisation restores the normal number. Doubling the chromosomes, stopping division or making identical body cells describes mitosis.',
+  'What does the cell theory state?':
+    '**All living things are made of cells, and new cells come from existing cells**. It is not limited to animals, it rules out cells arising from non-living matter, and it says nothing about every cell having a nucleus.',
+  'Why is cell theory called a unifying principle?':
+    'Because it **applies to every living organism** - plants, animals and bacteria alike. Who proposed it, or that a microscope is needed, is not what makes it unifying.',
+  'The tissue that helps a plant grow in length is the __ meristem.':
+    'The **apical** meristem at the tips of roots and shoots makes a plant grow longer. The lateral (cambium) meristem thickens it and intercalary meristem sits at the base of leaves and internodes.',
+  'The annual growth rings seen in a cut tree trunk are produced by the __ meristem.':
+    'Annual rings come from the **lateral** meristem - the cambium - which adds a new layer of xylem every year and thickens the stem. The apical meristem only lengthens the plant.',
+  'Tendons connect __.':
+    '**Muscles to bones**. Bone to bone is a ligament; nerve to muscle or skin to muscle are not what a tendon does.',
+  'The cells of nervous tissue are called __.':
+    '**Neurons**. Epithelial cells line surfaces, osteocytes are bone cells and chondrocytes are cartilage cells.',
+  'Which plant tissue has thick walls due to lignin, is mostly made of dead cells, and makes stems and seed coats hard?':
+    '**Sclerenchyma** has thick lignin-reinforced walls, is mostly dead at maturity and gives stems and seed coats their hardness. Collenchyma is living and flexible, parenchyma is thin-walled, and phloem transports food.',
+  'Which feature of plant cells is chiefly responsible for the rigidity and strength of plant tissues?':
+    'The **cell wall** - a rigid cellulose layer outside the membrane that resists stretching. The nucleus, cytoplasm and membrane provide no rigidity.',
+  'Which type of joint allows movement in only one plane, as at the elbow and the knee?':
+    'A **hinge joint** moves in one plane only. A pivot joint rotates, a ball and socket moves in all directions and a fixed joint does not move at all.',
+  'How many pairs of ribs form the human rib cage?':
+    '**12 pairs** - seven true pairs attached to the sternum, three false pairs and two floating pairs.',
+  'Where is meristematic tissue found in a plant?':
+    'At the **growing tips of roots and shoots** (and in the cambium), where new cells are produced. Not only in flowers, inside fruit, or in dry bark.',
+  'Which tissue carries water up a plant\'s stem?':
+    '**Xylem** carries water and dissolved minerals upward from the roots. Phloem carries food, and epithelial and muscle tissue are animal tissues.',
+  'Which tissue carries food made in the leaves to other parts of the plant?':
+    '**Phloem** carries the food made in the leaves to the rest of the plant. Xylem carries water upward, and nervous and connective tissue are animal tissues.',
+  'Which animal tissue covers and protects body surfaces?':
+    '**Epithelial tissue** covers and protects surfaces and lines cavities. Muscle contracts, nervous tissue conducts impulses and connective tissue supports and joins.',
+  'Which type of joint allows movement in all directions?':
+    'A **ball and socket joint**, as at the shoulder and the hip. Hinge and pivot joints allow movement in one plane or rotation only, and fixed joints do not move.',
+  'Displacement is different from distance because displacement has __.':
+    'Displacement has **direction as well as magnitude** - it is a vector, while distance is a scalar with size only. Both are measured in metres and both need a reference point; direction is the difference.',
+  'An athlete runs 160 m once around a circular track and returns to the starting point. Her displacement is __.':
+    'She finishes where she began, so the **displacement is 0 m**, while the distance travelled is 160 m. Displacement depends only on the start and end points, not the path.',
+  'Write the three kinematic equations used for motion in a straight line with constant acceleration.':
+    '**v = u + at**, **s = ut + ½at²** and **v² = u² + 2as**. Each links a different set of u, v, a, s and t, so you choose the one that contains the unknown you want.',
+  'An athlete runs one complete round of a 400 m circular track in 40 s and returns to the starting point. What is the average velocity for the whole round?':
+    'Average velocity = displacement / time, and a full round has zero displacement, so the average **velocity is 0 m/s**. The average *speed* would be 400/40 = 10 m/s - that difference is the point of the question.',
+  "A car's velocity changes from 10 m/s to 20 m/s in 5 s. What is its average acceleration?":
+    'a = (v - u)/t = (20 - 10)/5 = **2 m/s²**. Dividing by the wrong quantity or reversing the subtraction gives 0.5 or 10.',
+  'What does the slope of a velocity-time graph represent?':
+    'The slope is the change in velocity divided by time, which is **acceleration**. Displacement is the area under the graph, not the slope.',
+  'What does the area enclosed between a velocity-time graph and the time axis represent?':
+    'The area is velocity multiplied by time, which is **displacement**. The slope of the same graph is acceleration.',
+  'Which quantity has both size and direction?':
+    '**Displacement** is a vector. Distance, speed and time are scalars - they have size only.',
+  'A car covers 120 km in 2 hours. What is its average speed?':
+    'Average speed = distance / time = 120 / 2 = **60 km/h**. 240 comes from multiplying instead of dividing, and 30 from dividing twice.',
+  'On a distance-time graph, a horizontal line means the object is':
+    'The distance is not changing as time passes, so the object is **at rest**. A steeper line means faster motion and a downward slope means returning.',
+  'In uniform circular motion, the speed is constant but the velocity changes because':
+    'The **direction keeps changing**, and velocity is a vector, so it changes even at constant speed. The path is not straight, the mass does not change and time never stops.',
+  'A body moving in a circle at constant speed has':
+    '**Changing velocity**, because its direction changes, and therefore a non-zero acceleration towards the centre. Constant velocity would require a straight line.',
+  'A well-stirred mixture of salt and water is a __ mixture.':
+    '**Homogeneous** - the salt dissolves completely and the composition is the same throughout. A suspension or a colloid has separate particles that can be seen or that scatter light.',
+  'The maximum amount of solute that dissolves in a fixed quantity of solvent at a given temperature is its __.':
+    '**Solubility**. Concentration is how much is actually dissolved in this particular sample, density is mass per volume and volatility is how readily a liquid evaporates.',
+  'The scattering of a beam of light by the particles of a colloid is called the __ effect.':
+    'The **Tyndall** effect - colloidal particles scatter the beam so its path becomes visible. Refraction, dispersion and a mirage are different optical effects.',
+  'Which of the following is a homogeneous mixture?':
+    '**Salt dissolved in water** - one clear phase. Oil and water, chalk in water and sand in water all separate into visible phases.',
+  'Which property is characteristic of a suspension?':
+    'Its **solid particles are visible to the naked eye and settle on standing**, because they are large and heavy. Solutions have invisible particles that never settle.',
+  'When sugar is dissolved in water to make a sugar solution, which substance is the solvent?':
+    '**Water** - the component in the larger amount that dissolves the other. Sugar is the solute, and a solution cannot have two solvents by definition.',
+  'If 10 g of salt is dissolved in 90 g of water, what is the mass by mass percentage of the solution formed?':
+    'Mass % = (solute / solution) x 100 = 10/(10 + 90) x 100 = **10%**. Using 90 as the denominator gives 11.1% - the denominator is the whole solution.',
+  'Which method is suitable for separating two miscible liquids whose boiling points differ by about 40 °C?':
+    '**Distillation** - the liquid with the lower boiling point vaporises first and is condensed. Filtration, sublimation and chromatography do not separate miscible liquids by boiling point.',
+  'In paper chromatography, on what does the separation of the components mainly depend?':
+    'On **how strongly each component interacts with the solvent and with the paper**: the more soluble and less tightly held it is, the further it travels. Boiling point, mass alone and colour are not the mechanism - colour is just what you see.',
+  'Which method separates a pure solid from its solution by slow cooling?':
+    '**Crystallisation** - slow cooling lets pure crystals form while impurities stay in the solution. Filtration removes an insoluble solid and sublimation a volatile one.',
+  'Chromatography is best for separating':
+    '**Colours or dissolved substances that travel at different speeds** on the paper - inks, dyes and pigments. It cannot separate two insoluble solids, iron from sand, or oil from water.',
+  'Which method separates two immiscible liquids like oil and water?':
+    'A **separating funnel** - the liquids form two layers and the lower one is run off. Filter paper, a magnet and evaporation do not separate oil from water.',
+  'Which change of state is used in sublimation?':
+    '**Solid directly to gas**, without passing through the liquid state - as camphor and ammonium chloride do. Gas to liquid is condensation and liquid to gas is evaporation.',
+  'Which of these is a homogeneous mixture?':
+    '**Salt dissolved in water** - a single clear phase. Sand and water, oil and water, and iron filings with sulphur are heterogeneous mixtures.',
+  'A heavy box is kept on a floor and a student pushes it horizontally, but the box does not move. Which statement correctly describes the forces on the box?':
+    'The **friction balances the push**, so the net force is zero and the box stays at rest. Friction is not absent because the box is at rest - static friction is exactly what holds it there.',
+  "State Newton's first law of motion. A puck slides across a frozen lake where friction is almost zero; use the law to describe how the puck moves after it has been pushed.":
+    'An object at rest stays at rest, and an object in motion continues with the same velocity, **unless a net force acts on it**. With almost no friction no net force acts on the sliding puck, so it keeps moving in a straight line at constant velocity and does not slow down on its own.',
+  'A fielder catches a fast-moving cricket ball by gradually pulling his hands backwards with the ball. Why does this reduce the force he has to apply to stop the ball?':
+    'Pulling the hands back **increases the time** over which the ball stops, so the acceleration - and therefore the force needed - is smaller for the same change in momentum. The mass and the momentum change are unchanged.',
+  'One newton is the force that produces an acceleration of 1 m s–2 on an object of mass':
+    '**1 kg** - that is the definition of the newton. A gram or 100 g would need a far smaller force.',
+  'A passenger standing in a bus tends to fall forward when the bus brakes suddenly. Why?':
+    'The upper body **keeps moving with the earlier velocity** because of inertia while the bus slows, so it continues forward. The brakes do not push the passenger and inertia does not vanish when the bus slows.',
+  'A net force of 20 N acts on a trolley of mass 5 kg. What is the acceleration of the trolley?':
+    'a = F/m = 20/5 = **4 m/s²**. Multiplying instead of dividing gives 100 m/s².',
+  'A rocket lifts off because':
+    'The gases it expels downward **exert an equal and opposite upward force** on the rocket - Newton\'s third law. The rocket does not push on the air, gravity never pulls upward, and losing mass alone does not lift it.',
+  'What can a force do to an object?':
+    '**Change its speed, direction or shape**. A force does not change colour, and it does not create mass or raise temperature by itself.',
+  'What is the SI unit of force?':
+    'The **newton**. The joule is energy, the watt is power and the pascal is pressure.',
+  'Friction always acts':
+    '**Opposite to the direction of motion** (or of the attempted motion) - it opposes relative sliding. It is not only upward and not only on rough surfaces at rest.',
+  'Why is oil used between moving machine parts?':
+    '**To reduce friction** - the oil separates the surfaces so they slide over the lubricant instead of grinding against each other. Oil does not add weight or stop the parts moving.',
+  "Newton's first law is also called the law of":
+    '**Inertia** - the tendency of an object to keep doing what it was doing. Gravitation is a different law, and action and reaction is the third law.',
 };
