@@ -1116,4 +1116,254 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     '**To reduce friction** - the oil separates the surfaces so they slide over the lubricant instead of grinding against each other. Oil does not add weight or stop the parts moving.',
   "Newton's first law is also called the law of":
     '**Inertia** - the tendency of an object to keep doing what it was doing. Gravitation is a different law, and action and reaction is the third law.',
+  'A constant force of 10 N moves a box through 2 m in the direction of the force. How much work is done by the force?':
+    'W = F × s = 10 × 2 = **20 J** when the force and the displacement are in the same direction. Adding them (12 J) or ignoring the distance (0 J) is wrong.',
+  'If the magnitude of the velocity of a moving vehicle is doubled, its kinetic energy becomes':
+    'KE = ½mv², so kinetic energy grows as the **square** of the speed: doubling v makes KE **four times** as large. "Twice" is the classic error.',
+  'Two students carry identical bags of books up the same flight of stairs. The first student takes 1 minute and the second takes 5 minutes. Is the work done by them the same? Who develops more power, and why?':
+    '**Yes, the work is the same** - both raise the same load through the same height (W = F × s). The **first student develops more power**, because power is the rate of doing work and the same work in a shorter time is greater power.',
+  'A person uses a crowbar to lift a heavy rock and places the fulcrum very close to the rock. Why does this make the rock easier to lift?':
+    'The **effort arm becomes much longer than the load arm**, so a small effort produces a large force on the rock (mechanical advantage greater than 1). The work needed is not reduced - only the force - and the rock\'s weight does not change.',
+  'Work is done when a force moves an object':
+    '**In the direction of the force** - W = F s cos θ, maximum at 0° and zero at 90°. Being heavy or being at rest does not create work.',
+  'A force of 10 N moves a box 3 m. How much work is done?':
+    'W = F × s = 10 × 3 = **30 J**. 13 is adding the numbers instead of multiplying them.',
+  'Energy stored in a stretched rubber band is':
+    '**Potential energy** - elastic potential energy stored by the deformation. Kinetic energy is the energy of motion, and heat and sound are other forms.',
+  'Kinetic energy of a body depends on its':
+    '**Mass and speed** (KE = ½mv²). Colour, shape, temperature and height are not part of it - height belongs to gravitational potential energy.',
+  'Power is the rate of':
+    '**Doing work** - P = W/t. Not changing shape, gaining mass or losing heat.',
+  'The SI unit of power is':
+    'The **watt** - one joule per second. The joule is work, the newton is force and the ampere is current.',
+  'A single fixed pulley changes':
+    'A fixed pulley changes the **direction of the force**, not its size: the effort still equals the load. It does not change the work done or the mass.',
+  'A ramp makes work easier because it':
+    'It **spreads the effort over a longer distance** - the same work done with a smaller force over a longer path. It does not reduce the weight, remove friction or reduce the work.',
+  'In the gold foil experiment, most alpha particles passed straight through the foil, while a few were deflected through large angles and some even bounced back. What did Rutherford conclude from these observations?':
+    'That the **positive charge and most of the mass are concentrated in a very small central nucleus**. Most particles pass through the empty space, a few are deflected by the nucleus and some bounce back; a uniformly spread positive charge could not deflect any of them sharply.',
+  "In Bohr's model of the atom, which shell lies closest to the nucleus and has the least energy?":
+    'The **K shell (n = 1)** is closest to the nucleus and has the lowest energy. Energy increases as the shell number increases.',
+  'An atom of an element has atomic number 17 and mass number 35. Find the number of protons, electrons and neutrons in it.':
+    'Atomic number = protons = **17**, and a neutral atom has **17 electrons**. Neutrons = mass number - protons = 35 - 17 = **18**.',
+  'Chlorine occurs in nature as about 75% of chlorine-35 and 25% of chlorine-37, so its average atomic mass is 35.5 u. A student says that this means many chlorine atoms have a mass of 35.5 u. What is the correct explanation?':
+    '**No single chlorine atom has a mass of 35.5 u** - it is the **weighted average** of the isotopes (75% Cl-35, 25% Cl-37) over a large sample. Equal numbers would average 36, and the plain arithmetic mean also gives 36 because it ignores the abundances.',
+  'What did Rutherford conclude from the gold foil experiment?':
+    'That the **positive charge and most of the mass of an atom are concentrated in a tiny nucleus**, with electrons in the surrounding space. Not a uniform positive sphere (Thomson\'s model) and not indivisible atoms.',
+  "In Bohr's model of the atom, what happens when an electron moves from the K-shell to the L-shell?":
+    'Moving to an outer shell means moving to a higher energy level, so the electron **absorbs a fixed amount of energy** equal to the difference between the two levels. It does not settle between shells or lose energy continuously.',
+  'What is the electronic configuration of chlorine (atomic number 17)?':
+    '**2, 8, 7** - seventeen electrons fill the K shell (2), the L shell (8) and then seven in M. 2, 8, 8 is argon, the next element.',
+  'An atom has 11 protons, 12 neutrons and 11 electrons. What is its atomic number?':
+    '**11** - the atomic number is the number of protons (sodium). 23 is the mass number and 12 is the neutron count.',
+  'An atom contains 17 protons and 18 neutrons. What is its mass number?':
+    'Mass number = protons + neutrons = 17 + 18 = **35**. 17 is the atomic number and 18 is only the neutrons.',
+  "What did Rutherford's gold foil experiment show?":
+    'That the atom has a **small, dense nucleus** - the result that replaced the plum-pudding model. It did not show that atoms are indivisible or that electrons are positive.',
+  'Isotopes of an element have the same number of':
+    '**Protons but different numbers of neutrons**. The proton count is what identifies the element; a different number of protons would be a different element.',
+  'Isobars are atoms with the same':
+    '**Mass number but different atomic numbers** - different elements with the same total of nucleons, such as Ar-40 and Ca-40.',
+  'In a closed container, 4.0 g of calcium carbonate reacts completely with 2.92 g of dilute hydrochloric acid. The products are 1.76 g of carbon dioxide, 0.72 g of water and calcium chloride. What mass of calcium chloride is formed?':
+    'Total mass in = 4.0 + 2.92 = 6.92 g. The other products weigh 1.76 + 0.72 = 2.48 g, so calcium chloride = 6.92 - 2.48 = **4.44 g** - conservation of mass in a closed container.',
+  'Pure water obtained from a river, a borewell or the ocean always contains hydrogen and oxygen in which fixed ratio by mass?':
+    'Water is H2O: 2 parts hydrogen to 16 parts oxygen, i.e. **1 : 8** by mass. 2 : 1 is the ratio of *atoms*, not of masses - the classic confusion.',
+  'Sodium has the electronic configuration 2, 8, 1 and chlorine has 2, 8, 7. Explain how sodium chloride is formed by the transfer of electrons, and name the ions produced.':
+    'Sodium **loses its single valence electron** and becomes Na+ (11 protons, 10 electrons); chlorine **gains that electron** and becomes Cl- (17 protons, 18 electrons). The oppositely charged ions attract each other electrostatically - an **ionic bond** - giving the compound NaCl.',
+  'What is the formula unit mass of magnesium hydroxide, Mg(OH)2? (Atomic masses: Mg = 24 u, O = 16 u, H = 1 u)':
+    'Mg 24 + 2 × (O 16 + H 1) = 24 + 2 × 17 = **58 u**. Ignoring the bracket (24 + 16 + 2 = 42) or forgetting that there are two OH groups gives the wrong values.',
+  'The atomic masses of carbon and oxygen are 12 u and 16 u. What is the molecular mass of carbon dioxide (CO2)?':
+    '12 + 2 × 16 = **44 u**. 32 u is only the two oxygen atoms.',
+  'What is the chemical formula of aluminium oxide?':
+    'Aluminium has valency 3 and oxygen 2, so the charges balance in **Al2O3** (2 × 3 = 3 × 2). AlO leaves the charges unequal.',
+  'What is the chemical formula of magnesium hydroxide?':
+    'Magnesium has valency 2 and the hydroxide ion carries charge 1, so two OH groups are needed: **Mg(OH)2**. The bracket matters - MgOH2 is a different (and wrong) formula.',
+  'Which equation is correctly balanced for the complete combustion of methane?':
+    '**CH4 + 2O2 -> CO2 + 2H2O** balances 1 C, 4 H and 4 O on both sides. CH4 + O2 leaves oxygen short, and a CO product means incomplete combustion.',
+  'In a closed container, 4 g of hydrogen reacts completely with 32 g of oxygen. What mass of water forms?':
+    'By conservation of mass the product weighs the sum of the reactants: 4 + 32 = **36 g**. Nothing is lost in a closed container.',
+  'The law of constant proportions says a compound always contains':
+    '**The same elements in the same ratio by mass**, whatever its source - water is 1:8 hydrogen to oxygen whether it comes from a river or the sea.',
+  'An ionic bond forms when':
+    '**Electrons are transferred** from one atom to another, producing oppositely charged ions that attract. Sharing equally is covalent; protons are never shared and nuclei are never lost.',
+  'Water always contains hydrogen and oxygen in the mass ratio':
+    '**1 : 8** - 2 g of hydrogen to 16 g of oxygen in every 18 g of water. 2 : 1 is the ratio of atoms, not of masses.',
+  'A covalent bond forms when atoms':
+    '**Share electrons**. Sharing protons, losing neutrons or transferring electrons completely describes no real bond - complete transfer would be ionic.',
+  'What are the two sides of the U-shaped bar of a tuning fork called?':
+    'The **prongs (tines)** - the two arms of the U. The stem is the handle, nodes are points that do not vibrate, and a diaphragm belongs to a loudspeaker.',
+  'In the vacuum bell jar experiment, the sound of the ringing electric bell becomes fainter as air is pumped out of the jar. What does this experiment show?':
+    'That **sound needs a medium to propagate**: with fewer air particles there is nothing to carry the vibration, so the sound fades. Sound cannot travel in a vacuum at all, and it does travel through solids and liquids.',
+  'A person claps in an empty corridor and hears an echo 0.5 s later. If the speed of sound in air is 340 m/s, how far is the person from the wall?':
+    'The sound travels to the wall **and back**, so the distance is (340 × 0.5)/2 = **85 m**. Forgetting to halve the distance gives 170 m.',
+  'Define the frequency and the time period of a sound wave, and state how they are related.':
+    '**Frequency** is the number of oscillations per unit time (SI unit hertz); **time period** is the time for one complete oscillation (SI unit second). Frequency = **1 / time period**, so a shorter time period means a higher frequency.',
+  'Sound is produced by':
+    '**A vibrating body**. A stationary, hot or heavy object makes no sound unless something vibrates.',
+  'A tuning fork produces sound because its prongs':
+    'The prongs **vibrate rapidly**, pushing the air into compressions and rarefactions. They do not get hot, change colour or become heavier.',
+  'Why can we not hear sound on the Moon?':
+    '**There is no air to carry the sound** - the Moon has essentially no atmosphere, so there is no medium for the vibration. Distance and temperature are not the reason.',
+  'Sound travels fastest in':
+    '**Solids**, where the particles are closest together and pass the vibration on fastest; then liquids, then gases. Sound cannot travel in a vacuum at all.',
+  'The number of vibrations per second is called':
+    '**Frequency**, measured in hertz. Amplitude gives loudness, wavelength the distance between compressions, and speed how fast the wave travels.',
+  'A sound with a higher amplitude is':
+    '**Louder**. Amplitude controls loudness, while frequency controls pitch - a higher frequency is shriller, not louder.',
+  'An echo is heard when':
+    '**Sound reflects back after hitting a hard surface** and reaches the ear after a delay. Absorption, a vacuum or a stopped source produce no echo.',
+  'Ultrasonic sound has a frequency':
+    '**Above the range of human hearing** (above about 20 kHz). Below 20 Hz is infrasonic, and zero is not a sound at all.',
+  'In which of the following organisms does a bud grow on the parent body and then separate to live independently?':
+    '**Hydra** - a bud grows on the body, develops tentacles and detaches. Bread mould forms spores, Bryophyllum grows plantlets on its leaves, and Amoeba divides in two.',
+  'In which method of vegetative propagation is the middle part of a flexible twig buried under the soil until roots develop?':
+    '**Layering** - the middle of a flexible twig is buried until it roots, then separated from the parent. A cutting is a detached stem, grafting joins a scion to a stock, and tissue culture grows plants from cells.',
+  'A gardener removes the stamens from a flower bud and covers the bud with a muslin cloth bag. No fruit forms in place of that flower. What does this show?':
+    'That **pollen must be transferred from the anther to the stigma** for fruit to form. Removing the stamens removes the pollen source, so fertilisation cannot happen - the bag alone does not prevent fruit.',
+  'How many chromosomes are present in a human body cell and in a human gamete? Why is the number in the gamete half of this?':
+    'A human body cell has **46 chromosomes (23 pairs)**; a sperm or egg has **23**, because gametes are formed by **meiosis**, which halves the number. When the two gametes fuse, the zygote is back to 46.',
+  'What are gametes?':
+    '**Reproductive cells that fuse during fertilisation** - sperm and egg. Body cells divide by mitosis, hormones are not gametes, and supporting tissue is not either.',
+  'Fertilisation is the fusion of':
+    '**A male gamete and a female gamete**. Fusing two body cells, two embryos or two zygotes is not fertilisation.',
+  'Asexual reproduction produces offspring that are':
+    '**Genetically identical to the parent**, because only one parent is involved and no gametes fuse. Variation comes with sexual reproduction.',
+  'Which of these reproduces asexually?':
+    '**A potato growing from an eye** - a tuber sprouting is vegetative reproduction. A mango seed, a chick from an egg and a human baby all arise from fertilisation.',
+  'Vegetative propagation uses which part of a plant?':
+    '**Roots, stems or leaves** - not seeds, flowers or pollen. Potato (stem), sweet potato (root) and Bryophyllum (leaf) are examples.',
+  'Why do farmers use vegetative propagation for sugarcane?':
+    'It gives **quick plants identical to the parent**, so a good variety is preserved exactly. It still needs water, does not create new varieties and does not stop pests by itself.',
+  'Pollination is the transfer of pollen from':
+    '**The anther to the stigma**. The reverse is not pollination, and roots, leaves, ovaries and sepals are not involved.',
+  'After fertilisation, the ovary of a flower develops into':
+    '**The fruit**. The ovules become the seeds, the petals fall and the pollen has already done its job.',
+  'Species that are found only in a particular region and nowhere else in the world are called':
+    '**Endemic species**. Endangered means at risk of extinction, migratory means it moves with the seasons, and extinct means it is gone.',
+  'Bacteria and cyanobacteria are single-celled prokaryotes. In the five kingdom classification they are placed in the kingdom':
+    '**Monera** - the kingdom of prokaryotes, which have no nucleus. Plantae, Protista and Fungi all have eukaryotic cells.',
+  'A student writes the scientific name of the lion as Panthera Leo. What is wrong with the way this name is written?':
+    'The **species name must begin with a small letter**, so it is *Panthera leo*. The two words stay separate, the genus is capitalised, and only the genus takes a capital.',
+  'State any two ways in which biological classification helps us.':
+    'It makes the study of organisms **organised and systematic**, and it shows the **similarities, differences and relationships** among them. It also gives every organism a stable name that scientists everywhere can use.',
+  'What is a biodiversity hotspot?':
+    'A region with **many species found nowhere else and under threat** - high endemism combined with habitat loss. Not a place with one species, a cold desert or an area without forests.',
+  'Why is India rich in biodiversity?':
+    'Because it has **many climate zones and habitats** - mountains, deserts, coasts and rainforests. Not one forest type, no deserts, or being an island.',
+  'Why do scientists classify living things?':
+    'To **group organisms by shared features and study them easily**. Not to make them look neat, give them numbers or reduce the number of species.',
+  'Which is the smallest and most specific group in classification?':
+    '**The species** - the most specific rank. Kingdom is the broadest, and class and order sit in between.',
+  'Which kingdom includes mushrooms and moulds?':
+    '**Fungi** - they absorb nutrients from dead matter. Monera are bacteria, Protista single-celled eukaryotes and Plantae plants.',
+  'Bacteria belong to which kingdom?':
+    '**Monera**. Fungi, Protista and Animalia all have eukaryotic cells.',
+  'In binomial nomenclature, the first word of a scientific name is the':
+    '**Genus**, written with a capital; the second word is the species, in lower case.',
+  'What is the main threat to biodiversity today?':
+    '**Habitat loss caused by human activity**. Too many species, the rotation of the Earth and scientific naming are not threats.',
+  'The fraction of the solar radiation falling on a surface that is reflected back by that surface is called its':
+    '**Albedo** - the fraction of incoming solar radiation a surface reflects. Insolation is incoming solar energy, the solar constant is its value at the top of the atmosphere, and the greenhouse effect is the trapping of outgoing heat.',
+  'The rotation of the Earth makes the planetary winds in the Northern Hemisphere bend towards which side of their path?':
+    '**Towards the right** in the Northern Hemisphere (the Coriolis effect), and towards the left in the Southern Hemisphere. The deflection does not change with the season.',
+  'Nitrogen gas makes up most of the atmosphere, yet plants cannot use it directly. Explain how nitrogen-fixing bacteria and nitrifying bacteria together make nitrogen available to plants.':
+    '**Nitrogen-fixing bacteria** (Rhizobium in legume root nodules, Azotobacter in soil) convert N2 into ammonia. **Nitrifying bacteria** then turn that into nitrates - Nitrosomonas makes nitrite and Nitrobacter makes nitrate - and plants absorb the nitrates. Animals get their nitrogen by eating plants or other animals.',
+  'Fertiliser runoff from farmland enters a lake. Thick mats of algae spread over the surface and, some weeks later, most of the fish in the lake are dead. Which statement best explains what has happened?':
+    '**Eutrophication**: the extra nitrate feeds an algal bloom, and when the algae die their decay uses up the dissolved oxygen, so the fish suffocate. Denitrification, nitrification and leaching do not account for the dead fish.',
+  'Why is the equator hotter than the poles?':
+    '**Sunlight falls more directly** there, so the same energy is spread over a smaller area. The equator is not closer to the Sun and does not spin faster.',
+  'Uneven heating of the Earth is the main cause of':
+    '**Winds and ocean currents** - it sets up pressure differences and moves heat around the planet. Earthquakes, volcanoes and the seasons have other causes.',
+  'What mainly drives winds?':
+    '**Differences in air pressure caused by uneven heating**. The Moon\'s gravity drives the tides, not the winds.',
+  'Ocean currents help to':
+    '**Move heat from warmer to cooler regions**, which moderates the climate. They do not stop tides, cause earthquakes or freeze the equator.',
+  'In the water cycle, water vapour cools and changes back to liquid by':
+    '**Condensation** - vapour cools into liquid droplets. Evaporation is the opposite, precipitation is falling rain or snow, and transpiration is water lost by plants.',
+  'Which process removes carbon dioxide from the atmosphere?':
+    '**Photosynthesis** - plants take in CO2 and release oxygen. Respiration, burning fuels and decomposition all add CO2.',
+  'Burning fossil fuels mainly increases which gas in the air?':
+    '**Carbon dioxide** - the main product of combustion. Nitrogen, oxygen and argon are not produced by burning.',
+  'Which human activity most directly pollutes rivers?':
+    '**Releasing untreated sewage** into them. Planting trees on the banks, check dams and rainwater harvesting protect a river rather than pollute it.',
+  'The coordinates of the origin O are __.':
+    'The origin is **(0, 0)** - the point where the two axes meet, so both the x and the y distance are zero.',
+  'A point on the x-axis 4.5 units to the right of the origin has coordinates __.':
+    '**(4.5, 0)** - a point on the x-axis has y = 0, and "to the right" means positive x. (0, 4.5) would be up the y-axis and (-4.5, 0) would be to the left.',
+  'Find the distance between the points A(3, 4) and D(7, 1).':
+    'Along x: 7 - 3 = 4; along y: 4 - 1 = 3. Distance = √(4² + 3²) = √25 = **5 units** - the Baudhayana-Pythagoras relation applied to the two legs.',
+  'In which quadrant of the Cartesian plane does the point (-7, 5) lie?':
+    'x is negative and y is positive, so it lies in **Quadrant II**. Quadrant I is (+,+), III is (-,-) and IV is (+,-).',
+  'In the ancient geography described in the chapter, which city was used as the zero-longitude reference from which all other locations were measured?':
+    '**Ujjayini** (modern Ujjain) - the ancient Indian prime meridian described in the chapter. Lothal and Harappa are Indus Valley sites and Taxila a city, not the reference.',
+  'Which handheld instrument did Al-Biruni perfect so that sailors could find their coordinates by looking at the stars?':
+    'The **astrolabe**, which measures the angle of a star above the horizon and so gives latitude. The magnetic compass, sextant and telescope are different instruments.',
+  'What is the point of intersection of the x-axis and y-axis called?':
+    'The **origin**. The abscissa is the x-coordinate, the ordinate the y-coordinate, and a quadrant is one of the four regions.',
+  'What are the coordinates of the origin?':
+    '**(0, 0)** - at the intersection of the axes both coordinates are zero.',
+  'In which quadrant are both coordinates positive?':
+    '**The first quadrant** (+, +). The second is (-, +), the third (-, -) and the fourth (+, -).',
+  'In which quadrant is the point (-3, 5)?':
+    '**The second quadrant** - x is negative and y is positive.',
+  'The distance between (1, 2) and (4, 6) is':
+    '√((4 - 1)² + (6 - 2)²) = √(9 + 16) = √25 = **5**. 25 is the square of the distance and 7 is the sum of the coordinate differences.',
+  'The distance of the point (3, 4) from the origin is':
+    '√(3² + 4²) = √25 = **5**. 7 comes from adding the coordinates instead of squaring them.',
+  'Who is credited with developing coordinate geometry?':
+    '**René Descartes**, who joined algebra and geometry through the coordinate plane. Newton, Aryabhata and Euclid worked in other areas.',
+  'How do maps and GPS use coordinates?':
+    'They give each place **a pair of numbers that locates it** - latitude and longitude. They are not just place names, they do not measure road distance, and they cannot work without a reference point.',
+  'In the expression 4x + 5y + 3, the numbers 4 and 5 are called the __.':
+    'They are the **coefficients** - the numbers multiplying the variables. The constants are the fixed numbers (3), exponents are the powers and terms are the pieces being added.',
+  'The polynomial 3z + 7 has degree __.':
+    '**1** - the highest power of the variable is 1, which is exactly what makes it linear.',
+  'The graph of a linear polynomial in one variable is always a __.':
+    '**A straight line** - a linear function changes at a constant rate, so its graph has a constant slope.',
+  'A tank contains 500 litres of water and drains at a steady 12 litres per hour. Which expression gives the number of litres left after t hours?':
+    '**500 - 12t** - the amount falls by 12 litres each hour. "12t - 500" goes negative immediately and "500 + 12t" would mean the tank is filling.',
+  'What is the degree of the polynomial 5 - 2x^2 + x^4?':
+    '**4** - the highest power is x⁴. The 2 is another power present and the 5 is the constant term.',
+  'What is the coefficient of x^2 in the polynomial 3x^3 - 7x^2 + 2x - 5?':
+    '**-7** - the coefficient carries its sign. Writing 7 leaves the minus behind.',
+  'In 7x - 4, what is the coefficient of x?':
+    '**7**. The -4 is the constant term, not a coefficient of x.',
+  'In 7x - 4, what is the constant term?':
+    '**-4** - the term without a variable, including its sign. 7 is the coefficient of x.',
+  'What is the degree of a linear polynomial?':
+    '**1** - by definition a linear polynomial has degree 1, which is why its graph is a straight line.',
+  'Which of these is a linear polynomial?':
+    '**3x + 2** has degree 1. x² + 1 is quadratic, x³ is cubic and 5 is a constant polynomial.',
+  'A taxi charges 50 rupees plus 10 rupees per km. Which expression gives the fare for k km?':
+    '**50 + 10k** - a fixed charge plus ten rupees for every kilometre. "60k" would charge 60 for every kilometre, including a fixed part.',
+  'A tank has 200 litres and drains 20 litres per minute. How much is left after m minutes?':
+    '**200 - 20m** - the volume falls by 20 litres each minute. "200 + 20m" would mean the tank is filling.',
+  'The graph of a linear polynomial is always':
+    '**A straight line** - a constant rate of change. A parabola comes from a quadratic, and a circle from x² + y² = r².',
+  'For y = 2x + 1, what is y when x = 3?':
+    'y = 2(3) + 1 = **7**. Forgetting the +1 gives 6.',
+  'The Lebombo bone carries an early record of __ carved on it.':
+    '**Tally marks** - early counting carved into bone. Not cuneiform letters, decimal places or negative numbers.',
+  'The Indian mathematician who formalised zero and negative numbers as algebraic entities was __.':
+    '**Brahmagupta**, in the seventh century. Madhava, Baudhayana and Aryabhata worked on other problems.',
+  'The decimal expansion 0.142857142857... shows the cyclic number __.':
+    '**142857** repeats - the famous cyclic number, which is the decimal form of 1/7. The other options are rotations of the same digits, not the repeating block.',
+  'In the Bakhshali Manuscript, the number zero is represented by ___.':
+    '**A bold dot (bindu)** - the earliest written zero, which came before the small circle. Not a blank space or the word "shunya".',
+  "Using Brahmagupta's rules for zero, find the value of (-9) x 0 + 0 - (-4).":
+    '(-9) × 0 = 0, then 0 + 0 = 0, and 0 - (-4) = **4** - subtracting a negative adds. Stopping at 0 forgets the last step.',
+  'How many rational numbers lie strictly between 1/3 and 1/2?':
+    '**Infinitely many** - the rationals are dense, so between any two there is always another. "Exactly one" or "none" is the intuition the chapter corrects.',
+  'What is one-to-one correspondence in early counting?':
+    '**Matching one object with one mark** - the earliest counting, long before number words. Not counting in tens, writing words or using a calculator.',
+  'Why did early people use tally marks and knots?':
+    '**To keep records of counted things** - sheep, grain, days. They were not decoration, stories or a way to measure length.',
+  'Which number lies between 1/3 and 1/2?':
+    '**5/12 ≈ 0.417** lies between 0.333 and 0.5. A quarter (0.25) is too small, and 3/4 and 2/3 are too large.',
+  'Rational numbers are called dense because':
+    '**Between any two of them there is always another** - that is what dense means. They are not heavy, they can be written as fractions, and there are infinitely many of them.',
+  'Which of these is an irrational number?':
+    '**The square root of 2** - it cannot be written as a fraction of integers. 3/4, 0.25 (= 1/4) and -7 are all rational.',
+  'A decimal that repeats a block of digits for ever is called':
+    '**A recurring decimal**. A terminating decimal stops, and an irrational decimal neither terminates nor repeats.',
 };
