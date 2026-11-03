@@ -134,7 +134,22 @@ Cached: `/learning/home`, the chapter list, the chapter hub, the concept page an
 
 Measured locally (cold → warm): chapter list 25 ms → 2 ms, chapter hub 26 ms → 3 ms,
 concept page 22 ms → 3 ms. Live, the gain is the query time off a ~300 ms network
-floor.
+floor: `/learning/home` went from ~520 ms to ~330 ms steady state, and a repeat
+`/learning/chapters/:id` from ~530 ms to ~330 ms.
+
+Two further findings from measuring production (`scripts/qa/probe-screen-waterfall.mts`):
+
+- **A screen used to make four API calls.** The notification *list* was fetched on
+  every dashboard page even though the bell was closed. It now loads only when the
+  bell is opened, and the unread badge polls every two minutes instead of thirty
+  seconds: three calls, ~0.9 s of serialised API work removed per screen.
+- **The free instance has 0.1 CPU**, so four *parallel* calls finish at the speed of
+  the last one (1.2–1.7 s each). Fewer calls per screen is the only lever the app
+  controls; the rest is the hosting tier.
+- Measuring also found a **real credential leak**: the login form had no `method`,
+  so a click before React hydrated performed the browser's native GET submit and put
+  the email and password in the URL. It is now `method="post"` and the button is
+  disabled until hydration.
 
 ## 5. Invariants that must not regress
 
