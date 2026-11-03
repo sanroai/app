@@ -36,6 +36,17 @@ export class QuestionsController {
     return this.service.syncAuthoredExplanations();
   }
 
+  /**
+   * Repairs question and option text that was decoded with the wrong codec
+   * (`â†'` -> `→`). Super-admin only and idempotent; the curriculum is never
+   * re-seeded in production, so this is the only way to fix those rows there.
+   */
+  @Roles(Role.SUPER_ADMIN)
+  @Post('repair-encoding')
+  repairEncoding() {
+    return this.service.repairQuestionEncoding();
+  }
+
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateQuestionSchema)) body: unknown) {

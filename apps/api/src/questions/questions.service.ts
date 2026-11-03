@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService } from '../common/services/audit-notifications.service';
 import { QUESTION_EXPLANATIONS } from '../content/question-explanations';
+import { repairMojibake } from '../common/text/repair-encoding';
 
 @Injectable()
 export class QuestionsService {
@@ -66,6 +67,41 @@ export class QuestionsService {
       orphaned: orphaned.length,
       orphanedTexts: orphaned.slice(0, 20),
     };
+  }
+
+  /**
+   * Repairs question and option text that was decoded with the wrong codec.
+   *
+   * A handful of questions were authored with their UTF-8 bytes read as
+   * Windows-1252, so a student sees `â†' CaCO3` instead of `→ CaCO3`. The fix is
+   * mechanical and reversible (see `common/text/repair-encoding.ts`), and it is
+   * exposed as an endpoint because the curriculum is never re-seeded in
+   * production - there is no other path to fix those rows there.
+   *
+   * Idempotent: rows that are already correct are not written.
+   */
+  async repairQuestionEncoding() {
+    let questions = 0;
+    let options = 0;
+
+    const questionRows = await this.prisma.question.findMany({ select: { id: true, text: true, answer: true } });
+    for (const row of questionRows) {
+      const text = repairMojibake(row.text);
+      const answer = repairMojibake(row.answer);
+      if (text === row.text && answer === row.answer) continue;
+      await this.prisma.question.update({ where: { id: row.id }, data: { text, answer } });
+      questions += 1;
+    }
+
+    const optionRows = await this.prisma.questionOption.findMany({ select: { id: true, text: true } });
+    for (const option of optionRows) {
+      const text = repairMojibake(option.text);
+      if (text === option.text) continue;
+      await this.prisma.questionOption.update({ where: { id: option.id }, data: { text } });
+      options += 1;
+    }
+
+    return { questions, options };
   }
 
   async list(user: RequestUser, query: {

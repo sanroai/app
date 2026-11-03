@@ -1400,7 +1400,7 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'Any line through the **centre** folds a circle exactly onto itself, and there is one such line for every direction, so the number is infinitely many. Saying 4 or 2 usually comes from picturing a square or a rectangle, which do have a small fixed number of folds. A circle has no corners to limit the choice of crease.',
   'A chord of length 16 cm is 6 cm away from the centre of a circle. What is the radius of the circle?':
     'The perpendicular from the centre bisects the chord, so half the chord is 8 cm, and r^2 = 6^2 + 8^2 = 36 + 64 = 100, giving **r = 10 cm**. The 14 cm comes from adding 6 + 8 instead of using Pythagoras. Using the full 16 in place of the 8 cm half-chord would give a radius of about 17 cm.',
-  'ABCD is a cyclic quadrilateral with âˆ A = 95Â° and âˆ B = 70Â°. Find âˆ C and âˆ D.':
+  'ABCD is a cyclic quadrilateral with ∠A = 95° and ∠B = 70°. Find ∠C and ∠D.':
     'Opposite angles of a cyclic quadrilateral are supplementary, so angle C = 180 - 95 = **85 degrees** and angle D = 180 - 70 = 110 degrees. Treating A and B as an opposite pair would wrongly make C equal to 70. Subtracting from 360 gives the correct total for C and D but says nothing about each one separately.',
   'A chord that passes through the centre of a circle is called':
     'A chord joins two points on the circle, and when it passes through the centre it is the longest one, called a **diameter**. A radius runs from the centre to just one point on the circle, so it is not a chord at all. A tangent touches the circle at a single point and never crosses it, and an arc is part of the curved edge.',
@@ -1424,7 +1424,7 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     's = (13 + 14 + 15)/2 = 21, so area = sqrt(21 × 8 × 7 × 6) = sqrt(7056) = **84 cm^2**. The 168 is double 84, which happens when the final result is doubled by mistake. The 42 is half of 84, a slip from halving the area as well as the perimeter.',
   'Using Ï€ = 22/7, what is the circumference of a circle of radius 7 cm?':
     'Circumference = 2 pi r = 2 × 22/7 × 7 = **44 cm**, because the two 7s cancel. The 154 cm is pi r^2 = 22/7 × 49, which is the area and is measured in square units. Getting 22 cm uses pi r only once, as if you had gone around only half the circle.',
-  'A sector of a circle of radius 21 cm has a central angle of 60Â°. Find the area of the sector. (Use Ï€ = 22/7)':
+  'A sector of a circle of radius 21 cm has a central angle of 60°. Find the area of the sector. (Use Ï€ = 22/7)':
     'The whole circle has area 22/7 × 21 × 21 = 1386 cm^2, and 60 degrees is 60/360 = 1/6 of a full turn, so the sector is 1386 ÷ 6 = **231 cm^2**. Answering 1386 forgets to take that fraction and gives the whole circle. Using only 21 × 60/360 without pi r^2 mixes this up with the arc length formula.',
   'Use Heron\'s formula to find the area of a triangle whose sides measure 10 cm, 10 cm and 12 cm.':
     's = (10 + 10 + 12)/2 = 16, so area = sqrt(16 × 6 × 6 × 4) = sqrt(2304) = **48 cm^2**. The 24 is half of 48, as if one more halving were needed. The 60 comes from 12 × 10 ÷ 2, which treats the side 10 as the height, but the real height on the 12 cm base is 8 cm.',
@@ -1474,7 +1474,7 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'With a = 5 and d = 4, the rule a + (n - 1)d = 65 gives 4(n - 1) = 60, so n - 1 = 15 and n = **16**. Answering 15 stops after dividing and forgets to add 1 back, which is the usual slip with this formula. The 17 would need one extra term.',
   'The third term of a geometric progression is 12 and the fifth term is 48. If the common ratio is positive, find the common ratio and the first term.':
     'Dividing the fifth term by the third gives r^2 = 48 ÷ 12 = 4, so r = **2** because the ratio is stated positive, and the first term is 12 ÷ 2^2 = **3**. Answering r = 4 forgets to take the square root of 4. Taking r = -2 also squares to 4, but the positive condition rules it out.',
-  'The nth term of a sequence is given by t(n) = 3n âˆ’ 2. What is the 10th term?':
+  'The nth term of a sequence is given by t(n) = 3n − 2. What is the 10th term?':
     'Substitute n = 10 into the rule: 3 × 10 - 2 = 30 - 2 = **28**. The 32 adds 2 at the end instead of subtracting it, which flips the sign. The 25 uses n = 9, which gives the previous term rather than the tenth.',
   'What is a sequence?':
     'A sequence is an **ordered list of numbers that follows a rule**, so 2, 4, 6, 8 differs from 8, 6, 4, 2 even though the same numbers appear. Any random group of numbers is not a sequence because there is no pattern to continue. A single number or a fraction has no positions to order, so neither can be a sequence.',
