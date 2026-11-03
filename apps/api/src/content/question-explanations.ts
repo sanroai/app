@@ -1924,4 +1924,1922 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'A convex lens bends parallel rays inwards so that they **converge to a point** called the principal focus, at a distance equal to its focal length. A concave lens is the one that makes parallel rays diverge outwards, and a convex lens never leaves them parallel.',
   'Which lens spreads parallel rays apart?':
     'A **concave lens** is thinner in the middle, so rays passing through it are bent away from the axis and spread apart, which is called divergence. A convex lens brings parallel rays together, and a plane mirror reflects light instead of letting it pass through.',
+  'What colour is the house in the poem "A Happy Child"?':
+    'The poem says the child\'s house is **red and white**, so those two colours go together. Yellow and brown is wrong because no part of the house is yellow.',
+  'Which house did the wolf NOT blow down?':
+    'The wolf huffed and puffed but the **house of bricks** stood still, so he could not blow it down. The straw house is wrong because it fell at the very first puff.',
+  'Why could the wolf not blow down the brick house?':
+    'Bricks are heavy and fixed together, so the **strong brick house** did not move when the wolf blew. A house built quickly from straw is weak, so it falls at once.',
+  'Write one pair of rhyming words from the poem.':
+    'Rhyming words end with the same sound, like **white and bright**, or day and play. Words like house and garden sound different at the end, so they do not rhyme.',
+  'Which word rhymes with \'white\' in the poem \'A Happy Child\'?':
+    'White and **bright** both end with the same ite sound, so they rhyme. Play has an ay sound at the end, so it does not match white.',
+  'Which pair of words rhymes?':
+    'Day and play both end with the **ay** sound, so they rhyme nicely. Child and garden end with different sounds, so they do not rhyme.',
+  'How do we keep the beat of a poem?':
+    'We keep the beat by clapping **once for each strong beat** as we say the poem. Reading it as fast as we can mixes the beats up and the rhythm is lost.',
+  'What did the first little pig build his house with?':
+    'The first little pig made his house of **straw** because it was quick and easy. Sticks were used by the second pig, so they are not the first house.',
+  'Which house did the wolf fail to blow down?':
+    'The wolf could not move the **house of bricks**, so the pigs were safe inside. The house of straw fell down, so it is not the one that stayed.',
+  'Why did the brick house stay standing?':
+    'The third pig took his time and laid each brick well, so the **brick house** stayed standing. The wolf was not tired; he blew his hardest and still failed.',
+  'Which pig worked the hardest in the story?':
+    'The **pig who built with bricks** worked the longest and hardest of the three. The pig with straw finished in a minute and then went off to play.',
+  'What does the story of the three little pigs teach us?':
+    'The story shows that **hard work and doing a job properly** kept the pigs safe from the wolf. It does not say building is easy, because the quick houses fell down.',
+  'What does \'huff and puff\' mean?':
+    'To huff and puff means to **blow hard** with a big breath, as the wolf did at the door. Running fast is a different action, so it does not match the words.',
+  'What does the child in the poem use after a bath?':
+    'After the bath the child uses a **towel** to get dry and warm. A brush is for the hair, not for drying the wet body after a bath.',
+  'Who became friends and went into the forest?':
+    'The three friends are the **bubble, the straw and the shoe**. The cat, rat and bat are animals from other tales, so they are not in this story.',
+  'Why did the bubble burst in the story?':
+    'The straw broke in the water, so the **bubble** fell in and burst. The bubble did not fly away, because it could not float once the straw gave way.',
+  'Name any two action words (verbs) from the poem.':
+    'Action words tell us what someone does, so **dry** and **rub** are action words. A word like towel only names a thing, so it does not show an action.',
+  'Which word is an action word?':
+    '**Rub** is something you do, so it is an action word. Wet tells us how something feels, and hand and towel are only names of things.',
+  'In the poem \'After a Bath\', what does the towel do?':
+    'The towel goes over the child\'s body and **dries** it. The water does the washing, so the towel does not wash the child.',
+  'Which of these is NOT an action word?':
+    'A **towel** is a thing you can hold in your hand, not something you do. Dry, rub and wash are all things a person can do.',
+  'Who were the three friends in the story?':
+    'The three friends are a **bubble, a straw and a shoe**. A pig and a wolf come from another story, so they are not in this one.',
+  'What did the three friends need to cross?':
+    'A **stream** of water was in their way, so they had to cross it. A brick wall is something to climb over, not water to cross.',
+  'What happened to the bubble at the end of the story?':
+    'When the straw broke, the bubble fell in the water and **burst** with a small pop. It did not fly away, because the water pulled it down.',
+  'How did the friends try to cross the stream?':
+    'The straw lay across as a **bridge** and the shoe floated like a boat. They did not swim together, because a bubble cannot swim at all.',
+  'What does the story teach us?':
+    'The friends tried to help one another, but their plan was not **safe**, so it failed. Straw is not stronger than a shoe, so that is not the lesson.',
+  'What is a \'stream\'?':
+    'A stream is a **small river** of moving water that flows on the ground. A sea is huge and salty, so it is not at all the same as a small stream.',
+  'Which animal says "mew"?':
+    'A **kitten** is a baby cat, and cats say mew when they want milk. A dog says bow-wow, so it is not the animal that says mew.',
+  'What did Lalu eat at first?':
+    'Lalu would eat **only yellow food** like corn and yellow fruit. Green vegetables were pushed away, so they were not his first choice.',
+  'What did Lalu learn from Peelu?':
+    'Peelu showed Lalu that he must eat **many kinds of food**, not only yellow ones. Eating just one colour made Lalu weak and tired.',
+  'Count and write the number names from one to five.':
+    'The number names in order are **one, two, three, four, five**. Skipping a number breaks the order, so we say each one in its turn.',
+  'Which animal says \'mew\'?':
+    'A **kitten** says mew, which is a small soft sound. A hen says cluck and a cow says moo, so they are not the ones that mew.',
+  'Which animal says \'moo\'?':
+    'A **cow** says moo, a long low sound we hear in the green field. A cat says mew instead, so it is not the animal that moos.',
+  'The poem counts the animals. Which number comes just after three?':
+    'When we count one, two, three, **four** comes right after three. Two comes before three, so it cannot be the number after three.',
+  'What colour food did Lalu the chick want to eat?':
+    'Lalu the chick wanted only **yellow** food to eat at first. Red food and green food were pushed away and left on the plate.',
+  'Who was Lalu\'s friend in the story?':
+    '**Peelu** was the friend who talked to Lalu and showed him better food. Mittu is a parrot from another story, so he is not in this one.',
+  'Why did Lalu feel weak?':
+    'Lalu said no to **green vegetables and fruit**, so his body did not get what it needs. He was not weak from running, because he ate so little.',
+  'What did Lalu learn to eat?':
+    'Lalu learned to eat **many kinds of food**, not just one colour. Yellow food alone had made him weak, so he changed his meals.',
+  'What keeps our body strong and healthy?':
+    'A **balanced diet** with many kinds of food keeps the body strong. Food of only one colour leaves out what the body needs.',
+  'What does \'peck\' mean?':
+    'To peck is to **pick up food with the beak**, as hens and chicks do. Flying high is a different action, so it does not mean peck.',
+  'Where was the little bird sitting?':
+    'The poem begins with the bird sitting **at the window**. A nest is where a bird sleeps, but here the bird was on the window.',
+  'Who helped Mittu get the yellow mango?':
+    'Mittu\'s **friends** helped him reach the mango on the tree. He did not get it alone, because the mango was too high for him.',
+  'What did the little bird do when the speaker asked it to stop?':
+    'The bird said **no** and flew away from the window at once. It did not stay to sing, because it wanted to go on its way.',
+  'Why did Mittu share the mango?':
+    'His friends helped him get the mango, so he **shared** it with them. Sharing made them all happy, and that is what the story teaches.',
+  'Which of these is a polite word?':
+    '**Please** is a polite word we use when we ask for something. Stop is a sharp word with no softness, so it is not polite.',
+  '\'Will you stop?\' is an example of':
+    'Will you stop asks someone to do something, so it is a **request**. A command would be a plain order like stop, with no question.',
+  'What should we do when we see a bird?':
+    'We should **watch it without catching it**, so the bird stays free and happy. Putting it in a cage takes away its home in the sky.',
+  'What kind of bird is Mittu?':
+    'Mittu is a **green parrot** with a sharp curved beak and bright wings. A sparrow is small and brown, so it is not Mittu.',
+  'What did Mittu want from the tree?':
+    'Mittu wanted the **big yellow mango** that was hanging high on the tree. A green leaf is not sweet fruit, so it was not what he wanted.',
+  'Who else wanted the mango?':
+    'A **crow and a monkey** also wanted the mango on the tree. The bubble and the shoe belong to another story, so they are not here.',
+  'How did the friends finally get the mango?':
+    'The friends got the mango because they **worked together**. The monkey alone could not reach it, so he needed their help.',
+  'What did the friends do with the mango?':
+    'They cut the mango into pieces and **shared** it with one another. They did not throw it away, because they had all worked hard for it.',
+  'What is the moral of the story of Mittu?':
+    'Mittu asked for **help** and then shared the fruit, and everyone was happy. Monkeys are not lazy; in this story the monkey helped him.',
+  'How does a merry-go-round move?':
+    'A merry-go-round goes **round and round** in a big circle. It does not go in a straight line, because it turns on one spot.',
+  'Which of these is a circle?':
+    'A **wheel** is round like a circle, with no corners at all. A book has four sharp corners, so it is a rectangle, not a circle.',
+  'Name two things in your home that are round.':
+    'A **plate and a bangle** are both round, so they are good answers. A door is tall and straight, so it is not round at all.',
+  'Why can a circle roll but a square cannot?':
+    'A circle has **no corners**, so it rolls smoothly on its edge. A square has four corners that stop it and make it slide instead.',
+  'Which word rhymes with \'round\'?':
+    'Round and **sound** both end with the ound sound, so they rhyme. Down has a different vowel sound, so it does not rhyme with round.',
+  'Which word rhymes with \'down\'?':
+    'Down and **town** both end with the same own sound, so they rhyme well. Round ends with ound, so it does not match the sound of down.',
+  'Which of these is a sound word?':
+    '**Wheee** is a sound word, because it copies the noise of the ride. A wheel is a thing you can touch, so it is not a sound.',
+  'Which of these things is round?':
+    'A **coin** is round and flat, like a small circle in your hand. A box has flat sides and sharp corners, so it is not round.',
+  'How many corners does a circle have?':
+    'A circle is a smooth curve all the way, so it has **no corners at all**. Four corners belong to a square, not to a circle.',
+  'Which shape can roll easily?':
+    'A **circle** rolls easily because its edge is smooth all the way round. A triangle has three corners, so it tips over instead of rolling.',
+  'Which of these is shaped like a circle?':
+    'The **sun** looks like a big round circle up in the sky. A brick has flat sides and sharp corners, so it is not shaped like a circle.',
+  'Which way does a merry-go-round move?':
+    'It turns **round and round** on its middle, again and again. It does not go only up and down, because it spins in a circle.',
+  'What is a corner?':
+    'A corner is the **point where two sides meet**, like the corner of a book. The middle of a shape is empty space, so it is not a corner.',
+  'How does the child feel on the first day of school?':
+    'The child feels **nervous at first**, and then he becomes happy when he makes friends and plays. Feeling angry the whole day misses how the day changes from shy to glad.',
+  'Who did Haldi meet on her way?':
+    'On her way Haldi meets a **duck, a cat and a cow**. A lion and a tiger never come into this story, so that answer is only a guess.',
+  'Name two feelings the child has on the first day of school.':
+    'On the first day the child is **nervous and happy**, and he is also a little shy and excited. Just writing \'good\' names no real feeling, so it leaves the question half answered.',
+  'What did Haldi do when she came home?':
+    'When Haldi came home she **told her mother everything** about the animals she met. Saying she stayed out late misses the ending, because the story finishes with her sharing her news at home.',
+  'Which of these words names a feeling?':
+    '**Shy** names a feeling, because it tells us how someone feels inside. Board, classroom and desk are only things in a room, so they cannot be feelings.',
+  'The child feels nervous on the first day. What does \'nervous\' mean?':
+    '**Nervous** means a little afraid or worried, like the child on his first school day. It does not mean very hungry, because hungry is a feeling in the tummy, not in the mind.',
+  'How can we tell someone how we feel?':
+    'We tell someone how we feel by saying **\'I feel\' and then the feeling**, like \'I feel happy\'. Hiding your face or staying quiet all day keeps the feeling locked inside, so nobody learns it.',
+  'Who is Haldi in the story?':
+    'Haldi is a **little girl who goes out to see the world**. She is not a teacher or a parrot, because she is a child who walks, talks and asks questions.',
+  'Which animals did Haldi meet on the way?':
+    'Haldi meets a **duck, a cat and a cow**, and each one teaches her something new. A fish, a frog and a snake are not in this story, so that list cannot be right.',
+  'What does \'curious\' mean?':
+    '**Curious** means wanting to know more, so you ask questions and look closely at things. It is not the same as being angry, because anger does not make you want to learn.',
+  'According to the story, what helps us learn?':
+    'The story shows that being **curious and brave** helps us learn, because we go out and ask about new things. Never asking questions keeps us from finding anything out.',
+  'What is an \'adventure\'?':
+    'An **adventure** is an exciting journey where new and surprising things happen. A school test is work in a room, so it is not a journey at all.',
+  'What did Haldi learn from the animals she met?':
+    'Haldi learns **something new from each animal** she meets on her walk. The story never says the animals were dangerous, so that fear is not part of her day.',
+  'Which word in the poem shows ability?':
+    '**Can** shows ability, because it tells what someone is able to do, as in \'I can hop\'. \'Cannot\' shows just the opposite, so it says what someone is not able to do.',
+  'Which of these is a need, not a want?':
+    '**Water** is a need, because we must have it every day to live and stay well. An ice cream is only a want, a sweet fun thing we can live without.',
+  'Write two things you can do well.':
+    'The poem keeps saying **\'I can\'**, so a good answer names a real skill, like \'I can swim\' or \'I can sing\'. Writing \'I like mangoes\' tells what you enjoy, not what you are able to do.',
+  'Why should we say "please" when we ask for something?':
+    'We say **please** because kind words show good manners, and people feel happy to help us. Demanding \'give me now\' sounds rude, so others may not want to help.',
+  'The poem \'I am Lucky\' says we should be thankful for':
+    'The poem asks us to be thankful for **what we have**, like food, family and friends. Wanting only what other people have makes us forget our own good things.',
+  'Which of these things does the speaker say he can do?':
+    'The speaker says **\'I can hop\'**, and he also names other small things he can do. Driving a car is a job for grown-ups, so a child in the poem does not claim it.',
+  'What does \'lucky\' mean?':
+    '**Lucky** means having good fortune, so good things happen to you. Being very tall is only how you look, so it does not tell us about luck.',
+  'Which words help us ask politely?':
+    '**Please** and **may I** are polite asking words, as in \'May I have some water, please?\'. Saying \'give me now\' orders people about, so it does not sound polite.',
+  'Which is the polite way to ask for water?':
+    'The polite way is **\'May I have some water, please?\'**, because it uses kind asking words. \'Give me water\' is an order, so it does not show good manners.',
+  'What does \'polite\' mean?':
+    '**Polite** means showing good manners, so we speak softly and say please and thank you. Speaking very loudly can disturb other people, so that is not polite.',
+  'Which of these is a NEED?':
+    '**Food** is a need, because our body must have it every day to grow and work. A toy car is only a want, a fun thing we can live without.',
+  'Which of these is a WANT?':
+    'A **new toy** is a want, because it is fun but we can live without it. Food and water are needs, since our body must have them to stay alive.',
+  'What did the mother explain to the child?':
+    'The mother explains that we **cannot get everything we want**, so we must know needs from wants. She never says toys are free in shops, because that is not true.',
+  'What does a smile cost?':
+    'A smile costs **nothing**, because it is free and we can give it to anyone. It does not need a rupee or a gift, so money has nothing to do with it.',
+  'What made the traveller take off his coat?':
+    'The **warm sun** made the traveller take off his coat, because he began to feel hot. The strong wind only made him hold the coat tighter, so wind did not do it.',
+  'What is the moral of "The Wind and the Sun"?':
+    'The moral is that **gentleness wins where force fails**, just as the warm sun did what the strong wind could not. Pushing hard, like the wind, only makes people hold on tighter.',
+  'Write two words that rhyme with "smile".':
+    'A rhyming word ends with the same sound, so **while** and **mile** rhyme with smile. \'Day\' ends with an \'-ay\' sound, so it does not rhyme with smile.',
+  'Which word rhymes with \'smile\'?':
+    '**While** rhymes with smile, because both words end with the same \'-ile\' sound. \'Sun\' ends with a different sound, so the two words do not match.',
+  'Which word rhymes with \'day\'?':
+    '**Say** rhymes with day, because both end with the \'-ay\' sound. \'Smile\' ends with \'-ile\', so it does not rhyme with day.',
+  'Which word does NOT rhyme with \'smile\'?':
+    '**Day** does not rhyme with smile, because it ends with \'-ay\' and smile ends with \'-ile\'. Mile, tile and while all end like smile, so those three do rhyme.',
+  'What did the wind and the sun argue about?':
+    'The wind and the sun argued about **who was stronger**, and they tested it on a traveller. They never argued about age or speed, so those answers miss the point.',
+  'What did the wind and the sun want the traveller to take off?':
+    'Both wanted the traveller to take off **his coat**, because that would show who was stronger. They did not care about his shoes or his hat at all.',
+  'Whom did the wind and the sun see on the road?':
+    'They saw a **traveller in a coat** walking on the road below them. There was no child with a ball in this story, so that answer does not fit.',
+  'What happened when the wind blew as hard as it could?':
+    'When the wind blew hard, the traveller **held his coat tighter** and did not take it off. The wind thought force would work, but it only made the man feel cold.',
+  'How did the sun win the challenge?':
+    'The sun **shone warmly**, so the traveller felt hot and took off his coat. The sun did not blow or hide, because it won by being gentle and warm.',
+  'What is the moral of the story of the wind and the sun?':
+    'The story teaches that **gentleness wins where force fails**, just as warmth beat the strong wind. It is not about coats or staying home, because those are only details of the tale.',
+  'Which sound word is used for rain in the poem?':
+    'The poem uses **pitter-patter** for the sound of rain falling on the roof. Tick-tock is the sound of a clock, so it does not belong to rain.',
+  'What protects a squirrel during the storm?':
+    'A **big tree** protects the little squirrel, because it hides safe in its branches. An umbrella is held by people, so a squirrel in the story does not use one.',
+  'Name two things we use on a rainy day.':
+    'On a rainy day we use an **umbrella** and a **raincoat** to keep dry, and boots help too. Saying we use a cap is wrong, because a cap lets the rain through.',
+  'How does rain help farmers?':
+    'Rain **waters the crops**, so the plants grow big and the farmer gets food. Saying rain spoils the field is wrong, because plants need water to grow at all.',
+  'Which is a sound word for falling rain?':
+    '**Pitter-patter** copies the sound of rain falling on the roof. \'Umbrella\' names a thing and \'green\' names a colour, so neither one is a sound.',
+  'Which of these is NOT a sound word?':
+    '**Umbrella** is a thing we hold in the rain, so it is not a sound word. Pitter-patter, drip-drop and splash all copy real sounds, so those three are sound words.',
+  'What does rain do to plants?':
+    'Rain gives plants water, so it **makes them green** and fresh again. It does not make them dry, because water helps them grow instead.',
+  'What happens during a storm?':
+    'A storm brings **strong wind, heavy rain and thunder**, which shakes the whole garden. A cool gentle breeze is calm weather, so it is not a storm.',
+  'What did the little squirrel do during the storm?':
+    'The little squirrel **hid**, and a big tree kept it safe from the wind and rain. It did not play in the rain, because the storm was too strong for that.',
+  'How was the garden after the storm?':
+    'After the storm the garden was **quiet and fresh**, with every leaf washed clean. It was not hot and dry, because the rain had just watered everything.',
+  'What does the story of the storm in the garden teach us?':
+    'The storm story teaches that **in hard times we help and protect one another**, just as the tree sheltered the squirrel. It does not say storms are fun, because going out in one is not safe.',
+  'What does \'shelter\' mean?':
+    '**Shelter** means a place that keeps us safe from rain, wind or danger. A loud sound is only something we hear, so it cannot be a shelter.',
+  'Where did the birds go during the storm?':
+    'The birds **hid in their nests**, which kept them safe and warm. They did not fly about in the rain, because the strong wind would toss them around.',
+  'What should we NOT do at the zoo?':
+    'We must **not tease the animals**, because it frightens them and it is unkind. Watching quietly and speaking softly are good manners, so those are things we should do.',
+  'Which pair are opposites?':
+    '**Loud** and **quiet** are opposites, because they name the two ends of sound. Big and large mean the same thing, so they are not opposites.',
+  'Why did Funny Bunny say sorry?':
+    'Funny Bunny said sorry because his **jokes made his friends sad**, and then nobody wanted to play with him. He was not sorry for being slow, since speed was never the problem.',
+  'Write two rules of good manners at the zoo.':
+    'Two good zoo rules are **do not tease or feed the animals** and watch them quietly. Giving them sweets feels kind, but it can make the animals ill.',
+  'What is the opposite of \'big\'?':
+    'The opposite of big is **small**, because small means little in size. \'Near\' tells us about place, not size, so it is not the opposite of big.',
+  'What is the opposite of \'loud\'?':
+    'The opposite of loud is **quiet**, because quiet means very little sound. \'Fast\' tells us about speed, so it says nothing about how loud a thing is.',
+  'Which pair is a pair of opposites?':
+    '**Fast** and **slow** are opposites, because they are the two ends of speed. Fast and quick mean the same thing, so they are not opposites of each other.',
+  'What did Funny Bunny like to do?':
+    'Funny Bunny liked to **play jokes on his friends**, because he thought it was funny. He did not sleep all day, since he was busy with his tricks.',
+  'Why did nobody want to play with Funny Bunny?':
+    'Nobody wanted to play with him because his **jokes made his friends sad**. It was not about carrots or being slow, since the story is about hurt feelings.',
+  'What did Funny Bunny do to repair the friendship?':
+    'He **said sorry and shared his carrots**, and his friends were happy with him again. Laughing even more would have made them sadder, so that could not mend the friendship.',
+  'Which rule does the poem give for a visit to the zoo?':
+    'The poem says **do not tease or feed the animals**, and keep your voice soft. Giving sweets seems kind, but it can make the animals sick.',
+  'What does \'manners\' mean?':
+    '**Manners** means polite ways of behaving, like saying please and being gentle. Loud noises are only sounds, so they tell us nothing about manners.',
+  'Why should we speak softly at the zoo?':
+    'We speak softly so the **animals are not frightened** by loud voices. A zoo is not a library, so that is not the reason we keep quiet there.',
+  'When do we say "Good morning"?':
+    'We greet people with **Good morning** from the time we wake up until noon, when the day is still young. Saying it in the evening is wrong because by then the sun is going down and we say good evening.',
+  'Who finds the magic garden empty?':
+    'The garden is full for children who care for it, but **careless** children who pluck flowers find it empty. Thinking of the gardener or the birds is a mistake, because they look after the garden and never empty it.',
+  'Write two greetings we use during the day.':
+    'During one day we say **good morning** at the start, good afternoon after noon and good evening as the light fades. Saying only goodnight is a mistake, because that greeting belongs to bedtime, not to the day.',
+  'What is the moral of "The Magic Garden"?':
+    'The magic garden gives its flowers to children who look after it, so **caring for nature** keeps it green and full. Thinking the garden is magic with no work is the mistake, because kindness is what gets rewarded.',
+  'What does the poem \'Good Morning\' greet in the morning?':
+    'The poem opens the day by greeting the **sky, the sun, the birds and the trees**, all the things we meet in the morning. Greeting the moon and the stars is wrong, because those belong to the night.',
+  'When do we say \'Good morning\'?':
+    'We say **good morning** from the moment we get up until twelve o\'clock, while the sun is climbing. Saying it only at breakfast is too narrow, because we greet people all morning, not just while eating.',
+  'What does a kind greeting do, according to the poem?':
+    'The poem says a kind word in the morning makes the **day start well** for us and for the person we greet. Thinking a greeting wastes our time is the opposite, because the poem shows it makes everyone happy.',
+  'What does the magic garden give?':
+    'The garden shares its **flowers** with children who are gentle and do not tear the plants. Thinking it gives money to the rich is a mistake, because the story is about kindness, not about buying things.',
+  'What happens when children pluck flowers without care?':
+    'When children pull flowers **carelessly**, the garden has nothing left to show them and looks empty. Believing they get even more flowers is the mistake, because plucking without care takes the beauty away.',
+  'What is a garden?':
+    'A **garden** is a patch of ground where people grow plants, flowers and vegetables. A place where cars are kept is a garage, so that word does not fit a garden at all.',
+  'What is the moral of \'The Magic Garden\'?':
+    'The story ends happily for children who **take care of nature**, and their kindness is rewarded with a garden full of flowers. Thinking flowers only cost money misses the point, because the garden gives freely to gentle children.',
+  'What does \'pluck\' mean?':
+    'To **pluck** means to pull a flower or a fruit off a plant with your fingers. Digging the soil is a different job, so it is not plucking, which is only about picking.',
+  'What does \'reward\' mean?':
+    'A **reward** is something nice you get because you did something good or helpful. A punishment for a mistake is the opposite, so it can never be a reward.',
+  'What do the birds in the poem talk about?':
+    'In the poem the two birds sit together and talk about **how people live**, wondering why they hurry and shout. Talking only about food is the mistake, because the birds are curious about our ways, not about their meals.',
+  'What did Nina keep near the nest?':
+    'Nina put **water and grain** near the nest so the baby sparrows would not go hungry or thirsty. Keeping them in a cage is wrong, because she wanted to help them, not to trap them.',
+  'Why did Nina not keep the baby sparrows in a cage?':
+    'Nina left the babies free because **wild birds belong in nature**, and their own mother knows how to feed and warm them. Putting them in a cage is the mistake, since a cage takes away the care only a mother bird can give.',
+  'What is a stanza?':
+    'A **stanza** is a small group of lines in a poem, set apart by a space, like a paragraph in a story. Thinking it is one single line is wrong, because a stanza holds several lines together.',
+  'Which word rhymes with \'trees\' in the poem \'Bird Talk\'?':
+    '**These** rhymes with trees because both words end with the same -ees sound. Nest does not rhyme with trees, since its ending sound is quite different.',
+  'Which word does NOT rhyme with \'say\'?':
+    'Day, play and may all end with the same -ay sound, so they rhyme with say. **Trees** ends with -ees instead, so it is the one word that does not rhyme with say.',
+  'What did Nina find in her garden?':
+    'In her garden Nina found a **nest with baby sparrows** and watched them quietly from a distance. A fish in a pond is a mistake, because this story happens in a nest above the ground.',
+  'Why did Nina\'s mother say the birds should stay in the nest?':
+    'Mother said the babies should stay because the **mother bird** feeds them and keeps them safe better than anyone else. Thinking the nest was too small is wrong, since the mother\'s care was the real reason.',
+  'What is a sparrow?':
+    'A **sparrow** is a small brown bird that hops about gardens and chirps all day. A large white bird is not a sparrow, because sparrows are tiny and brown.',
+  'How does the story say we should care for wild animals?':
+    'The story shows that we help wild animals by giving them **space** and watching from far away. Holding them in our hands is the mistake, because wild creatures feel afraid when we grab them.',
+  'What happened to the baby sparrows at the end?':
+    'At the end the baby sparrows **grew and flew away** into the sky, as birds are meant to do. Staying in the nest for ever is wrong, because young birds leave once their wings are strong.',
+  'How many stanzas does the poem \'Bird Talk\' have?':
+    'The poem is printed in **two** groups of lines, one for each bird that speaks. Three or four stanzas would mean more blocks of lines, but this poem has only two.',
+  'What does \'observe\' mean in the story of the sparrows?':
+    'Nina **observed** the sparrows by sitting still and watching them closely every day. Catching something quickly is the opposite, because observing means looking, not grabbing.',
+  'What does the acorn become?':
+    'An **acorn** is a tiny seed that slowly grows into a huge oak tree. A river is wrong, because a seed grows into a plant and never into water.',
+  'Who pulled the turnip first?':
+    'The **farmer** planted the turnip and was the first to pull it, all alone. The mouse was the last helper of all, not the first, so choosing the mouse gets the order wrong.',
+  'What does "little by little" mean?':
+    '**Little by little** means doing something slowly in small steps until a big job is finished. Believing it happens in one big jump is the mistake, because the poem shows small steps adding up.',
+  'What is the moral of "The Enormous Turnip"?':
+    'The turnip came out only when everyone pulled **together**, so teamwork does what one person cannot. Believing the farmer could do it alone is the error, because his own pull had already failed.',
+  'In the poem, what does the acorn become little by little?':
+    'The poem shows the small acorn becoming a tall **oak tree** by growing a little each day. A book cannot grow out of a seed, so that answer does not fit the poem.',
+  'What does the stream become little by little?':
+    'The tiny stream joins with other water and becomes a wide **river**. A pond is wrong, because a pond holds still water, while the poem shows the water moving and growing.',
+  'What does the poem \'Little by Little\' teach us?':
+    'The poem teaches that **patience** and small steps every day build big things at last. Believing big things happen in a single day is the mistake, because the poem says they grow slowly.',
+  'What did the farmer plant in the story?':
+    'The farmer sowed a **turnip** seed that grew into an enormous vegetable. A mango tree is wrong, because the story is about a vegetable that everyone had to pull.',
+  'Whom did the farmer call first to help him?':
+    'When the farmer could not move the turnip, he first called his **wife** to pull with him. The mouse came last of all, so picking it makes the order of helpers wrong.',
+  'What does \'enormous\' mean?':
+    '**Enormous** means very big, like the turnip that nobody could pull alone. Very small is the opposite meaning, so it cannot describe that turnip.',
+  'How did they finally pull out the turnip?':
+    'The turnip came free only when everyone **pulled together** at the same time. Thinking the farmer pulled harder alone is wrong, because his single pull had already failed.',
+  'What is the moral of \'The Enormous Turnip\'?':
+    'Each new helper added strength until **teamwork** pulled the turnip out of the ground. Saying farmers should work alone is the opposite, because alone he could not do it.',
+  'What does \'together\' mean?':
+    '**Together** means doing something with other people, side by side. All alone is the opposite idea, because together always needs more than one person.',
+  'What does the poem call the sea?':
+    'The poem calls the sea a place that can **sing**, with the waves making its music. Calling it a desert is wrong, because a desert is dry sand with no water at all.',
+  'Who helps the little fish escape from the net?':
+    'A **big fish** pushes the net and helps the little fish slip out to safety. A boat cannot help, because a boat pulls the net up, it does not free the fish.',
+  'Name two things you can hear near the sea.':
+    'Beside the sea you hear the **waves** rolling in and the gulls calling above your head. A silent place with no sound is the mistake, because the sea is always full of noise.',
+  'What is the moral of "A Little Fish Story"?':
+    'The little fish is small, yet it is helped and later helps others, so **kindness comes back**. Thinking only big creatures matter is the mistake, because the story shows small ones can help too.',
+  'What does the poem \'Sea Song\' do to the sea?':
+    'The poet makes the sea speak and sing, so it gives the sea a **voice** like a person. Saying the poem tells us to stay away from water is wrong, because it invites us to listen.',
+  'What does \'imagination\' let us do?':
+    '**Imagination** lets us picture things in our mind even when they are not in front of us. Seeing things in complete darkness is wrong, because imagination uses our thoughts, not our eyes.',
+  'Which sounds does the speaker hear in \'Sea Song\'?':
+    'The speaker hears the **waves, the wind and the gulls** making the music of the sea. Drums and flutes belong to a band, not to the shore, so they are not in this poem.',
+  'Where did the little fish live?':
+    'The little fish lived in a **big pond** crowded with many other fish. Living alone in the open sea is the mistake, because the story shows it among friends in the pond.',
+  'What happened to the little fish one day?':
+    'One day the little fish was **caught in a net** and could not swim free. Losing its way home is wrong, because the trouble came from the net, not from the path.',
+  'Who helped the little fish escape?':
+    'A **big fish** helped the little one get out of the net. A turtle never appears in this story, so it cannot be the one who helped.',
+  'What does the little fish learn?':
+    'After its fright the little fish learns to be **careful** and to help others in trouble. Thinking it should hide in the mud for ever is wrong, because it learns to help, not to hide.',
+  'What is the moral of the little fish story?':
+    'The story shows that even **small creatures** can help, and the kindness given to the fish comes back. Saying big fish are dangerous is the opposite, because a big fish is the one who saves it.',
+  'What does \'escape\' mean?':
+    'To **escape** means to get free from something that holds you, like the fish leaving the net. Falling asleep is not escaping, because sleep does not set anybody free.',
+  'What colours are the balloons?':
+    'The balloon man carries balloons of many colours, like **red, blue, green and yellow**. Only black and white is wrong, because the poem shows bright and happy colours.',
+  'Why did the child open the jar?':
+    'The child opened the jar to **set the butterfly free**, because it had stopped moving inside. Opening it to give food is wrong, since a trapped butterfly needs air and space, not a meal.',
+  'Why do children run after the balloon man?':
+    'Children run after him because his **colourful balloons** are lovely and every child wants one. Thinking they run to scare him is wrong, because they run with joy, not with anger.',
+  'What is the moral of "The Yellow Butterfly"?':
+    'The yellow butterfly grows still inside the jar, so **living things need freedom** to be happy. Keeping it for ever is the mistake, because love means letting it go.',
+  'Which word rhymes with \'street\' in the poem \'The Balloon Man\'?':
+    '**Sweet** rhymes with street because both end with the same -eet sound. Sky has a different ending, so it does not rhyme with street at all.',
+  'What is repetition in a poem?':
+    '**Repetition** is saying the same word or line again and again to make it strong in our ears. Reading the poem very fast is different, because speed is not the same as repeating words.',
+  'Which word rhymes with \'blue\' in the poem \'The Balloon Man\'?':
+    '**Too** rhymes with blue because both words end with the -oo sound. Street ends with -eet, so it does not rhyme with blue.',
+  'What did the child do with the yellow butterfly?':
+    'The child caught the butterfly in a **net** and put it in a glass jar to keep. Letting it fly at once is wrong, because the child frees it later, after seeing it sit still.',
+  'Why did the child feel sad?':
+    'The child felt sad because the butterfly **stopped moving** in the jar and looked lifeless. Thinking the jar broke is wrong, since the jar stayed whole and the butterfly was the worry.',
+  'What did the child do at the end of the story?':
+    'At the end the child **opened the jar** and watched the butterfly fly away happily. Keeping it for ever is the mistake, because that is exactly what had made the child sad.',
+  'What does the story of the butterfly teach us?':
+    'The story teaches that **living things need freedom**, like the butterfly that moves only when it is free. Thinking jars are good for insects is wrong, because a jar made the butterfly still.',
+  'What does \'freedom\' mean?':
+    '**Freedom** means being able to move about and live your own way, like the butterfly in the open air. Staying inside the house is the opposite, because freedom needs room to move.',
+  'What is a \'bunch\'?':
+    'A **bunch** is a group of things held together, like the balloon man\'s bunch of balloons. A single balloon is not a bunch, because a bunch always holds more than one.',
+  'Which of these is a command?':
+    '**Wake up!** is a command because it orders someone to do something and does not ask a question. \'Could you please wake me?\' is a polite **request**, not an order, so it belongs to a different group.',
+  'Why was Neha late for school?':
+    'Neha was late because she **stopped the alarm** and went back to sleep instead of getting up. Her bus did come on time, so saying her bus was late misses the real reason.',
+  'Write two things you do every morning before school.':
+    'Morning things like **brushing your teeth** and eating breakfast happen in the same order every day, which is your routine. Naming one special thing you did only once would not answer a question about every morning.',
+  'What did Neha learn from being late?':
+    'Neha learnt to be **responsible** for her own mornings: sleep early and get up when the alarm rings. Waiting for her parents to wake her is exactly the habit that made her late.',
+  'Which of these sentences is a command?':
+    '**Brush your teeth!** is a command because it tells someone to act and ends with an exclamation mark. \'May I have some water?\' asks permission, so it is a **request**, not a command.',
+  'How can we make a request sound softer?':
+    'Adding **please** and **may I** makes a request sound soft and respectful to the listener. Speaking much more loudly would only make it sound like an order, which is the opposite of soft.',
+  'How does a command usually end?':
+    'A command usually ends with an **exclamation mark**, as in \'Wake up!\', because the voice rises with the order. A question mark belongs to questions like \'May I come in?\', which are requests.',
+  'What did Neha\'s father buy her?':
+    'Father bought Neha an **alarm clock** so she could wake up by herself on time. A wrist watch only shows the time and cannot ring, so it could not have solved her problem.',
+  'What did Neha do when the alarm clock rang?':
+    'When the alarm rang, Neha **stopped it and slept again**, which is why she missed school time. She certainly did not get up at once, so that answer is the opposite of what happened.',
+  'How did Neha decide to solve her problem?':
+    'Neha decided to **sleep early** and keep the clock away from her bed so she would have to stand up to stop it. A louder clock would not help either, because she would switch that off too.',
+  'What does \'responsible\' mean?':
+    'Being **responsible** means doing your own duty on your own, like waking up when your alarm rings. Waiting for others to help is the opposite, because then the job depends on them.',
+  'What is a \'routine\'?':
+    'A **routine** is the set of things we do in the same order every day, such as waking, brushing and eating. An alarm clock is only a tool that helps a routine, not the routine itself.',
+  'What did Neha learn from being late for school?':
+    'Neha learnt to take **responsibility** for waking up on time instead of blaming others. Staying awake all night would only make her sleepier, so it is no answer at all.',
+  'The poem "Noses" is about...':
+    'The poem looks at **different shapes of noses** and wonders why one is short and another long. It never talks about smelling flowers, so that answer describes a different poem.',
+  'What did the fir tree finally keep?':
+    'In the end the fir tree kept its **own green needles**, because they stayed safe through wind and weather. Gold and glass leaves both failed, since thieves stole the gold and the wind broke the glass.',
+  'Why were the gold leaves of the fir tree a problem?':
+    'The gold leaves shone brightly, but **thieves stole** them in the night and left the tree bare. Rain did not wash them away, because it was people who took them.',
+  'What is the moral of "The Little Fir Tree"?':
+    'The tree wished for gold and then glass, and lost both, so we should **be careful what you wish for**. Believing that every wish brings happiness is the very mistake the story warns against.',
+  'Why does the speaker wonder about the nose in the poem \'Noses\'?':
+    'The speaker wonders because the **nose sits right in the middle of the face**, where everyone can see it. It is not tiny or hidden away, so being very small does not explain the wonder.',
+  'Which word rhymes with \'nose\'?':
+    '**Rose** rhymes with nose because both end with the same -ose sound. \'Face\' ends with a different sound, so it does not rhyme even though a nose is part of a face.',
+  'What does an adjective do?':
+    'An **adjective** describes a noun, like \'a short nose\' or \'a happy child\'. A word that shows an action is a verb, so that answer names a different part of speech.',
+  'Why was the fir tree unhappy?':
+    'The fir tree was unhappy because it was **small** and thought its thin needles were ugly. Lack of water was not its problem, since it grew well enough in the forest.',
+  'What did the fir tree wish for first?':
+    'Its first wish was for **gold leaves**, because gold looked the most beautiful thing to own. Green leaves were what it already had, so that could not have been a wish.',
+  'What happened to the glass leaves?':
+    'The **wind broke** the glass leaves into small pieces, because glass is hard and brittle. Thieves came for the gold leaves, not the glass, so stealing belongs to the earlier wish.',
+  'Why did the gold leaves bring trouble to the fir tree?':
+    '**Thieves stole** the gold leaves in the night, so the tree stood bare by morning. Rain cannot wash gold away, so that answer does not match what happened in the story.',
+  'How did the fir tree feel at the end of the story?':
+    'At the end the tree was **happy with its own needles**, since they stayed green in every season. It was no longer sad about being small, so still feeling unhappy misses the change in it.',
+  'What is the moral of \'The Little Fir Tree\'?':
+    'The tree lost its gold and glass leaves, so the lesson is to **be careful what you wish for**. Thinking gold is the best thing to own is exactly the wish that brought it trouble.',
+  'The poem "Run!" tells us to...':
+    'The poem keeps urging us to **be active and move about**, naming run, jump, hop and skip. Sitting quietly all day is the very thing the poem speaks against.',
+  'How did Nasruddin become famous as an archer?':
+    'Nasruddin shot the arrow first and then **painted the target** around it, so it always looked like a bull\'s eye. He did not practise daily, and that trick is why people wrongly thought he never missed.',
+  'Name four movement words from the poem.':
+    'The poem is full of **movement words** like run, jump, hop and skip, which all show the body moving. A still word such as sit would not count, because it shows no movement at all.',
+  'What does the story of Nasruddin teach us?':
+    'The story teaches us not to be **fooled by clever tricks**, because the circle was painted after the shot. Believing a circle always means good aim is exactly how the villagers were tricked.',
+  'Why does the poem \'Run!\' repeat the word \'Run\'?':
+    'Repeating **Run** again and again gives the poem a fast beat that pushes the reader to move. Filling space to make the poem longer misses the point, since each repeat adds energy, like a drum.',
+  'Which word in the poem \'Run!\' rhymes with \'run\'?':
+    '**Sun** rhymes with run because both end with the -un sound. \'Road\' and \'grass\' appear in the poem too, but they end with other sounds, so they do not rhyme.',
+  'Where does the poem ask us to run?':
+    'The poem asks us to run **in the sun and in the rain**, so no weather should stop us. Running only inside the school misses the point that we should move about everywhere.',
+  'What did Nasruddin shoot at?':
+    'Nasruddin shot his arrow at a **tree** and then drew the circle around the arrow. Shooting at a proper target board would have shown real skill, which is exactly what he lacked.',
+  'What did Nasruddin do after shooting the arrow?':
+    'After the arrow hit, he **painted a circle around it** so the arrow looked perfectly centred. Shooting a second arrow would have shown his poor aim instead of hiding it.',
+  'Why did people think Nasruddin was a great archer?':
+    'People saw the arrow **in the middle of a circle** and believed he was a great archer. They forgot that he painted the circle afterwards, so a very fine bow was not the reason.',
+  'What does the story of Nasruddin make fun of?':
+    'The story makes fun of **people who are fooled by appearances**, since the circle was drawn after the shot. Honest archers who practise daily are not being laughed at here at all.',
+  'What does \'wit\' mean?':
+    'In the story, **wit** is the quick, clever thinking Nasruddin used when he painted the circle after shooting. A loud voice or great strength belongs to the body, so neither of those is wit.',
+  'What is the moral of Nasruddin\'s story?':
+    'The moral is to **think for yourself** instead of trusting a clever trick, because the circle was painted later. Believing exactly what you see is the mistake of the villagers, who never asked how it got there.',
+  'Which word asks for a reason?':
+    '**Why** asks for a reason, as in \'Why is the sky blue?\'. \'Where\' asks about a place and \'When\' asks about a time, so neither of them asks for a reason.',
+  'What did Alice follow into the rabbit hole?':
+    'Alice followed a **white rabbit with a watch**, and she fell down its hole while chasing it. A cat or a bird would not carry a watch, so that detail points to the rabbit.',
+  'Write two "why" questions of your own.':
+    'A **why** question always asks for a reason, so \'Why is the sky blue?\' and \'Why do birds sing?\' both fit. A question starting with \'When\' or \'Where\' asks about time or place, not a reason.',
+  'What is the moral of the Alice in Wonderland story?':
+    'Alice\'s **imagination** takes her to a world of talking animals, and her courage helps her explore it. Believing imagination only makes us afraid is the opposite of what the story shows.',
+  'What kind of poem is \'Why?\'?':
+    'The poem is a **list of a child\'s questions**, one after another, each asking why. A poem about noses would be \'Noses\', so that answer names a different poem.',
+  'What does the poem say curiosity is?':
+    'The poem calls curiosity the **beginning of learning**, because every question starts a new discovery. Calling it a waste of time is wrong, since asking is how we find out about the world.',
+  'Which question word asks for a reason?':
+    '**Why** asks for a reason, as in \'Why do stars shine?\'. \'Which\' asks us to choose one thing from a group, so it never asks for a reason.',
+  'Whom did Alice follow in the story?':
+    'Alice followed the **white rabbit with a watch** because it seemed to be in a great hurry. A butterfly or a fish has no pocket and no watch, so it cannot be the one she chased.',
+  'Where did Alice fall?':
+    'Alice fell **down a rabbit hole** and landed in the strange world of Wonderland. A garden well is a different place, so it does not match what happened in the story.',
+  'Whom did Alice meet in Wonderland?':
+    'In Wonderland Alice met the **Cheshire Cat and the Mad Hatter**, among other strange characters. The fir tree and the sparrow belong to other chapters, so they are not in this story.',
+  'How does Alice behave in the strange world of Wonderland?':
+    'Alice stays **brave and polite** even when everything around her is strange and puzzling. Being afraid and silent would have stopped her from exploring, so that is not how she behaves.',
+  'What does the story say imagination does?':
+    'The story says imagination **opens new worlds**, which is exactly what the rabbit hole does for Alice. Saying it stops us from learning is the opposite, because it starts every question.',
+  'What is a \'wonderland\'?':
+    'A **wonderland** is an imaginary land of wonders, where rabbits carry watches and cats vanish. A real country on a map cannot be one, because a wonderland exists only in imagination.',
+  'According to the poem, the dark is...':
+    'The poem describes the dark as **quiet and calm**, a time when the whole world settles down to rest. Calling it full of monsters is the fear the poem is trying to take away.',
+  'Which word did Helen Keller first understand?':
+    'The first word Helen understood was **water**, when Anne spelled it into her hand at the pump. A word like \'mother\' came later, so it was not the one that opened the door for her.',
+  'Name two ways to feel brave in the dark.':
+    'A small **light** and slow steady breathing both help the body feel safe in the dark. Believing the dark itself is dangerous only makes the fear stronger, which is the habit to break.',
+  'Who was Helen Keller and who helped her learn?':
+    'Helen Keller was a girl who could not **see or hear**, and her teacher **Anne Sullivan** taught her words. Her mother loved her dearly but could not teach her language, so the teacher is the answer.',
+  'What does the poem say about the dark?':
+    'The poem says the dark is **quiet and calm**, a peaceful time and not a dangerous one. Thinking it hides danger is our own fear speaking, since the poem finds nothing harmful there.',
+  'What shines at night in the poem?':
+    'At night the **moon and stars** shine, and the poem points to them as the gentle light of the dark. Street lamps belong to a busy city, not to this calm night scene.',
+  'What does the poem call the dark?':
+    'The poem calls the dark **a friend that helps us rest**, because it brings quiet after a busy day. Calling it an enemy is the fear the poem asks children to let go of.',
+  'What could Helen Keller not do after her illness?':
+    'After her illness Helen could not **see or hear**, so she lived in a silent and dark world. She could still walk and run about, so that answer does not fit her at all.',
+  'Who taught Helen Keller words?':
+    '**Anne Sullivan** was the teacher who spelled words into Helen\'s hand every single day. A doctor treated her illness but did not teach her, so the doctor is not the answer.',
+  'What was the first word Helen understood?':
+    'Helen understood **water** first, when the cool stream ran over her hand as Anne spelled it. \'Doll\' was a toy she held, but that word did not click for her then.',
+  'How did Anne Sullivan teach Helen words?':
+    'Anne taught by **spelling letters into Helen\'s hand** with her fingers, so Helen could feel each word. Speaking very loudly could not help, because Helen could not hear anything at all.',
+  'What did Helen Keller learn to do?':
+    'Helen learnt to **read, write and speak**, and she even went to college later on. Learning only to write her own name would have been a tiny start, not what she achieved.',
+  'What is the moral of Helen Keller\'s story?':
+    'Helen\'s **courage** and Anne\'s patience turned a silent, dark life into one full of words. Saying teachers are not needed is wrong, because without Anne she could not have learnt.',
+  'What is Papa searching for everywhere in the poem?':
+    'Papa hunts for the **spectacles** he wears to see, turning out his pockets and peering under the chair because nothing else is missing. A child may pick his newspaper, yet the paper is only what Papa wants to read once he can see again.',
+  'Which of these words is spelt correctly?':
+    '**Spectacles** keeps the letters in order, with the t before the a and a single l near the end. \'Spectacels\' simply swaps the last two letters, and \'spektacles\' wrongly replaces the c with a k.',
+  'The poem calls the spectacles \'his only pair\'. What does the word \'pair\' tell us about the spectacles?':
+    'It tells us the spectacles have **two lenses** fixed in one frame and are counted together as a single set, the way we say a pair of shoes. The trap is to think \'pair\' means two separate owners or two loose glasses, when it names one object made of two parts.',
+  'Choose the correct preposition: Papa kept his spectacles ______ his pocket.':
+    'A pocket is a closed space, so something kept inside it takes **in**, the preposition of enclosure. \'On\' would put the spectacles flat on top of the cloth, and \'above\' would leave them floating in the air.',
+  'Where does Papa look for his spectacles in the poem?':
+    'Papa\'s search runs through his **pockets**, then under the chair and near the window, which is why the hunt takes so long. Picking the kitchen and the garden mixes in places the poem never mentions, so the answer must stay with the spots actually named.',
+  'Where were the spectacles all the time?':
+    'The whole time they sat **on Papa\'s head**, resting where he had pushed them up himself. Choosing his pocket copies where he first looks instead of where the search finally ends.',
+  'Why is the poem funny?':
+    'The joke works because Papa searches his **pockets** and the floor while the spectacles sit on top of his own head, so the answer was with him all along. Choosing that he loses his shoes instead changes the story, since only one thing goes missing.',
+  'Which word means \'two things that belong together\'?':
+    '**Pair** is the word for two matching things used as one, like a pair of socks or a pair of spectacles. \'Pare\' sounds the same but means to peel, so it names an action rather than a twosome.',
+  '\'I ate a ___ with my lunch.\' Which word completes the sentence?':
+    'A lunch is eaten, so the fruit **pear** fits the sentence as the thing you bite into. The sound-alike \'pair\' counts two objects and \'pier\' means a landing place by water, so neither can be swallowed.',
+  'Which pair of words sounds alike but has different meanings?':
+    '**Pair** and **pear** share one sound yet mean a twosome and a fruit, which is exactly what a homophone is. Pair and pocket are simply two unrelated nouns, and glass and glance only start alike.',
+  'What does \'spectacles\' mean?':
+    '**Spectacles** are the glasses Papa wears so his eyes can read small print clearly. The wrong choices borrow other objects from the poem, like the newspaper or the chair, but none of them sits on the nose.',
+  'Why do we say \'a pair of spectacles\'?':
+    'Two lenses are joined in one frame and work as a single set, which is why English counts them as a **pair**. It is not about being sold in twos or worn twice, since one frame is bought and worn once.',
+  'What could Papa not do without his spectacles?':
+    'Without the glasses Papa cannot make out the small print, so **reading the newspaper** is what he loses. Walking, eating and opening a door need no lenses, and choosing one of them confuses seeing with moving.',
+  'Who finally spots the spectacles?':
+    '**His child** is the one who looks up and sees the glasses perched on Papa\'s head. Papa cannot find them himself and his wife is not the one who points, so the credit goes to the youngest pair of eyes.',
+  'Which spelling is correct?':
+    'The correct spelling is **spectacles**, with the t before the a and a single l near the end. \'Specatcles\' swaps those two letters, and \'spectecals\' turns the second a into an e.',
+  'Which spelling of the word for a daily paper is correct?':
+    '**Newspaper** is written as one word with a single p, because the two parts news and paper are joined tightly. The form with a gap makes two separate words, and \'nuespaper\' drops the s.',
+  'The spectacles were ___ Papa\'s head.':
+    'Something resting on top of a surface takes **on**, and the spectacles sit up on Papa\'s head. \'Under\' reverses the picture and \'between\' needs two things, so neither shows contact with the top.',
+  'Papa glanced ___ his chair.':
+    'Papa bends his eyes down to the floor beneath the seat, so **under** the chair is where he looks. \'On\' would mean looking at the seat itself, and \'among\' needs several objects grouped together.',
+  'What did Gopi hear while he was sitting in the veranda?':
+    'Gopi hears something **rustling past** him and then a thud as it lands in the garden, which is what pulls him off the veranda. A horn or his mother\'s voice would be a call to him, and the story gives neither.',
+  'Why did Gopi say that the ball could not be Manoj\'s?':
+    'Manoj\'s ball disappeared **four months earlier**, so a ball landing today cannot be the same one. The wrong choices invent details about a new football or a bat, but nothing in the story says Manoj replaced it.',
+  'In the story, what does the word \'dribble\' mean?':
+    'In hockey, to **dribble** is to nudge the ball forward with many small taps of the stick instead of one big hit. Water dripping from a tap is the everyday sense of the same word, so the game meaning must not be confused with it.',
+  'Which sentence contains an adverb of frequency?':
+    '**Regularly** tells how often the friends gathered, which is the job of an adverb of frequency. \'Immediately\' and \'yesterday\' answer when, and \'now\' also points at time rather than at how often.',
+  'Which word tells us WHEN something happened?':
+    '**Yesterday** places the action on the day before today, so it is an adverb of time. \'Slowly\', \'quietly\' and \'carefully\' all describe how the action was done, not when.',
+  '\'Gopi searched the garden ___ the afternoon.\' Which adverb of time fits?':
+    'A stretch of time such as the afternoon takes **in**, as in in the morning or in the afternoon. \'Loudly\' and \'neatly\' describe how something is done, so they cannot fill a slot that needs a time word.',
+  'Which of these is an adverb of time?':
+    '**Soon** tells when something will happen, so it works as an adverb of time. \'Gently\', \'loudly\' and \'brightly\' all describe the manner of an action, which makes them adverbs of manner.',
+  'Which joining word adds information?':
+    '**And** joins two ideas by adding one to the other, as in bread and butter. \'But\' turns the second idea against the first and \'or\' offers a choice instead of an extra fact.',
+  '\'The ball was new, ___ nobody claimed it.\' Which joining word fits best?':
+    'The two halves pull in opposite ways, since a new ball should be claimed, so **but** signals that surprise. \'And\' would flatten the contrast into a plain list and \'because\' would claim the new ball caused the silence.',
+  'What does the joining word \'but\' show?':
+    '**But** signals a contrast, setting one idea against another as in new but unclaimed. \'And\' is the word for addition, so picking it swaps a turn in meaning for a simple extra fact.',
+  'What sound does Gopi hear in the garden?':
+    'Something **rustles past** Gopi and lands with a thud, and that double sound is what sends him into the garden. Birdsong or a bell would be steady and expected, while this noise is sudden and unexplained.',
+  'What had actually fallen into the garden?':
+    'The object that thudded down was a **hockey ball**, the same kind the boys used in their games. A mango falls silently and a bat is far too flat to rustle through leaves.',
+  'Why does Manoj say the ball is not his?':
+    'Manoj\'s own ball went missing **four months ago**, so he cannot believe a fresh one is his. He does play hockey, so his doubt is about timing, not about being unable to recognise the ball.',
+  'What does Gopi decide to do with the ball?':
+    'Gopi chooses to **ask around** so the ball can go back to whoever lost it, which shows he is honest. Keeping or selling it would mean treating a found object as his own property.',
+  'What does \'boasts\' mean in the story?':
+    'To **boast** is to talk about yourself or your deeds with pride, often more loudly than the facts deserve. Whispering or complaining would be the opposite tone, since a boast is meant to be heard.',
+  'What does \'dribbles\' mean in the game?':
+    'In hockey, **dribbling** means pushing the ball along in short taps so it stays close to the stick. Water dripping is a different sense of the same word, so the sporting meaning must be chosen here.',
+  'Which is an adverb of frequency?':
+    '**Always** says how often something happens, here meaning every single time. \'Quickly\' tells how, \'yesterday\' tells when and \'here\' tells where, so none of them counts frequency.',
+  'Which sentence uses an adverb of frequency?':
+    '**Often** states how frequently Gopi plays, which is exactly what an adverb of frequency does. \'Well\' describes how he plays and \'outside\' tells where, so neither one measures how often.',
+  'In the poem, what sails across the sky?':
+    '**Clouds** are the sailors of the sky in the poem, drifting across and looking lovelier than any boat. Ships stay on the seas and a bridge cannot move, so only the clouds take the sky as their water.',
+  'Which pair of words from the poem rhymes?':
+    '**Seas** and **these** end with the same sound, so they rhyme at the close of the first stanza. Sky and trees barely share a vowel, and road and heaven end quite differently, which is why neither pair chimes.',
+  'Why does the poet call the rainbow a bridge?':
+    'Because the rainbow arches overhead, **rises above the trees** and builds a road from the earth to the sky, joining the two ends like a bridge. A real bridge carries people over water, so the poet borrows only its shape.',
+  'Which of these words is NOT a compound word?':
+    '**Bridge** is a single word that cannot be split into two smaller words with their own meanings. Rainbow joins rain and bow, teacup joins tea and cup and notebook joins note and book, so all three are compounds.',
+  'In \'the bow that bridges heaven\', which word is used as a verb?':
+    'The word **bridges** carries the action here, meaning joins heaven to earth the way a bridge does. Bow is the noun being described and heaven is only the place it reaches, so neither of them does the joining.',
+  'Which word can be used both as a noun and as a verb?':
+    '**Sail** names the cloth on a boat and also the act of travelling by wind, so it works as both noun and verb. Tree and sky only name things, and pretty describes rather than names or acts.',
+  'In \'boats sail on the rivers\', what is the word \'sail\' doing?':
+    'Here **sail** tells what the boats do, so it is the verb of the sentence. Reading it as a noun would mean the boats own a piece of cloth, which the sentence does not say.',
+  'What is \'the bow that bridges heaven\' in the poem?':
+    'The bow is the **rainbow**, curved like an archer\'s bow and arching from earth up to heaven. A wooden bridge sits over water, and the poem clearly says this bow overtops the trees.',
+  'What does the rainbow do, according to the poem?':
+    'The poem says the bow **builds a road** from earth to sky, which is how it links the two. Rain and sunshine make a rainbow, but the poem never says it brings rain or hides the sun.',
+  'What does \'overtops\' mean?':
+    'To **overtop** something is to rise higher than it, and the rainbow overtops the trees. Falling below turns the meaning upside down, since the word is about being above, not beneath.',
+  'In stanza one, what sails on the rivers?':
+    'The first stanza opens with **boats** on the rivers, paired with ships on the seas. Clouds sail only in the sky, so putting them on the river moves them out of their place in the poem.',
+  'What does the poet say is prettier than boats and ships?':
+    'The poet finds the **clouds** drifting overhead lovelier than any boat or ship below. Bridges and trees belong to the later stanza about things on land, not to this first comparison.',
+  'What does the rainbow bridge, according to the poem?':
+    'The bow **bridges heaven**, reaching from the ground up to the sky, so it joins the two. Two rivers or two mountains would need an ordinary bridge lying flat, not an arch in the air.',
+  'What does the rainbow build, in the poem?':
+    'The rainbow **builds a road** from earth to sky, a path no one can walk but everyone can see. A wall or a river would block the way instead of joining the two ends.',
+  'Which pair rhymes in the poem?':
+    '**Seas** and **these** rhyme because both end in the same long e sound. Bow and road do not match, and boats and clouds share a stanza but not a sound.',
+  'Which word rhymes with \'trees\'?':
+    '**Please** ends with the same long e sound as trees, so the two words rhyme. Sky finishes on a different vowel and bow ends in an oh sound, so neither can rhyme with trees.',
+  'Which is a compound word?':
+    '**Rainbow** is built from two complete words, rain and bow, pushed together. Bridge and colour are single words that cannot be split this way, and pretty is only a describing word.',
+  'Which word joins two complete words?':
+    '**Seashore** is made of sea and shore, two words that each stand alone and keep their meaning. Sailing only adds an ending to sail, prettier adds a comparison ending and above cannot be split at all.',
+  'Why did the merchant keep the parrot in a cage of gold?':
+    'The merchant loved the parrot so much that he could not bear to part with it, so he put it in a rich cage of **gold** instead of letting it go. Thinking he wanted the bird to guard his gold confuses a pretty pet cage with a watchman\'s job, since the parrot was never a guard.',
+  'How did the parrot get out of its cage?':
+    'The parrot lay still as if **dead**, so the merchant lifted it onto the windowsill, and there it stretched its wings and flew away. Believing it broke the bars with its beak misses the trick, because a small bird cannot bend a golden cage and cleverness did the work.',
+  'What message did the parrot ask the merchant to give its friends in the jungle?':
+    'The caged parrot asked the merchant to carry its **greetings** to the parrots of the jungle, so they would know it still remembered them. The usual slip is to imagine a long letter, but a bird cannot write, so only a spoken message could travel.',
+  'Choose the correct collective noun: The merchant saw a ______ of parrots in the forest.':
+    'A group of parrots seen together is called a **flight**, a word borrowed from the way birds move through the air. A **herd** belongs to cattle or elephants and a pack to wolves, so those words describe the wrong animals entirely.',
+  'What did the caged parrot ask the merchant to bring?':
+    'The parrot asked for something no shop sells, the **joy of flying** in the open sky, because freedom was the one thing its golden cage could not give. Asking for a bigger cage or sweeter fruit assumes the bird wanted comfort, when it really longed to be free.',
+  'What did the parrot in the forest do when it heard the greeting?':
+    'The free parrot listened to the greeting, then dropped to the ground **like a stone**, which looked like death but was really a lesson. Reading it as flying away or singing a happy song turns a clever signal into ordinary bird behaviour and loses the message.',
+  'How did the caged parrot finally escape?':
+    'Following its friend\'s example, the caged parrot pretended to be **dead**, and once it was set on the windowsill it flew to freedom. Believing the merchant kindly opened the cage reverses the story, since he only moved the bird out because he thought it had died.',
+  'Which sentence is in the present perfect tense?':
+    '"Has returned" joins **has** with a past participle, which is exactly how the present perfect is built for an action whose result still matters now. "Returned yesterday" is simple past, marked by a finished time word, so it cannot be present perfect.',
+  'Which helping verbs are used in the present perfect tense?':
+    'The present perfect always uses **has** or **have** before a past participle, as in "the merchant has returned". Is and are build the continuous tense, so they describe something happening right now rather than something just completed.',
+  '\'The parrot ___ from its perch.\' Which form completes the present perfect tense?':
+    'After the helping verb has, the main verb must be a past participle, and **fallen** is the participle of fall, giving "has fallen". "Fell" is already the simple past and needs no helper, which is why it cannot sit after has.',
+  'Where did the merchant keep the parrot?':
+    'The story tells us the merchant kept the parrot in a **cage of gold**, which shows both his wealth and his fondness for the bird. Remembering a ship or a garden mixes in other tales, because this parrot stayed inside the house until the day it escaped.',
+  'What did the parrot long for?':
+    'Behind the golden bars the parrot longed for the **open sky** and the green trees it had lost. Wishing for more food or a bigger cage treats the bird as a pet wanting comfort, when what it actually wanted was freedom.',
+  'What did the parrot ask the merchant to carry to the jungle?':
+    'It asked the merchant to carry its **greetings** to its friends in the jungle, a message of memory rather than of things. Sending a letter or some fruit forgets that the parrot could only speak, so words were all it had to send.',
+  'What did the free parrot do when it heard the greeting?':
+    'The free parrot answered the greeting by falling to the ground **as if dead**, teaching the caged bird a trick without a single word. Thinking it attacked the merchant or sang a song ignores the purpose of the fall, which was a silent lesson.',
+  'How did the caged parrot learn to escape?':
+    'The caged parrot learned escape from its **friend** in the jungle, who showed that pretending to be dead could win a bird its freedom. Believing the merchant kindly opened the cage or the bird broke the bars ignores the lesson the whole story is built on.',
+  'What is the moral of the story?':
+    'The parrot escaped by **wisdom** rather than strength, so the story teaches that a clever plan can open what force cannot. Saying merchants are cruel blames one person and misses the point, since the real power in the tale is the bird\'s quick thinking.',
+  'What is a group of parrots called in the story?':
+    'The story calls a group of parrots a **flight**, using the word for birds moving on the wing. A pride belongs to lions and a pack to wolves, so those names do not suit birds at all.',
+  'A group of birds flying together is called':
+    'Birds that fly together form a **flock**, the everyday word for a group of birds in the air or on the ground. A herd is used for cattle and a school for fish, so those words belong to other animals.',
+  'Where does the frog in the poem sit and hop about?':
+    'The poem places the frog in **ponds**, in the rain and in muddy drains, because it is a water-loving creature. Putting it in deserts or on dry rocks confuses a frog with a lizard, which is the animal that manages where there is hardly any water.',
+  'How does the frog catch its food?':
+    'The frog catches insects by flicking its long sticky **tongue** out very fast. Catching food with webbed feet confuses swimming with hunting, since the feet push it through water and can never grab a fly.',
+  'How do the frog\'s colours help it?':
+    'Its green and brown colours match the **plants** around it, so it can hide in grass and leaves and stay safe from animals that hunt it. Assuming the colours keep it warm forgets that hiding, not heat, is what camouflage is for.',
+  'Choose the best joining word: Frogs swim easily ______ they have webbed feet.':
+    'The webbed feet are the reason the frog swims easily, so the joining word must show cause, and **because** does exactly that. Using "so" turns the sentence around, making swimming the cause of the feet instead of the result.',
+  'Which sentence is in the correct word order?':
+    'A clear sentence puts the subject first, then the verb, then the rest, and "The frog sits in the pond" follows that **order** perfectly. The jumbled versions scatter the words so the reader cannot tell who is doing what.',
+  'Which group of words makes a proper sentence?':
+    'This group has a subject, a verb and a complete idea, so it makes a proper **sentence** on its own. The other groups throw the same words down in any order, which reads as nonsense rather than a sentence.',
+  'What is the usual order of words in an English sentence?':
+    'English sentences normally follow **subject, verb, object**, as in "the frog flicks its tongue". Saying any order is correct ignores the fact that a reader expects the doer first and the action next.',
+  'What is a tongue twister?':
+    'A tongue twister is a line full of similar sounds that is **hard to say** quickly without slipping. Calling it a poem with very long lines confuses difficulty in speaking with difficulty in reading length.',
+  'Why do we practise tongue twisters?':
+    'Practising tongue twisters trains the mouth to move quickly and clearly, which improves **pronunciation**. Thinking they help spelling mistakes the point, because the practice is entirely about speaking aloud, not writing letters.',
+  'Which of these is a tongue twister?':
+    'The repeated s and sh sounds make "She sells sea shells" trip the tongue, and that is what a **tongue twister** does. The plain sentences about a frog or the sun have no repeating sounds, so they stay easy to say fast.',
+  'Where does a frog live?':
+    'A frog lives **both** on land and in water, which is why it is called an amphibian. Saying only in water forgets the frog that hops on the bank to hunt insects in the grass.',
+  'What does the frog eat?':
+    'Frogs eat **insects**, catching them with a quick flick of a sticky tongue. Thinking it eats leaves confuses the frog with a caterpillar, which is the animal that chews plants.',
+  'Why do the frog\'s colours help it?':
+    'The frog\'s colours match the plants around it, so it can **hide** from the animals that would eat it. Saying the colours attract insects is backwards, because then insects would fly towards a hunter instead of away from one.',
+  'What must the frog beware of?':
+    'The poem warns the frog to beware of **snakes**, which hunt it both in the water and in the grass. Fearing rain or dew is misplaced, since a frog needs water and welcomes the rain.',
+  'Which word shows a reason?':
+    '**Because** introduces a reason, as in "it hides because its colours match the plants". "But" shows contrast and "and" simply adds, so neither one explains why something happens.',
+  '\'The frog is small ___ it jumps high.\' Which word fits best?':
+    'Small size and high jumps pull against each other, so the joining word must show contrast, and **but** does that. Using "because" would wrongly claim that being small is the cause of jumping high.',
+  'Why does the frog need to be quick with its tongue?':
+    'Insects fly off in a moment, so the frog must be quick with its **tongue** to catch them. Saying the tongue is short explains nothing, because a short tongue moves easily and speed is the real need.',
+  'A frog\'s life begins as':
+    'A frog\'s life begins as an **egg** laid in water, which hatches into a tadpole before it grows into a frog. Starting the story at a tadpole skips the egg stage, and a cocoon belongs to a butterfly, not a frog.',
+  'In Tamil Nadu, what are Ooranis used for?':
+    'Ooranis are village tanks that hold **rainwater** so people can drink and farmers can water their fields. Thinking they store grain confuses a water store with a granary, which is a completely different kind of building.',
+  'For how long can a Tanka store enough water?':
+    'A Tanka is dug deep enough to hold water through the long dry spell, so it lasts **six to seven months**. Reading it as six to seven days ignores the desert, where a tank must carry a village across a whole season.',
+  'How do the shapes of Punjab\'s water tanks reflect the people who own them?':
+    'Each Punjab tank is shaped to match its owner, so a farmer\'s tank may look like a **tractor**, a bullock cart or a rooster. Assuming the shape stores more water gets the purpose wrong, since the shape is a personal sign and not a plan for capacity.',
+  'Which sentence uses the correct contracted form?':
+    'The apostrophe replaces the missing o in "is not", so it sits between the n and the t, giving **isn\'t**. Writing "isnt" drops the apostrophe and "i\'snt" puts it in the wrong place, so both lose the mark that makes the contraction.',
+  'What are \'Tankas\' in the Thar region of Rajasthan?':
+    'In the Thar desert, **Tankas** are underground tanks that keep rainwater for six to seven months. Calling them open wells or canals ignores that desert people cover and bury them so the sun cannot drink the water first.',
+  'What are tanks kept or built on roofs called?':
+    'A tank fixed on a roof is called an **overhead** tank, because it sits above the rooms of the house. Calling it underground reverses its position, and ooranis are village ponds rather than roof tanks.',
+  'What is special about the water tanks of rural Punjab?':
+    'Rural Punjab tanks are built in striking **designs** such as a flower, an aeroplane or a football, each chosen by the owner. Saying they are always underground is wrong, because these decorated tanks stand in the open where everyone can see them.',
+  'Which of these sentences is exclamatory?':
+    '"What a tank!" bursts out with strong feeling, so it is **exclamatory**. "Is the tank full?" asks a question and "Fill the tank" gives an order, so neither of them shows excitement.',
+  'Which punctuation mark ends an exclamatory sentence?':
+    'An exclamatory sentence ends with an **exclamation mark**, which signals strong feeling the way a raised voice would. A full stop ends a calm statement, so it flattens the excitement the sentence carries.',
+  'Which sentence shows strong feeling?':
+    'The words "How beautiful" pour out delight, so that line shows strong **feeling**. "The rainbow has seven colours" only states a fact, which is a plain statement with no emotion in it.',
+  'What are \'Ooranis\' in Tamil Nadu?':
+    'An **Oorani** is a Tamil Nadu tank built to catch and store rainwater for the whole village. Calling it a waterfall mistakes a still store of water for falling water, which is the opposite of what a tank does.',
+  'What is special about Panam Keni wells in Kerala?':
+    'The **Panam Keni** wells of Kerala are famous for never drying up, even in the hottest months of the year. Saying they store sea water confuses their deep supply of fresh water with the salty sea nearby.',
+  'What are Tankas?':
+    'A **Tanka** is an underground tank found in Rajasthan\'s Thar region, built to save rainwater from being lost. Placing them in Tamil Nadu or Kerala swaps the regions, and a canal carries water along rather than storing it.',
+  'How long can a Tanka store enough water for?':
+    'Its deep, covered **storage** keeps the water usable for six to seven months, long enough to cross the dry season. One week or one day would not help a desert village at all through the months without rain.',
+  'Why are Punjab\'s tanks built in unusual shapes?':
+    'In Punjab the **shape** of a tank announces its owner, so a football fan builds a tank like a football. Saying the law requires it invents a rule that is not in the text, and round shapes are no cheaper than others.',
+  'Which shape is mentioned for a Punjab tank?':
+    'The text describes a tank shaped like a **giant flower**, standing in a field as decoration and as a sign of its owner. A long boat or a small hut is not one of the shapes given, so those answers come from guessing.',
+  'What is the contraction of \'do not\'?':
+    'The apostrophe takes the place of the missing o, giving **don\'t** with the mark sitting between the n and the t. Writing "dont" leaves the apostrophe out, and "do\'nt" puts it in the wrong spot.',
+  'What is the contraction of \'they are\'?':
+    '"They are" squeezes into **they\'re**, with the apostrophe standing in for the dropped a. "Their" and "there" sound the same but mean possession and place, so they are entirely different words.',
+  'Which two things are needed to play Gilli Danda?':
+    'The game needs just two wooden pieces: a long stick called the **danda** to strike with and a small pointed stick called the **gilli** to be hit. A ball and a bat belong to cricket, so players who picture rounders or cricket mix up the equipment.',
+  'How do the players feel while playing Gilli Danda, according to the poem?':
+    'The poem shows the players laughing, shouting and running about freely, so the mood is **happy and free** rather than tense. Thinking the game is about winning at any cost is the mistake, because nobody in the poem is worried about losing.',
+  'What do the prefixes \'un-\' and \'re-\' mean? Give one example of each.':
+    '\'Un-\' means **not**, so \'unhappy\' means not happy, while \'re-\' means **again**, so \'rewrite\' means to write once more. A learner who thinks \'re-\' means \'before\' is confusing it with the \'pre-\' in words like \'preview\'.',
+  'Which of these words is an abstract noun?':
+    '**Happiness** is a feeling you cannot see or touch, so it is an abstract noun. Football, spoon and mountain are all concrete things you can hold or visit, which is why they do not fit.',
+  'Which word is a possessive pronoun?':
+    '**Mine** stands alone and shows who owns something, so it is a possessive pronoun. \'My\' looks similar but must sit before a noun, as in \'my ball\', so it is a possessive adjective instead.',
+  '\'This ball is ___.\' Which possessive pronoun completes the sentence?':
+    'The blank comes after \'is\' with no noun following it, so the possessive pronoun **mine** fits. Choosing \'my\' fails here because \'my\' needs a noun straight after it, as in \'my ball\'.',
+  'Which sentence uses a possessive pronoun correctly?':
+    '**Ours** is a possessive pronoun that can stand alone at the end of a sentence. \'Our\', \'we\' and \'us\' cannot do that job, because \'our\' needs a noun after it and \'we\' and \'us\' are subject and object forms.',
+  'Which question word asks about a place?':
+    '**Where** asks about a place, as in \'Where do you play?\'. \'Who\' asks about a person, \'why\' asks about a reason and \'when\' asks about time, so each one points at a different kind of answer.',
+  '\'___ do we play gilli danda?\' Which question word asks about place?':
+    'The answer would be a place such as the playground, so the question word is **Where**. Starting with \'When\' would ask about time and \'Why\' about a reason, which the sentence does not want.',
+  'Which sentence is a correctly formed question?':
+    'After \'did\' the verb must stay in its base form, giving **\'Where did you keep the gilli?\'**. Writing \'did you kept\' doubles the past tense, and \'Where you kept\' leaves out the helping verb that English questions need.',
+  'What are the two sticks used in gilli danda?':
+    'The **danda** is the long stick the player holds and the **gilli** is the short one that gets struck. A bat and ball or a rope and peg belong to other games, so they are not part of this one.',
+  'What is the game called in English?':
+    'English speakers call this two-stick game **tip-cat**, because the small stick is tipped into the air before it is hit. Rounders, kabaddi and hopscotch are different games with their own rules and equipment.',
+  'How do the players feel in the poem?':
+    'The poem repeats that the players are **free and happy**, laughing as they run about. Feeling tired, bored or angry belongs to games played under pressure, which is the opposite of the mood shown.',
+  'What does \'our game is so sound\' mean?':
+    'Here \'sound\' means healthy and good, so the line says the game is **good and enjoyable**. Reading \'sound\' as noise is the trap, because the poet is praising the game, not describing its volume.',
+  'What does the prefix \'un-\' mean in \'unhappy\'?':
+    'The prefix **un-** flips a word to its opposite, so \'unhappy\' means \'not happy\'. \'Re-\' means again and \'pre-\' means before, so those prefixes would give a completely different meaning.',
+  'What does the prefix \'re-\' mean in \'replay\'?':
+    '**Re-** means \'again\', so to replay is to play once more. \'Un-\' would mean not, and \'under\' is a separate word rather than a prefix that adds the idea of repeating.',
+  'Which word is an abstract noun?':
+    '**Happiness** names a feeling, which has no shape and cannot be touched. Gilli, playground and stick are all things you can see and hold, so they are concrete nouns.',
+  'An abstract noun names':
+    'An abstract noun names something invisible like a **feeling or idea**, such as courage or kindness. A place or a thing you can touch is concrete, so those choices describe the other kind of noun.',
+  'Why did the farmer buy the well?':
+    'The farmer\'s fields needed water, so buying the **well** gave him a supply for irrigation. He was not buying to resell at a profit or to block his neighbour, since the trouble only started afterwards.',
+  'What did the Panchayat finally decide?':
+    'The Panchayat turned the neighbour\'s own claim against him, ruling that if the water was still his he must **remove it at once**. Filling the well with mud would have destroyed the farmer\'s property, so that was never the judgment.',
+  'What does \'adamant\' mean in the story?':
+    'Being **adamant** means refusing to change your mind, which is exactly how the neighbour behaves when he ignores everyone\'s advice. A person who is only quiet or shy is not adamant, because the word is about stubbornness.',
+  'What does the word \'careless\' mean?':
+    'The suffix **-less** means \'without\', so careless means doing something without care or attention. \'Full of care\' would be \'careful\', which is the opposite meaning built from the same root word.',
+  '\'The members gathered ___ the banyan tree.\' Which preposition fits?':
+    'People sit in the shade beneath a banyan tree, so **under** is the natural preposition. \'Above\' and \'over\' would put the members up in the branches, and \'across\' suggests crossing the tree rather than resting below it.',
+  'Which of these words is a preposition?':
+    '**Among** shows the relation of one thing to a group, so it is a preposition. \'Gather\' is an action verb, while \'village\' and \'wisdom\' are nouns naming a place and a quality.',
+  '\'The farmer stood ___ the well.\' Which preposition shows position next to it?':
+    '**Beside** means at the side of something, which fits a person standing next to a well. \'Between\' needs two things, \'above\' means higher up and \'through\' means passing inside, so none of them shows position at the side.',
+  'What happened first in the story of the Panchayat?':
+    'The story opens with the farmer buying a field that already had a **well** in it. Going to the village chief, the Panchayat\'s judgment and any apology all come later, so they cannot be the first event.',
+  'What did the cunning neighbour claim?':
+    'The neighbour tried to twist the deal by saying he had sold only the **well** and kept the water for himself. Claiming the farmer stole water or that the well was broken would be a different excuse, and neither appears in the story.',
+  'What was the Panchayat\'s judgment?':
+    'The elders used the neighbour\'s own words, deciding that if the water was his he must **remove it from the well at once**. Filling the well with mud or making the farmer pay would punish the wrong man, so those were not the verdict.',
+  'What did the farmer buy from his neighbour?':
+    'The purchase was a **well** standing in the field the farmer bought. A field, a house and a bullock are not the thing bought here, even though a field does appear in the story.',
+  'What did the neighbour refuse to give the farmer?':
+    'The neighbour handed over the well but kept back the **water**, saying it was never part of the sale. He had already taken the money and given the well, so those were not what he refused.',
+  'Where did the Panchayat meet?':
+    'Village elders traditionally meet in the shade of the **banyan tree**, and that is where this Panchayat sits. A temple, market or school would be a different setting, and the story names the tree.',
+  'What did the villagers praise?':
+    'The villagers admired the clever, fair judgment, so they praised the **wisdom of the Panchayat**. The farmer\'s field, the neighbour\'s wealth and the size of the well are not what the story says they praised.',
+  'What does \'cunning\' mean?':
+    '**Cunning** describes someone clever who uses that cleverness to trick others, as the neighbour does. Kindness, strength and wealth are separate qualities, so they do not carry the idea of trickery.',
+  'What does \'adamant\' mean?':
+    'An **adamant** person will not change their decision however much others argue, which is how the neighbour acts. Being generous or easily frightened is the opposite kind of behaviour, so those choices miss the stubbornness.',
+  'What does the suffix \'-less\' mean?':
+    'The suffix **-less** means \'without\', so \'careless\' is without care and \'homeless\' is without a home. \'Full of\' would be the suffix \'-ful\', as in \'careful\', which gives the opposite meaning.',
+  'What does \'careless\' mean?':
+    'Adding **-less** to \'care\' gives careless, meaning doing something without care or attention. \'Full of care\' is \'careful\', the exact opposite, so that choice reverses the meaning of the word.',
+  'What does the hawker cry out as he walks in the lane?':
+    'The hawker calls **bangles, crystal bangles** to draw customers to the shining glass bangles in his basket. Mangoes, flowers and rotis belong to other sellers, so they do not match this poem\'s hawker.',
+  'What does the speaker compare the street lamp to?':
+    'The child imagines the lamp as a **giant with one red eye** in its head, standing still and watching the lane. A shadow, a hawker and a gardener are other figures from the poem, but none of them is the lamp.',
+  'Why does the speaker wish to be a gardener?':
+    'The child wants the gardener\'s freedom: he **digs where he likes** with his spade, gets his clothes dusty and no one scolds him. Wanting the job only for money or plants misses the point, because the poem is about being your own master.',
+  'Choose the sentence that is written correctly.':
+    'With \'he\' the verb needs -s, so **\'He goes to school every day\'** is correct. \'He go\' and \'My mother are\' break subject-verb agreement, and \'The birds is flying\' uses a singular verb with a plural subject.',
+  'What does \'vocation\' mean?':
+    'A **vocation** is the work a person does, which is why the poem is about the jobs the child dreams of. A school subject, a home or a holiday is something you study or visit, not the work you do.',
+  'In the poem, who does the child wish to be in the morning?':
+    'In the morning the child hears the hawker\'s cry in the lane and wishes to be a **hawker**. The gardener comes later in the day and the watchman at night, so neither of them belongs to the morning.',
+  'Why does the child wish to be a watchman?':
+    'The child envies the watchman because he is **never sent to bed** and can stay awake all night with his lantern. A big house, fine clothes and a lot of money are never given as the reason.',
+  'Which question word asks about a person?':
+    '**Who** asks about a person, as in \'Who is crying bangles in the lane?\'. \'How\' asks about manner, \'where\' about place and \'when\' about time, so each looks for a different kind of answer.',
+  'Which question word asks about the way something is done?':
+    '**How** asks about the way or manner of an action, as in \'How does he dig?\'. \'Whose\' asks about ownership, \'who\' about a person and \'which\' about a choice from a set.',
+  '\'___ does the hawker cry?\' Which question word asks about the thing he cries?':
+    'The missing word stands for the thing being called out, so **What** is right, as in \'What does he cry?\'. \'Who\' would ask about a person, \'when\' about time and \'where\' about place.',
+  'What does the hawker cry in the morning?':
+    'The hawker walks the lane calling **bangles, crystal bangles** so that people come out to buy them. Fruit, cakes and books are goods sold by other traders, so they do not fit this poem.',
+  'Why does the child envy the hawker?':
+    'The child is tied to a timetable, while the **hawker has no fixed time** to return home and works at his own pace. A big shop or great wealth is never mentioned, and going to school is what the child does, not the hawker.',
+  'What does the gardener do with his spade?':
+    'The gardener uses the spade to **dig the ground as he likes**, with nobody telling him where to work. Selling it, giving it away or polishing it are not in the poem, which stresses his freedom to dig.',
+  'Why does nobody scold the gardener?':
+    'The gardener has **no master** telling him what to do, so no one can scold him for digging or dirtying his clothes. Being the child\'s uncle, being old or working at night are details the poem never gives.',
+  'What does the watchman carry?':
+    'The watchman carries a **lantern** as he walks up and down the lane all night. A spade belongs to the gardener and a basket to the hawker, so those choices mix up the poem\'s three workers.',
+  'What does the street lamp look like to the child?':
+    'To the child\'s imagination the lamp is a **giant with one red eye**, standing in the street and staring down the lane. A star, a tree or a boat has none of the lamp\'s height and glow, so that picture would not fit.',
+  'Which sentence is correct?':
+    'A singular subject takes the verb **walks**, so \'The watchman walks up and down the lane\' is correct. Dropping the helping verb leaves \'The watchman walking\', and \'are\' or \'walk\' do not agree with one watchman.',
+  'Which sentence about the gardener is written correctly?':
+    'With one gardener as the subject, the verb takes -s, giving **\'The gardener digs the ground every morning\'**. \'Dig\' and \'digging\' break the agreement, and \'have dug\' would need a plural subject.',
+  'What is the first step in making glass bangles in Ravi\'s workshop?':
+    'Work on a bangle begins at the furnace, where the glass is **heated** until it is soft enough to draw into a round shape. Packing the bangles in boxes comes at the very end, so treating it as the first step puts the finish before the beginning.',
+  'Which new designs did Ananya add to the bangles?':
+    'Ananya painted **delicate floral patterns and geometric shapes** on the bangles to make an old craft look new. Maps of Firozabad describe the town itself, not a design that can be printed on a bangle.',
+  'Why did the special Diwali collection succeed, and how did it help the community?':
+    'Customers loved the **new designs and bright colours**, and the rush of festival orders gave local artisans steady work plus jobs in packing and transport. Thinking the collection succeeded only because prices were raised misses how the extra demand reached the whole workshop.',
+  'Choose the correct form: By the time the customers arrived, Ravi ______ the new bangles.':
+    'Two past events are stacked here, so the earlier one takes **had finished**, the past perfect that marks the work already done before the customers came. Using \'has finished\' pulls a present-tense helper into a story that is fully in the past.',
+  'In which state is Firozabad, famous for glass bangles?':
+    'Firozabad, the bangle town of the chapter, sits in **Uttar Pradesh**, close to Agra. Rajasthan is a tempting pick because it is famous for crafts, but its well-known crafts are textiles and pottery, not glass bangles.',
+  'How is a glass bangle made?':
+    'The craft follows one order: the glass is **heated in a furnace, shaped, coloured and cooled** before it can be packed. Glass cannot be woven on a loom like cloth, so that choice mistakes a bangle for a fabric.',
+  'Who was Ananya in the story?':
+    'Ananya is **Ravi\'s daughter**, the young woman who brings new patterns and colours into the family workshop. Calling her a shopkeeper removes her from the household where the designs are actually drawn and tried.',
+  'Which sentence uses capital letters correctly?':
+    'Only one sentence opens with a **capital letter** and also keeps the place name Firozabad capitalised. The other versions capitalise every word or write \'ravi\' in small letters, which breaks both rules at once.',
+  'What must every sentence begin with?':
+    'Every sentence opens with a **capital letter**, which signals to the reader that a new thought is starting. A full stop belongs at the end, so placing it at the start confuses the closing mark with the opening one.',
+  'Which sentence is punctuated correctly?':
+    'Direct speech needs a **comma before the opening quotation marks**, a capital letter inside them and the full stop before the closing mark. The versions without quotation marks turn Ananya\'s exact words into a loose report, and the one with a small \'i\' forgets the capital.',
+  'Where is glass heated to make bangles?':
+    'The glass softens in a **furnace**, a very hot oven that makes it workable enough to shape. Water and a freezer are cold, so they would harden the glass instead of softening it.',
+  'What happens to the glass after it is shaped?':
+    'Once the shape is ready, the bangle is **coloured, decorated and cooled** so the colour sets and the glass turns hard. Breaking it into pieces would destroy the bangle just made, which is the opposite of finishing it.',
+  'What new designs did Ananya introduce?':
+    'Her sketches carry **floral patterns and geometric shapes**, printed onto bangles that were once plain. Choosing wooden or plastic bangles confuses a new pattern with a new material, yet the workshop still works in glass.',
+  'What did Ananya want to do with the traditional craft?':
+    'She wanted to **keep the craft true while adding modern ideas**, so the old skill survived with fresh designs on top of it. Replacing the work with machines would end the very handcraft she was trying to save.',
+  'Why did demand for bangles rise during Diwali?':
+    'Diwali is a festival of lights and gifts, so **people buy bangles** to wear and to give, and orders climb sharply. Cold weather does not make glass cheaper, so that reason explains nothing about the season\'s shopping.',
+  'How did the artisans meet the festival demand?':
+    'To fill the festival orders the artisans **worked around the clock**, keeping the furnace and the workbenches busy day and night. Closing the workshop would have left those orders unfilled, so it cannot be the way demand was met.',
+  'The past perfect tense is made with':
+    'The past perfect is built from **had plus the past participle**, as in \'had shaped\' or \'had finished\'. \'Has finished\' uses a present-tense helper and belongs to the present perfect, which cannot point to an earlier past action.',
+  'Which sentence shows one past action happening before another?':
+    '**Had shaped** marks the shaping as finished before the cooling began, so two past moments are clearly ordered. \'Ravi shaped the bangle and it cooled\' lists the events without showing which one came first.',
+  'What did sage Mahipati ask Rama Natha to collect in a bottle?':
+    'The sage sent Rama Natha out to gather **dew from banana leaves**, drop by drop, before sunrise. Juice pressed from ripe bananas would need no patience at all, which is exactly the easy shortcut the sage wanted to defeat.',
+  'Why did the Raven open his beak?':
+    'The Fox praised the Raven\'s voice, so the bird opened his beak to **sing** and the morsel fell to the ground. Wanting to eat the morsel has it backwards, since opening the beak is what made him lose the food.',
+  'How did the man and his wife get help from the kotwal?':
+    'They kept **calling the name Rama** until the kotwal, whose name was also Rama, heard it and came running to their house. Staying quiet and waiting would have left the thief free to dig his way inside.',
+  'Which sentence correctly uses the present progressive tense?':
+    '**Is digging** pairs the helping verb \'is\' with the -ing form, which is exactly how the present progressive is built. \'Has dug\' is the present perfect and points to a finished action, not one still going on.',
+  'What does the story \'A Bottle of Dew\' teach?':
+    'The magic dew turns out to be a trick that keeps Rama Natha working in his field, so the lesson is that **hard work, not magic, brings results**. Reading it as a story about valuable dew mistakes the bottle for the message.',
+  'Why does the wise man ask for dew?':
+    'The wise man invents an impossible task **to make the lazy man work**, knowing the field would be tended while he chased it. Asking for dew because he was thirsty would need no bottle and no months of patient effort.',
+  'How does the fox get the raven\'s food?':
+    'The Fox wins the morsel **by flattering the Raven**, praising his feathers and his voice until the bird sings. Climbing the tree is impossible for the Fox, which is why he uses clever words instead of paws.',
+  'What is the moral of \'The Raven and the Fox\'?':
+    'The Raven loses his food the moment he believes sweet words, so the moral warns us **not to trust flatterers**. Saying that singing is dangerous blames the song rather than the cunning praise that caused the fall.',
+  'What quality does Rama show in the story?':
+    'Rama steps into difficulty for others, showing **courage and readiness to help**. Calling him lazy or greedy contradicts every choice he makes in the tale.',
+  'Why does Rama decide to help?':
+    'Rama acts because **someone is in trouble and needs help**, not because of any reward. Waiting for a king\'s order would mean the person in danger is helped far too late.',
+  'Which sentence is in the present progressive tense?':
+    '**Is singing** shows the action happening right now, formed with \'is\' plus the -ing verb. \'Sang loudly\' is the simple past, so it reports a finished moment instead of one in progress.',
+  'The present progressive tense is formed with':
+    'The present progressive uses **am, is or are plus the -ing form**, as in \'is singing\'. \'Has or have plus the past participle\' builds the present perfect, which describes a completed action rather than one in progress.',
+  'Why did Gajaraj stop eating after Buntee was taken away by the farmer?':
+    'Gajaraj refused his food because he was **missing his friend** Buntee, the dog he had shared his days with. Blaming a high fever ignores the sadness the story points to, and no illness is described.',
+  'What was special about the chair that Mario\'s grandfather gave him?':
+    'The chair was **invisible and could show who his real friends were**, so visitors who could not see it gave themselves away. Calling it merely old misses the magic entirely, since the point is the quiet test it sets.',
+  'What does the speaker in A Friend\'s Prayer wish to do for her friends?':
+    'She asks to **give her very best** to her friends, to help their wishes come true, to see with her heart what a friend can be and to love them as they are. Wanting wealth and fame for them would turn a prayer of giving into a wish for possessions.',
+  'Which pair correctly joins a root word to a suffix to make a real word?':
+    '**Friend plus -ship** gives the real word \'friendship\', where the suffix names a relationship. Adding -ful to \'laugh\' looks neat but produces \'laughful\', a word English never uses.',
+  'What makes the friendship in the story \'unlikely\'?':
+    'The pair is called unlikely because the two friends are **very different from each other**, so nobody expects them to become close. Living far apart is not the point, since the surprise comes from their natures rather than the distance.',
+  'What does the story say about friendship?':
+    'The story shows friendship **growing between very different people**, because kindness, not sameness, holds them together. Believing friends must be identical would rule out the very pair the story celebrates.',
+  'What does the poem ask for a friend?':
+    'The prayer asks for **strength, patience and understanding**, the quiet gifts that help a friend through hard days. Asking for wealth and fame would turn a prayer about caring into a demand for things.',
+  'What is the tone of \'A Friend\'s Prayer\'?':
+    'The voice is **warm and sincere**, speaking gently about love, patience and giving one\'s best. A comic or bitter tone would mock the friend rather than pray for her.',
+  'What does the chair in the story represent?':
+    'The chair stands for **care and consideration for others**, since it quietly reveals who notices another person\'s comfort. Reading it as a sign of wealth misses the test, because the chair is treasured for something money cannot buy.',
+  'Why does the chair matter to the characters?':
+    'The chair matters because it is **where someone they love used to sit**, so it holds memory rather than value. A high price or a new finish would mean nothing, since the family treasures the person, not the furniture.',
+  'What is the root word in \'friendly\'?':
+    'The **root word** carries the meaning before any ending is added, and here that part is \'friend\'. Treating \'-ly\' as the root mistakes a suffix for the base that the suffix attaches to.',
+  'Which word is made by adding a suffix to \'care\'?':
+    '**Careful** is built from \'care\' plus the suffix -ful, meaning full of care. \'Uncare\' puts a prefix in front of the word instead of a suffix behind it, so it does not fit the rule.',
+  'What happens when the powder of neem seeds is mixed in water and sprayed on plants?':
+    'Sprayed neem seed powder keeps **locusts away, so they do not eat the plants**, which is why farmers use it instead of harsh chemicals. Expecting the plants to grow taller in a day confuses a pest guard with a fertiliser.',
+  'What did the baby bird think the world was made of while it lived in the nest?':
+    'From inside the nest the baby bird could see only its own walls, so it decided the world was made of **straw**. A pale blue shell describes the egg it hatched from, not the world it believed in while living in the nest.',
+  'How did Daadi use heeng when Vikram and Vaibhavi were babies?':
+    'Daadi rubbed **heeng water on their tummies** to ease the gas that made the babies uncomfortable. Giving it as a drink would be a much stronger remedy than the gentle rub she actually used.',
+  'Which of these is a hyphenated compound word?':
+    '**Thought-provoking** joins two words with a hyphen, which is exactly what a hyphenated compound means. \'Grandmother\' and \'childhood\' are written as single words with no hyphen, and \'neem oil\' stays two separate words.',
+  'Why is the neem tree called \'Neem Baba\'?':
+    'The tree earns the name Baba because it **protects and heals people like a caring elder**, shading them and curing their ailments. Its bitter taste explains nothing, since the name is about the care it gives rather than its flavour.',
+  'Which use of neem is mentioned in the chapter?':
+    'The chapter lists **neem leaves and oil used as medicine**, for skin, hair and stomach troubles. Using neem wood for paper is never mentioned, because the tree is valued for its healing parts, not for its pulp.',
+  'What is the poem \'What a Bird Thought\' about?':
+    'The poem follows **a bird\'s view of the world around it**, which keeps changing as the bird moves from nest to open flight. A hunter\'s story would centre on a person chasing the bird, but here the bird alone is speaking.',
+  'Which feeling does the poem create about nature?':
+    'Each new view makes the bird and the reader feel **wonder** at how much bigger the world is than it seemed. Fear or boredom would make nature dull and closed, yet the poem keeps opening it up.',
+  'Which spice is commonly used to soothe a cough?':
+    'Warm milk with **turmeric** is the household remedy for a cough, because turmeric soothes a sore throat. Chilli powder would irritate the throat, so it does the opposite of soothing.',
+  'Why are spices described as healing?':
+    'Spices are called healing because **many have medicinal properties** that families use at home, long before any clinic. Being colourful or costly says nothing about health, so those traits cannot explain the word.',
+  'A compound word is made by joining':
+    'A compound word joins **two complete words**, as rain and coat make raincoat. A word plus a prefix or suffix makes a derived word instead, which is the mix-up to avoid.',
+  'Which word is a compound word?':
+    '**Raincoat** is two whole words, rain and coat, joined into one. \'Rainy\' and \'raining\' are just rain with endings added, so they gain letters rather than a second word.',
+  'How did Prabhat win the badminton match against Surya?':
+    'Prabhat does not beat Surya on the court at all - he **changes the scoreboard** while Surya is looking elsewhere, so the score pretends he won. The idea that he practised harder mistakes honest effort for cheating, and it hides the fact that Surya was the stronger player.',
+  'From which Sanskrit root does the word Yoga come?':
+    'Yoga comes from the Sanskrit root **Yuj**, which means to join or unite, and that is why yoga is described as joining body and mind. Choosing Asana confuses the word for a seated posture with the name of the whole practice.',
+  'What happens in the poem when blue dark turns to black?':
+    'As the blue dark deepens to black, the grass turns **cold** under the children\'s feet, the trees seem to creep close, the game ends and night wins. A common slip is to read the ending as morning arriving, when the darkening sky is exactly what stops the play.',
+  'Choose the correct form: By the time the coach arrived, Surya ______ several matches.':
+    'The coach\'s arrival is already a past moment, so the winning that happened before it needs the past perfect **had already won**, made of had plus the past participle. Using has already won puts the action in the present perfect, which cannot sit before another past event.',
+  'What changes in the character in \'Change of Heart\'?':
+    'The change happens inside him: he begins to care about **other people** and not only about winning, which is the change of heart the title promises. Thinking he becomes a coach mistakes a change of attitude for a change of job.',
+  'What lesson does the story give about sport?':
+    'The story keeps showing that **fairness and kindness** count for more than the result on the scoreboard. The idea that rules can be broken names the very behaviour the story punishes, so it cannot be the lesson.',
+  'Who is a true winner in the poem?':
+    'The poem calls a true winner the one who keeps **trying** and plays fairly even when the score runs against him. Answering that a winner is one who always comes first simply repeats the scoreboard thinking the poem is arguing against.',
+  'Which quality does the poem praise?':
+    'The quality the poem praises is **perseverance**, the habit of carrying on after a failure instead of giving up. Answering luck takes the credit away from the player\'s own effort, which is exactly what the poem honours.',
+  'What does yoga mainly develop?':
+    'Yoga trains the body and the mind together, so what it mainly builds is **physical and mental balance**. Saying it builds only muscle size treats yoga as weight training and ignores the breathing and stillness it also teaches.',
+  'Why is yoga called \'a way of life\'?':
+    'Yoga is called a way of life because its habits of **breathing and posture** shape ordinary days, not just one session on a mat. Calling it a competition misses the point, since yoga has no winners or losers.',
+  'The past perfect tense is formed with':
+    'The past perfect is built from **had** plus the past participle, as in had finished. Has plus the past participle makes the present perfect, which points to now rather than to an earlier moment in the past.',
+  'Which sentence uses the past perfect correctly?':
+    'In She had finished the race before it started to rain, **had finished** marks the earlier action and the simple past started marks the later one, which is exactly the job of the past perfect. The version with has finished mixes the present perfect with a past time and breaks that order.',
+  'What does the Ek Bharat, Shreshtha Bharat programme help students understand?':
+    'The programme teaches that every Indian belongs to **one nation** and shares a bond of unity in diversity. Saying each state should celebrate on its own turns a shared culture into separation, which is the opposite of the idea.',
+  'How did Ila Sachani create her embroidery designs?':
+    'Ila Sachani was born without working hands, so she learned to hold the needle with her **feet** and sew her designs. The machine answer invents a device the chapter never mentions, and her brother and sister never did the sewing for her.',
+  'Why does the child in the poem wish to be small and light as air?':
+    'Being small and light as air would let her climb onto a **kite**, sail up on its paper wings and look down at the park and the rooftops of the town. A common slip is to think she wants to escape the town, when she really wants to see it from above.',
+  'Which sentence uses a word of quantity correctly with an uncountable noun?':
+    'Milk cannot be counted one by one, so it takes **much**, as in How much milk do you want. How many rice uses the countable word with an uncountable noun, which is the usual mix-up.',
+  'Where is the National War Memorial of India?':
+    'The National War Memorial stands in **New Delhi**, close to India Gate. Picking Mumbai or Chennai confuses it with other city landmarks such as the Gateway of India.',
+  'Whom does the National War Memorial honour?':
+    'The memorial honours the **soldiers** who died for the country, which is why their names are inscribed on its walls. Thinking it honours only the President mistakes the person who lays a wreath for the people being remembered.',
+  'What does the eternal flame at the memorial stand for?':
+    'The **eternal flame** burns day and night as a sign that the memory of the fallen soldiers never goes out. Explaining it as a Diwali lamp turns a national memorial into a festival decoration.',
+  'What makes India \'incredible\' according to the chapter?':
+    'India is called incredible for its **many languages, festivals and traditions** living side by side. Answering that it is incredible for its size reduces a country of cultures to a measurement on a map.',
+  'What does the chapter ask us to do with our heritage?':
+    'The chapter asks us to **respect and preserve** our heritage so that the next generation inherits it intact. Thinking we should sell it treats a shared inheritance as property to be traded.',
+  'What is remarkable about Ila Sachani?':
+    'What makes Ila Sachani remarkable is that she **embroiders** fine work with her feet after her hands failed her. Saying she paints with her mouth borrows another artist\'s story and gets her craft wrong.',
+  'What does her story show?':
+    'Her story shows that **determination** can carry a person past a disability that others treat as the end of the road. Calling embroidery easy ignores the years of practice her feet needed before the stitches came out neat.',
+  'Which word of quantity fits with \'water\'?':
+    'Water cannot be counted off as separate units, so it takes **a little**, as in a little water. Many and several belong with things you can count, such as bottles or glasses of water.',
+  'Which word of quantity fits with \'books\'?':
+    'Books can be counted one by one, so they take **many**, as in many books. Much and a great deal of go with uncountable things such as water or rice, never with a countable plural.',
+  'What do the kites in the poem stand for?':
+    'The kites stand for **freedom and imagination**, lifting above the rooftops on nothing but wind and paper. Reading them as a sign of wealth adds a money meaning that the poem never suggests.',
+  'Which image from the poem is most vivid?':
+    'The kites are pictured **dancing like coloured birds** in the sky, a picture your eye can see and your ear can almost hear. The string is long is a plain fact, not an image, so it carries no picture at all.',
+  'Why was Jahnavi not sent to school at first?':
+    'Jahnavi stays home at first because her mother says she is **too small** and is needed to mind her little brothers. The answer about the school being across the river invents a distance problem that the story never gives as the reason.',
+  'Whom did Helen Keller want to see first if she were given sight for three days?':
+    'Given three days of sight, Helen Keller wants first to see the **people** whose kindness and companionship had made her life worth living. The dinosaurs and mastodons belong to a later day of her three-day plan, not the first.',
+  'What did King Bruce learn from watching the spider?':
+    'The spider fell again and again but kept climbing until it reached its **cobweb**, and that steady effort gave Bruce the heart to try once more and this time not fail. A frequent slip is to say the spider gave up, which would teach the opposite lesson.',
+  'Jahnavi is afraid to speak to her father about school. Which sentence gives her advice using a modal verb correctly?':
+    'The modal **should** is followed by the base verb tell, so the advice reads You should tell your father what you really want. Should told and must to tell both put a wrong form after the modal, which never takes -ed or to.',
+  'Which word in \'The cat sat on the mat\' is a preposition?':
+    '**On** is the preposition because it shows the relation between the cat and the mat. Picking mat chooses the noun that follows the preposition instead of the preposition itself.',
+  'Which of these words is an adverb?':
+    '**Quietly** is an adverb because it tells us how an action is done, and many adverbs like it end in -ly. Table and garden are naming words, so they cannot describe how something happens.',
+  'In \'She walked quietly under the tree\', which word is the preposition?':
+    '**Under** is the preposition because it places the walking in relation to the tree. Choosing quietly confuses an adverb, which tells how she walked, with a preposition.',
+  'What is a simile?':
+    'A simile compares two things using **like** or **as**, as in as brave as a lion. The description without like or as actually defines a metaphor, so it gives the opposite answer.',
+  'Which sentence contains a simile?':
+    'The word **like** is the signal, so Her smile was like sunshine compares the smile to sunshine. Her smile was sunshine calls the smile sunshine directly, which makes it a metaphor instead.',
+  'What is a metaphor?':
+    'A metaphor says one thing **is** another, as in her smile was sunshine, without using like or as. The definition built on like or as actually describes a simile, so it names the wrong figure.',
+  'What does the river in the story ask of the people?':
+    'The river asks the people to stop **polluting** it and to treat it with respect. Asking everyone to stop using water goes further than the river\'s plea, since water is still needed for daily life.',
+  'What does giving the river a voice achieve in the story?':
+    'Giving the river a voice makes the damage feel **personal**, because the reader hears the harm from the one who suffers it. Saying it hides the problem is backwards, since a speaking river makes pollution harder to ignore.',
+  'What is the message of the poem \'Try Again\'?':
+    'The poem\'s message is to **keep trying** even after failure, because success usually comes to the person who refuses to stop. Only try once turns the poem\'s advice upside down and would make the title meaningless.',
+  'Which line best expresses the poem\'s advice?':
+    'The line **if at first you do not succeed, try again** states the advice directly and matches the title of the poem. Failure is the end gives exactly the hopelessness that the poem argues against.',
+  'What would Helen Keller do with three days of sight?':
+    'She would spend the three days studying the **faces** of the people she loves and the wonders of nature. Watching films all day would waste the gift, because she wants real faces and real things, not a screen.',
+  'What does the essay teach us?':
+    'The essay teaches us to **value** the sight and hearing we use every day without thinking. Claiming that sight is not important misses the ache of a writer who has lived without it.',
+  'Which modal verb expresses ability?':
+    '**Can** expresses ability, as in I can swim across the pool. Must and should express duty or advice, which tell what ought to happen rather than what someone is able to do.',
+  'Which sentence uses a modal verb correctly?':
+    'The modal **should** is followed by the base verb ask, which is the correct pattern in You should ask before taking it. Should to ask adds to after a modal and should asks adds -s, and both of those forms are wrong.',
+  'How did Polynesia make Doctor Dolittle believe that animals have a language of their own?':
+    'Polynesia proved her point by actually speaking **bird language** aloud and then translating each sound, so the doctor heard the language working instead of only hearing about it. Thinking she wrote a book credits her with writing rather than demonstrating speech, which is not how she convinced him.',
+  'Why does Mrs. Shaw first want Mary to go out for a walk when the guests arrive?':
+    'Shaw is worried that Mary, raised in India and unused to English drawing-room talk, will blurt something awkward in front of visitors. The guests do not dislike children; the anxiety is about **what Mary might say**, which is why a quiet walk is suggested.',
+  'What did the funny man do when the poet asked him why he wore two hats on his feet?':
+    'The funny man answers with action rather than words: he simply turns around and hops home balanced on his head, still wearing the hats on his feet. The joke is that his **reply is another absurd act**, so the nonsense never breaks into a sensible explanation.',
+  'Which sentence correctly uses the present perfect tense?':
+    'Present perfect is **has or have plus the past participle**, so has learnt is correct for a single subject like Doctor Dolittle. Has learn leaves the verb in its base form, which cannot follow has in this tense.',
+  'What is a phrasal verb?':
+    'A phrasal verb pairs a verb with a particle such as up, off or down, and the pair carries a meaning the verb alone does not, as in **give up**. Two nouns together make a compound noun, not a verb phrase, so that description misses the verb entirely.',
+  'What does \'give up\' mean?':
+    'In **give up** the particle up changes give from handing something over into quitting an effort altogether, as when a climber gives up near the top. To hand something over translates give alone and ignores the particle that shifts the meaning.',
+  'What does \'put off\' mean?':
+    '**Put off** means to move something to a later time, as when a match is put off because of rain. To take away describes take away or remove, a different phrasal verb with a different particle and a different meaning.',
+  'What is a suffix?':
+    'A **suffix** attaches after the root and often changes the word\'s job, as -ness turns kind into the noun kindness. A group added at the start is a prefix, so that description names the opposite position on the word.',
+  'Which sentence uses \'tell\' correctly?':
+    'Tell normally takes a **person as its object** before the thing told, so told me a story is the natural pattern. Said me a story fails because say needs to before the listener, as in said to me.',
+  'Add the suffix -ness to \'kind\'.':
+    'Keeping kind whole and adding -ness gives **kindness**, the noun naming the quality of being kind. -ful is a different suffix that would build kindful, which English does not use, and -ly builds the adverb kindly.',
+  'What special ability does Dr. Dolittle have?':
+    'Doctor Dolittle\'s gift is **speaking with animals**, learnt from his parrot Polynesia, which lets him hear their troubles directly. Flying or becoming invisible belongs to other kinds of fantasy stories and is never part of his skill.',
+  'How does talking to animals help the doctor?':
+    'Because the animals can describe their own symptoms, the doctor treats the real problem instead of guessing, so **the patient\'s own words guide the cure**. Fame and money follow later as a result, but they are not what the ability is for.',
+  'Which of these is a compound word?':
+    'A **compound word** joins two complete words, and book plus case makes bookcase, a case for books. Happier and quickly are built with suffixes on a single root, so they are derived words rather than compounds.',
+  'What makes a \'funny man\' amusing in the poem?':
+    'The funny man\'s humour comes from **turning ordinary things upside down**, like wearing hats on his feet, so the reader is startled into laughing. Loud clothes alone would only be a costume; the joke lives in the odd logic behind the clothes.',
+  'What is the effect of humour in the poem?':
+    'Nonsense verse works by loosening the reader\'s grip on ordinary rules, so after laughing at hats on feet the world feels **lighter and less rigid**. A hidden moral would weigh the poem down, which is exactly what light humour avoids.',
+  'What does \'say the right thing\' mean?':
+    'Saying the right thing is about **fit, not length or bluntness**: the same sentence can be kind in one room and rude in another. Using long words confuses being impressive with being tactful, which is a different skill.',
+  'Which reply is the most tactful?':
+    'This reply thanks the questioner and then refuses gently, so the **refusal protects both people\'s dignity**. None of your business refuses too, but the sharp words wound the person who asked.',
+  'Which sentence uses the present perfect correctly?':
+    'With a singular subject the helper is **has**, and the main verb must be the past participle told, which this sentence gets right. Writing has telling puts the -ing form after has, a shape English never allows.',
+  'Why did Papa get soaked at the front doorstep?':
+    'Anand rigged a water bag over the door to trap burglars, so a gentle push released it onto Papa instead. The point of the joke is that the **alarm punished the innocent**, since a thief was the intended target.',
+  'What surprised Shaana about Himachal Pradesh and Arunachal Pradesh?':
+    'The shared word Pradesh made the two states sound like neighbours, yet **Himachal sits in the north and Arunachal in the far east**. Assuming a common name means a common place is the mistake the map corrects.',
+  'What does the poet hope will happen to the paper boats he floats down the stream?':
+    'The child floats his boats so that **a stranger in a far land may find them** and learn who he is, carrying shiuli flowers that should reach shore by night. The boats carry hope rather than cargo, which is why their load is flowers and dreams.',
+  'Choose the sentence in which the subject and the verb agree.':
+    'The plural subject boats needs the plural verb **float**, and this sentence matches them correctly. Boats floats adds -s to a verb that already has a plural subject, which is the commonest agreement slip in English.',
+  'What is onomatopoeia?':
+    '**Onomatopoeia** builds a word out of the sound it names, so buzz, hiss and crash imitate what they describe. A word with two meanings is homonymy, an unrelated idea about meaning rather than sound.',
+  'Which word is an example of onomatopoeia?':
+    '**Buzz** imitates the hum of a bee, so the word itself sounds like the thing it names. Quiet describes silence and slowly describes pace, and neither of them copies a sound.',
+  'Which sentence is in the past perfect tense?':
+    'Past perfect uses **had plus the past participle** to mark the earlier of two past events, and finishing came before the bell rang. She finished her work is simple past, which reports one event without showing which came first.',
+  'What is the brother\'s invention about?':
+    'The boy\'s inventions grow from **noticing a small daily nuisance** and building something to fix it, which is what makes them clever rather than grand. A pet or a playground game would be play, not an attempt to solve a problem.',
+  'What quality does the story celebrate?':
+    'The story rewards the child who asks why things are the way they are and then **actually builds and tests an answer**. Copying others or dodging mistakes would mean never risking an idea of your own, the opposite of what is praised.',
+  'What do the paper boats carry in the poem?':
+    'The boats are loaded with shiuli flowers and with the child\'s wish to be known in a distant land, so their real freight is **hope**. Treating them as real cargo misses that the whole poem turns on imagination rather than trade.',
+  'Which image from the poem is most imaginative?':
+    'A **paper boat** is a fragile toy, so sending it to a far country stretches reality and shows imagination at work. A river flowing or rain falling is ordinary description, accurate but not inventive.',
+  'Which direction does the Sun rise from?':
+    'The Earth turns from west to east, so the Sun appears first over the **eastern** horizon each morning. The west is where it sinks at dusk, the mirror image of sunrise and the usual wrong choice.',
+  'If you face north, which direction is on your right?':
+    'Facing north puts **east on your right**, south behind you and west on the left, the same order as a compass rose. Choosing west reverses left and right, the usual slip when turning the map over in the mind.',
+  'Choose the correct sentence.':
+    'Children is already plural, so it takes the plain verb **play** with no -s. Children plays adds the singular ending to a plural subject, and children is uses a singular helper, both breaking the same rule.',
+  'Choose the sentence that is correct.':
+    'A singular subject takes **has**, and the perfect tense needs the past participle built, which this sentence supplies. Has build keeps the base form, and have built uses the plural helper with only one inventor.',
+  'Why did Suraj walk through the tunnel?':
+    'Suraj\'s walk is driven by plain **curiosity**, not by a train to catch or a duty given to him by anyone. That small wish to see for himself is what turns an ordinary afternoon into the adventure the story tells.',
+  'What did Arunima Sinha decide while she was in hospital with one leg amputated?':
+    'Lying in hospital after losing a leg, Arunima set herself two goals: to **walk again** and then to stand on the summit of Everest. Becoming an instructor came later, as an outcome of the climb rather than the hospital vow.',
+  'How does the speaker in Travel experience trains even though the railroad track is miles away?':
+    'The speaker never needs the railway, because by day the **whistle shrieks** past her and at night she watches red cinders and hears the engine steaming. The train exists in sound and glow, so imagination supplies the journey the track cannot.',
+  'Choose the sentence that uses articles correctly.':
+    'A definite **the** suits the tunnel that speaker and listener both know, while a introduces one unspecified train, which is exactly the pairing here. An train fails because train begins with a consonant sound and needs a, not an.',
+  'Which sentence shows a past habit using \'used to\'?':
+    '**Used to** plus the base verb marks something done regularly in the past and no longer done now, which used to play states clearly. I am used to the park means accustomed to it, a different sense that describes the present.',
+  'What does \'would\' often express in a story about the past?':
+    'In narrative, **would** plus a base verb reports what happened again and again, as in every summer we would visit. A single finished event needs the simple past, because would cannot mark one completed act.',
+  'Which sentence is grammatically correct?':
+    'After **would** the verb stays in its base form, so would visit is right for a repeated summer habit. Would visited doubles the past marking, and would to visit inserts a to that would never takes.',
+  'What is imagery in a poem?':
+    '**Imagery** works through concrete sensory detail, so the reader sees, hears or smells what the poet describes. Rhyme is a sound pattern at line endings and can exist with no picture at all, so it is not imagery.',
+  'Which line uses strong imagery?':
+    '**Silver** gives a colour and **sails** gives motion, so the moon becomes a visible thing crossing the sky. The moon is round states a fact with no picture, which is why it feels flat beside the other line.',
+  'What makes two words rhyme?':
+    'Rhyme depends on the **final stressed sound**, so cat and hat rhyme while cat and cot do not. Starting with the same letter is alliteration, a likeness at the beginnings of words rather than at their ends.',
+  'What does a tunnel in the story usually stand for?':
+    'A tunnel is dark and enclosed, so writers use it for **a hard stretch you must pass through** before reaching open ground. A bridge carries you over an obstacle, which is the opposite image of going through one.',
+  'What does the character learn inside the tunnel?':
+    'In the dark the character must keep moving without seeing the end and must rely on whoever is with him, so **courage and trust** are what the passage teaches. Learning only the way home would make the tunnel a shortcut rather than a test.',
+  'What does travel give a person, according to the poem?':
+    'The poem treats travel as a way of **meeting places and people outside your own experience**, which widens how you see the world. Tiredness may come with the journey, but the poem presents it as the price, not the gift.',
+  'Which line from the poem best shows the joy of travel?':
+    '**The road calls** makes travel sound like an invitation the speaker cannot refuse, which is joy rather than duty. A late train or a heavy bag reports a complaint and shows the burden of travel, not its pull.',
+  'What is the hardest part of climbing a mountain?':
+    'The summit is won by **continuing after the body wants to stop**, through cold and exhaustion, long before the top is reached. Buying equipment happens before the climb and photographs after it, so neither of them tests the climber.',
+  'What quality does a mountaineer need most?':
+    'A climb is decided by who keeps putting one foot above the other over days of cold and thin air, so **perseverance** matters more than any single burst of strength. Speed helps only briefly, and luck cannot be relied on twice.',
+  'Which sentence uses the correct article?':
+    'The h in **honest** is silent, so the word opens with a vowel sound and takes an. A honest judges by the letter rather than the sound, which is the usual reason learners pick the wrong article here.',
+  'Which article is used before a vowel sound?':
+    '**An** exists to smooth the join before a vowel sound, as in an apple or an hour. The article a is chosen for consonant sounds, so it is the mirror rule rather than the same one.',
+  'What is each brick of the National War Memorial called, and what does it bear?':
+    'Each brick of the memorial is a **tablet** inscribed with the names of soldiers who made the supreme sacrifice for India, so the wall reads as a roll of honour rather than a record of battles. The option naming the wars India fought mistakes the purpose of the memorial, which is to honour people and not list conflicts.',
+  'How did Rani Abbakka answer the Portuguese envoy who demanded the annual tribute?':
+    'She told the envoy that **Ullal was a sovereign country** which paid no tribute and took no orders from Portugal, refusing the demand outright. The option in which she offers half the tribute misreads her as bargaining, when the queen actually rejected the claim altogether.',
+  'What does the poet praise the soldiers for in My Dear Soldiers?':
+    'The poet praises the soldiers for staying **awake on the borders** while the rest of the nation sleeps, enduring wind, snow and scorching heat across mountains, deserts, marshes and seas. He honours the prime of their youth given to the country, so the praise is for sacrifice rather than for victories or medals.',
+  'Choose the correct indirect form: Rani Abbakka said, "We do not pay tribute to Portugal."':
+    'In reported speech the present tense do not pay shifts back to **did not pay**, and the pronoun we becomes they because the reporter stands outside the group. Leaving we in place simply copies the speaker\'s words instead of reporting them, which is still direct speech.',
+  'What is a prefix?':
+    'A prefix is a letter group fixed to the **beginning** of a word to change its meaning, as un- does in unhappy. Confusing it with a suffix, which is added at the end, is the commonest error because both are affixes that alter a root word.',
+  'What does the prefix \'un-\' usually mean?':
+    'The prefix **un-** reverses or negates the word it joins, so unhappy means not happy and unable means not able. The answer again belongs to re- as in rebuild, so choosing it mixes up two prefixes that carry completely different meanings.',
+  'Which of these words is a subordinating conjunction?':
+    '**Because** is a subordinating conjunction because it introduces a dependent clause that cannot stand alone, as in he stayed because it rained. And, but and or are coordinating conjunctions joining two equal clauses, which is why they cannot do that job.',
+  'What is a collocation?':
+    'A **collocation** is a pairing that speakers habitually use together, like heavy rain or make a decision, so the words sound natural as a unit. Words with the same meaning are synonyms, and mixing those two labels is the usual mistake.',
+  'Which pair is a natural collocation?':
+    'English speakers say **heavy rain** because heavy is the word that describes the intensity of weather, and the pairing is fixed by habit rather than logic. Strong rain feels reasonable but strong usually collocates with wind or currents, so it sounds foreign to a fluent ear.',
+  'Which word goes naturally with \'make\'?':
+    '**Make a decision** is the fixed pairing, since make goes with decisions, plans and mistakes while do goes with tasks. A homework also fails on the article, because homework is uncountable and takes no a before it.',
+  'Whom does the chapter pay homage to?':
+    'The chapter offers **homage to soldiers** who gave their lives for the country, treating every rank alike in its gratitude. Naming only the generals narrows the tribute to commanders, which contradicts the idea that each brick carries an ordinary soldier\'s name.',
+  'What is a homage?':
+    '**Homage** means a public sign of respect, such as a ceremony or a bowed head offered to someone being honoured. A medal is a reward given for service rather than the act of showing respect, so that option confuses the token with the gesture.',
+  'What does the poem ask of the soldiers\' families?':
+    'The poem asks the families to be **proud** of their soldiers\' sacrifice, since that pride is offered as comfort for the separation they bear. Asking them to forget would contradict the poem, whose whole purpose is remembrance of what the soldiers gave.',
+  'Who was Rani Abbakka?':
+    'Rani Abbakka was a **queen of coastal Karnataka** who resisted Portuguese demands for tribute and fought them in the sixteenth century. Placing her in Bengal or at a Mughal court moves her to another region and era, which the chapter never suggests.',
+  'Why is Rani Abbakka remembered?':
+    'She is remembered for her **courage in defending her land**, refusing tribute and holding off a far better armed Portuguese force. Building temples or writing books credits her with achievements the chapter does not mention at all.',
+  'Change to indirect speech: She said, "I am brave."':
+    'The present am backs to **was** and the first-person I changes to she when someone else reports the words. Keeping is or I am untouched merely repeats the original quotation, which is exactly what indirect speech is meant to replace.',
+  'Which word often introduces indirect speech?':
+    '**That** usually links the reporting verb to the reported clause, as in she said that she was brave. Which, whose and whom are relative pronouns, so they introduce describing clauses rather than reported speech.',
+  'What do the soldiers protect, according to the poem?':
+    'The poem says the soldiers guard the country\'s **peace and safety**, standing watch so that people behind the border can live without fear. Limiting their care to their own families ignores the wider duty to the nation that the poem keeps returning to.',
+  'In ‘The Wit that Won Hearts’, why had King Krishnadeva Raya stopped speaking to Queen Thirumalambal?':
+    'The king stopped speaking to Queen Thirumalambal because he believed her **yawn** while he recited his poem was an insult to his verse. The option about her tearing the poem invents a physical act, when the offence was a gesture he chose to read as contempt.',
+  'When Tenali Rama brought his ‘special’ paddy seeds to the court, what did he say the real problem was?':
+    'Tenali Rama\'s point was that the **sower, not the seed**, is the real problem, since the court had blamed the farmers for a poor crop. The option about special royal soil adds a condition the story never raises, turning a lesson about responsibility into a tale about farming technique.',
+  'Which sentence correctly rewrites ‘It is advisable for you to think before you speak’ using a modal verb?':
+    '**Should** carries the sense of advice, so it matches what is advisable without sounding like a command. Might have thought points to a past possibility that never happened, which turns advice into regret about the past.',
+  'In ‘A Concrete Example’, the speaker and Mrs Jones talk about a flower for a quarter of an hour. Why does Mrs Jones finally reply, ‘You’re standing on it’? What does this reply reveal about the humour of the poem?':
+    'The lovely thing they discuss is a **tiny plant between the stones**, and the speaker has been standing on it all through the conversation. The joke works because the treasure lay underfoot while they searched, and the title\'s pun on concrete, both paving material and a clear example, quietly sets up the twist.',
+  'What does wit usually mean in these stories?':
+    'In these stories **wit** means quick, clever thinking that gets someone out of a difficulty, as Tenali Rama\'s trick does. Physical strength is its opposite, and reading wit as loud laughter confuses the cleverness itself with the amusement it produces.',
+  'Why do people enjoy wit in a story?':
+    'Wit delights readers because it produces an **unexpected but fitting answer** that the listener did not see coming. Long words are not the source of that pleasure, and a story avoiding all conflict would leave the wit nothing to resolve.',
+  'What did Tenali Rama discover about the paddy seeds given to the farmers?':
+    'The seeds had been **boiled**, so they could never sprout, which proved the farmers were cheated rather than careless. The idea that the seeds needed more water accepts the official excuse and misses the deliberate fraud behind the failure.',
+  'How did Tenali Rama expose the truth?':
+    'He took his own share of the seeds and **sowed them**, letting the court see that nothing came up, so the blame fell on the seeds rather than on the farmers. Writing a letter would only have produced another denial, which is why the public demonstration mattered.',
+  'What is the poem \'A Concrete Example\' about?':
+    'The poem turns on a **small act of care** that quietly grows into something lasting, which is why the tiny plant matters more than its size suggests. Reading it as a guide to building a house takes the word concrete literally and loses the poem\'s point.',
+  'Why is the poem\'s title a pun?':
+    'The title is a pun because **concrete** is both the paving material of the garden and the sense of something definite and clear. Claiming there is no title, or that the poem is written as concrete poetry, ignores the double meaning it actually plays on.',
+  'Which word is a modal verb?':
+    '**Should** is a modal verb because it sits before a main verb to show advice, obligation or possibility. Wisdom and way are nouns and walk is an ordinary verb, so none of them can change the mood of another verb.',
+  'What does the modal \'must\' express?':
+    '**Must** expresses strong obligation, as in you must submit it today, and also certainty, as in she must be tired. A polite question is the work of may or could, so that option mistakes a request for a command.',
+  'Choose the sentence in which the verb agrees with its subject.':
+    'The subject here is **a bouquet**, which is singular, so the verb takes is, while the phrase of flowers merely describes it. A bouquet of flowers are is the classic trap of matching the verb to the nearest noun instead of the head word.',
+  'Major Somnath Sharma told his senior officers, ‘I know my men better than anyone else, and if they are going into action, they are not going in without me.’ What does this statement show about him?':
+    'His words show that he was **determined to share his men\'s danger**, refusing to stay behind with an injured hand while they went into action. The option about disobeying orders reverses his meaning, since he was asking to go with them and not refusing to go.',
+  'According to Verghese Kurien’s letter to his grandson, what makes a life ‘well-spent’?':
+    'Kurien says a life is **well spent** when one uses one\'s talents as fully as possible and adds to the common good. Avoiding every risk sounds safe but produces nothing, which is exactly the caution his letter argues against.',
+  'In ‘Somebody’s Mother’, the boy tells his friends, ‘She’s somebody’s mother, boys, you know.’ Why does this line matter, and how does the last stanza answer it?':
+    'The line turns a stranger into **somebody\'s mother**, so the boy owes her the care he would want for his own mother. The last stanza returns the phrase as somebody\'s son, showing that every person is loved by someone, which closes the kindness into a circle.',
+  'Which sentence has correct subject-verb agreement?':
+    'The head noun is **the list**, which is singular, so is is correct and the names only form part of the phrase describing it. The list of names are is wrong because it agrees with the nearer plural noun rather than with the subject.',
+  'What does a dash usually mark in a sentence?':
+    'A dash marks a **pause before an added or surprising idea**, letting a writer drop in a remark without starting a new sentence. It is not a question mark, so the option about ending a question confuses two very different punctuation marks.',
+  'Why is Major Somnath Sharma remembered?':
+    'He is remembered for **holding his post against great odds**, fighting on with a wounded hand so that others could be protected. Building a bridge or leading a parade would be peacetime achievements, and neither appears in the account of his last stand.',
+  'Which value does his story best illustrate?':
+    'His story illustrates **courage and duty**, because he chose to stay with his soldiers when he could have been excused. Cleverness and wit belong to the Tenali Rama tales, a different kind of story carrying a different lesson.',
+  'In the poem, what does the boy do for the old woman?':
+    'The boy **helps the old woman cross** the slippery street, steadying her so that she does not fall. Giving her money would end the encounter quickly, and the poem insists that presence and effort, not cash, were what she needed.',
+  'What is the poem\'s message?':
+    'The message is to treat every older stranger with the **kindness you would show your own mother**, because each one is somebody\'s mother. Telling old people to stay indoors blames them for the difficulty instead of asking the young to help.',
+  'What did Verghese Kurien help create?':
+    'Kurien helped build a **milk cooperative** that let village farmers own the processing and share the profit, which reshaped rural livelihoods. A steel factory or a railway network belongs to heavy industry, and neither matches the dairy work his name is linked with.',
+  'What does \'I too had a dream\' show about Kurien?':
+    'The title shows that he believed **ordinary people** could build something great together, which is why the cooperative was run by the farmers themselves. The claim that he worked only for himself contradicts the whole idea of a shared enterprise.',
+  'Which question did Encyclopedia Brown ask that unlocked the case of the fifth word?':
+    'The fifth word only made sense once the detective learned that a single **young fir tree** grew among the palms, giving the writer a real reason to know and use that word. Chasing the robbery or the clerk\'s identification misses the puzzle, because the code turns on one word that only that nursery could explain.',
+  'How had Tim Nolan built the four-word code ‘Nom Utes Sweden Hurts’?':
+    'Delete the letters d-a-y from Monday, Tuesday, Wednesday and Thursday and the leftovers spell **NOM UTES SWEDEN HURTS**, which is why the message looked like nonsense. Assuming the words name countries or months fails, since Sweden is only the middle of Wednesday with day cut away.',
+  'Which of the wonders described in ‘Spectacular Wonders’ is the only crater in India formed in basaltic rock by a meteorite impact?':
+    '**Lonar Crater Lake** in Maharashtra lies in the Deccan basalt and was scooped out when a meteorite struck that hard volcanic rock, which is why it is singled out as unique in India. Choosing the Valley of Flowers confuses a scenic valley with an impact crater, since no falling body formed it.',
+  'In ‘The Magic Brush of Dreams’, Gopi tells the Zamindar, ‘My lord, I can’t comply.’ Why does she refuse, and how does the rest of the poem show that she was right to refuse?':
+    'Gopi refuses because the brush\'s giver bound her to paint **only for the poor**, while the Zamindar wants a fortress, treasure and jewels to rule the land. Reading her refusal as stubbornness misses the reward that follows, since painted roads, a horse and a river free her and the closing feast feeds the village.',
+  'What kind of story is \'The Case of the Fifth Word\'?':
+    'The shape of a **detective puzzle** shows in the way a coded message and a set of suspects are untangled by deduction rather than luck. Calling it a folk tale about a king misses that the plot moves on evidence the reader can follow and check.',
+  'What helps the detective solve the case?':
+    'The case opens because one **small detail**, a word that did not fit its surroundings, was noticed and then followed up. Guessing without evidence could never do it, since a detective must show why the answer is the only one that fits.',
+  'What is close observation?':
+    'Close observation means **slowing down** to examine details that a quick glance would slide over, patiently and more than once. A single hurried look is exactly what the phrase rules out, so it cannot count as observation at all.',
+  'Why is critical thinking useful when reading a mystery?':
+    'Critical thinking makes you **test each clue** against the others instead of accepting what a suspect or a narrator simply asserts. Expecting it to hand over the answer at once misunderstands it, because testing claims takes the length of the book.',
+  'What is the magic brush able to do in the folk tale?':
+    'Whatever the brush paints becomes **real**, which is why a painted road, horse and river can carry the painter away. The brush never simply makes its owner rich, and reading it that way misses the point that the gift answers need rather than greed.',
+  'What lesson does the folk tale usually teach?':
+    'The tale ends with the gift serving the **village** and giving nothing to the powerful, so its lesson is that talent should help others instead of feeding greed. Believing magic solves every problem ignores the ending, where the ruler\'s own greed is what defeats him.',
+  'Which of these is a \'spectacular wonder\' of India described in the chapter?':
+    'The **rock-cut caves** of Ajanta and Ellora were carved by hand out of living stone centuries ago, which is why they count among India\'s wonders. An airport terminal or a shopping mall is recent construction, so it belongs to a different category and cannot be heritage.',
+  'Why should such wonders be protected?':
+    'These places are **irreplaceable heritage**, holding centuries of craft and belief that no rebuilding could bring back once lost. Ticket money and great age are side effects rather than the reason, since a collapsed ruin earns nothing at all.',
+  'What did Grandfather tell Rakesh when Rakesh asked whether cherry seeds are lucky?':
+    'Grandfather replies that nothing is lucky if you **put it away**, and that luck comes only when a thing is put to some use, which is why Rakesh plants the seed. Treating the seed as a charm to be stored safely mistakes the advice entirely, because a thing kept aside stays useless.',
+  'What explanation did the old woman give Velu for the long wait without rain?':
+    'She says the **land is resting**, because Nature gives her children the rest they need before the rains return. Blaming the farmers\' choice of crop or the astrologers misses that her answer is about a natural cycle rather than human error.',
+  'Complete the sentence with the correct determiner: ‘After months without rain, Velu had ______ hope left.’':
+    'Hope is an **uncountable** noun, so it takes little, which measures amount rather than number. Few belongs with countable things such as days or rupees, and many or several would absurdly suggest Velu still had plenty of hope.',
+  '‘Harvest Hymn’ moves from the voices of men to the voices of women and then to all voices together. What does this movement suggest about the harvest?':
+    'The hymn widens from men praising **Surya and Varuna**, to women praising Prithvi, to every voice praising Bramha, so thanks spread across the whole of village life. Treating the stanzas as separate songs misses that the shared final voice presents the harvest as common work of sun, rain, earth and labour.',
+  'How does the cherry tree begin in Ruskin Bond\'s story?':
+    'The tree begins as a **seed** that Rakesh plants and tends, so its whole life stays bound to his patient care. A tree already grown, or a cutting bought in the market, would remove the slow tending that gives the story its meaning.',
+  'What does the story suggest about growth?':
+    'Growth here is counted in **years of patient care**, from a seed to a fruiting tree that the grandfather and then the family enjoy. Expecting it overnight contradicts the story\'s whole span, and that long wait is what makes the first fruit feel earned.',
+  'What is the \'Harvest Hymn\' mainly about?':
+    'The poem is a **thanksgiving** for sun, rain and earth at harvest, offered by the people who live by them. Looking for a battle or a journey confuses a hymn of praise with narrative action, of which the poem contains none.',
+  'Which feeling runs through the poem?':
+    '**Thankfulness** and joy carry the whole hymn, from the men\'s praise of rain to the women\'s praise of the earth that feeds them. Sadness and loss appear nowhere, because the occasion of the poem is plenty rather than want.',
+  'What is the mood of \'Waiting for the Rain\'?':
+    'The mood holds **hope** and anxiety together, as every sign of rain is watched for while the dry spell drags on. Calling it a celebration of harvest reads the wrong season, since the poem is set before the rain has come.',
+  'Why is rain so important to the people in the poem?':
+    'Every **crop and livelihood** in the poem hangs on the rain, which is why the waiting is so tense. Treating rain as something needed for games or clean roads makes it a small convenience and ignores that hunger and ruin are at stake.',
+  'Which word in \'those tall trees\' is a determiner?':
+    '**Those** points to which trees are meant, and pointing words such as this, that and those are determiners. Tall is an adjective describing the trees, while trees is the noun the whole phrase is built around.',
+  'What was the Chipko Movement about?':
+    'Villagers wrapped their arms around trees so loggers could not cut them without harming people, which is what gave **Chipko** its name from the word for embrace. Cleaning rivers or planting flowers in cities is environmental work of another kind and does not describe this movement.',
+  'What made the narrator suddenly understand why Claribel had fainted?':
+    'He recalls that miners took **canaries** underground because the birds collapse before people notice the gas, which explains Claribel\'s faint as a living warning. Blaming the alarm circuit or a frozen purifier looks for a machine fault and misses the warning the bird itself gave.',
+  'Which of these sentences is written in the active voice?':
+    'In this sentence the **doer comes first** and acts on the star, which is the mark of the active voice. The version saying the star was renamed by the union reverses that order, so its subject only receives the action and the sentence is passive.',
+  'In 2019, which star did the International Astronomical Union rename ‘Bibha’ in honour of Bibha Chowdhuri?':
+    'The union renamed **HD 86081**, a star in the constellation Leo, as Bibha to honour the physicist. Confusing it with Sirius or the pole star substitutes famous bright stars for the comparatively faint one that was actually chosen.',
+  'In ‘Magnifying Glass’, the last stanza moves from a scrap of chalk and a drop of water to the moon. Why does the poet make this leap?':
+    'Leaping from chalk and a water drop to the **moon** shows the glass changing the scale of the world rather than merely enlarging small things. A reader who stops at moss and insects misses the last stanza\'s point, that looking closely makes even the distant feel reachable in an afternoon.',
+  'In \'Feathered Friend\', what is the surprising thing the crew discovers?':
+    'The crew finds a **small bird** alive aboard the space station, which startles them because nothing was expected to survive there. Looking for a new planet or hidden treasure misses that the surprise is small and domestic rather than grand.',
+  'What does the story say about life in space?':
+    'The story turns on a **small living thing** whose presence and needs upset the station\'s careful arrangements. Believing space is completely empty ignores the whole premise, since the bird could not be aboard at all if it were.',
+  'What does a magnifying glass do in the poem?':
+    'The glass turns an inch of moss into a forest and a drop of water into something like a hive of **bees**, so smallness becomes wonder. Treating it as a measuring tool or a colour changer gives it a job the poem never mentions.',
+  'What feeling does the poem create about discovery?':
+    'The poem creates **wonder** at ordinary things, which change when looked at closely instead of being replaced by something exotic. Fear of science or boredom with nature runs against a poem that finds magic in chalk dust.',
+  'What did Bibha Chowdhuri study?':
+    'Bibha Chowdhuri worked on **cosmic rays** and the tracks that subatomic particles leave in photographic plates, at a time when very few women did physics. Plant breeding or ocean currents belong to other sciences and would miss her place in particle physics.',
+  'Why is her story inspiring to students?':
+    'She did **pioneering** work with limited equipment and against the expectations of her time, which is what makes her example encouraging. Becoming famous overnight is the opposite of her story, which was long, quiet and often unrecognised.',
+  'Which sentence is in the active voice?':
+    'The **scientist** performs the action and stands at the front of the sentence, which makes it active. The version saying the beam was measured by the scientist states the same event passively, with the receiver of the action promoted to subject.',
+  'Which suffix turns \'science\' into a person?':
+    'Adding **-ist** to science gives scientist, the person who does the science, just as art gives artist. The suffix -ness builds abstract nouns like sickness and -ly usually builds adverbs, so neither can name a person.',
+  'Which number comes just before 60?':
+    'Counting back one step from 60 gives **59**. The mistake is picking 61, which is the number that comes after 60, not before.',
+  'Which of these numbers is the smallest?':
+    'None of these numbers has ones, so the one with the fewest tens is smallest: 4 tens is **40**. The mistake is picking 54, because it is the biggest number here, not the smallest.',
+  'Ravi has 7 marbles. His friend gives him 6 more marbles. How many marbles does Ravi have now?':
+    'Start at 7 and count on six more: 8, 9, 10, 11, 12, 13, so Ravi has **13** marbles. The mistake is counting 7 itself as one of the six and stopping at 12.',
+  'Add 47 and 28.':
+    'Add the ones first: 7 + 8 = 15, so write 5 and carry 1; then 4 tens + 2 tens + 1 = 7 tens, giving **75**. The mistake is forgetting the carry and writing 65, because 4 + 2 tens alone is only 6 tens.',
+  'Which number comes just after 39?':
+    'Counting on one step from 39 gives **40**. The mistake is picking 38, which sits just before 39 instead of after it.',
+  'Which number is greater, 27 or 72?':
+    'Both numbers use a 2 and a 7, but 72 has 7 tens while 27 has only 2 tens, so **72** is greater. The mistake is picking 27 because the 7 looks bigger at the end.',
+  'Which is the smallest number: 45, 54, 40, 50?':
+    'The tens are 4, 5, 4 and 5, so the smallest must be 45 or 40, and 40 has fewer ones, making **40** the smallest. The mistake is picking 54 because it is the largest of the four.',
+  'How many single-digit numbers are there from 1 to 9?':
+    'Count them one by one: 1, 2, 3, 4, 5, 6, 7, 8, 9, so there are **9** single-digit numbers. The mistake is counting 0 as well, which would make ten.',
+  'Which of these is a single-digit number?':
+    'A single-digit number is written with just one digit, and **7** is the only one here. The mistake is picking 17, which has two digits and is therefore not a single-digit number.',
+  'In the number 34, which digit is in the tens place?':
+    'In a two-digit number the first digit shows the tens, so in 34 the tens digit is **3** and the 4 shows the ones. The mistake is picking 4, which is the ones digit, not the tens digit.',
+  'How many double-digit numbers are there from 10 to 99?':
+    'From 10 to 99 there are 99 numbers in all, minus the 9 one-digit numbers, which gives **90**. The mistake is answering 99, which is the last number, not how many there are.',
+  'Which number comes just before 80?':
+    'One step back from 80 gives **79**, because 79 is the number just below it. The mistake is picking 81, which comes after 80, not before.',
+  'Which shape is round and has no corners?':
+    'A **circle** is one smooth curve all the way round, so it has no corners and no straight sides. The mistake is picking a square, which has four corners.',
+  'How many corners does a rectangle have?':
+    'Trace a rectangle from corner to corner: top left, top right, bottom right, bottom left, which makes **4** corners. The mistake is choosing 3 by thinking of a triangle, which has only three.',
+  'Ravi makes a pattern with shapes: triangle, square, triangle, square, and so on. He uses 8 shapes in all. How many triangles does he use?':
+    'The shapes go triangle, square, triangle, square, triangle, square, triangle, square, so the triangles are in places 1, 3, 5 and 7, which makes **4**. The mistake is choosing 3 by losing count of the last pair.',
+  'Write the next three numbers in the pattern 5, 10, 15, 20, ...':
+    'Each number is 5 more than the one before: 20 + 5 = 25, 25 + 5 = 30, 30 + 5 = 35, so the next three are **25, 30 and 35**. The mistake is adding 1 each time and writing 21, 22, 23.',
+  'Which of these objects is shaped like a rectangle?':
+    'A **door** is flat with four straight sides and four corners, just like a rectangle. The mistake is picking a coin, which is round like a circle, not a rectangle.',
+  'What comes next: 2, 4, 6, 8, ___?':
+    'The numbers jump by 2 each time, so 8 + 2 = **10**. The mistake is adding 1 and choosing 9, which breaks the jump of two.',
+  'What comes next: 5, 10, 15, ___?':
+    'Each number is 5 more than the one before, so 15 + 5 = **20**. The mistake is adding just 1 to get 16, which breaks the jump of five.',
+  'In the pattern circle, square, circle, square, ___, what comes next?':
+    'The two shapes take turns, and a square is always followed by a **circle**. The mistake is choosing square, which would put two squares side by side.',
+  'A pattern that repeats the same shapes again and again is called':
+    'When the same shapes come back in the same order again and again, it is **a repeating pattern**. The mistake is calling it growing, which would add a new shape each time.',
+  'Which shape has three sides?':
+    'A **triangle** has three straight sides and three corners. The mistake is picking a square, which has four sides, one too many.',
+  'Which shape has four equal sides?':
+    'A **square** has four sides that are all the same length. The mistake is picking a rectangle, which has four sides but two long and two short.',
+  'How many sides does a rectangle have?':
+    'Count the edges of a rectangle: top, bottom, left and right, so it has **4** sides. The mistake is saying 3 because a triangle has three.',
+  'In the number 472, what is the value of the digit 7?':
+    'The 7 sits in the tens place of 472, so it stands for 7 tens, which is **70**. The mistake is reading it as plain 7, which is what a digit in the ones place is worth.',
+  'Which of these is the expanded form of 358?':
+    '358 is 3 hundreds, 5 tens and 8 ones, so it is **300 + 50 + 8**. The mistake is writing 30 + 50 + 8, which makes the hundreds worth only thirty.',
+  'There are 246 books in a cupboard. 87 more books are put into it. How many books are in the cupboard now?':
+    'Add the ones: 6 + 7 = 13, write 3 and carry 1; then 4 + 8 + 1 = 13, write 3 and carry 1; then 2 + 0 + 1 = 3, so there are **333** books. The mistake is dropping a carry and getting 323.',
+  'Write the three-digit number that has 6 hundreds, 0 tens and 9 ones.':
+    'Six hundreds go first, the tens place stays empty with 0, and nine ones go last, giving **609**. The mistake is skipping the 0 and writing 69, which has only two digits.',
+  'What is the smallest three-digit number?':
+    'A three-digit number needs a hundreds digit, and the smallest is 1 hundred with nothing else, so **100**. The mistake is choosing 10, which has only two digits.',
+  'What is the largest three-digit number?':
+    'Put the biggest digit 9 in all three places to get **999**. The mistake is choosing 1000, which needs four digits, not three.',
+  'In 472, which digit is in the hundreds place?':
+    'Digits are read from the left, so the first one is the hundreds place, which here is **4**. The mistake is picking 2, which is the ones digit at the far right.',
+  'How many tens are there in 350?':
+    '350 is 3 hundreds, 5 tens and 0 ones, so it holds **5** tens. The mistake is saying 35, which counts the hundreds in as well.',
+  'What is 600 + 30 + 5?':
+    '6 hundreds, 3 tens and 5 ones make **635**. The mistake is swapping the tens and the ones to get 653, which puts the 5 in the tens place.',
+  'What is the expanded form of 208?':
+    '208 is 2 hundreds, 0 tens and 8 ones, so it is **200 + 0 + 8**. The mistake is writing 200 + 80, which would make 280.',
+  'What is 47 + 25?':
+    'Add the ones: 7 + 5 = 12, so write 2 and carry 1; then 4 + 2 + 1 make 7 tens, so the answer is **72**. The mistake is forgetting the carry, which gives 62.',
+  'What is 63 - 28?':
+    'Take 20 away from 63 to get 43, then take 8 more to get **35**. The mistake is answering 45 by taking away only the 20 and forgetting the 8.',
+  'Which multiplication fact means the same as 5 + 5 + 5?':
+    'There are three equal groups of 5, so the fact is **3 x 5**. The mistake is choosing 5 x 5, which would mean five groups of five, not three.',
+  'A chocolate box has 4 rows of chocolates with 6 chocolates in each row. How many chocolates are in the box?':
+    'Four rows of six make 6 + 6 + 6 + 6 = **24** chocolates. The mistake is adding 4 + 6 = 10, which puts the rows and the chocolates together.',
+  'A packet has 5 pencils. How many pencils are there in 6 packets?':
+    'Six packets of five make 6 x 5 = 5 + 5 + 5 + 5 + 5 + 5 = **30** pencils. The mistake is adding 6 + 5 = 11 instead of repeating the five.',
+  'What is 5 × 7?':
+    'Five sevens make **35**, because 7 + 7 + 7 + 7 + 7 = 35. The mistake is answering 30, which is five sixes, not five sevens.',
+  'What is 4 + 4 + 4 written as multiplication?':
+    'There are three equal groups of 4, so it is **3 x 4**. The mistake is writing 3 + 4, which is a sum, not groups of the same number.',
+  'What is 2 + 2 + 2 + 2 + 2?':
+    'Add the twos one by one: 2, 4, 6, 8, **10**. The mistake is adding 5 + 2 = 7, which adds the count to the number instead of five twos.',
+  'What is 5 x 6?':
+    'Count the sixes as they grow: 6, 12, 18, 24, **30**. The mistake is adding 5 + 6 = 11, which adds the two numbers instead of repeating six.',
+  'What is 10 x 7?':
+    'Ten sevens make **70**, because multiplying by 10 puts a zero after the 7. The mistake is writing 107 by copying the numbers side by side.',
+  'An array has 3 rows with 4 dots in each row. How many dots are there?':
+    'Three rows of four make 4 + 4 + 4 = **12** dots. The mistake is adding 3 + 4 = 7, which joins the rows to the dots instead of repeating them.',
+  'Which multiplication does an array of 2 rows and 5 columns show?':
+    'Two rows with five dots in each row show **2 x 5**. The mistake is writing 2 + 5, which joins the numbers instead of showing equal rows.',
+  'A box has 6 pencils. How many pencils are in 3 boxes?':
+    'Three boxes of six make 6 + 6 + 6 = **18** pencils. The mistake is adding 6 + 3 = 9, which counts the boxes as if they were pencils.',
+  'Each child has 2 shoes. How many shoes do 8 children have?':
+    'Eight children with two shoes each make 8 x 2 = 2 + 2 + 2 + 2 + 2 + 2 + 2 + 2 = **16** shoes. The mistake is adding 8 + 2 = 10 instead of doubling the 8.',
+  'In the number 5678, what is the place value of the digit 5?':
+    'The digit 5 sits in the thousands place, so its place value is 5 x 1000 = **5000**. The answer 500 counts the hundreds place, where the 6 stands, not the 5.',
+  'Which of these numbers is the greatest?':
+    'All four start with 4 thousands, so compare the hundreds: 4890 and 4809 both have 8, and then the tens digit 9 beats 0, making **4890** the greatest. 4098 loses earlier because its hundreds digit is 0.',
+  'Ravi writes his age in Roman numerals as XI. His sister writes her age as IX. How many years older is Ravi than his sister?':
+    'XI means 10 + 1 = 11 and IX means 10 - 1 = 9, so the gap is 11 - 9 = **2 years**. Saying 3 years comes from adding the I in IX instead of subtracting it.',
+  'Write the Roman numerals for 24 and 40.':
+    'Split 24 into 20 + 4, which is XX + IV = **XXIV**, and write 40 as 50 - 10 = **XL**. Writing XXXX for 40 breaks the rule that a smaller numeral before a larger one is subtracted.',
+  'In 5,482 which digit is in the thousands place?':
+    'Reading from the left, 5,482 is 5 thousands, 4 hundreds, 8 tens and 2 ones, so the thousands digit is **5**. Picking 4 means counting the hundreds place instead of the thousands place.',
+  'How many hundreds are there in 3,700?':
+    'The places in 3,700 read 3 thousands, 7 hundreds, 0 tens, 0 ones, so the hundreds digit is **7**. The answer 37 is the count of whole hundreds in the number, which is a different question.',
+  'Which number is the largest: 4,099, 4,909, 4,990, 4,009?':
+    'All four have 4 thousands and a 9 in the hundreds, so the tens digit decides and 9 beats 0, making **4,990** the largest. 4,099 is smaller because its hundreds digit is 0.',
+  'Which sign makes the sentence true: 6,300 ___ 6,030?':
+    '6,300 has 3 hundreds while 6,030 has 0 hundreds, so 6,300 is bigger and the sign is **>**. Using < means treating 6,300 as smaller, which happens if the digits are read left to right without place value.',
+  'Which Roman numeral stands for 50?':
+    'Roman numerals step up in value, and **L** is the symbol for 50, just as V is 5 and X is 10. Picking C mistakes 50 for 100, the next symbol up.',
+  'What is XL in Hindu-Arabic numerals?':
+    'X (10) is written before L (50), so we subtract: 50 - 10 = **40**. Reading it as 60 adds the two symbols instead of subtracting the smaller one.',
+  'In Roman numerals, when a smaller numeral is written before a larger one, we':
+    'A smaller numeral placed before a larger one is taken away from it, as in IV = 5 - 1 = **4**. Adding them together would turn IV into 6, which is not how the system works.',
+  'Which Roman numeral is not allowed to be repeated?':
+    'Only I, X, C and M may repeat, so **V** is never written twice and 10 is X, not VV. Repeating V is exactly the mistake that turns 10 into VV.',
+  '72 chairs are arranged in 8 equal rows. How many chairs are there in each row?':
+    'Share 72 equally into 8 rows: 72 / 8 = **9 chairs**, since 8 x 9 = 72. The answer 8 just repeats the number of rows instead of dividing.',
+  'Divide 47 by 5. Write the quotient and the remainder.':
+    '5 x 9 = 45 and 47 - 45 = 2, so the quotient is **9** and the remainder is **2**. Giving 8 as the quotient leaves 7 over, which is more than the divisor 5.',
+  'What is 23 × 3?':
+    'Split 23 into 20 + 3: 20 x 3 = 60 and 3 x 3 = 9, and 60 + 9 = **69**. The answer 66 multiplies the tens correctly but forgets the 3 ones.',
+  'Which of these is the same as 3 × 4?':
+    'Multiplication works in either order, so 3 x 4 = 12 and 4 x 3 = **12**, the same product. Choosing 3 + 4 confuses multiplying with adding, which gives only 7.',
+  'What is the remainder when 17 is divided by 5?':
+    '5 x 3 = 15 and 17 - 15 = 2, so the remainder is **2**. Saying 3 leaves too much over, because a remainder must be less than the divisor 5.',
+  'The remainder in a division must always be':
+    'The remainder is what is left after as many whole groups as possible are taken out, so it must be **less than the divisor**. A remainder equal to the divisor would mean one more group could still be made.',
+  'What is 23 x 4?':
+    'Break 23 into 20 + 3: 20 x 4 = 80 and 3 x 4 = 12, and 80 + 12 = **92**. The answer 82 forgets the 1 carried over from 12.',
+  'What is 84 divided by 4?':
+    '4 x 20 = 80 and 4 x 1 = 4, so 84 / 4 = **21**. The answer 24 overshoots, because 4 x 24 = 96, which is 12 more than 84.',
+  'What is 1 x 47?':
+    'Multiplying by 1 leaves a number unchanged, so 1 x 47 = **47**. The answer 48 comes from adding one instead of multiplying by one.',
+  'What is 0 x 56?':
+    'Any number multiplied by zero gives zero, so 0 x 56 = **0**. The answer 56 forgets the zero and keeps the other number untouched.',
+  'If 6 sweets are shared equally among 3 children, how many does each get?':
+    'Six sweets into 3 equal shares is 6 / 3 = **2** sweets each. The answer 18 multiplies instead of dividing, working out 3 x 6.',
+  'Division is the opposite of':
+    'Dividing undoes multiplying, so 3 x 4 = 12 and 12 / 4 = 3, which makes **multiplication** the opposite. Subtraction is the opposite of addition, not of division.',
+  'In the number 3,47,265, what is the place value of the digit 7?':
+    'In 3,47,265 the 7 stands in the thousands place, so its value is 7 x 1000 = **7000**. The answer 700 counts the hundreds place, where the 2 sits.',
+  'One lakh is the same as how many thousands?':
+    'One lakh is 1,00,000 and one thousand is 1,000, so 1,00,000 / 1,000 = **100** thousands. The answer 1000 is ten times too big and would be ten lakh.',
+  'Ravi has 3,684 stamps. He rounds the number to the nearest hundred. What number does he get?':
+    'The hundreds digit is 6 and the tens digit is 8, which is 5 or more, so the number rounds up to **3,700**. The answer 3,600 rounds down, which only happens when the tens digit is under 5.',
+  'A godown has 46,750 bags of rice and 28,340 bags of wheat. Estimate the total number of bags by rounding each number to the nearest thousand.':
+    '46,750 rounds up to 47,000 and 28,340 rounds down to 28,000, so the estimate is 47,000 + 28,000 = **75,000** bags. Rounding 46,750 down to 46,000 would give 74,000, which is too low.',
+  'What is the place value of 7 in 3,74,215?':
+    'In the Indian grouping 3,74,215 the 7 sits in the ten-thousands place, so it is worth 7 x 10,000 = **70,000**. The answer 7,000 drops one place and counts thousands instead.',
+  'How many thousands are there in 9,000?':
+    '9,000 is 9 groups of one thousand, so it holds **9** thousands. The answer 900 counts tens instead of thousands, since 9,000 is 900 tens.',
+  'In the Indian place value system, 1,00,000 is called':
+    'After ten thousands comes **one lakh** at 1,00,000 in the Indian system. Calling it one million uses the international name, which belongs to 10,00,000.',
+  'How many lakhs make one crore?':
+    'One crore is 1,00,00,000 and one lakh is 1,00,000, so 1,00,00,000 / 1,00,000 = **100** lakhs. The answer 10 stops one zero short and describes ten lakh, not a crore.',
+  'Round 4,678 to the nearest hundred.':
+    'The hundreds digit is 6 and the tens digit is 7, which is 5 or more, so 4,678 rounds up to **4,700**. The answer 4,600 rounds down and ignores that 7 is past the halfway point.',
+  'Round 2,351 to the nearest thousand.':
+    'The thousands digit is 2 and the hundreds digit is 3, which is under 5, so the number stays at **2,000**. The answer 3,000 rounds up, which needs a hundreds digit of 5 or more.',
+  'A shop sold 2,450 pens on Monday and 1,320 on Tuesday. How many pens were sold in all?':
+    'Add the two amounts: 2,450 + 1,320 = 2,000 + 1,000 plus 450 + 320 = 770, so **3,770** pens. The answer 1,130 subtracts the smaller number instead of adding.',
+  'A library had 5,000 books and gave away 1,250. How many books are left?':
+    'Take 1,250 away from 5,000: 5,000 - 1,000 = 4,000 and 4,000 - 250 = **3,750** books. The answer 6,250 adds the two numbers instead of subtracting.',
+  'What is 4567 + 2386?':
+    'Add from the right: 7 + 6 = 13 (write 3, carry 1), 6 + 8 + 1 = 15, 5 + 3 + 1 = 9, 4 + 2 = 6, giving **6953**. The answer 6853 drops one carry from the hundreds column.',
+  'Which of these number sentences shows that the order of the numbers does not change their sum?':
+    'Swapping the addends keeps the total the same, since 256 + 148 and 148 + 256 both give 404, so **256 + 148 = 148 + 256** shows it. The sentence 256 + 0 = 256 shows the identity property, not swapping order.',
+  'A factory makes 1,250 toys in one day. How many toys does it make in 6 days?':
+    '1,250 x 6 = 6,000 + 1,500 = **7,500** toys, multiplying the thousands and the hundreds separately. The answer 7,050 comes from working out 250 x 6 as 1,050.',
+  'Study the pattern: 7 × 1 = 7, 7 × 10 = 70, 7 × 100 = 700. What is 7 × 1000?':
+    'Each extra zero in the multiplier adds one zero to the product, so 7 x 1000 = **7,000**. Stopping at 700 only multiplies by 100 and leaves the answer ten times too small.',
+  'What is 1,234 + 2,468?':
+    'Add by place: 4 + 8 = 12 (write 2, carry 1), 3 + 6 + 1 = 10, 2 + 4 + 1 = 7, 1 + 2 = 3, so **3,702**. The answer 3,602 forgets the carry from the tens column.',
+  'What is 4,000 - 1,357?':
+    'Regroup and subtract: 4,000 - 1,000 = 3,000 and 3,000 - 357 = **2,643**. The answer 2,743 is 100 too big, a slip when borrowing across the hundreds.',
+  'Which property says 25 + 40 gives the same answer as 40 + 25?':
+    'Changing the order of the addends and still getting the same sum is the **commutative property of addition**. The associative property is about regrouping three numbers, as in (25 + 40) + 5.',
+  'What is 1,000 x 0?':
+    'Any number multiplied by zero gives zero, so 1,000 x 0 = **0**. The answer 1,000 treats the zero like a one and leaves the number unchanged.',
+  'A farmer packs 45 oranges in a box. How many oranges are in 12 boxes?':
+    '45 x 12 = 45 x 10 + 45 x 2 = 450 + 90 = **540** oranges. The answer 450 multiplies by 10 only and forgets the extra 2 boxes.',
+  '720 sweets are shared equally among 8 children. How many does each get?':
+    '720 / 8 = **90** sweets each, because 8 x 90 = 720. The answer 9 is ten times too small, since 8 x 9 is only 72.',
+  'What comes next: 100, 200, 300, 400, ___?':
+    'Each number is 100 more than the one before, so 400 + 100 = **500**. The answer 410 adds only ten, reading the step as 10 instead of 100.',
+  'What comes next: 1,000, 900, 800, ___?':
+    'Each number is 100 less than the one before, so 800 - 100 = **700**. The answer 1,100 adds instead of subtracting and reverses the pattern.',
+  'In the number 48,372, what is the place value of the digit 4?':
+    'In 48,372 the 4 sits in the ten thousands column, so its value is 4 x 10,000 = **40,000**, with 8,372 filling the rest. Reading it as 4,000 moves the 4 one column to the right, into the thousands place that belongs to the 8.',
+  'Which of these is the expanded form of 60,509?':
+    '60,509 splits by place as 6 ten thousands, 0 thousands, 5 hundreds, 0 tens and 9 ones, which gives **60,000 + 500 + 9**. Writing 60,000 + 50 + 9 gives the 5 the value of 5 tens instead of 5 hundreds, and that total is only 60,059.',
+  'Round 7,468 to the nearest hundred.':
+    'The tens digit is 6, which is 5 or more, so the hundreds digit 4 rises to 5 and the tens and ones are cleared, making **7,500**. Rounding down instead gives 7,400, the slip of ignoring that the leftover 68 is closer to a full hundred than to zero.',
+  'A number rounded to the nearest thousand is 5,000. Which of these could be the number?':
+    'Every number from 4,500 to 5,499 rounds up to 5,000, and **4,512** sits inside that band because its hundreds digit is 5. The choice 4,499 fails the halfway test, since 499 is below 500 and the number rounds down to 4,000.',
+  'Which number is written correctly with commas as seventy thousand forty?':
+    'Seventy thousand forty has 7 in the ten thousands place, then 0 thousands, 0 hundreds, 4 tens and 0 ones, so it is **70,040**. The form 7,040 reaches only seven thousand and forty, because the 7 was placed one column too far right.',
+  'What is 4,017 rounded to the nearest ten?':
+    'The ones digit 7 is more than 5, so the tens digit 1 is raised to 2 and the ones place becomes 0, giving **4,020**. Writing 4,010 drops the 7 without carrying, which is the error of always rounding down whatever the ones digit is.',
+  'In 47,382, the digit 4 is in the place value':
+    'Reading right to left, 47,382 has 2 ones, 8 tens, 3 hundreds, 7 thousands and 4 ten thousands, so the 4 holds the **ten thousands** place. Calling it thousands would leave only four digits, which pushes every digit one column to the right.',
+  'What is 10,000 + 3,000 + 400 + 5?':
+    'Adding the parts in order gives 10,000 + 3,000 = 13,000, then 13,000 + 400 = 13,400, then + 5 = **13,405**. The answer 13,450 swaps the last two columns, which happens when the 5 is read as 50 instead of 5 ones.',
+  'How is 45678 written with the Indian comma?':
+    'In the Indian system the first comma comes after three digits from the right and every later comma covers two digits, so 45678 becomes **45,678**. The form 4,5678 puts a comma after a single digit, which neither the Indian nor the international system allows.',
+  '45,678 is read as':
+    'The number splits as 45 thousands, 6 hundreds and 78 ones, so it is read as **forty-five thousand six hundred seventy-eight**. Calling it four lakh fifty-six thousand treats the leading two digits as a lakh, a place that needs six digits before the comma.',
+  'What is the expanded form of 5,406?':
+    '5,406 holds 5 thousands, 4 hundreds, 0 tens and 6 ones, so the expansion is **5000 + 400 + 6**. The form 5000 + 40 + 6 gives 5,046, because it moves the 4 out of the hundreds column into the tens column.',
+  '8000 + 200 + 30 + 4 equals':
+    'The four addends fill the thousands, hundreds, tens and ones columns with 8, 2, 3 and 4, giving **8,234**. Writing 8,243 puts the 3 in the ones column and the 4 in the tens, so it swaps the last two digits.',
+  'Round 4,367 to the nearest ten.':
+    'The ones digit is 7, so the tens digit 6 is increased by one and the ones place is cleared, making **4,370**. Stopping at 4,360 means rounding down even though 7 is past the halfway point of 5.',
+  'Round 82 to the nearest ten.':
+    'The ones digit 2 is less than 5, so the tens digit stays at 8 and the ones place becomes 0, giving **80**. Rounding up to 90 is only right when the ones digit is 5 or more, as it is in 85.',
+  'Round 5,672 to the nearest hundred.':
+    'The tens digit 7 is 5 or more, so the hundreds digit 6 rises to 7 and the tens and ones are cleared, making **5,700**. Keeping the 6 and writing 5,600 is rounding down, which needs a tens digit below 5.',
+  'Round 349 to the nearest hundred.':
+    'The tens digit 4 is less than 5, so the hundreds digit 3 stays and the rest of the number becomes zero, giving **300**. Bumping it up to 400 would require the number to be 350 or more.',
+  'Round 7,450 to the nearest thousand.':
+    'The hundreds digit is 4, which is below 5, so the thousands digit 7 is kept and the rest is cleared, giving **7,000**. The answer 8,000 comes from rounding up, a step that belongs only to hundreds digits of 5 or more.',
+  'Round 9,800 to the nearest thousand.':
+    'The hundreds digit 8 is 5 or more, so the thousands digit 9 rises to 10 and the number becomes **10,000**. Leaving it at 9,000 loses the carry, the same slip that turns 950 into 900 rather than 1,000.',
+  'Which of these is a unit fraction?':
+    'A unit fraction always carries 1 as its numerator, and **1/7** is the only choice with 1 on top. The fraction 2/7 shades two of the seven parts, so it is two unit fractions joined rather than one.',
+  'Which fraction is equivalent to 3/4?':
+    'Multiplying the top and bottom of 3/4 by 3 gives 9 and 12, so **9/12** names the same amount. The fraction 12/14 reduces to 6/7, not 3/4, because 12 and 14 share only the factor 2.',
+  'Write 17/5 as a mixed number.':
+    'Five goes into 17 three times, using 15 fifths and leaving 2 over, so 17/5 = **3 2/5**. Stopping at 2 2/5 is one whole short, since that mixed number is worth only 12 fifths.',
+  'Riya ate 3/8 of a cake and Meera ate 3/5 of an identical cake. Who ate more?':
+    'With equal numerators the smaller denominator wins, so 3/5 = 0.6 beats 3/8 = 0.375 and **Meera** ate more. Picking Riya comes from reading 8 as the bigger number and assuming a bigger denominator means a bigger share.',
+  'Which comparison is correct?':
+    'Both fractions are counted in eighths, so compare the numerators: 5 eighths is more than 3 eighths, giving **5/8 > 3/8**. The claim 5/8 < 3/8 turns the sign round, as if a larger numerator made a smaller fraction.',
+  'Which of these fractions is greater than 1?':
+    'A fraction beats 1 only when its numerator is larger than its denominator, and **5/3** is the only choice that does it, being about 1.67. The fraction 6/8 stays below 1 because 6 is smaller than 8, so it is less than a whole.',
+  'Which mixed number is the same as 9/4?':
+    'Four goes into 9 twice, using 8 quarters and leaving 1, so 9/4 = **2 1/4**. The answer 1 1/4 is worth only 5 quarters, which forgets that each whole uses up 4 of them.',
+  'Which fraction is equivalent to 1/3?':
+    'Multiplying the top and bottom of 1/3 by 2 gives 2 and 6, so **2/6** is the same share. The fraction 1/6 keeps the numerator at 1 while doubling the denominator, which halves the piece to one sixth.',
+  'Which fraction is equivalent to 2/4?':
+    'Dividing the top and bottom of 2/4 by 2 gives 1 and 2, so **1/2** is the same amount, exactly half. The choice 1/4 is half the size of 2/4 rather than equal to it, because only the numerator was halved.',
+  'A unit fraction has numerator':
+    'A unit fraction is a single part of a whole, so its numerator is **1** and only the denominator changes. Saying the numerator matches the denominator describes a whole such as 5/5, not one part of it.',
+  'Which is a unit fraction?':
+    'The numerator must be 1, and **1/7** is the only option with 1 on top. The fraction 7/3 has 7 as its numerator and is improper, worth more than a whole, so it cannot be a single unit part.',
+  'Which is larger: 3/8 or 5/8?':
+    'Both fractions are measured in eighths, so the larger numerator gives the larger fraction, and **5/8** wins. Choosing 3/8 treats the smaller numerator as bigger, which reverses the comparison.',
+  'With the same denominator, the larger fraction has the':
+    'A fixed denominator means every part is the same size, so taking more parts gives a bigger fraction, hence the **larger numerator**. A smaller numerator gives fewer parts, and 2/9 is clearly less than 7/9.',
+  'Which is larger: 2/3 or 2/7?':
+    'With 2 parts of each, thirds are bigger pieces than sevenths, so **2/3** is larger at about 0.67 against 0.29. Picking 2/7 comes from treating 7 as the bigger number and assuming it makes a bigger fraction.',
+  'With the same numerator, the larger fraction has the':
+    'The same number of parts cut into smaller pieces makes a smaller fraction, so a fixed numerator needs the **smaller denominator** to be larger. Assuming a bigger denominator helps is the usual trap, since 2/3 beats 2/10.',
+  'An improper fraction has a numerator':
+    'An improper fraction is worth one whole or more, so its numerator is **greater than or equal to** its denominator, as in 6/6 or 9/4. A numerator smaller than the denominator describes a proper fraction, which always stays below 1.',
+  '9/4 written as a mixed number is':
+    'Dividing 9 by 4 gives 2 wholes and a remainder of 1, so 9/4 = **2 1/4**. Saying 2 3/4 leaves a remainder of 3, which would need 11 quarters in total.',
+  '3 1/2 as an improper fraction is':
+    'Multiply the whole 3 by the denominator 2 to get 6, then add the numerator 1 for 7 halves, so 3 1/2 = **7/2**. Writing 5/2 drops the extra half, since 3 wholes alone already make 6/2.',
+  'How many right angles make one full turn?':
+    'A full turn is 360 degrees and a right angle is 90 degrees, so 360 / 90 = 4, meaning **4** right angles fit in one full turn. The answer 2 describes a half turn, where only 180 degrees is covered.',
+  'An eighth of a turn measures how many degrees?':
+    'A full turn is 360 degrees, and 360 / 8 = 45, so an eighth of a turn is **45 degrees**. The value 90 degrees is a quarter turn, which is 360 / 4 and twice as large.',
+  'An angle measures 120°. Is it acute, right or obtuse?':
+    'An angle lying between 90 and 180 degrees is obtuse, and 120 falls in that range, so it is **obtuse**. Calling it acute ignores the 90 degree limit, because acute angles stop below a right angle.',
+  'The minute hand of a clock turns from 12 to 7. What angle does it turn through?':
+    'From 12 to 7 the hand passes 7 hour marks, and each mark is 360 / 12 = 30 degrees, so 7 x 30 = **210 degrees**. The answer 150 degrees counts only 5 marks, as if the hand had gone the short way from 7 back to 12.',
+  'Reema makes two half turns in the same direction. Together they make one ___.':
+    'One half turn is 180 degrees, so two of them add to 180 + 180 = 360 degrees, which is exactly one **full turn**. Calling it a quarter turn would cover only 90 degrees, a single right angle.',
+  'You are facing North and make a quarter turn clockwise. Which direction are you facing now?':
+    'A quarter turn clockwise moves North on to East, because the clockwise order runs North, East, South, West, so you now face **East**. Choosing West applies the turn anticlockwise, which is the opposite direction.',
+  'You are facing East and make a quarter turn anti-clockwise. Which direction are you facing now?':
+    'Turning back against the clockwise order from East lands on North, since clockwise runs North, East, South, West, so the new facing is **North**. Answering South would be a clockwise quarter turn, the opposite sense.',
+  'A quarter turn makes an angle of':
+    'A full turn is 360 degrees, so a quarter of it is 360 / 4 = **90 degrees**, the size of a right angle. The value 180 degrees is a half turn, twice as much as a quarter.',
+  'A right angle is also called':
+    'A right angle measures 90 degrees, which is one quarter of the 360 degree full turn, so it is **a quarter turn**. A half turn is 180 degrees, double the size of a right angle.',
+  'A full turn is':
+    'Turning all the way round until you face the starting way again sweeps 4 right angles, and 4 x 90 = **360 degrees**. The value 180 degrees is only halfway round, where you would end up facing backwards.',
+  'How many degrees are there in a half turn?':
+    'A half turn is half of the 360 degree full turn, and 360 / 2 = **180 degrees**, the angle of a straight line. The value 90 degrees is a quarter turn, half of a half turn.',
+  'An acute angle is':
+    'Acute angles are the sharp ones that open less than a right angle, so they measure **less than 90 degrees**. The description between 90 and 180 degrees belongs to an obtuse angle instead.',
+  'An obtuse angle is':
+    'An obtuse angle is wider than a right angle yet still short of a straight line, so it measures **between 90 and 180 degrees**. Naming less than 90 degrees describes an acute angle, the opposite case.',
+  'One eighth of a turn is':
+    'A full turn of 360 degrees cut into 8 equal parts gives 360 / 8 = **45 degrees** for each part. The value 30 degrees is one twelfth of a turn, which would need 12 equal parts.',
+  'How many eighths make a full turn?':
+    'Eighths are made by cutting a full turn into 8 equal parts, so all **8** of them fit back together to rebuild the whole turn. The answer 4 counts quarter turns, each worth 90 degrees.',
+  'In one hour the minute hand turns through':
+    'The minute hand takes exactly 60 minutes to travel once round the face, so in one hour it makes **a full turn** of 360 degrees. Saying a quarter turn would mean it moved only from 12 round to 3 in that hour.',
+  'From 12 to 3 the hour hand turns through':
+    'The hour hand covers 12 hours in a full turn, so 3 hours is 3/12 = 1/4 of it, which is **a quarter turn**. Calling it an eighth turn would fit only 1.5 hours, half the gap from 12 to 3.',
+  'The hands of a clock move':
+    'The hands travel 12, 1, 2, 3 and onward, the very direction the word clockwise comes from, so they move **clockwise**. Saying anticlockwise would send the hands backwards from 12 towards 11.',
+  'What is 2,468 + 3,575?':
+    'Add column by column with carrying: 8 + 5 = 13 (write 3, carry 1), 6 + 7 + 1 = 14 (write 4, carry 1), 4 + 5 + 1 = 10 (write 0, carry 1), so the total is **6,043**. Forgetting the carry from the ones column gives 6,053, a full ten too small.',
+  'What is 4,325 − 99?':
+    'Subtracting 99 is easiest as subtracting 100 and adding 1 back: 4,325 - 100 = 4,225, then 4,225 + 1 = **4,226**. Adding the 1 without ever taking away the 100 leaves 4,326, which is larger than the number you started with.',
+  'Find the sum of the five consecutive numbers 11, 12, 13, 14 and 15.':
+    'Pair the ends so the adding is quick: 11 + 15 = 26 and 12 + 14 = 26, then add the middle number, 26 + 26 + 13 = **65**. Leaving out that middle 13 while pairing only the four outer numbers gives 52.',
+  'The sum of three consecutive odd numbers is 63. What is the largest of them?':
+    'Start from the middle number: 63 / 3 = 21, so the three consecutive odd numbers are 19, 21 and 23 and the largest is **23**. Stopping at 21 answers with the middle number instead of the biggest one.',
+  'What is 5,423 - 1,786?':
+    'Work right to left with borrowing: 13 - 6 = 7 ones, 11 - 8 = 3 tens, 13 - 7 = 6 hundreds, 4 - 1 = 3 thousands, giving **3,637**. Skipping the borrow in the hundreds column makes the total 3,737, a hundred too high.',
+  'A student finds that 7,000 - 2,468 = 4,532. Which addition correctly checks this subtraction?':
+    'The difference plus the number that was taken away must rebuild the whole, so **4,532 + 2,468 = 7,000** is the correct check. Subtracting 2,468 from 4,532 only compares the two parts and can never rebuild 7,000.',
+  'If 500 - 180 = 320, how do you check it?':
+    'Adding the difference back to the number subtracted must return the starting number: 320 + 180 = **500**, so the subtraction is right. Putting 500 + 180 together mixes up which number is the whole and which is the part.',
+  'To check a subtraction, add the answer to the':
+    'The difference plus the number taken away rebuilds the original total: 500 - 180 = 320 is checked by 320 + 180 = **500**. Doubling the answer, or adding it to zero, never brings back the number you started with.',
+  'What is 4,678 + 2,845?':
+    'Carry as you go: 8 + 5 = 13 (3, carry 1), 7 + 4 + 1 = 12 (2, carry 1), 6 + 8 + 1 = 15 (5, carry 1), 4 + 2 + 1 = 7, so **7,523**. Losing the carry from the hundreds column makes the total 7,423, a hundred short.',
+  'Regrouping is needed when a column adds up to':
+    'A column that reaches 10 or more overflows its place, so ten of that place are exchanged for one of the next place: that is **regrouping**. A column that adds to zero needs no regrouping at all, so confusing the two sends the carry the wrong way.',
+  'What is 4 + 5 + 6?':
+    'Add in two steps: 4 + 5 = 9, then 9 + 6 = **15**. Adding only the 4 and the 6 and silently skipping the middle addend gives 10, a whole number short of the total.',
+  'The sum of 10, 11 and 12 is':
+    'Add the first two and then the third: 10 + 11 = 21 and 21 + 12 = **33**, and the middle-number trick 3 x 11 = 33 agrees. Multiplying 12 by 3 instead of adding the three numbers gives 36.',
+  'What is 6,000 - 2,475?':
+    'Borrow down the line: 10 - 5 = 5 ones, 9 - 7 = 2 tens, 9 - 4 = 5 hundreds and 5 - 2 = 3 thousands, so **3,525**. Forgetting that the thousands place lent a thousand leaves 4,525, a thousand too big.',
+  'When a digit is too small to subtract, we':
+    'One unit of the next higher place is worth ten of the current place, so the digit takes that unit: we **borrow from the next place**. Writing zero when the top digit is smaller destroys the value of the column instead of increasing it.',
+  'What is 450 - 99?':
+    'Subtract 100 and add the extra 1 back: 450 - 100 = 350 and 350 + 1 = **351**. Taking 100 and then 1 more, as though 101 had been removed, gives 349.',
+  'Subtracting 9 is the same as subtracting 10 and then':
+    '9 is one less than 10, so taking 10 away takes one too many and **adding 1** restores it: 450 - 10 = 440, then 440 + 1 = 441. Subtracting 1 as well removes 11 in total instead of 9.',
+  'Which number is odd?':
+    'A number is odd when it leaves a remainder of 1 on halving, and 47 = 2 x 23 + 1, so **47** is the odd one. Calling 48 odd is a misread, because 48 halves exactly into 24.',
+  'An even number always ends in':
+    'Halving an even number leaves no remainder, which happens only when the last digit is **0, 2, 4, 6 or 8**. The digits 1, 3, 5, 7 and 9 mark odd numbers, so listing those reverses the rule.',
+  'How many centimetres are there in 6 metres?':
+    'One metre holds 100 centimetres, so 6 m = 6 x 100 = **600 cm**. Multiplying by 1,000 as though metres were kilometres turns it into 6,000 cm, ten times too large.',
+  'Add: 3 km 450 m and 2 km 700 m.':
+    'Add the like parts: 3 km + 2 km = 5 km and 450 m + 700 m = 1,150 m, which is 1 km 150 m, so the total is **6 km 150 m**. Leaving the metres at 1,150 m without regrouping them into a kilometre is the slip.',
+  'A rope is 8 m 25 cm long. If 3 m 40 cm is cut off, how much rope is left?':
+    'Borrow a metre as 100 cm: 8 m 25 cm becomes 7 m 125 cm, and 7 m 125 cm - 3 m 40 cm = **4 m 85 cm**. Taking 25 - 40 the wrong way round would give 15 cm and hide the borrow completely.',
+  'Each step of a child is 45 cm long. How far does the child walk in 40 steps? Give the answer in metres.':
+    'Multiply the step length by the count: 45 x 40 = 1,800 cm, and 1,800 / 100 = **18 m**. Reading 1,800 cm as 1 m 80 cm divides by 1,000 instead of 100.',
+  'How many metres are there in 4 kilometres?':
+    'One kilometre is 1,000 metres, so 4 km = 4 x 1,000 = **4,000 m**. Using 100 m for a kilometre gives 400 m, ten times too small for four kilometres.',
+  'How many millimetres are there in 6 cm 5 mm?':
+    'One centimetre is 10 millimetres, so 6 cm = 60 mm and 60 + 5 = **65 mm**. Treating a centimetre as 100 mm turns 6 cm into 600 mm and tips the total to 605 mm.',
+  'A road 12 km 600 m long is built in 6 days, with the same length built each day. How much road is built each day?':
+    'Change to one unit first: 12 km 600 m = 12,600 m, and 12,600 / 6 = 2,100 m, which is **2 km 100 m**. Dropping a zero and writing 2 km 10 m makes one day\'s road ten times too short.',
+  '250 cm is the same as':
+    'Every 100 cm makes one metre, so 250 cm = 2 m with 50 cm over, that is **2 m 50 cm**. Calling it 25 m counts 10 cm to a metre instead of 100.',
+  'How many millimetres make one centimetre?':
+    'A centimetre is split into ten equal millimetres, so 1 cm = **10 mm**. The 1,000 mm figure belongs to a metre, and mixing the two units inflates the answer a hundred times.',
+  'What is 2 km 300 m + 1 km 400 m?':
+    'Add like parts: 2 km + 1 km = 3 km and 300 m + 400 m = 700 m, so the total is **3 km 700 m** with nothing to regroup. Adding an extra kilometre for no reason gives 4 km 700 m.',
+  'When adding lengths, first convert both to':
+    'Lengths in different units cannot be added column by column, so both must first be changed into **the same unit**. Converting to metres and centimetres keeps two units and leaves the original problem unsolved.',
+  'What is 5 km 200 m - 1 km 800 m?':
+    'Borrow one kilometre as 1,000 m: 5 km 200 m = 4 km 1,200 m, then 4 km 1,200 m - 1 km 800 m = **3 km 400 m**. Taking 1,200 - 800 without giving back the borrowed kilometre leaves 4 km 400 m.',
+  'To subtract 1 m 40 cm from 3 m, you borrow':
+    'There are no centimetres in 3 m, so one metre is exchanged for 100 cm, making 2 m 100 cm - 1 m 40 cm = 1 m 60 cm by taking **100 cm from the metres**. Borrowing only 10 cm leaves too little to subtract 40 cm.',
+  'What is 3 m 25 cm x 4?':
+    'Multiply the parts separately: 3 m x 4 = 12 m and 25 cm x 4 = 100 cm = 1 m, so the answer is **13 m**. Writing 12 m 100 cm keeps the extra 100 cm instead of regrouping it into a metre.',
+  'What is 2 m 50 cm x 2?':
+    'Double each part: 2 m x 2 = 4 m and 50 cm x 2 = 100 cm = 1 m, giving 4 m + 1 m = **5 m**. Doubling only the metres and copying the 50 cm unchanged gives 4 m 50 cm.',
+  'What is 8 m 40 cm divided by 4?':
+    'Divide the metres and the centimetres separately: 8 m / 4 = 2 m and 40 cm / 4 = 10 cm, so **2 m 10 cm**. Dividing the 8 by 4 but leaving the 40 cm whole gives 2 m 40 cm.',
+  'What is 9 m divided by 3?':
+    'Share the metres equally: 9 / 3 = 3, so each share is **3 m**. Multiplying instead of dividing gives 27 m, the wrong operation for a sharing problem.',
+  '3 m 45 cm is the same as':
+    'Turn the metres into centimetres: 3 m = 300 cm, and 300 + 45 = **345 cm**. Writing 3,450 cm treats a metre as 1,000 cm instead of 100, so the place values jump.',
+  'What is 47 × 100?':
+    'Multiplying by 100 moves every digit two places to the left, so 47 becomes **4,700**. Shifting three places, as though the multiplier were 1,000, gives 47,000.',
+  'What is 36 × 1,000?':
+    'Each zero in the multiplier adds a zero to the product, so 36 x 1,000 = **36,000**. Adding only two zeros gives 3,600, as though the multiplier were 100.',
+  'Use doubling and halving to find 25 × 16.':
+    'Halve 16 and double 25 step by step: 8 with 50, then 4 with 100, then 2 with 200, then 1 with 400, so 25 x 16 = **400**. Stopping one step early leaves 200, exactly half the true product.',
+  'A milk van carries cans of 24 litres each. 17 cans hold 408 litres. Which is the nearest multiple of 10 to this amount?':
+    '408 is 2 away from **410** and 8 away from 400, so 410 is the nearer multiple of 10. Choosing 420 sits 12 away, treating the next ten above as nearest just because it is larger.',
+  'Using place value, what is 6 x 342?':
+    'Split 342 into 300, 40 and 2: 6 x 300 = 1,800, 6 x 40 = 240 and 6 x 2 = 12, so 1,800 + 240 + 12 = **2,052**. Losing the ten carried from 6 x 42 = 252 lowers the total to 2,042.',
+  'If 16 x 44 = 704, what is 32 x 44?':
+    '32 is twice 16, so the product doubles too: 704 x 2 = **1,408**. Quadrupling instead of doubling gives 2,816, which is twice as big as it should be.',
+  'Using the pattern shown by 11 x 12 = 132, 11 x 34 = 374 and 11 x 56 = 616, find 11 x 54.':
+    'Multiplying by 11 puts the sum of the digits between them: for 54 the outer digits are 5 and 4, their sum is 9, so 11 x 54 = **594**. Reversing the digits to read 549 ignores place value, and 11 x 50 alone is already 550.',
+  'What is 46 x 10?':
+    'Every digit moves one place left when you multiply by 10, so 46 becomes **460**. Adding two zeros, as though multiplying by 100, gives 4,600.',
+  'Multiplying by 100 adds':
+    'Since 100 = 10 x 10, two shifts of one place each add **two zeros** to the product. Adding three zeros treats 100 as 1,000 and makes the answer ten times too big.',
+  'What is 27 x 1,000?':
+    'The three zeros of 1,000 are copied onto 27, giving **27,000**. Writing 2,700 copies only two zeros, as though the multiplier were 100 instead of 1,000.',
+  'What is 500 x 1,000?':
+    'Break 500 into 5 x 100, so the product is 5 x 100 x 1,000 = 5 x 100,000 = **500,000**. Answering 50,000 drops one of the zeros that 1,000 contributes, making it ten times too small.',
+  'What is double of 175?':
+    'Doubling means adding the number to itself: 175 + 175 = **350**. Reaching only 275 by adding 100 fails to double the tens and the ones as well as the hundreds.',
+  'Half of 96 is':
+    'Halving 96 gives 48 because 48 + 48 = 96, so the half is **48**. Writing 46 slips on the ones digit, while 192 is the double rather than the half.',
+  'The nearest multiple of 10 below 47 is':
+    'The multiples of 10 on either side of 47 are 40 and 50, and 40 is the one **below** 47. Choosing 50 answers the nearest multiple overall, which lies above the number.',
+  'The nearest multiple of 100 above 250 is':
+    'The multiples of 100 are 200, 300, 400 and so on, and the first one greater than 250 is **300**. Picking 200 looks downward, even though 200 is smaller than 250.',
+  'What is 23 x 4 using place value?':
+    'Split 23 into 20 + 3: 20 x 4 = 80 and 3 x 4 = 12, so **80 + 12 = 92**. Multiplying the tens by 4 but leaving the 3 unchanged gives 80 + 4 = 84.',
+  'In 34 x 5, the tens part gives':
+    'The 3 in 34 is worth thirty, so the tens part is **30 x 5 = 150**, and the ones part 4 x 5 = 20 makes 170 in all. Reading the 3 as three makes the tens part 15, ten times too small.',
+  'If 6 x 7 = 42, then 60 x 7 =':
+    '60 is ten times 6, so 60 x 7 is ten times 42, which is **420**. Making it 4,200 multiplies by a hundred, as though 60 were a hundred times 6.',
+  'How many sides does a regular hexagon have?':
+    'The prefix hex- means six, so a **regular hexagon** has 6 equal sides and 6 equal angles, just as six cells meet around a point in a honeycomb. Counting 7 or 8 confuses hexagon with heptagon or octagon, whose names mean seven and eight.',
+  'Which of these shapes does NOT tessellate on its own?':
+    'A **circle** has a curved edge, so however you pack them they touch at single points and leave curved gaps between them. Squares, triangles and regular hexagons each fit around a point to exactly 360 degrees, so choosing one of them ignores the gaps a circle leaves.',
+  'An isosceles triangle has two equal sides of 7 cm each and a third side of 4 cm. What is its perimeter?':
+    'Add all three sides: 7 + 7 + 4 = 18, so the **perimeter** of the triangle is 18 cm. Leaving out one of the two equal 7 cm sides gives 11 cm, the slip that makes the answer too small.',
+  'A tile pattern starts with 5 tiles in the first row and adds 3 tiles for every new row. How many tiles are in the 10th row?':
+    'Row n holds 5 + 3(n - 1) tiles, so row 10 holds 5 + 3 x 9 = 5 + 27 = **32** tiles. Adding 3 ten times instead of nine times gives 35, which counts a row 0 that does not exist.',
+  'A mat is woven with the rule \'2 over, 1 under\' repeated. How many of the first 9 strips are woven \'over\'?':
+    'Each block of 3 strips is 2 over and 1 under, so 9 strips make 3 blocks and 3 x 2 = **6** over strips. Reading the rule backwards as 1 over and 2 under flips the count to 3.',
+  'Which statement is true for a kite?':
+    'A **kite** has two pairs of equal sides that meet at the two ends of its long diagonal, which is why that diagonal folds the shape in half. Expecting all four sides to be equal describes a rhombus, which is not every kite.',
+  'A quadrilateral in which both pairs of opposite sides are equal is called a ___.':
+    'When both pairs of opposite sides are equal the shape also has both pairs parallel, and that is exactly a **parallelogram**. A kite has equal sides only where they touch, so it cannot satisfy the opposite-side condition.',
+  'A repeating pattern in weaving uses':
+    'A **repeating pattern** copies one fixed over-under unit along the mat, so the same sequence returns in the same position again and again. Random threads or a single colour remove the repetition that a pattern needs.',
+  'Which unit repeats in the pattern AAB AAB AAB?':
+    'The string splits as AAB | AAB | AAB, so the **repeating unit** is the three-letter block AAB. Taking AB as the unit ignores the doubled A and would print A B A B A B instead.',
+  'In the pattern 3, 6, 9, 12, the rule is':
+    'Each term is 3 more than the one before: 3 + 3 = 6, 6 + 3 = 9 and 9 + 3 = **12**. Doubling fails at the second step, because 6 doubled is 12 and not 9.',
+  'In the pattern 1, 2, 4, 8, the rule is':
+    'Every term is twice the previous one: 1 x 2 = 2, 2 x 2 = 4 and 4 x 2 = **8**. Adding 2 each time matches 2 and 4 by accident but would give 6 next instead of 8.',
+  'A regular shape has':
+    'A shape is **regular** only when every side has the same length and every angle has the same size, so it looks unchanged after a turn. Having just two equal sides describes an isosceles triangle, a weaker and different condition.',
+  'Which is a regular shape?':
+    'An **equilateral triangle** has three equal sides and three equal 60 degree angles, so it satisfies both parts of regularity. A rectangle has equal angles but two long and two short sides, so its sides are not all equal.',
+  'Tessellation means shapes fit together':
+    'A **tessellation** covers the surface completely, so the shapes meet edge to edge with no gaps left and no area counted twice. Allowing small gaps breaks the tiling, because the pieces then do not fill the region.',
+  'Which shape does NOT tessellate by itself?':
+    'A **circle** touches its neighbours only at single points, so curved gaps always remain between packed circles. Triangles, squares and hexagons fit around a point to exactly 360 degrees, which is why each can tile alone.',
+  'An isosceles triangle has':
+    'An **isosceles triangle** has exactly two sides of equal length, and the angles opposite those equal sides are equal too. Three equal sides makes the triangle equilateral, a stronger condition than isosceles.',
+  'In a parallelogram, opposite sides are':
+    'In a **parallelogram** both pairs of opposite sides are equal in length and run parallel, which lets the shape slide onto itself when shifted. Sides that are equal but not parallel buckle the figure into a kite or a trapezium.',
+  'How many equal sides does an isosceles triangle have?':
+    'An **isosceles triangle** has exactly two equal sides, and they sit opposite the two equal base angles. Replying three describes an equilateral triangle, which has one more equal side.',
+  'How many grams are there in 4 kilograms?':
+    'Because 1 kg = 1000 g, the conversion is 4 x 1000 = **4000 g**. Adding one zero instead of three gives 400, a place-value slip that makes the mass ten times too small.',
+  'A jug has 2 L 250 mL of juice. 750 mL is poured out. How much juice is left?':
+    'Change to one unit first: 2250 mL - 750 mL = 1500 mL, which is **1 L 500 mL**. Borrowing a litre but subtracting the 750 from that litre alone (1000 - 750 = 250) loses the extra 250 mL and gives 1 L 250 mL.',
+  'A bag of rice weighs 5 kg. What is the total weight of 8 such bags?':
+    'Multiply the mass of one bag by the number of bags: 5 x 8 = **40 kg**. Adding 5 and 8 instead of multiplying gives 13 kg, treating repeated weight as a single sum.',
+  'A truck carries 2 tonnes 500 kg of sand and unloads 1 tonne 750 kg. How much sand remains?':
+    'Write both loads in kilograms: 2500 - 1750 = **750 kg** left on the truck. Treating a tonne as 100 kg instead of 1000 kg keeps 1 tonne 750 kg, which is far too much sand.',
+  'A rice sack weighs 9 kg 750 g. After some rice is used, it weighs 3 kg 700 g. How much rice was used?':
+    'Subtract like units: 750 g - 700 g = 50 g and 9 kg - 3 kg = 6 kg, so **6 kg 50 g** was used. Reading 50 g as 500 g pads the answer to 6 kg 500 g, a tenths-place error.',
+  'What is 2 kg 500 g + 1 kg 750 g?':
+    'Add the grams first: 500 + 750 = 1250 g, which is 1 kg 250 g, so the kilograms become 2 + 1 + 1 = 4 and the total is **4 kg 250 g**. Dropping the carried kilogram gives 3 kg 250 g.',
+  'How many millilitres are there in 3 litres?':
+    'One litre holds 1000 mL, so 3 litres hold 3 x 1000 = **3000 mL**. Using 100 mL per litre gives 300 mL, a hundredfold error in the conversion.',
+  'What is 2 l 500 ml + 2 l 800 ml?':
+    'Add the millilitres: 500 + 800 = 1300 mL, which is 1 L 300 mL, so the litres total 2 + 2 + 1 = 5 and the sum is **5 L 300 mL**. Forgetting to carry the litre keeps the answer at 4 L 300 mL.',
+  'How many grams make one kilogram?':
+    'The metric system sets **1 kilogram = 1000 grams**, which is why a 1 kg sugar pack is printed as 1000 g. Using 100 g would make a kilogram a hundred times too light.',
+  '2 kg 250 g is the same as':
+    'Two whole kilograms are 2 x 1000 = 2000 g, and 2000 + 250 = **2250 g**. Writing the 250 straight after the 2 as 2025 g treats grams as extra digits of the kilograms.',
+  'One tonne equals':
+    'A **tonne** is 1000 kilograms, which is why lorry loads are quoted in tonnes rather than in kilograms. Choosing 1000 grams mistakes the tonne for the kilogram.',
+  'Which unit is used for very light things like medicine?':
+    'A **milligram** is one thousandth of a gram, so it suits the tiny doses printed on a medicine strip. A litre measures volume rather than mass, so it cannot weigh a tablet.',
+  'What is 3 kg 400 g + 2 kg 700 g?':
+    'Add the grams: 400 + 700 = 1100 g, which is 1 kg 100 g, so the kilograms total 3 + 2 + 1 = 6 and the sum is **6 kg 100 g**. Ignoring the carry leaves 5 kg 100 g, one whole kilogram short.',
+  'What is 1 kg 500 g x 3?':
+    'Multiply each part by 3: 1 kg x 3 = 3 kg and 500 g x 3 = 1500 g = 1 kg 500 g, so the total is **4 kg 500 g**. Multiplying only the kilograms and leaving 500 g untouched gives 3 kg 500 g.',
+  'What is 6 kg divided by 4?':
+    'Six kilograms is 6000 g, and 6000 / 4 = 1500 g, which is **1 kg 500 g**. Rounding the divisor to 3 would give 2 kg, too large for the same mass.',
+  'How many millilitres make one litre?':
+    'A **litre** is defined as 1000 millilitres, so a 1 L bottle holds 1000 mL and 1000 mL fills it exactly. Using 100 mL makes the litre only a tenth of its real size, the same error as reading 1 kg as 100 g.',
+  'What is 2 L 300 mL + 1 L 900 mL?':
+    'Add the millilitres: 300 + 900 = 1200 mL, which is 1 L 200 mL, so the litres total 2 + 1 + 1 = 4 and the sum is **4 L 200 mL**. Copying the 1200 across as 120 mL gives the stray 4 L 120 mL.',
+  'What is 5 L 600 mL - 2 L 800 mL?':
+    'Borrow one litre as 1000 mL: 5600 - 2800 = 2800 mL, which is **2 L 800 mL**. Subtracting 600 from 800 to get 200 and then keeping 3 litres gives the 3 L 200 mL slip.',
+  'What is 3,600 ÷ 100?':
+    'Dividing by 100 removes two zeros, so 3600 / 100 = **36**, because 100 x 36 = 3600 checks out. Removing only one zero gives 360, which is dividing by 10 instead of 100 and leaves the answer ten times too big.',
+  'Since 9 × 7 = 63, what is 63 ÷ 9?':
+    'Division undoes multiplication, so the missing factor that multiplies 9 to give 63 is **7**. Answering 9 copies the divisor instead of finding the number of groups.',
+  'Divide 47 by 5. Give the quotient and the remainder.':
+    'Nine fives are 45 and 47 - 45 = 2, so the **quotient is 9 with remainder 2**. Stopping at 8 leaves 7 over, which still contains a full group of 5.',
+  'Using splitting, 96 ÷ 8 is worked out as (80 ÷ 8) + (16 ÷ 8). What is the answer?':
+    '80 / 8 = 10 and 16 / 8 = 2, so the split sum is 10 + 2 = **12**, and 8 x 12 = 96 checks it. Swapping in 88 / 8 = 11 and then adding 2 overshoots to 13.',
+  'In 45 / 9 = 5, which number is the divisor?':
+    'The **divisor** is the number you divide by, here 9, so 45 / 9 = 5 means 45 splits into five groups of 9. Choosing 45 names the dividend, the number being divided.',
+  'A number divided by 7 gives 8. What is the number?':
+    'Reverse the division with multiplication: 7 x 8 = **56**, and 56 / 7 = 8 checks it. Adding 7 and 8 to get 15 uses the wrong operation, because the whole before sharing is wanted.',
+  'What is 4,200 / 60?':
+    'Cancel one zero from each number: 4200 / 60 = 420 / 6 = **70**, since 60 x 70 = 4200. Cancelling both zeros and dividing 42 by 6 gives 7, ten times too small.',
+  'If 6 x 8 = 48, then 48 divided by 6 is':
+    'Since 6 x 8 = 48, splitting 48 into 6 equal groups puts **8** in each group. Answering 6 repeats the divisor rather than the missing factor.',
+  'Division and multiplication are':
+    'Multiplication builds a total from equal groups and division splits that total back again, so the two are **inverse operations**. Calling them the same ignores that one makes the number larger and the other smaller.',
+  'In 56 divided by 7 = 8, the dividend is':
+    'The **dividend** is the number being divided, here 56, which is shared into groups of 7. Choosing 8 names the quotient, the size of each group.',
+  'What is 450 divided by 10?':
+    'Dividing by 10 removes one zero, so 450 / 10 = **45**, which 10 x 45 = 450 confirms. Multiplying instead gives 4500, ten times too large for the same number.',
+  'What is 3,000 divided by 100?':
+    'Dividing by 100 removes two zeros, so 3000 / 100 = **30**, since 100 x 30 = 3000. Removing a single zero gives 300, as if the divisor were 10 and not 100.',
+  'What is 84 divided by 4 using place value?':
+    'Split 84 by place value: 80 / 4 = 20 and 4 / 4 = 1, so 20 + 1 = **21**. Dividing the 4 by 1 instead of by 4 turns the parts into 20 + 4 = 24.',
+  'To divide 96 by 3, split 96 into':
+    'Splitting 96 by place value gives 90 + 6, and 90 / 3 = 30 with 6 / 3 = 2 gives **32**. Splitting as 9 and 6 drops a zero, so the tens part becomes ten times too small.',
+  'What is 72 divided by 6 by splitting?':
+    'Split 72 as 60 + 12: 60 / 6 = 10 and 12 / 6 = 2, so 10 + 2 = **12**. Writing 72 / 6 = 6 copies the divisor, and splitting as 70 + 2 leaves a part that 6 cannot divide exactly.',
+  'What is 96 divided by 8 by splitting?':
+    '80 / 8 = 10 and 16 / 8 = 2, so the split sum is 10 + 2 = **12**. Splitting as 40 + 40 only reaches 5 + 5 = 10, two short of the true quotient.',
+  'What is the remainder when 29 is divided by 4?':
+    'Four sevens are 28, and 29 - 28 = 1, so the **remainder** is 1. Stopping at 4 x 6 = 24 leaves 5, which is larger than the divisor and so still holds another full group.',
+  'The remainder is always less than':
+    'After the largest possible number of full groups is taken out, the **remainder** must be smaller than the divisor, or one more group would fit. Saying it is less than zero is impossible, because a remainder is never negative.',
+  'Which capital letter has a vertical line of symmetry?':
+    'Letter A folds along a vertical line through its pointed top, so the left leg lands exactly on the right leg and **A** has a vertical line of symmetry. P is chosen by mistake because its loop suggests a fold, but the bowl sits on one side only and the two halves never match.',
+  'A half turn is the same as a rotation of how many degrees?':
+    'A full turn is 360 degrees, so a half turn is 360 divided by 2 = **180 degrees**. Picking 90 degrees confuses a half turn with a quarter turn, which covers only one quarter of the circle.',
+  'The capital letter H has a vertical line of symmetry. Does it also have a horizontal line of symmetry?':
+    'H matches itself when folded left over right and again when folded top over bottom, so the answer is **Yes**. A learner who tested only the upright fold answers no, missing that the two crossbars are identical and meet the middle.',
+  'A square is rotated about its centre until it first looks exactly the same as before. Through what angle has it turned?':
+    'A square has four identical sides, so a full turn of 360 degrees divides into 360 divided by 4 = **90 degrees** before it first looks the same. Answering 180 degrees counts two sides at a time and skips the first matching position.',
+  'Which capital letter has a vertical line of symmetry but no horizontal line of symmetry?':
+    'A folds in half down its middle, but folding it top over bottom fails because the legs stay low and the point stays high, so **A** has no horizontal line. Testing O by eye is the slip, since O actually folds both ways and is not the odd one out.',
+  'Which digit looks the same after a half turn?':
+    'Turning 8 through 180 degrees lands both loops exactly where they were, so **8** reads the same after a half turn. 5 is picked at a glance, but a half turn moves its flat top bar to the bottom, which is not how 5 is drawn.',
+  'How many times does the digit 8 look the same during one full turn, counting its position at the start and at the end?':
+    'The digit **8** matches itself at the start and again after the 180 degree half turn, so it looks the same 2 times in a full turn. Counting 4 assumes quarter turn symmetry, yet a 90 degree turn leaves both loops lying sideways.',
+  'A vertical line of symmetry divides a shape into':
+    'A vertical fold runs from the top edge to the bottom edge, so the two parts stand side by side as **left and right halves**. Top and bottom halves belong to a horizontal fold, where the dividing line runs across the shape instead.',
+  'Which letter has a vertical line of symmetry?':
+    'A fold down the middle of **A** lays the left stroke onto the right stroke, so the letter has a vertical line of symmetry. G is chosen because its curve looks balanced, but a small bar juts out on one side and no straight fold matches the halves.',
+  'A horizontal line of symmetry divides a shape into':
+    'A horizontal fold runs across the middle, leaving one part above the other, so the two pieces are **top and bottom halves**. Left and right halves describe the vertical fold, which splits the shape from side to side instead.',
+  'Which letter has a horizontal line of symmetry?':
+    'Folding **E** along a line through its middle bar stacks the top arm onto the bottom arm, so the two halves match. L is ruled out by mistake as though it mirrored E, but L has a long base and no middle arm, so no horizontal fold works.',
+  'Which letter has no line of symmetry?':
+    '**F** carries a top arm and a middle arm on the right only, so no fold, upright or across, makes its halves coincide. M is rejected on the feeling that slanted strokes cannot fold, yet a vertical fold through its centre matches the two peaks.',
+  'Which letter has both vertical and horizontal symmetry?':
+    '**H** folds left onto right along a vertical line and top onto bottom along a horizontal line, because its two uprights and its crossbar are identical. B is chosen for its straight spine, but the upper loop is smaller than the lower one, so the halves differ.',
+  'Which digit has a vertical line of symmetry?':
+    'Folding **8** down its middle lays the left loop onto the right loop, so the digit matches itself across a vertical line. 6 is picked because it looks nearly round, but its loop sits at the bottom with a tail curling up, so the sides differ.',
+  'A shape has quarter turn symmetry if it looks the same after a turn of':
+    'A quarter of a full 360 degree turn is 360 divided by 4 = **90 degrees**, the turn after which the shape first repeats. 180 degrees is chosen by mixing up quarter and half, since a half turn is two quarters.',
+  'Which shape has quarter turn symmetry?':
+    '**A square** repeats after every 90 degree turn because its four sides and four right angles are identical. A rectangle repeats only at 180 degrees, so it has half turn symmetry but never quarter turn symmetry.',
+  'A half turn is':
+    'Half of a full 360 degree turn is 360 divided by 2 = **180 degrees**. 90 degrees is the quarter turn, so picking it splits the half turn one step too far.',
+  'Which shape looks the same after a half turn?':
+    '**A rectangle** returns to its own outline after a 180 degree turn, because the two long sides swap and the two short sides swap. A kite is picked for looking even, but its long axis and short axis trade places, so a half turn does not match it.',
+  'A rectangle is 9 cm long and 4 cm wide. What is its perimeter?':
+    'The four sides add to 9 + 4 + 9 + 4, that is 2 x (9 + 4) = 2 x 13 = **26 cm**. 36 cm comes from multiplying 9 by 4, which measures the area inside rather than the distance round the edge.',
+  'A rectangle is 12 cm long and 5 cm wide. What is its area?':
+    'Area is length times breadth, so 12 x 5 = **60 square cm**. The 34 square cm answer comes from adding 12 + 5 = 17 and doubling it, which gives the perimeter and not the space covered.',
+  'A square has a side of 15 cm. Find its perimeter.':
+    'A square has four equal sides, so its perimeter is 4 x 15 = **60 cm**. Squaring 15 to get 225 would give the area, which counts the space inside instead of the boundary length.',
+  'Two rectangles each have an area of 36 cm²: one is 9 cm × 4 cm and the other is 12 cm × 3 cm. Which has the greater perimeter?':
+    'The 9 cm x 4 cm rectangle has perimeter 2 x 13 = 26 cm, while the 12 cm x 3 cm one has 2 x 15 = **30 cm**, so the longer, thinner rectangle wins. Assuming equal areas must give equal perimeters is the slip, since stretching a shape lengthens its boundary.',
+  'A page is completely covered by square stickers of side 1 cm. There are 9 rows with 7 stickers in each row. What is the area of the page?':
+    'Nine rows of seven stickers give 9 x 7 = **63** unit squares, so the page area is 63 square cm. Writing 63 cm drops the word square and turns an area into a length that a covered page does not have.',
+  'The perimeter of a rectangle 8 cm by 5 cm is':
+    'The four sides add to 8 + 5 + 8 + 5, that is 2 x (8 + 5) = 2 x 13 = **26 cm**. 40 cm comes from 8 x 5, which is the area of the rectangle and not the walk around its edge.',
+  'The perimeter of a rectangle equals':
+    'Walking right round the rectangle adds length, breadth, length, breadth, which collapses to **2 x (length + breadth)**. Length x breadth is the area rule, so choosing it counts unit squares instead of edge length.',
+  'The perimeter of a square of side 6 cm is':
+    'Four equal sides of 6 cm give 4 x 6 = **24 cm**. 36 cm comes from 6 x 6, which is the area in square centimetres and not the distance round the square.',
+  'A shape covers 7 full squares of a grid. Its area is':
+    'Each grid square counts as one unit of area, so seven covered squares give **7 square units**. Answering 7 units drops the word square and reports a length instead of the space covered.',
+  'The area of a rectangle 9 cm by 4 cm is':
+    'Area is length times breadth, so 9 x 4 = **36 square cm**. 26 square cm comes from 2 x (9 + 4), the perimeter value, and that number belongs in plain centimetres, not square centimetres.',
+  'The area of a rectangle equals':
+    'Area counts the unit squares inside, that is length rows of breadth squares, so the rule is **length x breadth**. 2 x (length + breadth) walks round the boundary and returns the perimeter instead.',
+  'Two rectangles can have the same area but different':
+    'Two rectangles can hold the same number of unit squares yet need different lengths of boundary, so they differ in **perimeters**. Angles is wrong because every rectangle has four 90 degree corners whatever its size.',
+  'Which has the smaller perimeter for the same area?':
+    'For a fixed area the **square** packs it most tightly, so area 36 as a 6 x 6 square has perimeter 24, while a 2 x 18 strip of the same area needs 40. A long thin rectangle is chosen for looking bigger, but stretching the same area adds boundary.',
+  'A square has side 9 cm. Its perimeter is':
+    'Four equal sides of 9 cm give 4 x 9 = **36 cm**. 81 cm comes from 9 x 9, which is the area in square centimetres and not the distance around the square.',
+  'A square of side 3 units covers how many unit squares?':
+    'A 3 by 3 square holds 3 rows of 3 unit squares, that is 3 x 3 = **9**. 6 is picked by adding 3 + 3, which counts two sides of the square instead of the squares inside it.',
+  'How many minutes are there in 3 hours?':
+    'One hour is 60 minutes, so three hours make 3 x 60 = **180** minutes. 300 comes from treating an hour as 100 minutes, a decimal habit that the clock does not follow.',
+  'How is 4:45 p.m. written in the 24-hour format?':
+    'For a p.m. time after noon add 12 to the hour: 4 + 12 = 16, so 4:45 p.m. is **16:45 hours**. 14:45 comes from adding 10 instead of 12, which lands two hours too early.',
+  'A film starts at 6:40 p.m. and ends at 8:15 p.m. How long is the film?':
+    'From 6:40 to 7:40 is one hour, then 7:40 to 8:15 adds 35 minutes, so the film runs **1 hour 35 minutes**. Reading 8:15 minus 6:40 straight across gives 2 hours 25 minutes, which forgets to borrow 60 minutes.',
+  'A train journey takes 2 hours 45 minutes and the train reaches at 11:20 a.m. At what time did it start?':
+    'Take back 2 hours from 11:20 to reach 9:20, then borrow an hour to take back 45 minutes: 9:20 - 45 = **8:35 a.m.** Going back 2 hours 35 minutes instead of 45 lands on 8:45, ten minutes late.',
+  'In a race, Akira took 1 minute 55 seconds, Sunita took 1 minute 56 seconds and Mary took 1 minute 57 seconds. Who won the race?':
+    'The smallest time wins, and 1 minute 55 seconds is less than 1 minute 56 and 1 minute 57, so **Akira** finished first. Picking Mary reverses the rule by treating the largest number of seconds as the best result.',
+  'How many seconds are there in 2 minutes?':
+    'One minute is 60 seconds, so two minutes make 2 x 60 = **120 seconds**. 200 seconds comes from counting a minute as 100 seconds, which is the decimal slip again.',
+  'How many minutes and seconds are there in 320 seconds?':
+    'Divide 320 by 60 to get 5 whole minutes with 20 seconds left over, so 320 seconds is **5 minutes 20 seconds**. 6 minutes 20 seconds rounds the 5 up and would need 380 seconds.',
+  '3 p.m. on a 24-hour clock is':
+    'For an afternoon time add 12 to the hour: 3 + 12 = 15, so 3 p.m. is **15:00**. 13:00 comes from adding 10, which would make it 1 p.m. instead.',
+  '18:30 on a 12-hour clock is':
+    'Subtract 12 from the hour and keep p.m.: 18 - 12 = 6, so 18:30 is **6:30 p.m.** 8:30 p.m. comes from subtracting 10, a decimal habit rather than the 12-hour clock.',
+  'How many seconds are there in one minute?':
+    'The second hand needs **60** ticks to travel once round the dial, so one minute holds 60 seconds. 100 comes from switching to a hundred based count that clocks never use.',
+  'The second hand moves one small division in':
+    'The dial is cut into 60 small divisions and the second hand crosses one of them each second, so one division is **one second**. Five seconds is the gap between two big number marks, which spans five small divisions.',
+  'How many minutes are there in one hour?':
+    'The minute hand comes back to the same mark after **60** minutes, so one hour holds 60 minutes. 24 is the number of hours in a day, which is a different unit altogether.',
+  '2 hours 15 minutes equals':
+    'Two hours is 2 x 60 = 120 minutes, and adding 15 gives **135 minutes**. 215 comes from writing the hours and the minutes side by side as digits without converting.',
+  '3 minutes equals':
+    'Three minutes of 60 seconds each make 3 x 60 = **180 seconds**. 300 seconds comes from treating a minute as 100 seconds, which stretches every minute by 40.',
+  'A film starts at 6:15 p.m. and ends at 8:00 p.m. How long is it?':
+    'From 6:15 to 7:15 is one hour and from 7:15 to 8:00 is 45 minutes, so the film lasts **1 hour 45 minutes**. 2 hours is chosen by reading only the 6 and the 8 and ignoring the quarter hour at the start.',
+  'Elapsed time means':
+    'Elapsed time is the gap measured from the start to the finish, so it is **the time between the start and the finish**. Adding the two clock times is the mistake, because a start time plus a finish time is not a duration.',
+  'A class ends at 11:30 and lasted 45 minutes. It started at':
+    'Borrow an hour to subtract 45 minutes from 11:30: 10:90 - 45 = **10:45**. 12:15 comes from adding 45 instead of subtracting, which puts the start after the end.',
+  'A train leaves at 9:20 and takes 1 hour 40 minutes. It arrives at':
+    '9:20 plus 1 hour is 10:20, and 20 minutes plus 40 minutes makes a full 60 minutes, so the train arrives at **11:00**. 11:40 comes from adding hours and minutes separately as 9 + 1 and 20 + 40 without carrying.',
 };
