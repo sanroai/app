@@ -3842,4 +3842,640 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'Borrow an hour to subtract 45 minutes from 11:30: 10:90 - 45 = **10:45**. 12:15 comes from adding 45 instead of subtracting, which puts the start after the end.',
   'A train leaves at 9:20 and takes 1 hour 40 minutes. It arrives at':
     '9:20 plus 1 hour is 10:20, and 20 minutes plus 40 minutes makes a full 60 minutes, so the train arrives at **11:00**. 11:40 comes from adding hours and minutes separately as 9 + 1 and 20 + 40 without carrying.',
+  'How many factors does 12 have?':
+    'Listing the factor pairs of 12 gives 1 x 12, 2 x 6 and 3 x 4, so the factors are 1, 2, 3, 4, 6 and 12, which is **6** factors. Answering 4 counts only the pairs and forgets that each pair supplies two different factors.',
+  'What is the greatest common factor of 18 and 24?':
+    'Breaking down gives 18 = 2 x 3 x 3 and 24 = 2 x 2 x 2 x 3, so the shared part is 2 x 3 = **6**. Picking 12 fails because 12 does not divide 18 evenly, since 18 / 12 leaves a remainder of 6.',
+  'Find the lowest common multiple of 6 and 8.':
+    'The multiples of 6 are 6, 12, 18, 24 and the multiples of 8 are 8, 16, 24, so the first one they share is **24**. Multiplying 6 x 8 = 48 also gives a common multiple, but it is not the lowest one.',
+  'A frog jumps 4 steps at a time from 0 and a rabbit jumps 6 steps at a time from 0. What is the first number after 0 on which both land?':
+    'The frog lands on 4, 8, 12, 16 and the rabbit on 6, 12, 18, so the first shared landing is **12**. Picking 24 finds a later common landing and ignores that 12 is reached first.',
+  'Robby the rabbit takes jumps of 4 starting from 0. Which of these numbers will Robby land on?':
+    'Jumping 4 at a time from 0 gives 4, 8, 12, 16, 20, 24, so **24** is one of the landings. 34 is not reachable because 34 / 4 = 8 remainder 2, so the jump overshoots it.',
+  'Which of these numbers is a prime number?':
+    '13 has only the two factors 1 and 13 and cannot be split into smaller equal groups, so it is **prime**. 15 is not prime because 15 = 3 x 5, which gives it the extra factors 3 and 5.',
+  'Which pair contains two prime numbers?':
+    '7 and 11 each have only 1 and themselves as factors, so both are **prime**. The pair 9 and 11 fails because 9 = 3 x 3, giving it three factors.',
+  'Which number is a common multiple of 4 and 6?':
+    'Multiples of 4 are 4, 8, 12 and multiples of 6 are 6, 12, so **12** appears in both lists. 16 is a multiple of 4 only, because 16 / 6 is not a whole number.',
+  'The smallest common multiple of 3 and 5 is':
+    '3 and 5 share no factor other than 1, so their smallest common multiple is 3 x 5 = **15**. Choosing 30 doubles it and is a common multiple, but not the smallest one.',
+  'Which number is a factor of 20?':
+    '20 = 5 x 4 exactly, so **5** divides 20 with no remainder and leaves nothing over. 6 is not a factor because 20 / 6 = 3 remainder 2, so the division is not exact.',
+  'Which is a multiple of 6?':
+    'Counting by sixes gives 6, 12, 18, so **18** is a multiple of 6. 16 does not work because 16 / 6 = 2 remainder 4, so it falls between two multiples.',
+  'The multiples of a number are found by':
+    'Multiples come from skip counting by the number, that is **multiplying it by 1, 2, 3, and so on**, as in 4, 8, 12. Adding 1 each time just counts upward by ones and never builds the multiples of a number.',
+  'Which is a common factor of 12 and 18?':
+    'The factors of 12 are 1, 2, 3, 4, 6, 12 and of 18 are 1, 2, 3, 6, 9, 18, so **6** divides both. 8 works for neither, since 12 / 8 and 18 / 8 both leave a remainder.',
+  'A common factor divides':
+    'A factor leaves no remainder, so a **common factor divides both numbers exactly**. Naming only the larger number describes an ordinary factor and ignores that the divisor must work for both.',
+  'Starting at 0 and jumping 4 at a time, the third landing is at':
+    'The jumps give 4 after one, 8 after two and 12 after three, so the third landing is at **12**. Answering 8 stops at the second landing, one jump short.',
+  'Jumps of 5 on a number line land on the multiples of':
+    'Jumping 5 at a time from 0 gives 0, 5, 10, 15, so every landing is a multiple of **5**. 10 is itself one of those landings, not the number whose multiples they are.',
+  'Which number is NOT a factor of 24?':
+    'The factors of 24 are 1, 2, 3, 4, 6, 8, 12 and 24, so **5** is absent and 24 / 5 = 4 remainder 4. 12 is a true factor because 12 x 2 = 24 exactly.',
+  'Which of these is NOT a prime number?':
+    '9 = 3 x 3, so it has three factors, 1, 3 and 9, and is therefore **not prime**. 7 is prime because nothing other than 1 and 7 divides it evenly.',
+  'Which direction is opposite to East?':
+    'East and **West** sit at the two ends of the same compass line, so West is the exact opposite of East. North stands at right angles to East, which makes it a turn of 90 degrees rather than a reversal.',
+  'The Sun rises in the East. If you stand facing the rising Sun, which direction is on your left?':
+    'Facing the sunrise means facing **North**, because West is then behind you and your left hand points north. Choosing South describes the hand on your right, which is the reverse side.',
+  'On a map, one star symbol stands for 5 temples. What do 4 such symbols stand for?':
+    'Each star carries the value 5, so 4 stars give 4 x 5 = **20 temples**. A slip of adding 4 and 5 to get 9 ignores that every symbol is worth a whole 5.',
+  'On a map, the market is 3 km north of the school and the park is 4 km east of the school. What is the length of the route from the market to the park through the school?':
+    'Travelling through the school means going 3 km down to the school and then 4 km across, so 3 + 4 = **7 km**. The 5 km figure is the straight shortcut from market to park, which skips the school entirely.',
+  'A classroom has 5 rows of desks with 6 desks in each row. How many desks are there in all?':
+    'Five rows holding six desks each give 5 x 6 = **30** desks. 11 comes from adding 5 + 6, which treats a row count and a desk count as if they could simply be summed.',
+  'On the zoo grid, a point is 6 steps east and 2 steps north of 0. How is its position written?':
+    'A grid position lists the east steps first and the north steps second, so 6 east and 2 north is **(6, 2)**. Reversing the pair to (2, 6) swaps the two directions and marks a different square.',
+  'Which are the four cardinal directions?':
+    'The four cardinal directions are **north, south, east and west**, the fixed points of a compass. Up, down, left and right change as you turn, so they cannot name a fixed direction on a map.',
+  'On most maps, north is shown':
+    'By convention **north** is drawn at the top of a map, with south at the bottom. Putting north at the bottom flips the map upside down and would place south on top.',
+  'In the morning, the Sun rises in the':
+    'The Sun comes over the horizon in the **east**, which is why that side is bright at dawn. West is the side where it sets in the evening, the opposite edge of the sky.',
+  'At noon the Sun is roughly towards the':
+    'India lies north of the equator, so at midday the Sun stands roughly towards the **south**. Calling it east describes the sunrise position, several hours earlier in the day.',
+  'A map key explains':
+    'The **key** lists each symbol beside its meaning, so a reader can decode every mark on the map. The map maker\'s name is only a credit and explains no symbols at all.',
+  'A blue patch on a map usually shows':
+    'Map makers colour water blue, so a blue patch usually stands for a **river, lake or sea**. Green is the colour used for forests, so a blue area cannot be woodland.',
+  'A route on a map shows':
+    'A **route** traces the path from one place to another, often with distances marked along it. Population is a count of people, so it cannot be drawn as a line on a map.',
+  'To go from the school to the market you follow':
+    'The **marked route** is the drawn path joining the two places, so you follow it from start to finish. A random line cuts across buildings and fields and leads nowhere useful.',
+  'In a grid, a row runs':
+    'A **row** runs across the grid from left to right, the same way we read a line of text. Top to bottom describes a column, which is the crossing direction.',
+  'In a grid, a column runs':
+    'A **column** runs down the grid from top to bottom, stacking squares one above another. Left to right is a row, so that choice swaps the two directions.',
+  'A grid reference gives a position using':
+    'A **row and a column** cross at exactly one square, so together they fix a single position. A symbol alone can repeat in many squares, so it cannot single one out.',
+  'Grid references help us to':
+    'Because each row meets each column once, a grid reference locates a place **exactly on a map**. Weight and money are read from scales and notes, not from a map position.',
+  'In a class, 7 children like cricket, 5 like football and 4 like hockey. How many children were asked in all?':
+    'Adding the three groups gives 7 + 5 + 4 = **16** children. 12 comes from adding only the 7 and the 5, leaving the 4 hockey fans out of the count.',
+  'A pictograph uses one symbol for 5 books. How many books do 6 symbols show?':
+    'Each symbol is worth 5 books, so 6 symbols show 6 x 5 = **30 books**. 11 comes from adding 6 and 5, which treats the key value as another symbol.',
+  'A bar graph must show 40 children using bars no taller than 8 units. What scale should be used?':
+    'Sharing 40 children over 8 units gives 40 / 8 = 5, so the scale is **5 children per unit**. A scale of 1 child per unit would need a bar 40 units tall and run off the paper.',
+  'In a pictograph, Monday shows 4 symbols and Tuesday shows 6 symbols, where each symbol stands for 25 visitors. How many more visitors came on Tuesday?':
+    'Tuesday has 2 symbols more than Monday, and 2 x 25 = **50** extra visitors. Working out 6 x 25 = 150 gives Tuesday\'s whole total instead of the difference.',
+  'Ravi recorded the number of cars passing his gate in four hours: 12, 15, 9 and 14. How many cars did he record in all?':
+    'Adding step by step, 12 + 15 = 27, then 27 + 9 = 36 and 36 + 14 = **50** cars. 49 comes from a slip in the final step, since 36 + 14 is 50 and not 49.',
+  'A bar graph uses a scale in which 1 unit on the vertical line stands for 2 children. How high should the bar be to show 10 children?':
+    'Each unit carries 2 children, so 10 children need 10 / 2 = **5 units**. 20 units comes from multiplying 10 by 2, which doubles the height instead of halving it.',
+  'The best way to find the favourite sport of your class is to':
+    'A favourite sport is a personal choice, so you must **ask each student and record the answers**. Guessing produces a belief rather than data, and no one can check it.',
+  'A frequency table shows':
+    'A **frequency table** pairs each value with the number of times it occurs, as 4 appears 3 times. Keeping only the largest value throws away every other count.',
+  'In the data 4, 4, 5, 6, 4, the frequency of 4 is':
+    'Counting the entries, 4 appears at the first, second and fifth places, so its frequency is **3**. Answering 4 repeats the value itself instead of counting how often it appears.',
+  'Why do we choose a scale for a graph?':
+    'A **scale** shrinks each value into a few units, so large numbers still fit in a small space. Hiding the data defeats the purpose, since a graph exists to show it plainly.',
+  'If 1 unit = 5 children, 4 units show':
+    'Four units at 5 children each give 4 x 5 = **20 children**. 9 comes from adding 5 and 4 rather than multiplying the unit value by the number of units.',
+  'In a pictograph, each symbol stands for':
+    'Every symbol is read with the value stated in the **key**, such as 1 symbol = 5 books. Assuming a symbol always means one item undercounts a pictograph by the whole key value.',
+  'If one symbol = 10 books and there are 3 symbols, the total is':
+    'Three symbols at 10 books each give 3 x 10 = **30 books** as the total for that row. 13 comes from adding 10 and 3, mixing the key value with a count of symbols.',
+  'In a bar graph, bars should be':
+    'Bars of **equal width with equal gaps** let the eye compare heights fairly. Joining the bars into a block makes the categories look like one solid shape.',
+  'The height of a bar shows':
+    'The **height of a bar** is drawn to match its value, so the taller bar means the larger count. The colour only separates categories and carries no number at all.',
+  'Which is easiest for comparing many categories?':
+    'A **bar graph** sets the categories side by side, so the tallest bar is spotted at a glance. A paragraph buries the numbers in words and makes comparison slow work.',
+  'If class A has 20 and class B has 32, class B has':
+    'Subtracting gives 32 - 20 = **12**, so class B has 12 more than class A. 52 comes from adding the two totals instead of taking the difference.',
+  'Why should data be recorded as soon as it is collected?':
+    'Writing counts down at once means **no information is forgotten or changed** before it is used. Neatness is only about how the page looks and says nothing about accuracy.',
+  'What is the 5th triangular number?':
+    'Triangular numbers pile up counting numbers: 1, 3, 6, 10 and then 10 + 5 = **15**. Picking 10 stops one row early, since that is only the 4th triangular number.',
+  'Which of these is a square number?':
+    'A square number is a counting number multiplied by itself, and 4 x 4 = **16**, so 16 belongs on the list. Choosing 12 or 20 assumes any even number is a square, but nothing times itself gives them.',
+  'Without adding the numbers one by one, find 1 + 3 + 5 + 7 + 9.':
+    'The first five odd numbers always total 5 x 5 = **25**, so no long addition is needed. Reaching 35 comes from adding the odd numbers as if the total grew step by step without the square pattern.',
+  'What is the difference between the 4th cube number and the 4th square number?':
+    'The 4th cube is 4 x 4 x 4 = 64 and the 4th square is 4 x 4 = 16, so 64 - 16 = **48**. Getting 52 or 60 means one power was mis-multiplied, as when the cube is taken as 68.',
+  'Which is the smallest counting number?':
+    'Counting numbers begin at **1**, so 1 is the smallest, with 2, 3, 4 and so on following it. Treating 0 as the smallest mixes counting numbers up with whole numbers, which do include zero.',
+  'Counting numbers are also called':
+    'The numbers used to count objects are the **natural numbers**, that is 1, 2, 3 and onward. Calling them whole numbers is the near miss, because that set also contains 0.',
+  'Which of these is NOT a counting number?':
+    'Counting begins at 1, so 0 is the only value here that is **not** a counting number. Marking 1 as the odd one out forgets that the counting list starts there, not at zero.',
+  'The Virahanka numbers are also known as':
+    'The Virahanka numbers run 1, 1, 2, 3, 5, 8 under the same rule as the **Fibonacci numbers**, named after a later European writer. Calling them prime numbers ignores that each term is a sum of the two before it.',
+  'Which number comes next in the Virahanka sequence 1, 1, 2, 3, 5, ...?':
+    'Each term is the sum of the two before it, so 3 + 5 = **8** comes next. Answering 7 or 10 assumes the sequence adds a fixed amount each time, which it never does.',
+  'How is each Virahanka number made from the ones before it?':
+    'A Virahanka number is the **sum of the two numbers before it**, as 2 = 1 + 1 and 3 = 1 + 2 show. Doubling the last number breaks at the start, since twice 2 gives 4 and the sequence has 3.',
+  'Triangular numbers are made by adding':
+    'Triangular numbers come from adding **consecutive counting numbers**: 1, then 1 + 2 = 3, then 1 + 2 + 3 = 6. Using consecutive odd numbers instead produces the square numbers 1, 4, 9 and 16.',
+  'What is the 6th square number?':
+    'The 6th square number is 6 x 6 = **36**, since a square multiplies a counting number by itself. Choosing 30 or 42 multiplies 6 by 5 or by 7, which builds a rectangle rather than a square.',
+  'Square numbers are obtained by':
+    'A square number is made by **multiplying a number by itself**, so 5 x 5 = 25. Adding the number twice gives only 10 for 5, which is double the number and not a square.',
+  'What is the cube of 3?':
+    'The cube of 3 is 3 x 3 x 3 = **27**. Answering 9 stops at the square, since 3 x 3 uses only two factors, and 6 comes from adding 3 + 3 instead of multiplying.',
+  'A cube number is a number multiplied by itself':
+    'A cube number multiplies a number by itself **three times**, as 2 x 2 x 2 = 8 shows. Stopping at two times gives a square, which is why 4 is a square but never a cube.',
+  '1 + 3 + 5 + 7 equals':
+    'The first four odd numbers add to 4 x 4 = **16**, since 1 + 3 + 5 + 7 = 16. Answering 15 comes from adding 1 to 5 instead, which gives a triangular number rather than this odd sum.',
+  'The sum of the first n odd numbers is':
+    'The first n odd numbers always total **n squared**, as 1 + 3 = 4 and 1 + 3 + 5 = 9 show. Reading it as 2n gives 6 when n = 3, which is far short of the true 9.',
+  'Which of these is a triangular number?':
+    'Triangular numbers are 1, 3, 6, 10, 15, so **10** belongs on the list as 1 + 2 + 3 + 4. Picking 9 or 12 mistakes a near neighbour for a value the stacking rule actually produces.',
+  'A ray has':
+    'A ray starts at **one end point** and runs on for ever in one direction, like a torch beam. Giving it two end points describes a line segment, which is cut off at both ends.',
+  'An angle of 250° is called':
+    'Any angle bigger than 180 degrees but smaller than 360 is a **reflex angle**, and 250 sits inside that range. Calling it obtuse ignores the limit, since obtuse angles stop below 180 degrees.',
+  'A right angle measures 90°. How many degrees are there in a straight angle?':
+    'A straight angle is two right angles laid together, so 90 + 90 = **180 degrees**. Answering 90 degrees repeats a single right angle and forgets the second arm, which continues along the same line.',
+  'Two angles lie together on one side of a straight line. One of them measures 68°. What is the measure of the other?':
+    'Angles on one side of a straight line add to 180 degrees, so 180 - 68 = **112 degrees**. Getting 132 or 122 means subtracting from 200 or 190 instead of from a straight angle.',
+  'A point shows':
+    'A point marks **an exact position** and nothing else, which is why it is drawn as a dot. Giving it length or width turns it into a line or a shape that takes up space.',
+  'How is a point usually marked in geometry?':
+    'Geometry marks a point with a **small dot and a capital letter**, such as A or P, so it can be named. Using an arrow head would instead show a ray running on for ever.',
+  'A point has':
+    'A point has **no length, no breadth and no thickness**, so it occupies no space at all. Allowing it length but no breadth describes a line, not a point.',
+  'How many end points does a line segment have?':
+    'A line segment is cut off at both ends, so it has **two** end points, for example A and B. Saying it has one end point describes a ray, which runs on for ever at the other end.',
+  'Which of these is an example of a line segment?':
+    'The straight edge of a ruler has two fixed ends, so it models a **line segment**. A ray of light is the standard example of a ray, since it leaves the torch and never stops.',
+  'What is the difference between a line and a line segment?':
+    'A line has **no end points** and runs on for ever both ways, while a line segment is fixed between two points. Saying a line is always shorter reverses the truth, since the segment is the bounded piece.',
+  'A ray of light is a good example of':
+    'Light leaves a torch from one point and travels onward, which is exactly a **ray**. Calling it a line segment would mean the light stops at a second end point, and it does not.',
+  'The common point of the two arms of an angle is the':
+    'The two arms of an angle meet at a single point called the **vertex**, usually labelled with a capital letter. Naming a ray or a segment describes one arm only, not the point where they meet.',
+  'An angle is formed by two rays':
+    'An angle needs two rays that **meet at a common point**, and the opening between them is the angle. Rays that never meet stay parallel, so they enclose no angle at all.',
+  'Angles are measured in':
+    'Angles are measured in **degrees**, so a right angle is 90 degrees and a straight angle is 180. Centimetres measure length and grams measure mass, so neither can describe a turn.',
+  'Which instrument measures an angle?':
+    'A **protractor** is the half disc marked 0 to 180 that sits on the vertex to read an angle. A ruler measures straight length and a compass draws circles, so neither reads degrees.',
+  'A reflex angle is greater than':
+    'A reflex angle is larger than a straight angle, so it is **greater than 180 degrees** yet still under 360. Saying greater than 90 degrees wrongly includes obtuse angles such as 120 degrees.',
+  'Which of these is a reflex angle?':
+    'A reflex angle lies between 180 and 360 degrees, so **270 degrees** is the reflex one here. Marking 180 degrees fails because that is a straight angle, exactly half a turn.',
+  'A ray is named with':
+    'A ray is named with **its end point first**, as in ray AB, because that is where the ray begins. Using three letters always is the angle rule, since an angle has a vertex between two arm points.',
+  'What is the sum of the digits of 4,729?':
+    'Add every digit: 4 + 7 + 2 + 9 = **22**. Arriving at 20 means one digit was skipped, as happens when the 2 in the hundreds place is overlooked.',
+  'Which of these numbers is a palindrome?':
+    'A palindrome reads the same both ways, and 4,554 reversed is still **4,554**. Choosing 3,452 fails because reversing it gives 2,543, which is a different number.',
+  'What is the Kaprekar constant for three-digit numbers?':
+    'Three-digit Kaprekar steps always end at **495**, as in 532 - 235 = 297, then 972 - 279 = 693, and the chain settles at 495. Stopping at 6174 mixes up the four-digit constant with the three-digit one.',
+  'In the Collatz rule an odd number is tripled and 1 is added. Starting from 7, what is the next number?':
+    'An odd number is tripled and 1 added, so 3 x 7 + 1 = **22** is the next number after 7. Answering 21 only triples 7 and forgets the plus 1 that the rule requires.',
+  'In the Number Play game, a supercell holds a number that is':
+    'A supercell holds the **sum of its neighbours**, so the numbers around it decide its value. Treating it as the largest number in the grid ignores the adding rule completely.',
+  'What is the aim of the supercell game?':
+    'The aim is to **fill every cell so that each number equals the sum of its neighbours**, making the whole grid consistent. Leaving cells empty dodges the work and never satisfies the rule.',
+  'If two neighbours of a cell hold 3 and 4, what number should the supercell hold?':
+    'A supercell is the sum of its neighbours, so 3 + 4 = **7**. Multiplying to get 12 treats the neighbours as factors, which the rule never asks for.',
+  'What does a winning strategy in a number game mean?':
+    'A winning strategy is **a plan that always wins if you play it correctly**, whatever the opponent does. Copying the opponent\'s moves only works by luck, since it leaves them in control.',
+  'Why is it useful to look for a pattern while playing a number game?':
+    'Patterns show how the numbers behave, so they **help you find a winning strategy**. Saying a pattern is of no use misses that every shortcut in the game comes from one.',
+  'In a two-player number game, working backwards from the target number helps you':
+    'Working backwards from the target shows the replies that force a win, so you can **plan your moves ahead**. Forgetting the total leaves you guessing each turn instead of steering towards it.',
+  'Which number is a palindrome?':
+    '1,221 reversed is still **1,221**, so it reads the same both ways. Picking 1,212 fails because reversing it gives 2,121, which is a different number.',
+  'A palindrome reads the same':
+    'A palindrome reads **forwards and backwards** as the same number or word, like 1221 or madam. Reading it only forwards describes any number, so it names nothing special.',
+  'What is the digit sum of 4,729?':
+    'Digit sum means adding each digit: 4 + 7 + 2 + 9 = **22**. Getting 18 or 13 means a digit was dropped or two digits were joined before adding.',
+  'The digit sum is found by':
+    'The digit sum comes from **adding all the digits of a number**, so 456 gives 4 + 5 + 6 = 15. Counting the digits gives 3 for 456, which is how many there are, not their total.',
+  'The Kaprekar constant for three-digit numbers is':
+    'Three-digit Kaprekar steps settle on **495**, for example 532 - 235 = 297 and then 972 - 279 = 693 lead there. Choosing 6174 is the four-digit constant, which a three-digit number cannot reach.',
+  'The Kaprekar constant for four-digit numbers is':
+    'Four-digit Kaprekar steps settle on **6174**, as 7,641 - 1,467 = 6,174 shows in a single step. Choosing 495 is the three-digit constant, so a four-digit number never lands there.',
+  'In the Collatz rule, an even number is':
+    'In the Collatz rule an even number is **halved**, so 8 becomes 4 and 10 becomes 5. Tripling and adding 1 is the odd branch, which would send 8 up to 25 instead of down.',
+  'In the Collatz rule, an odd number (other than 1) is':
+    'An odd number is **tripled and increased by 1**, so 7 becomes 3 x 7 + 1 = 22. Halving instead would give a fraction such as 3.5, which is outside the counting numbers.',
+  'How many tally marks are bundled together to make one group?':
+    'Tally marks are bundled in fives: four upright strokes with one diagonal stroke drawn across them make **5**. A bundle of ten would need ten separate strokes before it closed, and a bundle of four would leave the fifth mark stranded.',
+  'In a survey of 20 children, 8 chose mango and 5 chose apple. How many chose neither?':
+    'Mango and apple account for 8 + 5 = 13 children, so the rest chose neither: 20 - 13 = **7**. Answering 15 adds 8 and 5 but never subtracts them from 20, so it counts the children who did choose a fruit.',
+  'In a pictograph one symbol stands for 4 cars. How many cars does a row of 7 symbols show?':
+    'Each symbol stands for 4 cars, so 7 symbols show 7 x 4 = **28 cars**. Reading a row of 7 symbols as 7 cars forgets to multiply by the key value of 4.',
+  'A bar graph shows three bars of 4, 6 and 8 units, where 1 unit stands for 15 students. How many students do the three bars show in all?':
+    'The bars total 4 + 6 + 8 = 18 units, and each unit is 15 students, so 18 x 15 = **270 students**. Answering 300 assumes 20 units of 15, which adds a fourth bar that the graph does not have.',
+  'What is data?':
+    'Data means **information collected about something**, such as the heights or favourite fruits of a class, before it is sorted or drawn. A graph is only one way of presenting data, so calling data a kind of graph confuses the numbers with the picture.',
+  'What is the best way to find the favourite fruit of your class?':
+    'A survey in which you **ask each student and record the answers** gives every child\'s real choice exactly once. Guessing the answer replaces evidence with opinion, so the result cannot be checked or counted.',
+  'What is a tally mark used for?':
+    'A tally mark is a quick stroke for **counting how often something occurs**, one mark per item as you go. Drawing a graph is a later step that uses those counts, so it is not what the mark itself does.',
+  'What does a bar graph use to show data?':
+    'A bar graph shows each group as a **bar of different heights**, and the taller the bar the larger the count. A circle divided into parts is a pie chart, which shows shares of a whole rather than counts.',
+  'In a bar graph, what does the height of a bar show?':
+    'The height of each bar, read against the vertical scale, shows **how many items are in that group**. The colour or the name only labels the group, so neither changes when the count changes.',
+  'Why must all the bars in a bar graph be the same width?':
+    'Equal widths keep the bars comparable, so a taller bar always means more and the graph stays **easy and fair to read**. Making a bar wider to look pretty would let it seem bigger without any change in the data.',
+  'Tally marks are grouped in':
+    'Tally marks are grouped in **fives** so that long counts stay readable: four upright strokes plus one diagonal stroke make a bundle of 5. Grouping in tens would need ten separate strokes before any bundle could be closed.',
+  'Four vertical marks with one diagonal stroke stand for':
+    'The four upright strokes count 1, 2, 3, 4 and the diagonal stroke closes the bundle, so the group stands for **5**. Reading the four strokes alone as 4 stops one short by ignoring the crossing stroke.',
+  'Frequency tells us':
+    'Frequency is **how often a value occurs** in a data set, so it is a count rather than a size. The largest value is the maximum and the spread is the range, so neither of those is a frequency.',
+  'In the data 2, 3, 3, 4, 3, the frequency of 3 is':
+    'Counting the 3s in 2, 3, 3, 4, 3 gives three of them, so the frequency is **3**. Answering 4 counts the largest value in the list instead of how many times 3 appears.',
+  'A pictograph shows data using':
+    'A pictograph replaces numbers with **pictures or symbols**, and a key states how much one picture is worth. Bars belong to a bar graph, so they do not appear in a pictograph at all.',
+  'A key in a pictograph tells us':
+    'The key fixes the value of a single picture, so it tells us **what one symbol stands for**, such as 1 symbol = 4 cars. The title names the chart but says nothing about how many each symbol counts.',
+  'The scale of a graph tells us':
+    'The scale states **what one unit on the axis represents**, for example 1 unit = 10 students, so every height can be turned into real numbers. The number of bars is just how many groups were recorded, not what a unit is worth.',
+  'If 1 unit = 10 students, a bar of 3 units shows':
+    'Three units at 10 students each give 3 x 10 = **30 students**. Reading the bar as 3 students treats the height as a count and ignores the scale completely.',
+  'Which of these is a prime number?':
+    '29 has no factors except 1 and itself, so it is **prime**. Each other choice is composite: 21 = 3 x 7, 27 = 3 x 9 and 33 = 3 x 11, which shows that being odd does not make a number prime.',
+  'Which pair of numbers is co-prime?':
+    '8 = 2 x 2 x 2 and 15 = 3 x 5 share no factor, so their HCF is 1 and they are **co-prime**. The pair 14 and 21 both divide by 7, so they share a factor greater than 1 and are not co-prime.',
+  'Write 84 as a product of prime numbers.':
+    '84 = 2 x 42 = 2 x 2 x 21 = 2 x 2 x 3 x 7, and 2 x 2 x 3 x 7 = 4 x 21 = **84** with every factor prime. Stopping at 4 x 21 leaves composite numbers in the product, which is not a prime factorisation.',
+  'What is the smallest number that must be added to 43 to make it divisible by 5?':
+    'The next multiple of 5 after 43 is 45, and 45 - 43 = **2**. Adding 5 overshoots to 48, which is not a multiple of 5 either, so the smallest number is not the divisor itself.',
+  'Which number is a common multiple of 2 and 3?':
+    '6 is even and also 3 x 2, so both 2 and 3 divide it exactly, making it a **common multiple**. 9 is a multiple of 3 alone, because 2 does not divide 9 evenly.',
+  'What is the smallest common multiple of 4 and 6?':
+    'Multiples of 4 are 4, 8, 12, 16 and of 6 are 6, 12, 18, so the first shared one is **12**. Choosing 24 picks a common multiple but not the smallest, since 12 comes earlier.',
+  'A common multiple of two numbers is a number that':
+    'A common multiple must be divisible by each number, so **both numbers divide it exactly**, as 12 is divided by 4 and by 6. A number that divides both of them is a common factor, which is the opposite relationship.',
+  'Which number is a common factor of 12 and 18?':
+    '12 = 6 x 2 and 18 = 6 x 3, so **6** divides both of them exactly and is their common factor. 9 divides 18 but leaves a remainder with 12, so it cannot be a common factor.',
+  'What is the highest common factor of 8 and 12?':
+    'Factors of 8 are 1, 2, 4, 8 and of 12 are 1, 2, 3, 4, 6, 12, so the greatest shared one is **4**. Picking 2 finds a common factor but not the highest, since 4 also divides both.',
+  'A common factor of two numbers is a number that':
+    'A common factor divides each number with no remainder, so it **divides both of them exactly**, as 6 does for 12 and 18. Being a multiple of both numbers would make it larger than each of them, which is the common multiple case.',
+  '1 is neither prime nor composite because it has':
+    'The only factor of 1 is 1 itself, so it has **only one factor** and cannot have the two distinct factors a prime needs. Having no factors is impossible, since 1 always divides 1.',
+  'Two numbers are co-prime when their HCF is':
+    'Co-prime numbers share no factor except 1, so their HCF is exactly **1**, as with 8 and 15. An HCF of 2 would mean both numbers are even, which is the opposite of being co-prime.',
+  'The prime factorisation of 24 is':
+    'Repeated division gives 24 = 2 x 2 x 2 x 3, and multiplying back gives 8 x 3 = **24** with every factor prime. Writing 4 x 6 gives the right total but both factors are composite, so it is not a prime factorisation.',
+  'Prime factorisation uses only':
+    'A prime factorisation breaks a number down until every factor is **prime**, such as 30 = 2 x 3 x 5. Using only even numbers would stop at 4 or 6, which still split further.',
+  'A number is divisible by 10 if':
+    '10 = 2 x 5, so a number is divisible by 10 only when **its last digit is 0**, like 40 or 270. Being even is not enough, since 24 is even yet does not divide by 10.',
+  'How many factors does 16 have?':
+    'The factors of 16 are 1, 2, 4, 8 and 16, which makes **5** factors. Answering 4 stops before 16 itself, forgetting that every number is a factor of itself.',
+  'Which pair is NOT co-prime?':
+    '12 and 18 are both divisible by 6, so their HCF is 6 and they are **not co-prime**. The pair 5 and 7 shares only the factor 1, so those two are co-prime and do not fit the question.',
+  'A number is divisible by 3 if':
+    'A number is divisible by 3 when **the sum of its digits is divisible by 3**, as 4 + 5 + 6 = 15 for 456. Merely ending in 3 says nothing, because 13 and 23 are not divisible by 3.',
+  'What is the perimeter of a square of side 7 cm?':
+    'A square has four equal sides, so the perimeter is 4 x 7 = **28 cm**. Answering 49 cm gives the area, 7 x 7, instead of the distance around the square.',
+  'What is the area of a square of side 9 cm?':
+    'Area of a square is side x side, so 9 x 9 = **81 cm2**. Answering 36 cm2 uses 4 x 9, which is the perimeter of the square, not the space inside it.',
+  'A triangle has sides of 8 cm, 6 cm and 5 cm. Find its perimeter.':
+    'The perimeter is the sum of the three sides: 8 + 6 + 5 = **19 cm**. Multiplying them instead (8 x 6 x 5) gives 240, which measures nothing about the boundary.',
+  'A triangle has a base of 12 cm and a height of 7 cm. What is its area?':
+    'Area of a triangle is half base times height, so (12 x 7) / 2 = 84 / 2 = **42 cm2**. Forgetting the half gives 84 cm2, the area of the rectangle drawn around the triangle.',
+  'What is the perimeter of a rectangle?':
+    'The perimeter is the **total length of its four sides**, the distance you walk around the shape. The space inside it is the area, which is measured in square units instead.',
+  'A rectangle is 5 cm long and 3 cm wide. What is its perimeter?':
+    'Perimeter = 2 x (5 + 3) = 2 x 8 = **16 cm**, because the two lengths and two breadths are each counted once. Answering 15 cm gives the area, 5 x 3, instead of the length of the boundary.',
+  'Which formula gives the perimeter of a rectangle?':
+    'A rectangle has two lengths and two breadths, so adding one of each and doubling gives **2 x (length + breadth)**. Using length + breadth alone counts only half of the boundary.',
+  'What does the area of a rectangle measure?':
+    'Area measures **the space it covers**, counted in square units laid inside the shape. The distance around it is the perimeter, which is a length rather than a surface.',
+  'A rectangle is 5 cm long and 3 cm wide. What is its area?':
+    'Area = length x breadth = 5 x 3 = **15 square cm**, the number of 1 cm squares that fit inside the rectangle. Answering 8 square cm adds the two sides (5 + 3) instead of multiplying them.',
+  'Which formula gives the area of a rectangle?':
+    'The area of a rectangle is **length x breadth**, multiplying the two sides that meet at a corner. Adding them instead gives half the perimeter, not the space inside.',
+  'The perimeter of a square of side 7 cm is':
+    'Four equal sides of 7 cm give 4 x 7 = **28 cm** around the square. Answering 14 cm doubles the side once instead of counting all four sides.',
+  'The perimeter of a square is':
+    'Because all four sides are equal, the perimeter is **4 x side**. Side x side gives the area, which is measured in square units rather than centimetres.',
+  'The perimeter of a triangle with sides 3, 4 and 5 cm is':
+    'Adding the three sides gives 3 + 4 + 5 = **12 cm** all the way around the triangle. Answering 60 cm multiplies the sides instead of adding them, and 9 cm leaves out one whole side.',
+  'The perimeter of a triangle is':
+    'The perimeter is **the sum of its three sides**, the full distance around the triangle. Half the base times height is the area formula, which measures the inside rather than the boundary.',
+  'The area of a square of side 9 cm is':
+    'Area = side x side = 9 x 9 = **81 square cm**, since nine rows of nine squares fit inside it. Answering 36 square cm uses 4 x 9, the perimeter, which counts length instead of space.',
+  'Area is measured in':
+    'Area covers a surface, so it is measured in **square units** such as cm2, each one a 1 cm by 1 cm square. Units of length like cm measure a boundary, and cubic units measure volume.',
+  'The area of a triangle with base 8 cm and height 5 cm is':
+    'Area = (base x height) / 2 = (8 x 5) / 2 = 40 / 2 = **20 square cm**. Leaving out the half gives 40 square cm, which is double the true area of the triangle.',
+  'A triangle has base 12 cm and height 3 cm. Its area is':
+    '(12 x 3) / 2 = 36 / 2 = **18 square cm**, half the area of the 36 square cm rectangle around it. Answering 36 square cm forgets to halve the product of base and height.',
+  'In the fraction 5/9, which number is the denominator?':
+    'In 5/9 the number below the line is the **denominator**, so the denominator is 9, naming the 9 equal parts the whole is cut into. Picking 5 reads the top number as the denominator, and 14 comes from adding 5 and 9 instead of naming a part.',
+  'Which fraction is greater, 3/5 or 3/8?':
+    'With the same numerator 3, the smaller denominator makes bigger pieces, so 3/5 = 0.6 is greater than 3/8 = 0.375, making **3/5** the larger. Choosing 3/8 assumes a bigger bottom number means a bigger fraction, which reverses the rule.',
+  'Convert 2 3/4 into an improper fraction.':
+    'Multiply the whole 2 by the denominator 4 to get 8, add the numerator 3, and keep 4 underneath, which gives **11/4**. Stopping at 2 x 4 = 8 and forgetting to add the 3 gives 8/4, the commonest slip here.',
+  'What is 1/4 + 2/3?':
+    'With the common denominator 12 the fractions become 3/12 and 8/12, and 3 + 8 gives **11/12**. Answering 5/7 comes from adding tops and bottoms straight across, which is not how fractions are added.',
+  'What is a fractional unit?':
+    'A fractional unit is **one equal part of a whole**, such as a single piece of a roti cut into four equal pieces. Calling it a whole number confuses the one part with the entire whole that it came from.',
+  'If a roti is cut into 4 equal parts, each part is':
+    'Four equal parts mean each piece is 1 out of 4, so each piece is **one-fourth** of the roti and the four pieces rebuild the whole. Saying one-third comes from counting cuts as parts, though 4 parts need only 3 cuts.',
+  'In the fraction 3/5, what is the 5 called?':
+    'The bottom number of a fraction is the **denominator**, so in 3/5 the 5 is the denominator while the 3 on top is the numerator. Calling it the numerator swaps the two positions, and quotient and remainder belong to division, not to a fraction.',
+  'Which fraction is equivalent to 1/2?':
+    'Multiplying the top and bottom of 1/2 by 2 gives **2/4**, and dividing both by 2 returns to one half. Picking 1/3 or 2/3 changes the denominator but not the numerator, so the value no longer equals 1/2.',
+  'How do you make an equivalent fraction?':
+    'Multiplying the numerator and the denominator by the same number keeps the value fixed, so 1/2 becomes **2/4** when both are doubled. Changing the denominator only alters the size of the parts and therefore the value of the fraction.',
+  'Which fraction is equivalent to 2/3?':
+    'Doubling both parts of 2/3 gives **4/6**, and dividing 4 and 6 by 2 brings it back to 2/3. Picking 2/6 doubles only the denominator, which halves the value instead of preserving it.',
+  'In 5/8, the numerator is':
+    'The number above the line is the **numerator**, so in 5/8 the numerator is 5 while 8 below is the denominator. Choosing 8 reads the bottom number, and 13 comes from adding the two numbers rather than naming a part.',
+  'The denominator of a fraction tells us':
+    'The **denominator** counts the equal parts the whole was divided into, so the 8 in 5/8 means the whole was cut into eighths. Saying it tells how many parts we take describes the numerator, which counts the parts chosen.',
+  'Which is a mixed fraction?':
+    'A **mixed fraction** pairs a whole number with a proper fraction, and 2 1/3 is exactly that: two wholes plus one third. Choosing 7/3 misses the whole part, since 7/3 is improper even though it names the same amount.',
+  '7/3 written as a mixed fraction is':
+    'Divide 7 by 3: 3 fits twice with 1 left over, so 7/3 = **2 1/3**. Writing 3 1/7 puts the divisor and the remainder into the wrong places, swapping quotient with denominator.',
+  'Which is larger: 3/5 or 2/5?':
+    'Both fractions are fifths, so compare the counters and 3 fifths is more than 2 fifths, making **3/5** larger. Saying they are equal ignores the different numerators sitting over the same denominator.',
+  'Which is smaller: 1/2 or 1/3?':
+    'With the same numerator, more parts means smaller parts, so 1/3 = 0.333 is smaller than 1/2 = 0.5, giving **1/3**. Choosing 1/2 assumes a bigger denominator makes a bigger fraction, which reverses the rule.',
+  'What is 2/7 + 3/7?':
+    'The denominators already match, so add only the numerators, 2 + 3 = 5, and keep the 7, which gives **5/7**. The answer 5/14 adds the denominators as well, doubling the number of parts and halving each one.',
+  'To add fractions with different denominators you first':
+    'The pieces must be the same size before adding, so first **find a common denominator**, turning 1/4 and 2/3 into 3/12 and 8/12. Adding the denominators creates pieces of a new size and gives a sum with no meaning.',
+  'The distance from the centre of a circle to any point on the circle is called its':
+    'The **radius** runs from the centre straight out to any point on the circle, and it is half the diameter. Picking the diameter describes the distance right across through the centre, which is twice as long.',
+  'The diagonals of a rectangle are always':
+    'Both diagonals are hypotenuses of right triangles built on the same length and breadth, so they are always **equal in length**, as with 8 cm and 6 cm giving 10 cm on each. Saying they are perpendicular describes a square, not a general rectangle.',
+  'A rectangle is 8 cm long and 6 cm wide. What is the length of each of its diagonals?':
+    'Each diagonal is the hypotenuse of a right triangle with legs 8 and 6, so 8^2 + 6^2 = 64 + 36 = 100, and the square root gives **10 cm**. Simply adding 8 and 6 to get 14 cm skips the squaring that Pythagoras demands.',
+  'A point P is equidistant from A and B, where AB is 10 cm. P lies on the perpendicular bisector of AB, 12 cm away from the midpoint of AB. What is the distance PA?':
+    'P sits above the midpoint M, so AM = 5 cm and PA^2 = 5^2 + 12^2 = 25 + 144 = 169, giving PA = **13 cm**. Answering 12 cm takes only the perpendicular height and ignores the 5 cm run along the segment.',
+  'Which tools do you need to construct a square accurately?':
+    'A **ruler and a compass** let you mark equal sides and true right angles, because the compass copies a length exactly. A protractor alone measures angles but cannot transfer a side length, so the square would never close.',
+  'How many equal sides does a square have?':
+    'A **square** has all 4 sides equal plus four right angles, which is what separates it from an ordinary rectangle. Saying 3 describes a triangle, which cannot be a square at all.',
+  'In a square, each angle measures':
+    'Each of the four corners of a square is **90 degrees**, and 4 x 90 = 360 fills one complete turn about the centre. The value 180 degrees is a straight line rather than a corner of any polygon.',
+  'The radius of a circle is the distance from the centre to':
+    'The radius reaches from the centre to **any point on the circle**, so every radius of one circle has the same length. Going on to the opposite edge would be the diameter, which is twice the radius.',
+  'The diameter of a circle is':
+    'The diameter runs through the centre from edge to edge, so it is **twice the radius**, that is d = 2r. Saying half the radius divides instead of multiplying and shrinks the width to a quarter of the truth.',
+  'To construct a rectangle you need':
+    'A **ruler and a compass or set square** supply the right angles and the equal opposite sides a rectangle needs. A pencil alone cannot fix a 90 degree corner, so the drawing turns into any old quadrilateral.',
+  'Each angle of a rectangle is':
+    'Every corner of a rectangle is a right angle, so each one measures **90 degrees** and the four add to 360. The choice 60 degrees belongs to the corners of an equilateral triangle.',
+  'How many diagonals does a rectangle have?':
+    'Joining each of the four corners to the corner opposite gives just **2 diagonals** across the rectangle. Counting 4 treats the two directions of the same join as separate lines, though each diagonal is shared by two corners.',
+  'The diagonals of a rectangle':
+    'A rectangle\'s diagonals are **equal in length and bisect each other**, meeting at the midpoint of both, which is also its centre. Saying they meet at 45 degrees describes a square, where the diagonals are also perpendicular.',
+  'A point equidistant from two given points lies on':
+    'Every point on the **perpendicular bisector** is the same distance from both ends of the segment, so that line is the full set of such points. A point on the segment itself sits nearer the closer end unless it is the midpoint.',
+  '\'Equidistant\' means':
+    '**Equidistant** means at equal distances, as when P is as far from A as it is from B. Reading it as at right angles confuses a distance with the perpendicular direction that often carries the bisector.',
+  'How many lines of symmetry does a square have?':
+    'A **square** folds onto itself along its 2 diagonals and along 2 lines through the midpoints of opposite sides, making 4 lines of symmetry. The answer 2 counts only the midpoint folds and forgets the two diagonal folds.',
+  'What is the angle of symmetry of a regular hexagon?':
+    'A regular hexagon matches itself 6 times in a full turn, so the angle is 360 / 6 = **60 degrees**. The choice 30 degrees halves the right answer, which would only suit a 12-sided figure.',
+  'A rectangle that is not a square has rotational symmetry of order 2. Where is its centre of rotation?':
+    'A rectangle repeats after a half turn about its middle, which is **at the point where its diagonals meet**. A corner cannot be the centre, because a half turn carries each corner to the opposite one.',
+  'Which of these letters has a vertical line of symmetry?':
+    'The capital **A** folds onto itself along a vertical line down its middle, matching its two sloping strokes. J, F and G all hang their strokes on one side only, so a vertical fold leaves them mismatched.',
+  'A figure has rotational symmetry of order 4. What is its angle of rotation?':
+    'Order 4 means the figure matches itself 4 times in a full turn, so the angle is 360 / 4 = **90 degrees**. Reporting 45 degrees divides by 8, which is the count for a regular octagon instead.',
+  'Why does a circle have infinitely many lines of symmetry?':
+    'A circle folds onto itself along **any diameter**, and a circle has infinitely many diameters, so it has infinitely many lines of symmetry. Assuming a fixed count like 2 or 4 forgets that every direction through the centre works.',
+  'What is a reflection of a shape?':
+    'A reflection is the **mirror image** of a shape, produced by flipping it across a line so that left and right swap. Calling it the shape turned around describes rotation, where the shape pivots about a point instead.',
+  'When a shape is reflected in a mirror line, its size':
+    'A reflection is a flip, so every length is preserved and the **size stays the same** while the orientation reverses. Saying it becomes double confuses reflection with enlargement by a scale factor of 2.',
+  'A reflection is also called':
+    'A reflection is also called a **flip**, because the shape flips over the mirror line to the other side. Calling it a slide describes a translation, where the shape moves without being turned over.',
+  'What is rotational symmetry?':
+    '**Rotational symmetry** means a shape looks the same after a turn of less than a full circle about a point, as a square does every 90 degrees. Describing it as having a mirror line confuses rotation with reflection, which is a fold and not a turn.',
+  'How many times does a square look the same during one full turn?':
+    'A square matches itself after 90, 180, 270 and 360 degrees, so it looks the same **4** times in one full turn. Saying 2 counts only the half turn and misses the two quarter turns.',
+  'A shape with rotational symmetry must have':
+    'Any shape that rotates onto itself must pivot about a fixed point, so it needs a **centre of rotation**. Four equal sides are neither necessary nor enough, since a rectangle with unequal sides also has rotational symmetry.',
+  'A line of symmetry divides a shape into':
+    'A line of symmetry splits a shape into **two identical halves** that fold exactly onto each other. Saying two different halves contradicts the fold test, because mismatched halves would not coincide.',
+  'The angle of rotational symmetry of a square is':
+    'The square repeats every quarter turn, so its angle of rotational symmetry is 360 / 4 = **90 degrees**. Choosing 360 degrees describes a shape with no rotational symmetry, which only matches after a complete turn.',
+  'The centre of rotation of a rectangle is':
+    'A rectangle repeats after a half turn about its middle, so its centre of rotation is **the point where its diagonals meet**. A corner or the middle of a side moves to a new place under that turn, so neither can be the fixed centre.',
+  'A shape has rotational symmetry if it looks the same':
+    'The defining test is a turn of less than 360 degrees that leaves the shape unchanged, so it matches **after a turn of less than 360 degrees**. Saying only after a full turn is true of every shape and would make the idea empty.',
+  'A circle has how many lines of symmetry?':
+    'Every diameter of a circle is a fold line that maps it onto itself, so there are **infinitely many** lines of symmetry. Answering four borrows the square\'s count and ignores the circle\'s endless possible directions.',
+  'The centre of rotation of a circle is':
+    'A circle turns onto itself about **its centre** by any angle at all, which is why it has rotational symmetry of every order. A point on the edge swings away from where it started, so it cannot be the fixed point.',
+  'Which of these is the greatest integer?':
+    'On a number line 3 sits furthest right, and 3 > 0 > -2 > -7, so **3** is the greatest of them. Choosing -7 counts the biggest distance from zero as the biggest number, but negatives are the smallest integers.',
+  'What is the additive inverse of −9?':
+    'The additive inverse is the number that makes the sum zero, and -9 + **9** = 0, so the answer is 9. Picking 1/9 confuses the additive inverse with the reciprocal, which is what you multiply by to get 1.',
+  'Find the value of (−6) + 4.':
+    'Start at -6 on the number line and move 4 places right, landing on **-2**, because 6 - 4 = 2 and the negative sign is kept. A common slip is to add the sizes to get 10 or to drop the sign, but opposite signs subtract.',
+  'A shopkeeper has a credit of ₹250 and a debit of ₹400. What is her net balance?':
+    'The net balance is 250 - 400 = -150, which is a **debit of Rs 150** because the debit is the larger amount. Choosing a debit of Rs 650 adds the two amounts instead of subtracting them, which counts the money twice.',
+  'What is -3 + 5?':
+    'Move 5 places right from -3 on the number line and you land on **2**, because 5 - 3 = 2 and the larger move is positive. Picking -8 adds the sizes and keeps the negative sign, giving the wrong direction and the wrong size.',
+  'On a number line, negative numbers lie to the ___ of zero.':
+    'Negative numbers are less than zero, so on a horizontal number line they lie to the **left** of zero. Saying right reverses the order, since values grow as you move right and shrink as you move left.',
+  'What is a zero pair?':
+    'A zero pair is two numbers of equal size and opposite sign, so their sum is **zero**, like 5 and -5. Two equal numbers such as 4 and 4 add to 8 and not to 0, so matching the digits alone is not enough.',
+  'Which of these is a zero pair?':
+    '3 and **-3** are equal in size but opposite in sign, and 3 + (-3) = 0, so together they cancel. The pair 3 and -2 differs in size as well as sign and adds to 1, so it never makes zero.',
+  'What is the sum of a zero pair?':
+    'By definition the two members of a zero pair have the same size and opposite signs, so their sum is **0**, as in -11 + 11 = 0. Choosing the larger number ignores the cancellation, which is the whole point of the pair.',
+  'Which is smaller: -8 or -3?':
+    'On the number line **-8** lies further left than -3, so -8 is the smaller integer. Reading 8 as bigger than 3 and keeping that order forgets that a larger digit after the minus sign makes a smaller number.',
+  'The additive inverse of 7 is':
+    'Adding **-7** to 7 gives 7 + (-7) = 0, so -7 is the additive inverse of 7. Choosing 1/7 gives the reciprocal instead, which multiplies to 1 rather than adding to 0.',
+  'A number plus its additive inverse equals':
+    'An additive inverse is chosen so that it cancels the number exactly, so n + (-n) = **0** for every integer. Picking twice the number forgets the sign change, and 7 + 7 gives 14 rather than 0.',
+  'Integers include':
+    'Integers are 0, 1, 2, 3 and so on together with -1, -2, -3, so the set is **whole numbers and their negatives**. Saying only positive numbers leaves out zero and every negative, which are integers too.',
+  'Which of these is an integer?':
+    '**-4** is a whole number carrying a minus sign, so it belongs to the integers, whereas 1/2, 0.5 and 2.75 all sit between integers. Treating 0.5 as an integer confuses a short decimal with a whole number.',
+  'On a number line, numbers to the right are':
+    'Values increase from left to right, so numbers to the right of a point are **greater** than it. Calling them smaller reverses the order, which would make 5 less than 2 and put the arrow the wrong way.',
+  'On a number line, moving left means':
+    'Each step left lowers the value by 1, so moving left is **subtracting**. Calling it adding would take you right instead, turning 4 into 5 rather than into 3.',
+  'In a bank account, a debit is shown as':
+    'A debit takes money out, so it is recorded as a **negative number**, while a credit is positive. Writing the debit as positive makes a withdrawal look like a deposit and reverses the balance.',
+  'A credit of 500 rupees followed by a debit of 200 rupees leaves':
+    '500 - 200 = **300 rupees**, and the balance stays a credit because more came in than went out. Answering 700 adds the debit instead of taking it away, and -300 flips a positive balance into a debt.',
+  'In the number 7,45,238, what is the place value of the digit 4?':
+    'Reading from the right, 7,45,238 has 4 in the ten thousands place, so its place value is 4 x 10,000 = **40,000**. Calling it 4,00,000 moves the digit into the lakh place, one place too far left.',
+  'How is 3,05,040 written in words?':
+    'Split the numeral as 3 lakh + 05 thousand + 040, which reads **three lakh five thousand forty**. Saying three lakh fifty thousand forty turns the 5 of the thousands place into 50 thousand.',
+  'Round 6,84,950 to the nearest thousand.':
+    'The hundreds digit is 9, which is 5 or more, so the thousands digit 4 rounds up and 6,84,950 becomes **6,85,000**. Keeping 6,84,000 treats 950 as closer to the lower thousand, though it is only 50 short of 6,85,000.',
+  'Without multiplying fully, how many digits are there in the product 25 × 400?':
+    '25 x 400 = 25 x 4 x 100 = 100 x 100 = 10,000, which has **5 digits**. Saying 4 digits assumes the product stays under 10,000, but it lands exactly on 10,000 and needs the extra place.',
+  'What is 3,87,69,957 rounded to the nearest lakh?':
+    'The digit after the lakhs place is 6, which is 5 or more, so the lakhs digit 7 rounds up to 8 and every lower digit becomes 0, giving **3,88,00,000**. Choosing 3,87,00,000 rounds down even though 69,957 is well past half a lakh.',
+  'Using 125 = 1000 ÷ 8, what is 72 × 125?':
+    '72 x 125 = 72 x 1000 / 8 = 72,000 / 8 = **9,000**. Answering 900 divides by 80 instead of 8, which is a slip in the chain of halvings of the shortcut rule.',
+  'In the Indian system, 10 lakh makes one':
+    'Ten lakhs group together as one **crore**, since 10,00,000 x 10 = 1,00,00,000. Calling it a million applies the international scale, where 10 lakh equals one million rather than ten.',
+  'In 4,52,317 the digit 5 stands for':
+    'The digit 5 sits in the ten thousands place, so it stands for 5 x 10,000 = **fifty thousand**. Reading it as five thousand moves it one place right, which is where the 2 actually sits.',
+  'Which numeral means \'seven lakh twenty\'?':
+    'Seven lakh fills the lakh place and twenty fills the tens and units, so the numeral is **7,00,020** with zeros in the thousands and hundreds. Writing 7,20,000 puts the 2 in the ten thousands place and reads as seven lakh twenty thousand.',
+  'Round 6,847 to the nearest hundred.':
+    'The tens digit is 4, which is less than 5, so the hundreds digit stays and **6,800** is the nearest hundred. Choosing 6,900 rounds up although 47 is closer to 0 than to 100 on the hundred scale.',
+  'When rounding to the nearest ten, a units digit of 5 means we round':
+    'A units digit of 5 is exactly halfway, and the usual rule rounds it **up** to the next ten, so 45 becomes 50. Rounding down would put 45 at 40 and break the half-up convention used for whole numbers.',
+  'The two nearest hundreds around 4,362 are':
+    '4,362 lies between the hundreds **4,300** and 4,400, since 62 is the part above 4,300. Naming 4,000 and 5,000 picks the nearest thousands, which are far away on either side.',
+  'Which number lies between 2,700 and 2,800?':
+    '**2,750** is greater than 2,700 and less than 2,800, so it sits inside the interval. The value 2,690 falls below 2,700 and 2,810 above 2,800, so neither of them lies between.',
+  'What is 25 x 16 using a shortcut?':
+    'Rewrite 16 as 4 x 4, so 25 x 16 = 25 x 4 x 4 = 100 x 4 = **400**. Answering 256 squares 16 instead of multiplying it by 25, and 410 comes from adding 10 to 400.',
+  'Multiplying by 5 is the same as multiplying by 10 and then':
+    'Since n x 5 = n x 10 / 2, multiplying by 10 and then **halving** gives the same answer, as 14 x 5 = 140 / 2 = 70. Choosing doubling multiplies by 20 instead, which is four times too big.',
+  'A 3-digit number multiplied by a 2-digit number gives a product with at most':
+    'The largest case is 999 x 99 = 98,901, which has **5 digits**, so a 3-digit by 2-digit product never exceeds five places. Saying 6 digits ignores the size of the factors, since even 999 x 99 stays below 1,00,000.',
+  'The product of 99 and 99 has how many digits?':
+    '99 x 99 = 99 x (100 - 1) = 9,900 - 99 = **9,801**, which has 4 digits. Guessing 3 digits underestimates the product, since 99 x 99 sits just under 100 x 100 = 10,000.',
+  'Which numeral means \'five lakh six thousand\'?':
+    'Five lakh goes in the lakh place and six thousand in the thousands place, with zeros for the hundreds, tens and units, giving **5,06,000**. Writing 5,60,000 reads the six as sixty thousand instead of six thousand.',
+  'What is the value of 20 + 4 × 5?':
+    'Multiplication is done before addition, so 4 x 5 = 20 and 20 + 20 = **40**. Answering 120 works left to right and multiplies 24 by 5, which ignores the order of operations.',
+  'Simplify 15 − (6 + 4).':
+    'The bracket is worked first: 6 + 4 = 10, and then 15 - 10 = **5**. Answering 13 subtracts only the 6 and leaves the 4 alone, which ignores the bracket around the whole sum.',
+  'Use the distributive property to find 6 × 98.':
+    '6 x 98 = 6 x (100 - 2) = 600 - 12 = **588**. A common slip is to work 6 x 100 - 2 = 598 and subtract the 2 only once instead of six separate times, one for each hundred.',
+  'Which expression has the greater value, and what is that value?':
+    '(8 + 3) x 4 = 11 x 4 = **44**, while 8 + 3 x 4 = 8 + 12 = 20, so the bracketed form is larger. Treating both as equal to 44 forgets that without brackets only the 3 is multiplied by 4.',
+  'How many terms are there in the expression 5x + 3y - 7?':
+    'The expression splits at each plus or minus sign into 5x, 3y and -7, so there are **3** terms. Counting 4 treats the minus sign as starting a new term instead of attaching it to the 7.',
+  'What is a term of an algebraic expression?':
+    'A term is one block of the expression, cut off by the plus and minus signs, so 4a and **6b** are the two terms of 4a + 6b. Saying a letter only describes a variable, which is merely one piece of a term like 6b.',
+  'In 4a + 6b, what are the numbers 4 and 6 called?':
+    'The number multiplying a variable is its **coefficient**, so 4 is the coefficient of a and 6 of b. Calling them constants confuses a fixed number with the fixed multiplier of a varying quantity.',
+  'What is the value of 3 + 4 x 2?':
+    'Multiply first: 4 x 2 = 8, and then 3 + 8 = **11**. Answering 14 adds 3 and 4 before multiplying, which breaks the rule that multiplication comes before addition.',
+  'What is the value of (3 + 4) x 2?':
+    'The bracket makes the sum first: 3 + 4 = 7, and then 7 x 2 = **14**. Answering 11 multiplies 4 by 2 first and ignores the bracket, which is placed there to override that usual order.',
+  'Which is larger: 2 + 3 x 4 or (2 + 3) x 4?':
+    '2 + 3 x 4 = 14 while (2 + 3) x 4 = 5 x 4 = **20**, so the bracketed expression is larger. Calling them equal ignores that brackets change which operation is carried out first.',
+  'Which expression equals 20?':
+    '4 x (2 + 3) = 4 x 5 = **20**. The expression 4 x 2 + 3 multiplies first and gives 11, and 4 + 2 x 3 gives 10, so neither of them reaches 20.',
+  'Simplify 5 x (20 + 3).':
+    '5 x (20 + 3) = 5 x 23 = **115**, or 100 + 15 when you distribute. Answering 103 multiplies only the 20 by 5 and adds the 3 once, leaving the 3 undistributed.',
+  'Simplify 8 x (10 - 4).':
+    'The bracket gives 10 - 4 = 6, so 8 x 6 = **48**. Answering 76 works 80 - 4 and subtracts the 4 once instead of eight times, which the distributive rule requires.',
+  'Which shows the distributive property?':
+    'Distributing multiplies the outside factor by each term inside, so 6 x (7 + 2) = 6 x 7 + 6 x 2 = 42 + 12 = **54**. The statement 6 x 7 = 7 x 6 shows commutativity, which swaps the factors without distributing anything.',
+  'Use the distributive property: 12 x 99 =':
+    '12 x 99 = 12 x (100 - 1) = 1200 - 12 = **1188**. Answering 1088 subtracts 100 instead of 12, misplacing the value of the 1 that is being taken away from 100.',
+  'How many hundredths are there in 0.7?':
+    '0.7 is 7 tenths, and each tenth is 10 hundredths, so 0.7 = 7 x 10 = **70** hundredths. Answering 7 counts only the tenths digit and misses the extra place the zero adds.',
+  'In 4.382, which digit is in the hundredths place?':
+    'The places after the point run tenths, then hundredths, then thousandths, so in 4.382 the **8** is the hundredths digit. Picking 2 reads the very last digit and lands on thousandths instead.',
+  'Write 7 rupees 5 paise as a decimal number of rupees.':
+    '5 paise is 5/100 of a rupee, so the paise part needs two places: **7.05** rupees, with 0 holding the tenths place. Writing 7.5 means 50 paise, ten times the 5 paise asked for.',
+  'Which of these decimals is the largest?':
+    'Compare tenths first: 0.8 has 8 tenths while 0.78 and 0.708 have only 7, so **0.8** is the largest. Picking 0.78 assumes a longer decimal is a bigger one, confusing more digits with more value.',
+  'How many millimetres are there in 1 centimetre?':
+    'A centimetre is one hundredth of a metre and a millimetre one thousandth, so 1 cm = 1000/100 = **10** mm. Choosing 1000 treats a centimetre as if it were a whole metre.',
+  'How many centimetres are there in 1 metre?':
+    'The prefix centi means a hundredth, so one metre contains exactly **100** centimetres. Giving 10 confuses centi with deci, which is the tenth part.',
+  '45 mm is the same as':
+    'Millimetres to centimetres is a jump of ten, so 45 / 10 = **4.5 cm**. Answering 450 multiplies by 10 instead of dividing, moving the point the wrong way.',
+  'Where does 0.5 lie on a number line?':
+    '0.5 is the fraction 5/10, which is one half, so the mark sits **halfway between 0 and 1**. Placing it at 5 forgets that digits after the point name parts smaller than one whole.',
+  'Which decimal comes between 0.3 and 0.5?':
+    '0.3 is 30 hundredths and 0.5 is 50, so **0.4**, which is 40 hundredths, lies between them. Choosing 0.2 falls below 0.3 because 2 tenths is a smaller share, not a middle one.',
+  'Which of these numbers is the largest?':
+    'Each extra zero pushes the 7 one place right, so 0.7 = 7 tenths while 0.07 = 7 hundredths, making **0.7** the largest. Picking 0.0007 assumes the longest string is the biggest number.',
+  'How many hundredths are there in 0.37?':
+    '3 tenths is 30 hundredths, so 0.37 holds 30 + 7 = **37** hundredths. Answering 3 stops at the tenths digit and ignores the 7 in the next place.',
+  '0.5 is the same as':
+    'There is one digit after the point, in the tenths place, so 0.5 is **5 tenths**, that is 5/10. Calling it 5 hundredths shifts the digit one place right and makes it ten times smaller.',
+  'In 4.26, the digit 2 is in the':
+    'After the point the places are tenths then hundredths, so the 2 in 4.26 sits in the **tenths** place. Naming the tens place looks at digits before the point, on the wrong side.',
+  'In 4.26, the digit 6 has value':
+    'The 6 is second after the point, so its place value is 6/100, that is **6 hundredths**. Saying 6 tenths borrows the value of the 2 standing to its left.',
+  'How do we write 7 rupees 5 paise as a decimal?':
+    'Paise take the two places after the point, so 5 paise is written 05 and the amount is **7.05**. Choosing 7.50 gives fifty paise, ten times too much.',
+  'How many paise are there in 2.35 rupees?':
+    'One rupee is 100 paise, so 2.35 x 100 = **235** paise, the point moving two places right. Giving 35 reads only the decimal part and drops the two whole rupees.',
+  'Which is larger: 0.6 or 0.58?':
+    'Written to hundredths, 0.6 = 0.60 and 60 beats 58, so **0.6** is larger. Choosing 0.58 goes by the longer string, but that extra digit does not add value.',
+  'Which is the smallest: 1.2, 1.02, 1.20, 1.22?':
+    'All four have 1 as the whole part, so compare hundredths: 1.02 has 2, while 1.2 = 1.20 has 20, making **1.02** the smallest. Calling 1.2 smallest mistakes a short decimal for a small one.',
+  'How is 7 × n written in algebra?':
+    'A number written just before a letter means multiplication, so 7 x n becomes **7n**. Writing n7 reverses that convention, and 7 + n changes the operation to addition.',
+  'Which pair of terms are like terms?':
+    'Like terms must share the same letter part, and **3x and 5x** both carry x, so they combine to 8x. The pair 3x and 3y differs in the letter and cannot be added that way.',
+  'A pattern is 4, 7, 10, 13, ... Write the rule for its nth term.':
+    'Each term rises by 3 and the first is 4, which is 3 x 1 + 1, so the rule is **3n + 1**. A rule of 4n would step by 4 and give 8 where the pattern has 7.',
+  'The number of matchsticks in a row of n squares is given by 3n + 1. How many matchsticks make a row of 12 squares?':
+    'Put n = 12 into 3n + 1: 3 x 12 = 36, then 36 + 1 = **37** sticks. Answering 36 drops the extra stick that the + 1 contributes to every row, and 39 comes from 3 x 13.',
+  'What is a letter-number in algebra?':
+    'A letter-number such as n stands in for an unknown **number** whose value can change. Treating it as a letter with no value leaves nothing to substitute into the expression.',
+  'If n stands for a number, what does 3n mean?':
+    'A digit beside a letter means multiplication, so 3n = 3 x n, that is **3 times the number**. Reading it as the number plus 3 mixes the hidden times sign with a plus.',
+  'If x = 4, what is the value of x + 5?':
+    'Replace x with 4, giving **4 + 5 = 9**. Getting 45 glues the two numerals together as if multiplying, though the sign between them is a plus.',
+  'Which of these is an algebraic expression?':
+    'An expression needs at least one letter, and **2x + 3** contains x beside a number. The sum 2 + 3 has only numbers, so nothing in it can vary.',
+  'The formula for the perimeter of a square with side s is':
+    'A square has four equal sides, so the perimeter is s + s + s + s = **4s**. Writing s x s gives the area, which measures surface rather than the boundary.',
+  'What is a formula?':
+    'A formula is a general rule such as P = 4s, with letters standing for **numbers** you can replace. Calling it an instrument confuses the rule with the ruler used to test it.',
+  'Which two are like terms?':
+    '**3x and 7x** share the same letter x raised to the same power, so they add to 10x. The pair 3x and 3x^2 has different powers and cannot be combined.',
+  'Simplify 4a + 3a.':
+    'Keep the letter and add the numbers in front: 4 + 3 = 7, so the answer is **7a**. Giving 12a multiplies those coefficients instead of adding them.',
+  'What does 5m mean?':
+    'The 5 in front multiplies the letter, so 5m means **5 times m**, and with m = 3 it gives 15. Reading it as 5 plus m treats the invisible times sign as an addition, which would give 8.',
+  'How is \'x multiplied by y\' written?':
+    'Two letters written together are multiplied, so x times y is written **xy**. Writing x + y keeps them apart with a plus, which makes a sum, not a product.',
+  'The pattern 2, 4, 6, 8 is generalised as':
+    'Every term is double its position: n = 1 gives 2 and n = 4 gives 8, so the rule is **2n**. The rule 2n + 1 would give odd numbers 3 and 5 instead.',
+  'A matchstick pattern uses 3 sticks per shape plus 1 extra. For n shapes the sticks are':
+    'Three sticks for each shape plus 1 extra means multiply then add, giving **3n + 1**. Writing n + 3 makes the 3 a single extra rather than three per shape.',
+  'If x = 5, the value of 2x + 3 is':
+    'Work out 2x first, so 2 x 5 = 10, then add 3 to get **13**. Answering 8 adds 5 and 3 and forgets the doubling, while 10 stops before the final addition.',
+  'To check whether 3(n + 1) equals 3n + 3, you can':
+    'Try n = 1, 2 and 5: both sides give 6, 9 and 18 each time, so **substituting several values** tests the claim. Multiplying both sides by zero always gives 0 = 0 and proves nothing.',
+  'Two straight lines cross each other. One of the angles formed is 65°. What is the vertically opposite angle?':
+    'Angles opposite each other at a crossing come from the same two lines, so the angle facing **65 degrees** is also 65 degrees. Choosing 115 degrees subtracts from 180 and describes the neighbour on the straight line.',
+  'Two angles on a straight line are in the ratio 1 : 2. What is the larger angle?':
+    'Split the straight angle of 180 degrees into 1 + 2 = 3 parts, so each part is 60 and the larger is 2 x 60 = **120 degrees**. Answering 60 degrees takes the smaller share instead.',
+  'A transversal cuts two parallel lines. One of a pair of alternate angles is 72°. What is the other alternate angle?':
+    'A transversal across parallel lines makes alternate angles equal, so the partner of 72 degrees is **72 degrees**. Writing 108 degrees treats them as a pair adding to 180, a rule for neighbours.',
+  'Two parallel lines are cut by a transversal. One angle is 110°. What is the angle that lies next to its corresponding angle on the same straight line?':
+    'The corresponding angle is also 110 degrees, and its partner on the straight line is 180 - 110 = **70 degrees**. Choosing 110 degrees repeats the first angle without moving along the line.',
+  'Two lines that meet at a right angle are called':
+    'Two lines meeting at a right angle of 90 degrees are called **perpendicular lines**. The parallel label belongs to lines that never meet, so they cannot form that corner.',
+  'What is the angle between two perpendicular lines?':
+    'Perpendicular means at a right angle, so the angle is exactly **90 degrees**. Answering 45 degrees halves the right angle, and 180 degrees is a straight line.',
+  'Which letter shape shows perpendicular lines?':
+    'The letter **L** has one upright and one base meeting at a square corner, so it shows perpendicular lines. The letter C is a curve with no straight right-angled meeting.',
+  'Parallel lines are lines that':
+    'Parallel lines keep a constant direction, so they **never meet** no matter how far they are drawn. Saying they cross once actually describes intersecting lines.',
+  'Which of these is an example of parallel lines?':
+    'The **two rails of a railway track** stay the same distance apart all along, which is what parallel means. The letter L shows two lines meeting at a corner, not running alongside.',
+  'What is the distance between two parallel lines?':
+    'The gap between parallel lines never widens or narrows, so the distance is **the same everywhere**. Saying it differs at each point describes lines that lean towards each other.',
+  'Vertically opposite angles are':
+    'The two angles facing each other at a crossing are always **equal** in size. Calling them supplementary borrows the rule for angles side by side on a straight line.',
+  'Two lines cross and one angle is 40 degrees. The vertically opposite angle is':
+    'The angle opposite the 40 degree one is made by the same pair of lines, so it is also **40 degrees**. Choosing 140 degrees subtracts from 180 and gives the neighbouring angle.',
+  'Angles in a linear pair add up to':
+    'A linear pair forms a straight angle, and a straight line measures **180 degrees**. Answering 90 degrees describes a right angle, which is only half the straight line.',
+  'If one angle of a linear pair is 65 degrees, the other is':
+    'Subtract from the straight angle: 180 - 65 = **115 degrees**. Repeating 65 degrees assumes the two are vertically opposite, but a linear pair shares a line.',
+  'When two parallel lines are cut by a transversal, corresponding angles are':
+    'Across parallel lines the transversal slants equally at both, so **corresponding angles are equal**. Calling them supplementary mixes them up with the same-side interior pair.',
+  'Corresponding angles lie on':
+    'Corresponding angles sit in matching positions on the two parallel lines, so they are on **the same side of the transversal**. Opposite sides describes the alternate pair instead.',
+  'Alternate interior angles between parallel lines are':
+    'Alternate interior angles lie on opposite sides of the transversal with equal slant, so they are **equal**. Calling them supplementary is the rule for the same-side interior pair.',
+  'Alternate angles lie on':
+    'The alternate pair takes **opposite sides of the transversal**, one at each parallel line. The same side describes the co-interior pair, which adds to 180 degrees.',
 };

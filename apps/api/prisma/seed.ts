@@ -7471,7 +7471,7 @@ const scienceQuestions = [
       answer: '4,554',
       marks: 1,
       difficulty: 'MEDIUM',
-      options: [{ text: '3,452', isCorrect: false }, { text: '4,554', isCorrect: true }, { text: '5,445', isCorrect: false }, { text: '6,706', isCorrect: false }],
+      options: [{ text: '3,452', isCorrect: false }, { text: '4,554', isCorrect: true }, { text: '5,425', isCorrect: false }, { text: '6,706', isCorrect: false }],
     }),
     question('6', MATHS, 'Number Play', {
       type: 'SHORT_ANSWER',
