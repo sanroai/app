@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — Answers are final, and the question text is no longer double-encoded
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Lock a practice answer once given; repair mojibake in the question bank; author 279 more explanations |
+| Reason | The feedback panel reveals the correct answer immediately, so a student could click that option afterwards and turn a wrong answer into a right one - the score measured reading, not knowledge. Separately, a screenshot showed option text as `CaO + CO2 â†' CaCO3`: the bank had UTF-8 text that had been decoded as Windows-1252 |
+| Entities affected | `PracticeAnswer`, `Question`, `QuestionOption` |
+| Database changes | Production: **109 questions/options repaired** (33 questions + 36 options on the first pass, 1 more on the second; dev 22 + 20), and 279 explanations applied (955 authored in total) |
+| API changes | `POST /learning/practice/:id/answer` returns the **stored** grade with `locked: true` instead of overwriting it. **New** `POST /questions/repair-encoding` (SUPER_ADMIN, idempotent) - the only way to fix those rows in production, which is never re-seeded |
+| Frontend changes | Web + mobile disable the option buttons as soon as one is chosen and show *"Your answer is final"*; a failed save unlocks the question again. Written answers stay editable (not graded). APK **1.1.6** |
+| Seed/import changes | `repairMojibake` applied to 180 sequences in `seed.ts` (`×`, `−`, `∠`, `₹`, `°`, `÷`, `→`) and 10 in the explanation map, so a fresh seed writes correct text and every key still matches |
+| Migration | none |
+| Verification | API **679/679** (new `repair-encoding` spec 8/8 and a lock test in `practice-flow`); live lock check: first answer wrong → second save returns `locked: true` and the same grade; production `repair-encoding` → 33 + 1 questions, 36 options, then `sync-explanations` → `955/955 alreadyCorrect, 0 orphaned`; `probe-learning-ui` **10/10** (options disabled after answering, "answer is final" on screen, arrows render correctly in the screenshot) |
+| Known issues | The lock applies to practice only - assessment attempts deliberately keep answers editable until submit. `MULTI_SELECT` is not locked (its answer is sent on every toggle); the bank has none today |
+
 ### 2026-11-03 — Authored explanations get a path to production (one map, a sync endpoint)
 
 | Field | Detail |
