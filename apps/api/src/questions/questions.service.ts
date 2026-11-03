@@ -10,6 +10,7 @@ import { RequestUser } from '../common/types/auth-context';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService } from '../common/services/audit-notifications.service';
+import { QUESTION_EXPLANATIONS } from '../content/question-explanations';
 
 @Injectable()
 export class QuestionsService {
@@ -18,6 +19,54 @@ export class QuestionsService {
     private readonly tenant: TenantAccessService,
     private readonly audit: AuditService,
   ) {}
+
+  /**
+   * Applies the authored explanations (the shared QUESTION_EXPLANATIONS map) to
+   * this database.
+   *
+   * The curriculum is seeded once and is never re-seeded on a deployment, so a
+   * corrected explanation has no path to production without an explicit sync.
+   * Idempotent: only the rows whose explanation differs are written, and a
+   * teacher-authored (non-SEED) question keeps its own wording. The response
+   * reports the map keys that no longer match a question, which is how an edited
+   * question text shows up instead of silently losing its explanation.
+   */
+  async syncAuthoredExplanations() {
+    let updated = 0;
+    let alreadyCorrect = 0;
+    let skipped = 0;
+    const orphaned: string[] = [];
+
+    for (const [text, explanation] of Object.entries(QUESTION_EXPLANATIONS)) {
+      const existing = await this.prisma.question.findFirst({
+        where: { text },
+        select: { id: true, explanation: true, source: true },
+      });
+      if (!existing) {
+        orphaned.push(text);
+        continue;
+      }
+      if (existing.explanation === explanation) {
+        alreadyCorrect += 1;
+        continue;
+      }
+      if (existing.source !== QuestionSource.SEED) {
+        skipped += 1;
+        continue;
+      }
+      await this.prisma.question.update({ where: { id: existing.id }, data: { explanation } });
+      updated += 1;
+    }
+
+    return {
+      authored: Object.keys(QUESTION_EXPLANATIONS).length,
+      updated,
+      alreadyCorrect,
+      skipped,
+      orphaned: orphaned.length,
+      orphanedTexts: orphaned.slice(0, 20),
+    };
+  }
 
   async list(user: RequestUser, query: {
     boardId?: string;

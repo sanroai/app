@@ -143,10 +143,10 @@ try {
     for (const q of answerOnly.slice(0, 10)) console.log(`    - ${q.chapter}: ${q.text}`);
   }
 
-  // An explanation authored into the seed map survives only while its question
-  // text is unchanged; a rename orphans it silently without this check.
-  const seedText = require('node:fs').readFileSync('apps/api/prisma/seed.ts', 'utf8');
-  const mapStart = seedText.indexOf('const QUESTION_EXPLANATIONS: Record<string, string> = {');
+  // An explanation authored into the map survives only while its question text
+  // is unchanged; a rename orphans it silently without this check.
+  const seedText = require('node:fs').readFileSync('apps/api/src/content/question-explanations.ts', 'utf8');
+  const mapStart = seedText.indexOf('export const QUESTION_EXPLANATIONS: Record<string, string> = {');
   if (mapStart >= 0) {
     const body = seedText.slice(mapStart, seedText.indexOf('\n};', mapStart));
     const keys = [...body.matchAll(/^ {2}'((?:[^'\\]|\\.)*)':/gm)].map((m) => m[1]);

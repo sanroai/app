@@ -21,10 +21,10 @@ const argv = process.argv.slice(2);
 const db = argv.find((a) => /^(sanro|postgres)[a-z0-9_]*$/i.test(a)) ?? 'sanro_dev';
 process.env.DATABASE_URL = `postgresql://postgres:postgres@localhost:5432/${db}`;
 
-const SEED = 'apps/api/prisma/seed.ts';
+const SEED = 'apps/api/src/content/question-explanations.ts';
 const source = fs.readFileSync(SEED, 'utf8');
-const start = source.indexOf('const QUESTION_EXPLANATIONS: Record<string, string> = {');
-if (start < 0) throw new Error('QUESTION_EXPLANATIONS was not found in the seed');
+const start = source.indexOf('export const QUESTION_EXPLANATIONS: Record<string, string> = {');
+if (start < 0) throw new Error('QUESTION_EXPLANATIONS was not found');
 
 /** the `}` that closes the one at `open`, ignoring string literals */
 function closing(text, open) {

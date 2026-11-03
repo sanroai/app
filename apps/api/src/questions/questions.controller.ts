@@ -30,6 +30,12 @@ export class QuestionsController {
     return this.service.detail(user, id);
   }
 
+  @Roles(Role.SUPER_ADMIN)
+  @Post('sync-explanations')
+  syncExplanations() {
+    return this.service.syncAuthoredExplanations();
+  }
+
   @Roles(Role.INSTITUTION_ADMIN, Role.TEACHER)
   @Post()
   create(@CurrentUser() user: RequestUser, @Body(new ZodValidationPipe(CreateQuestionSchema)) body: unknown) {
