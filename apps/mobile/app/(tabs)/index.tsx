@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../lib/auth-store';
 import { useUserDisplayRole } from '../../lib/hooks';
-import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile, useLearningProgress } from '../../lib/hooks';
+import { useLearningHome, useMyDiagnosis, useMyAssessments, useGamificationProfile, useLearningProgress, useReviewQueue, useStartReviewPractice } from '../../lib/hooks';
 import { useRoleTheme } from '../../lib/role-theme';
 import { Card } from '../../components/Card';
 import { Icon3D } from '../../components/Icon3D';
@@ -30,6 +30,8 @@ export default function HomeScreen() {
   const { data: assessments, refetch: refetchAssess, isFetching: assessLoading } = useMyAssessments({ enabled: isStudent });
   const { data: gamification } = useGamificationProfile({ enabled: isStudent });
   const { data: progress } = useLearningProgress({ enabled: isStudent });
+  const { data: review } = useReviewQueue({ enabled: isStudent });
+  const startReview = useStartReviewPractice();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = useCallback(async () => {
@@ -37,6 +39,21 @@ export default function HomeScreen() {
     await Promise.all([refetchHome(), refetchAssess()]);
     setRefreshing(false);
   }, [refetchHome, refetchAssess]);
+
+  // "Review today": one practice set over the concepts whose spaced-review date
+  // has arrived. A failed start falls back to the first due concept so the button
+  // is never a dead end.
+  const onStartReview = useCallback(async () => {
+    try {
+      const practice = await startReview.mutateAsync({});
+      if (practice.practiceId) {
+        router.push({ pathname: '/practice/[practiceId]', params: { practiceId: practice.practiceId } });
+      }
+    } catch {
+      const first = review?.concepts[0];
+      if (first) router.push({ pathname: '/concept/[conceptId]', params: { conceptId: first.conceptId } });
+    }
+  }, [startReview, review, router]);
 
   const firstName = user?.name ? user.name.split(' ')[0] : 'Student';
 
@@ -206,6 +223,37 @@ export default function HomeScreen() {
           color={Colors.primary}
         />
       </View>
+
+      {/* Spaced review: the concepts whose review date has arrived. It stays out
+          of the way when nothing is due (docs/AI_ANSWERS.md explains the ladder;
+          this is the scheduling half of the learning loop). */}
+      {review && review.count > 0 ? (
+        <View style={styles.reviewCard}>
+          <View style={styles.reviewHead}>
+            <View style={styles.reviewIcon}>
+              <Ionicons name="repeat" size={20} color={Colors.primary} />
+            </View>
+            <View style={styles.reviewBody}>
+              <Text style={styles.reviewTitle}>Review today</Text>
+              <Text style={styles.reviewSub}>
+                {review.dueNow} concept{review.dueNow === 1 ? '' : 's'} due
+                {review.dueNow > review.count ? ` — starting with ${review.count}` : ''}:{' '}
+                {review.concepts.slice(0, 3).map((c) => c.name).join(' · ')}
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.reviewBtn}
+            onPress={onStartReview}
+            disabled={startReview.isPending}
+            accessibilityRole="button"
+            accessibilityLabel="Start review"
+          >
+            <Text style={styles.reviewBtnText}>{startReview.isPending ? 'Starting…' : 'Start review'}</Text>
+            <Ionicons name="arrow-forward" size={16} color={Colors.white} />
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {/* The same three destinations as the web student dashboard's Quick Actions
           (docs/PARITY_POLICY.md): take an assessment, see what to fix, compare. */}
@@ -414,6 +462,28 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 10, color: Colors.textSecondary, fontWeight: '500' },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: Colors.text, marginTop: Spacing.xxl, marginHorizontal: Spacing.lg, marginBottom: Spacing.md },
   focusCard: { marginHorizontal: Spacing.lg, marginBottom: Spacing.md },
+  reviewCard: {
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.lg,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.primary + '10',
+    borderWidth: 1,
+    borderColor: Colors.primary + '30',
+  },
+  reviewHead: { flexDirection: 'row', alignItems: 'center' },
+  reviewIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.primary + '20', alignItems: 'center', justifyContent: 'center' },
+  reviewBody: { flex: 1, marginLeft: Spacing.md },
+  reviewTitle: { fontSize: 15, fontWeight: '700', color: Colors.text },
+  reviewSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
+  reviewBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    paddingVertical: 10,
+    marginTop: Spacing.md,
+  },
+  reviewBtnText: { color: Colors.white, fontSize: 14, fontWeight: '600' },
   focusRow: { flexDirection: 'row', alignItems: 'center' },
   focusIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: Colors.error + '20', alignItems: 'center', justifyContent: 'center' },
   focusBody: { flex: 1, marginLeft: Spacing.md },

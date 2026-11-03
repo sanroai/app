@@ -1254,6 +1254,13 @@ model ConceptMastery {
   correct     Int
   evidenceCount Int
   level       MasteryLevel
+  /// When this concept should next be revisited. Null on rows written before
+  /// spacing existed; `ReviewService` treats those as due immediately.
+  nextReviewAt DateTime?
+  /// The last interval that was handed out (days), so the next success can
+  /// stretch it: 1 -> 3 -> 7 -> 21 -> 45.
+  reviewIntervalDays Int @default(0)
+  lastReviewedAt DateTime?
   lastUpdatedAt DateTime  @updatedAt
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -1261,6 +1268,7 @@ model ConceptMastery {
 
   @@unique([studentId, conceptId])
   @@index([studentId, level])
+  @@index([studentId, nextReviewAt])
 }
 
 model DiagnosticResult {

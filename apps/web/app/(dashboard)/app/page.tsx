@@ -37,10 +37,12 @@ import {
   Eye,
   Calendar,
   ChevronRight,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
 import { Icon3D } from '@/components/icon-3d';
-import { useLearningHome, useGamificationProfile } from '@/lib/learning-hooks';
+import { useLearningHome, useGamificationProfile, useReviewQueue, useStartReviewPractice } from '@/lib/learning-hooks';
 import {
   SubjectProgressGrid,
   type SubjectProgressItem,
@@ -239,6 +241,7 @@ export default function DashboardPage() {
           {isParent && <ParentDashboard data={data as unknown as ParentData} />}
           {isStudent && (
             <>
+              <ReviewToday />
               <StudentStats data={data} />
               <div className="grid gap-6 lg:grid-cols-3">
                 <div className="lg:col-span-2 space-y-6">
@@ -850,6 +853,72 @@ function ChildCard({ child }: { child: ChildData }) {
             )}
           </div>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ─── Spaced review ─── */
+
+/**
+ * "Review today": the concepts whose spaced-review date has arrived.
+ *
+ * This is the card the evidence says matters most - distributed practice is a
+ * moderate, reliable effect and the platform had no way to schedule it. It stays
+ * out of the way when nothing is due.
+ */
+function ReviewToday() {
+  const router = useRouter();
+  const { data, isLoading } = useReviewQueue();
+  const start = useStartReviewPractice();
+
+  if (isLoading || !data || data.count === 0) return null;
+
+  const preview = data.concepts.slice(0, 3).map((concept) => concept.name);
+
+  const handleStart = async () => {
+    try {
+      const practice = await start.mutateAsync({});
+      if (practice.practiceId) router.push(`/app/learn/practice/${practice.practiceId}`);
+    } catch {
+      // A failed start must not look like a dead button: fall back to the first
+      // due concept, which is a normal practice set.
+      const first = data.concepts[0];
+      if (first) router.push(`/app/learn/concepts/${first.conceptId}?tab=practice`);
+    }
+  };
+
+  return (
+    <Card className="border-brand-200 bg-gradient-to-r from-brand-50 to-purple-50">
+      <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <RefreshCw className="h-5 w-5 text-brand-600" />
+            <h2 className="text-lg font-bold text-surface-900">Review today</h2>
+          </div>
+          <p className="mt-1 text-sm text-surface-600">
+            {data.dueNow} concept{data.dueNow === 1 ? '' : 's'} due
+            {data.dueNow > data.count ? ` — starting with ${data.count}` : ''}.
+          </p>
+          <p className="mt-1 truncate text-xs text-surface-500">{preview.join(' · ')}</p>
+        </div>
+        <Button
+          onClick={handleStart}
+          disabled={start.isPending}
+          className="shrink-0 rounded-xl bg-brand-600 text-white hover:bg-brand-700"
+        >
+          {start.isPending ? (
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Starting...
+            </span>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Start review
+            </>
+          )}
+        </Button>
       </CardContent>
     </Card>
   );

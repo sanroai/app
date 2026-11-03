@@ -7,11 +7,13 @@ import { StudentIdentityService } from '../common/services/student-identity.serv
 import { StudentGradeAccessService } from '../common/services/student-grade-access.service';
 import { ContentScopeService } from '../common/content/content-scope.service';
 import { canonicalContentType } from '../common/content/content-types';
+import { ResponseCacheService } from '../common/cache/response-cache.service';
 import { normalizeChapterSegments, deriveConceptSegments, clipSegmentsToDuration } from '../common/books/chapter-segments';
 import { chapterPdfPath, chapterPdfFileName, chapterPdfRemoteUrl } from '../common/books/chapter-pdf';
 import { chapterPageFiles, chapterPageRemoteUrls, chapterPagesAreBookLevel } from '../common/books/chapter-pages';
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
+import { resolveQuestionFeedback, QuestionFeedback } from './question-feedback';
 import { Prisma } from '@prisma/client';
 
 /** The API prefix every chapter PDF link is built with. */
@@ -50,6 +52,13 @@ const DEFAULT_PRACTICE_QUESTIONS = 5;
 
 /** The default size of a chapter practice set. */
 const DEFAULT_CHAPTER_PRACTICE_QUESTIONS = 10;
+
+/**
+ * A question answered correctly this recently is not re-served in a new practice
+ * set. Three days is long enough that the answer is not still in short-term
+ * memory, and short enough that a concept the student has dropped comes back.
+ */
+const RECENTLY_CORRECT_WINDOW_DAYS = 3;
 
 /**
  * Ready-made exams generated from the question bank. A class always has a Term 1,
@@ -216,6 +225,7 @@ export class LearningService {
     private readonly identity: StudentIdentityService,
     private readonly gradeAccess: StudentGradeAccessService,
     private readonly scope: ContentScopeService,
+    private readonly cache: ResponseCacheService,
   ) {}
 
   private consumerWhere(user: RequestUser, extra: Prisma.ContentItemWhereInput = {}): Prisma.ContentItemWhereInput {
@@ -228,6 +238,12 @@ export class LearningService {
   }
 
   async getLearningHome(user: RequestUser) {
+    // Cached per account for 30 s: the payload is several queries over a remote
+    // database and every back-navigation asks for it again.
+    return this.cache.wrap(`${user.sub}|home`, () => this.buildLearningHome(user));
+  }
+
+  private async buildLearningHome(user: RequestUser) {
     // A student may be enrolled in several classes (or in all of them), so the
     // home lists every class they can open - the clients already render whatever
     // grades come back.
@@ -272,17 +288,24 @@ export class LearningService {
       }
     }
 
-    // Count completed content
-    const completedCounts = await this.prisma.contentProgress.groupBy({
-      by: ['contentId'],
-      where: {
-        state: 'COMPLETED',
-        content: this.consumerWhere(user, {
-          subjectId: { not: null },
-        }),
-      },
-      _count: { id: true },
-    });
+    // Count completed content for THIS student. The query used to aggregate
+    // every student's completions, so a subject's progress bar counted any
+    // student's work - a school with two students could show 100% to a student
+    // who had not opened the lesson.
+    const homeStudent = await this.identity.resolveForUser(user);
+    const completedCounts = homeStudent
+      ? await this.prisma.contentProgress.groupBy({
+          by: ['contentId'],
+          where: {
+            studentId: homeStudent.id,
+            state: 'COMPLETED',
+            content: this.consumerWhere(user, {
+              subjectId: { not: null },
+            }),
+          },
+          _count: { id: true },
+        })
+      : [];
 
     // Count completed content per subject per grade
     const completedByContent = new Map<string, number>();
@@ -307,7 +330,7 @@ export class LearningService {
     const subjectIds = subjects.map((s) => s.id);
 
     // Get mastery per subject per grade
-    const student = await this.identity.resolveForUser(user);
+    const student = homeStudent;
     let averageMasteryMap = new Map<string, number>();
     if (student) {
       const masteryByConcept = await this.prisma.conceptMastery.findMany({
@@ -379,6 +402,12 @@ export class LearningService {
   }
 
   async getChapters(user: RequestUser, boardId: string, grade: string, subjectId: string) {
+    return this.cache.wrap(`${user.sub}|chapters|${boardId}|${grade}|${subjectId}`, () =>
+      this.buildChapters(user, boardId, grade, subjectId),
+    );
+  }
+
+  private async buildChapters(user: RequestUser, boardId: string, grade: string, subjectId: string) {
     this.requireBrowseContext(user);
 
     // A student may be enrolled in several classes; any of them may be opened.
@@ -515,6 +544,10 @@ export class LearningService {
   }
 
   async getChapterDetail(user: RequestUser, chapterId: string) {
+    return this.cache.wrap(`${user.sub}|chapter|${chapterId}`, () => this.buildChapterDetail(user, chapterId));
+  }
+
+  private async buildChapterDetail(user: RequestUser, chapterId: string) {
     this.requireBrowseContext(user);
 
     const chapter = await this.prisma.chapter.findUnique({
@@ -785,6 +818,10 @@ export class LearningService {
   }
 
 async getConceptDetail(user: RequestUser, conceptId: string) {
+    return this.cache.wrap(`${user.sub}|concept|${conceptId}`, () => this.buildConceptDetail(user, conceptId));
+  }
+
+  private async buildConceptDetail(user: RequestUser, conceptId: string) {
     this.requireBrowseContext(user);
     const concept = await this.prisma.concept.findUnique({
       where: { id: conceptId },
@@ -964,6 +1001,9 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       },
     });
 
+    // The home / chapter / concept payloads hold "completed" counts and the
+    // lesson's own progress state, so they are dropped for this account.
+    this.cache.invalidateAccount(user.sub);
     return { ok: true, progress: result };
   }
 
@@ -988,6 +1028,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       where: { contentId_studentId: { contentId, studentId: student.id } },
     });
 
+    this.cache.invalidateAccount(user.sub);
     return { ok: true, progress };
   }
 
@@ -1463,6 +1504,35 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     return { assessmentId: assessment.id, title };
   }
 
+  /** Fisher-Yates: a comparator shuffle is biased and repeats pairs. */
+  private shuffle<T>(list: T[]): T[] {
+    const copy = [...list];
+    for (let i = copy.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  /**
+   * The questions this student answered correctly in the last few days.
+   *
+   * Practice selection reads it so a second set is not the same questions whose
+   * answers are still in working memory. Only *completed* sets count: an answer
+   * given inside the set being worked on is not "recent" until it is submitted.
+   */
+  private async recentlyCorrectQuestionIds(
+    studentId: string,
+    days = RECENTLY_CORRECT_WINDOW_DAYS,
+  ): Promise<Set<string>> {
+    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const rows = await this.prisma.practiceAnswer.findMany({
+      where: { isCorrect: true, practiceSet: { studentId, completedAt: { gte: since } } },
+      select: { questionId: true },
+    });
+    return new Set(rows.map((row) => row.questionId));
+  }
+
   async startPractice(user: RequestUser, conceptId: string, questionCount: number) {
     this.tenant.requireInstitution(user);
 
@@ -1471,7 +1541,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     const concept = await this.prisma.concept.findUnique({
       where: { id: conceptId },
-      include: { topic: { select: { chapter: { select: { grade: true } } } } },
+      include: { topic: { select: { chapterId: true, chapter: { select: { grade: true } } } } },
     });
     if (!concept) throw new NotFoundException('Concept not found');
 
@@ -1489,61 +1559,76 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
     } as const;
 
+    // A question the student answered correctly moments ago is neither evidence
+    // nor practice, so it is not re-served **while something else is available**.
+    // The order is deliberate: the concept they chose first (fresh, then its
+    // siblings in the chapter), and only when that whole chapter is exhausted do
+    // the recently answered questions come back - a set that excluded everything
+    // would be an error the student cannot act on.
+    const protectedIds = await this.recentlyCorrectQuestionIds(student.id);
+
     // Fetch a wider pool than we hand out: a practice set that happens to be all
     // written answers cannot be auto-graded, so it would score 0/100 even when
     // every answer was right. Auto-gradable questions are preferred, and written
     // ones only fill the remaining slots.
-    const poolSize = Math.min(take * 4, 40);
-    let questions = await this.prisma.question.findMany({
+    const poolSize = Math.min(Math.max(take * 6, 24), 80);
+    const conceptQuestions = await this.prisma.question.findMany({
       where: { conceptId, status: 'APPROVED' },
       orderBy: { createdAt: 'desc' },
       take: poolSize,
       select: questionSelect,
     });
 
-    // A concept that has no questions of its own still has to be practisable:
-    // draw the pool from its chapter and credit each question to its own concept
-    // (the submit path splits the evidence per concept when conceptIds has more
-    // than one entry).
-    let fromChapter = false;
-    if (questions.length === 0) {
-      const chapterId = (
-        await this.prisma.concept.findUnique({
-          where: { id: conceptId },
-          select: { topic: { select: { chapterId: true } } },
-        })
-      )?.topic.chapterId;
-      if (chapterId) {
-        questions = await this.prisma.question.findMany({
-          where: { chapterId, status: 'APPROVED' },
-          orderBy: { createdAt: 'desc' },
-          take: poolSize,
-          select: questionSelect,
-        });
-        fromChapter = questions.length > 0;
-      }
+    const unassigned = (list: typeof conceptQuestions) => list.filter((q) => !protectedIds.has(q.id));
+    const freshConcept = unassigned(conceptQuestions);
+    const recentConcept = conceptQuestions.filter((q) => protectedIds.has(q.id));
+
+    // A concept that has no questions of its own - or whose own questions are all
+    // recent - still has to be practisable: draw from its chapter and credit each
+    // question to its own concept (the submit path splits the evidence per concept
+    // when conceptIds has more than one entry). Mixing sibling concepts in one set
+    // is also the interleaving case the evidence supports.
+    const targetSize = conceptQuestions.length === 0 ? take : Math.min(take, conceptQuestions.length);
+    let chapterQuestions: typeof conceptQuestions = [];
+    if (freshConcept.length < targetSize) {
+      chapterQuestions = await this.prisma.question.findMany({
+        where: { chapterId: concept.topic.chapterId, status: 'APPROVED', conceptId: { not: conceptId } },
+        orderBy: { createdAt: 'desc' },
+        take: poolSize,
+        select: questionSelect,
+      });
     }
+    const freshSiblings = unassigned(chapterQuestions);
+    const recentSiblings = chapterQuestions.filter((q) => protectedIds.has(q.id));
+
+    // Preference order: the concept's own unseen questions, then unseen siblings
+    // (new material), and only then the questions the student just answered.
+    const candidates =
+      conceptQuestions.length === 0
+        ? [...freshSiblings, ...recentSiblings].slice(0, take)
+        : [...freshConcept, ...freshSiblings, ...recentConcept, ...recentSiblings].slice(0, targetSize);
+
+    let questions = candidates;
+    // A concept practice always credits the concept the student picked: if every
+    // question of it was answered recently, one comes back rather than a set made
+    // only of other concepts.
+    if (questions.length > 0 && !questions.some((q) => q.conceptId === conceptId) && recentConcept.length > 0) {
+      questions = [recentConcept[0], ...questions.slice(0, Math.max(0, questions.length - 1))];
+    }
+    const fromChapter = questions.some((q) => q.conceptId !== conceptId);
 
     if (questions.length === 0) {
       throw new BadRequestException('No practice questions available for this concept');
     }
 
-    const shuffle = <T,>(list: T[]): T[] => {
-      const copy = [...list];
-      for (let i = copy.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    };
-    const autoGradable = shuffle(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
-    const written = shuffle(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
+    const autoGradable = this.shuffle(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
+    const written = this.shuffle(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
     const chosen = [...autoGradable, ...written].slice(0, take);
 
     const sessionConceptIds = [
       ...new Set(chosen.map((q) => q.conceptId).filter((id): id is string => Boolean(id))),
     ];
-    const shuffled = shuffle(chosen);
+    const shuffled = this.shuffle(chosen);
 
     const practiceSet = await this.prisma.practiceSet.create({
       data: {
@@ -1571,14 +1656,101 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
   }
 
   /**
+   * One practice set over an explicit list of concepts.
+   *
+   * A chapter practice, a review session and a concept whose own questions are
+   * exhausted are the same operation, so the selection rules - shuffle, skip what
+   * was just answered correctly, prefer auto-gradable questions - live here once.
+   * `take` is already clamped by the caller, because the chapter set and the
+   * review set have different sizes.
+   */
+  async startConceptGroupPractice(
+    user: RequestUser,
+    conceptIds: string[],
+    take: number,
+    rootConceptId: string | null = null,
+  ) {
+    this.tenant.requireInstitution(user);
+
+    const student = await this.identity.resolveForUser(user);
+    if (!student) throw new ForbiddenException('Only students can practice');
+
+    const ids = [...new Set(conceptIds)];
+    if (ids.length === 0) throw new BadRequestException('This practice has no concepts yet');
+
+    // Authorise every class these concepts belong to. The caller has already
+    // resolved the list, so it cannot be trusted to have checked each one.
+    const access = await this.gradeAccess.forUser(user);
+    const grades = await this.prisma.chapter.findMany({
+      where: { topics: { some: { concepts: { some: { id: { in: ids } } } } } },
+      select: { grade: true },
+      distinct: ['grade'],
+    });
+    for (const grade of grades) this.gradeAccess.assert(access, grade.grade);
+
+    const protectedIds = await this.recentlyCorrectQuestionIds(student.id);
+    const poolSize = Math.min(Math.max(take * 6, 40), 80);
+
+    const questions = await this.prisma.question.findMany({
+      where: { conceptId: { in: ids }, status: 'APPROVED' },
+      orderBy: { createdAt: 'desc' },
+      take: poolSize,
+      select: {
+        id: true,
+        conceptId: true,
+        text: true,
+        type: true,
+        marks: true,
+        options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
+      },
+    });
+
+    if (questions.length === 0) {
+      throw new BadRequestException('No practice questions available for this material yet');
+    }
+
+    // Fresh questions first; recent ones only fill a set that would otherwise be
+    // short, so an exhausted bank still practises instead of erroring.
+    const fresh = questions.filter((q) => !protectedIds.has(q.id));
+    const recent = questions.filter((q) => protectedIds.has(q.id));
+    const pool = fresh.length >= take ? fresh : [...fresh, ...recent];
+
+    const gradable = this.shuffle(pool.filter((q) => this.mastery.isObjectiveType(q.type)));
+    const written = this.shuffle(pool.filter((q) => !this.mastery.isObjectiveType(q.type)));
+    const shuffled = this.shuffle([...gradable, ...written].slice(0, take));
+
+    const practiceSet = await this.prisma.practiceSet.create({
+      data: {
+        studentId: student.id,
+        conceptId: rootConceptId,
+        conceptIds: ids,
+        questionIds: shuffled.map((q) => q.id),
+        status: 'IN_PROGRESS',
+        total: shuffled.length,
+        startedAt: new Date(),
+      },
+    });
+
+    return {
+      practiceId: practiceSet.id,
+      questionCount: shuffled.length,
+      questions: shuffled.map((q) => ({
+        id: q.id,
+        conceptId: q.conceptId,
+        text: q.text,
+        type: q.type,
+        marks: q.marks ?? 1,
+        options: q.options.map((o) => ({ id: o.id, text: o.text, order: o.order })),
+      })),
+    };
+  }
+
+  /**
    * A practice set that covers every concept of a chapter (the "practice the
    * whole chapter" button of the chapter hub).
    */
   async startChapterPractice(user: RequestUser, chapterId: string, questionCount: number) {
     this.tenant.requireInstitution(user);
-
-    const student = await this.identity.resolveForUser(user);
-    if (!student) throw new ForbiddenException('Only students can practice');
 
     const chapter = await this.prisma.chapter.findUnique({
       where: { id: chapterId },
@@ -1595,57 +1767,8 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     }
 
     const take = clampQuestionCount(questionCount, DEFAULT_CHAPTER_PRACTICE_QUESTIONS);
-    // Same rule as the concept-level practice: a set made only of written answers
-    // cannot be auto-graded and would score 0/100, so a wider pool is drawn and
-    // auto-gradable questions fill the session first.
-    const questions = await this.prisma.question.findMany({
-      where: { conceptId: { in: conceptIds }, status: 'APPROVED' },
-      orderBy: { createdAt: 'desc' },
-      take: Math.min(take * 4, 60),
-      select: {
-        id: true,
-        conceptId: true,
-        text: true,
-        type: true,
-        marks: true,
-        options: { orderBy: { order: 'asc' }, select: { id: true, text: true, order: true } },
-      },
-    });
-
-    if (questions.length === 0) {
-      throw new BadRequestException('No practice questions available for this chapter');
-    }
-
-    const shuffleList = <T>(list: T[]) => [...list].sort(() => Math.random() - 0.5);
-    const gradable = shuffleList(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
-    const written = shuffleList(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
-    const shuffled = shuffleList([...gradable, ...written].slice(0, take));
-
-    const practiceSet = await this.prisma.practiceSet.create({
-      data: {
-        studentId: student.id,
-        conceptId: null,
-        conceptIds,
-        questionIds: shuffled.map((q) => q.id),
-        status: 'IN_PROGRESS',
-        total: shuffled.length,
-        startedAt: new Date(),
-      },
-    });
-
-    return {
-      practiceId: practiceSet.id,
-      chapterId: chapter.id,
-      questionCount: shuffled.length,
-      questions: shuffled.map((q) => ({
-        id: q.id,
-        conceptId: q.conceptId,
-        text: q.text,
-        type: q.type,
-        marks: q.marks ?? 1,
-        options: q.options.map((o) => ({ id: o.id, text: o.text, order: o.order })),
-      })),
-    };
+    const practice = await this.startConceptGroupPractice(user, conceptIds, take, null);
+    return { ...practice, chapterId: chapter.id };
   }
 
   /**
@@ -1794,6 +1917,94 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     };
   }
 
+  /**
+   * Feedback for a batch of questions, in one round of queries.
+   *
+   * Both practice paths need it - the immediate "why" after an answer and the
+   * end-of-set review - and both would otherwise re-read the same chapter's notes
+   * once per question.
+   */
+  private async feedbackFor(
+    rows: Array<{
+      id: string;
+      type: string;
+      text: string;
+      answer: string;
+      explanation: string | null;
+      conceptId: string | null;
+      chapterId: string;
+    }>,
+  ): Promise<Map<string, QuestionFeedback>> {
+    const out = new Map<string, QuestionFeedback>();
+    if (rows.length === 0) return out;
+
+    const conceptIds = [...new Set(rows.map((r) => r.conceptId).filter((id): id is string => Boolean(id)))];
+    const chapterIds = [...new Set(rows.map((r) => r.chapterId))];
+
+    const [concepts, chapters, notes] = await Promise.all([
+      this.prisma.concept.findMany({
+        where: { id: { in: conceptIds } },
+        select: { id: true, name: true },
+      }),
+      this.prisma.chapter.findMany({
+        where: { id: { in: chapterIds } },
+        select: { id: true, name: true },
+      }),
+      this.prisma.contentItem.findMany({
+        where: { chapterId: { in: chapterIds }, status: { in: ['APPROVED', 'PUBLISHED'] } },
+        select: { chapterId: true, conceptId: true, type: true, description: true },
+      }),
+    ]);
+
+    const conceptName = new Map(concepts.map((c) => [c.id, c.name]));
+    const chapterName = new Map(chapters.map((c) => [c.id, c.name]));
+
+    // A concept's own notes are the most specific source; the rest of the
+    // chapter's notes follow, because most chapters carry one note for many
+    // concepts.
+    const notesByConcept = new Map<string, string[]>();
+    const notesByChapter = new Map<string, string[]>();
+    for (const note of notes) {
+      if (canonicalContentType(note.type) !== 'NOTES' || !note.description) continue;
+      if (note.conceptId) {
+        const list = notesByConcept.get(note.conceptId) ?? [];
+        list.push(note.description);
+        notesByConcept.set(note.conceptId, list);
+      }
+      if (!note.chapterId) continue;
+      const chapterList = notesByChapter.get(note.chapterId) ?? [];
+      chapterList.push(note.description);
+      notesByChapter.set(note.chapterId, chapterList);
+    }
+
+    for (const row of rows) {
+      out.set(
+        row.id,
+        resolveQuestionFeedback(
+          {
+            id: row.id,
+            type: row.type,
+            text: row.text,
+            answer: row.answer,
+            explanation: row.explanation,
+            conceptId: row.conceptId,
+            chapterId: row.chapterId,
+          },
+          {
+            conceptName: row.conceptId ? conceptName.get(row.conceptId) ?? null : null,
+            chapterName: chapterName.get(row.chapterId) ?? null,
+            notes: [
+              ...(row.conceptId ? notesByConcept.get(row.conceptId) ?? [] : []),
+              ...(notesByChapter.get(row.chapterId) ?? []),
+            ],
+          },
+        ),
+      );
+    }
+
+    return out;
+  }
+
   async savePracticeAnswer(
     user: RequestUser,
     practiceId: string,
@@ -1843,7 +2054,18 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       update: { answer: gradedAnswer, isCorrect },
     });
 
-    return { correct: isCorrect, correctAnswer };
+    // The "why" travels with the grade. Feedback that only arrives at the end of
+    // the set is too late: the student has already moved on from the idea that
+    // produced the wrong answer.
+    const feedback = await this.feedbackFor([question]);
+    const resolved = feedback.get(question.id);
+
+    return {
+      correct: isCorrect,
+      correctAnswer,
+      explanation: resolved?.explanation ?? null,
+      explanationSource: resolved?.source ?? null,
+    };
   }
 
   async submitPractice(user: RequestUser, practiceId: string) {
@@ -1868,7 +2090,15 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     // not in the mastery evidence (the assessment path works the same way).
     const questionRows = await this.prisma.question.findMany({
       where: { id: { in: questionIds } },
-      select: { id: true, conceptId: true, type: true },
+      select: {
+        id: true,
+        conceptId: true,
+        type: true,
+        text: true,
+        answer: true,
+        explanation: true,
+        chapterId: true,
+      },
     });
     const gradableIds = new Set(
       questionRows.filter((q) => this.mastery.isObjectiveType(q.type)).map((q) => q.id),
@@ -1962,6 +2192,35 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       correctAnswers * XP_PER_PRACTICE_CORRECT + (answeredQuestions > 0 ? XP_PRACTICE_COMPLETION : 0);
     await awardStudentXp(this.prisma, student.id, xpEarned, 'PRACTICE_COMPLETED');
 
+    // Mastery, the learning path and every chapter/concept payload for this
+    // account just changed.
+    this.cache.invalidateAccount(user.sub);
+
+    // The end-of-set review: every question in the order the student saw it, with
+    // its answer and the explanation. This is the screen that turns a score into
+    // a lesson, so it must never be a list of bare ticks.
+    const feedback = await this.feedbackFor(questionRows);
+    const answerByQuestion = new Map(practiceSet.answers.map((a) => [a.questionId, a]));
+    const review = questionIds
+      .map((id) => {
+        const question = questionRows.find((q) => q.id === id);
+        if (!question) return null;
+        const given = answerByQuestion.get(id);
+        const resolved = feedback.get(id);
+        return {
+          questionId: question.id,
+          type: question.type,
+          text: question.text,
+          yourAnswer: given?.answer ?? null,
+          correctAnswer: question.answer,
+          correct: given?.isCorrect ?? null,
+          graded: gradableIds.has(id),
+          explanation: resolved?.explanation ?? null,
+          explanationSource: resolved?.source ?? null,
+        };
+      })
+      .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
     return {
       score,
       totalQuestions,
@@ -1974,6 +2233,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       answeredQuestions,
       // Written answers that are waiting for a teacher to look at them.
       pendingGrading,
+      review,
     };
   }
 

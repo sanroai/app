@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-03 — The learning loop: real explanations, spaced review, practice that can't be memorised
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-03 |
+| Task | Give every answered question a reason, schedule concepts to come back, and stop practice from re-serving the same questions |
+| Reason | The research says feedback (d≈0.73), spaced practice (d=0.54) and interleaving (g=0.34) are the levers that move learning. The platform had a **template sentence on all 3,335 questions**, no review scheduler at all, and a fixed practice order. Adding content volume would have scaled the problem, not fixed it |
+| Entities affected | `Question.explanation`, `ConceptMastery.nextReviewAt`/`reviewIntervalDays`/`lastReviewedAt`, `PracticeSet`, `DiagnosticResult` |
+| Database changes | New nullable columns on `ConceptMastery` (existing rows stay NULL = due now) and one index; 12 pilot explanations written to `SCI-10-1` (`scripts/qa/apply-question-explanations.mjs`, 12 updated, 0 orphans) |
+| API changes | `POST /learning/practice/:id/answer` returns `explanation` + `explanationSource`; `POST /learning/practice/:id/submit` returns `review[]`; **new** `GET /learning/review` and `POST /learning/review/start`; practice selection skips recently-correct questions and shuffles; hot read payloads cached 30 s per account (`/learning/home`, chapter list, chapter hub, concept page, `/content/browse`) |
+| Frontend changes | Web + mobile practice screens show the reason the moment an answer is saved and a per-question review on the result screen; both Home screens show a **Review today** card that hides when nothing is due |
+| Seed/import changes | `question()` no longer writes the template sentence (`explanation: null` unless authored); `QUESTION_EXPLANATIONS` map keyed by question text; re-seeding updates a SEED question's explanation; fragment validator now **requires** an explanation (≥40 chars, not the template) |
+| Migration | `20261103090000_concept_mastery_review_schedule` |
+| Verification | `pnpm --filter @sanro/api test` **664/664** (41 files) including new `question-feedback`, `review-schedule`, `response-cache` specs; `pnpm -r typecheck` clean (api/web/mobile); `node scripts/qa/probe-review-queue.mjs` **12/12** (74 due → 6 offered → 8 questions → 8/8 explanations → 6→4 rescheduled); explanation audit: authored 12, notes-quoted 2,612 (78.3%), answer-only 711 (21.3%); latency probe cold→warm locally: chapter list 25→2 ms, chapter hub 26→3 ms, concept 22→3 ms |
+| Known issues | 711 questions still fall back to restating the answer (the authoring backlog, reported by the audit). The API and its database are in different regions, which puts a ~300 ms floor on every request; moving them together is the next infrastructure step, not an app change |
+
 ### 2026-11-03 — Every remaining probe run; the reader probe was stale and "Download PDF" was mislabelled
 
 | Field | Detail |

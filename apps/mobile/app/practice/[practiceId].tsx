@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import { apiAuthed } from '../../lib/api';
 import { useSavePracticeAnswer, useSubmitPractice } from '../../lib/hooks';
+import type { PracticeAnswerResponse, PracticeSubmitResponse } from '../../lib/hooks';
 import { QuizQuestionCard, QuizQuestion } from '../../components/QuizQuestion';
+import { Markdown } from '../../components/Markdown';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { Colors, Spacing, BorderRadius } from '../../constants/theme';
 
@@ -20,7 +22,8 @@ export default function PracticeScreen() {
   const submit = useSubmitPractice();
   const saveAnswer = useSavePracticeAnswer();
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [result, setResult] = useState<{ score: number; totalQuestions: number; gradedQuestions?: number; pendingGrading?: number; correctAnswers: number; masteryUpdate: { level: string; score: number } | null } | null>(null);
+  const [feedback, setFeedback] = useState<Record<string, PracticeAnswerResponse>>({});
+  const [result, setResult] = useState<PracticeSubmitResponse | null>(null);
 
   const { data, isFetching, isError, error, refetch } = useQuery<PracticeData>({
     queryKey: ['learning', 'practice', practiceId],
@@ -41,6 +44,11 @@ export default function PracticeScreen() {
       const promise = saveAnswer.mutateAsync({ practiceId, questionId: qid, answer });
       pendingSaves.current.push(promise);
       promise
+        // The API returns the grade *and* the reason, so the "why" appears under
+        // the question while the student is still thinking about it.
+        .then((response) => {
+          setFeedback((prev) => ({ ...prev, [qid]: response }));
+        })
         .catch(() => undefined)
         .finally(() => {
           pendingSaves.current = pendingSaves.current.filter((p) => p !== promise);
@@ -90,7 +98,7 @@ export default function PracticeScreen() {
       for (let round = 0; round < 5 && pendingSaves.current.length > 0; round += 1) {
         await Promise.allSettled([...pendingSaves.current]);
       }
-      const res = (await submit.mutateAsync(practiceId)) as { score: number; totalQuestions: number; gradedQuestions?: number; pendingGrading?: number; correctAnswers: number; masteryUpdate: { level: string; score: number } | null };
+      const res = (await submit.mutateAsync(practiceId)) as PracticeSubmitResponse;
       setResult(res);
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -133,7 +141,7 @@ export default function PracticeScreen() {
     const pending = result.pendingGrading ?? Math.max(0, result.totalQuestions - graded);
     const passed = pct >= 80;
     return (
-      <View style={styles.resultWrap}>
+      <ScrollView style={styles.resultScroll} contentContainerStyle={styles.resultContent}>
         <View style={[styles.resultCircle, { borderColor: passed ? Colors.success : Colors.error }]}>
           <Text style={[styles.resultNum, { color: passed ? Colors.success : Colors.error }]}>
             {result.correctAnswers}/{graded}
@@ -141,6 +149,11 @@ export default function PracticeScreen() {
         </View>
         <Text style={styles.resultTitle}>{passed ? 'Excellent!' : 'Keep practising!'}</Text>
         <Text style={styles.resultSub}>Score: {result.score} • Accuracy {pct}%</Text>
+        {pending > 0 ? (
+          <Text style={styles.resultNote}>
+            {pending} written answer{pending === 1 ? '' : 's'} will be reviewed by your teacher.
+          </Text>
+        ) : null}
         {result.masteryUpdate ? (
           <View style={styles.masteryBox}>
             <Text style={styles.masteryTitle}>Mastery updated</Text>
@@ -149,10 +162,76 @@ export default function PracticeScreen() {
             </Text>
           </View>
         ) : null}
+
+        {result.review && result.review.length > 0 ? (
+          <View style={styles.reviewWrap}>
+            <Text style={styles.reviewHeading}>Review your answers</Text>
+            {result.review.map((entry, index) => (
+              <View key={entry.questionId} style={styles.reviewCard}>
+                <View style={styles.reviewTop}>
+                  <View
+                    style={[
+                      styles.reviewBadge,
+                      {
+                        backgroundColor:
+                          entry.correct === true
+                            ? Colors.success + '22'
+                            : entry.correct === false
+                              ? Colors.error + '22'
+                              : Colors.surfaceSecondary,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.reviewBadgeText,
+                        {
+                          color:
+                            entry.correct === true
+                              ? Colors.success
+                              : entry.correct === false
+                                ? Colors.error
+                                : Colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      {index + 1}
+                    </Text>
+                  </View>
+                  <Text style={styles.reviewQuestion}>{entry.text}</Text>
+                </View>
+
+                {entry.graded ? (
+                  <Text style={styles.reviewAnswer}>
+                    Your answer:{' '}
+                    <Text style={{ fontWeight: '700', color: entry.correct === true ? Colors.success : Colors.error }}>
+                      {entry.yourAnswer?.trim() || 'not answered'}
+                    </Text>
+                  </Text>
+                ) : (
+                  <Text style={styles.reviewAnswer}>Written answer — your teacher reviews this one.</Text>
+                )}
+
+                {entry.correct === false ? (
+                  <Text style={styles.reviewAnswer}>
+                    Correct answer: <Text style={{ fontWeight: '700' }}>{entry.correctAnswer}</Text>
+                  </Text>
+                ) : null}
+
+                {entry.explanation ? (
+                  <View style={styles.reviewExplanation}>
+                    <Markdown selectable>{entry.explanation}</Markdown>
+                  </View>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         <TouchableOpacity style={styles.doneBtn} onPress={() => router.replace('/(tabs)/tests')}>
           <Text style={styles.doneBtnText}>Back to Assessments</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -192,6 +271,7 @@ export default function PracticeScreen() {
             textAnswer={answers[q.id] ?? ''}
             onTextChange={(value) => typeAnswer(q.id, value)}
             onTextBlur={(value) => persistAnswer(q.id, value)}
+            feedback={feedback[q.id] ?? null}
           />
         ))}
 
@@ -231,7 +311,18 @@ const styles = StyleSheet.create({
   submitBtnDisabled: { backgroundColor: Colors.textMuted },
   submitText: { color: Colors.white, fontSize: 16, fontWeight: '600' },
   resultWrap: { flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl },
-  resultCircle: { width: 140, height: 140, borderRadius: 70, borderWidth: 8, alignItems: 'center', justifyContent: 'center' },
+  resultScroll: { flex: 1, backgroundColor: Colors.background },
+  resultContent: { alignItems: 'center', padding: Spacing.xl, paddingBottom: Spacing.xxxl },
+  resultNote: { fontSize: 12, color: Colors.textMuted, marginTop: Spacing.sm, textAlign: 'center' },
+  reviewWrap: { width: '100%', marginTop: Spacing.xl },
+  reviewHeading: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
+  reviewCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm },
+  reviewTop: { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.sm },
+  reviewBadge: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  reviewBadgeText: { fontSize: 12, fontWeight: '700' },
+  reviewQuestion: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.text, lineHeight: 20 },
+  reviewAnswer: { fontSize: 13, color: Colors.textSecondary, marginTop: Spacing.sm },
+  reviewExplanation: { marginTop: Spacing.sm, backgroundColor: Colors.background, borderRadius: BorderRadius.md, padding: Spacing.sm },  resultCircle: { width: 140, height: 140, borderRadius: 70, borderWidth: 8, alignItems: 'center', justifyContent: 'center' },
   resultNum: { fontSize: 26, fontWeight: '800' },
   resultTitle: { fontSize: 22, fontWeight: '700', color: Colors.text, marginTop: Spacing.xl },
   resultSub: { fontSize: 14, color: Colors.textSecondary, marginTop: 6 },

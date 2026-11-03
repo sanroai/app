@@ -2627,6 +2627,7 @@ function question(
     answer: string;
     marks: number;
     difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
+    explanation?: string;
     options?: { text: string; isCorrect: boolean }[];
   },
 ) {
@@ -2644,7 +2645,10 @@ function question(
     difficulty: spec.difficulty ?? 'MEDIUM',
     status: 'APPROVED',
     source: 'SEED',
-    explanation: 'Refer to the chapter notes for the detailed solution.',
+    // No authored explanation means `null`, not a sentence that sends the student
+    // back to the notes: the API derives real feedback from the lesson notes and
+    // reports which questions still need one. See QUESTION_EXPLANATIONS below.
+    explanation: spec.explanation ?? QUESTION_EXPLANATIONS[spec.text] ?? null,
     options: spec.options ? { create: spec.options } : undefined,
   };
 }
@@ -3128,9 +3132,51 @@ async function seedDemoAcademics(args: {
   }
 }
 
+/**
+ * Authored explanations, keyed by the question's text.
+ *
+ * One map, one lookup, one key. The question text is unique (the fragment
+ * validator refuses duplicates), so this cannot drift onto the wrong question -
+ * and a question whose text changes loses its explanation, which
+ * `scripts/qa/audit-question-explanations.mjs` reports as an orphan instead of
+ * silently showing the wrong reasoning.
+ *
+ * Anything not listed here gets feedback derived from the lesson notes by
+ * `apps/api/src/learning/question-feedback.ts`. Run the audit to see the
+ * remaining backlog:
+ *
+ *   node scripts/qa/audit-question-explanations.mjs
+ */
+const QUESTION_EXPLANATIONS: Record<string, string> = {
+  'Which of the following is an example of a combination reaction?':
+    'Two reactants - CaO and CO2 - join to form a single product, CaCO3, and that is the definition of a **combination reaction** (also called synthesis). NaOH + HCl -> NaCl + H2O and Zn + H2SO4 -> ZnSO4 + H2 both produce two products, and CaCO3 -> CaO + CO2 runs the other way: one reactant splitting into two products is **decomposition**.',
+  'Write the balanced chemical equation for the reaction of zinc with dilute sulphuric acid.':
+    'Zinc is above hydrogen in the reactivity series, so it pushes hydrogen out of the acid: **Zn + H2SO4 -> ZnSO4 + H2**. The equation is already balanced (1 Zn, 1 S, 4 O and 2 H on each side). Because a more reactive metal displaces hydrogen from the acid, this is a **displacement reaction** - the bubbles of hydrogen gas are the visible clue.',
+  'Which statement correctly expresses the law of conservation of mass for a chemical reaction?':
+    'The law says atoms are neither created nor destroyed in a chemical reaction, only rearranged, so the **total mass of the reactants equals the total mass of the products**. Mass is not destroyed when a gas escapes - the gas still has mass, it has simply left the container. Atoms do not turn into atoms of other elements, because that would be a nuclear change, not a chemical one.',
+  'In the reaction ZnO + C → Zn + CO, which statement is correct?':
+    'Carbon takes oxygen away from zinc oxide, so carbon is **oxidised** (it gains oxygen) and ZnO is **reduced** (it loses oxygen). Oxidation and reduction always occur together - the oxygen has to go somewhere - which is why this is called a **redox** reaction. Saying only one of them happens is the usual mistake.',
+  'The reaction CaO + H2O gives Ca(OH)2 is an example of which type of reaction?':
+    'Calcium oxide and water join to form **one single product**, calcium hydroxide, which is the signature of a **combination reaction**. Decomposition would start from a single reactant, and a displacement reaction would have a second product on the right-hand side.',
+  'Which equation shows a more reactive metal displacing a less reactive metal from its salt solution?':
+    'Zinc is more reactive than copper, so it takes copper\u2019s place in solution: **Zn + CuSO4 -> ZnSO4 + Cu**, and the blue colour fades as copper metal deposits. The reverse, Cu + ZnSO4, cannot happen because copper cannot displace the more reactive zinc. Silver is also less reactive than copper, so Ag + CuSO4 does not react either.',
+  'A chemical equation is balanced because of which law?':
+    'An equation is balanced to obey the **law of conservation of mass**: the number of atoms of each element must be the same on both sides because atoms are only rearranged. The law of definite proportions and the law of multiple proportions describe the fixed mass ratios inside a compound, not why an equation is balanced.',
+  'In the reaction CuO + H2 gives Cu + H2O, the substance that is oxidised is:':
+    'Hydrogen removes oxygen from copper(II) oxide and gains it itself, so **H2 is oxidised** to H2O while CuO is reduced to Cu. Remember **OIL RIG** - oxidation is loss of electrons, reduction is gain of electrons; in terms of oxygen, oxidation is gain and reduction is loss. Copper and water are products, not the substance being oxidised.',
+  'Balance the equation Fe + H2O gives Fe3O4 + H2 and name the type of reaction.':
+    '**3Fe + 4H2O -> Fe3O4 + 4H2**. Balance iron and oxygen first and hydrogen last: 3 Fe, 4 O and 8 H on each side. Iron gains oxygen (oxidised) while the hydrogen in water loses oxygen (reduced), so this is a **redox** reaction.',
+  'A chemical equation must be balanced because of which law?':
+    'An equation must be balanced to satisfy the **law of conservation of mass** - the total number of atoms of each element cannot change during a reaction. Newton\u2019s third law is about forces, and the laws of definite and multiple proportions are about the fixed mass ratios within a compound.',
+  'Which of these is a decomposition reaction?':
+    'Heating calcium carbonate splits **one compound into two simpler substances** (CaCO3 -> CaO + CO2), which is **thermal decomposition**. Iron rusting, zinc reacting with dilute acid and magnesium burning all involve a substance combining with oxygen or replacing another element; none of them starts with a single reactant breaking apart.',
+  'In the reaction Fe + CuSO4 -> FeSO4 + Cu, what happens to iron?':
+    'Iron is more reactive than copper, so it **displaces copper** from copper sulphate and dissolves as iron(II) sulphate, leaving copper metal behind: Fe + CuSO4 -> FeSO4 + Cu. You see the blue colour fade and a reddish-brown deposit form. Iron is the displacing metal here, not the one being displaced.',
+};
+
 async function seedQuestions() {
 
-  const scienceQuestions = [
+const scienceQuestions = [
     question('8', SCIENCE, 'Exploring the Investigative World of Science', {
       type: 'MCQ',
       text: 'In the puri investigation, which of these is something you can measure?',
@@ -32290,11 +32336,21 @@ async function seedQuestions() {
       exists.conceptId !== q.conceptId ||
       exists.chapterId !== q.chapterId ||
       exists.grade !== q.grade ||
-      exists.marks !== q.marks
+      exists.marks !== q.marks ||
+      // An authoring pass that adds an explanation (or removes the legacy
+      // template) has to reach rows that already exist, or re-seeding could
+      // never fix the feedback students read. Only seed-owned rows are touched.
+      (exists.source === 'SEED' && exists.explanation !== q.explanation)
     ) {
       await prisma.question.update({
         where: { id: exists.id },
-        data: { grade: q.grade, chapterId: q.chapterId, conceptId: q.conceptId, marks: q.marks },
+        data: {
+          grade: q.grade,
+          chapterId: q.chapterId,
+          conceptId: q.conceptId,
+          marks: q.marks,
+          ...(exists.source === 'SEED' ? { explanation: q.explanation } : {}),
+        },
       });
     }
   }

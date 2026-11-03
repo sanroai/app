@@ -63,6 +63,10 @@ node scripts/qa/export-question-outline.mjs    # Chapters with no questions + th
 node scripts/qa/validate-question-fragments.mjs --dir artifacts/qa/<date>  # Checks authored questions against the live curriculum
 node scripts/qa/merge-question-fragments.mjs --dir artifacts/qa/<date>  # Merge questions-*.json into the seed + concept map
 node scripts/qa/probe-practice-scoring.mjs     # Starts a practice set, answers it correctly, checks the server scores 100
+node scripts/qa/probe-review-queue.mjs         # Spaced review + practice feedback end to end (queue, start, answer, submit, reschedule)
+npx tsx scripts/qa/audit-question-explanations.mts  # Authored / notes-quoted / answer-only explanation coverage
+node scripts/qa/apply-question-explanations.mjs     # Apply the seed's authored explanations to an existing DB (no re-seed)
+node scripts/qa/probe-latency.mjs              # Cold vs warm latency per screen against a live API
 node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths codes with the 2026 book (14 chapters)
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
 node scripts/qa/audit-web-mobile-parity.mjs  # Fails when a student capability exists on one side only
@@ -530,6 +534,40 @@ the audio never reaches our server; `RECORD_AUDIO` is declared in
 request for an undeclared permission is refused) along with a `<queries>` entry for
 `android.speech.RecognitionService`, without which `isRecognitionAvailable()` reports false on
 Android 11+.
+
+## The learning loop — feedback, spacing, selection
+
+`docs/LEARNING_LOOP.md` is the full account. The invariants:
+
+- **Every practice answer returns an explanation** — `{ correct, correctAnswer,
+  explanation, explanationSource }` from `POST /learning/practice/:id/answer`.
+  `answer`/`submit` never return the sentence *"Refer to the chapter notes for
+  the detailed solution."*; it is treated as absent (`LEGACY_EXPLANATION` in
+  `apps/api/src/learning/question-feedback.ts`). Authored explanation → a sentence
+  quoted from the lesson notes → a restatement of the answer (the audit counts
+  that last bucket as the authoring backlog).
+- **`submitPractice` returns `review[]`**, one entry per question in the order the
+  student saw them (text, their answer, the correct answer, graded flag, reason).
+- **A new question cannot enter the bank without an explanation**:
+  `scripts/qa/validate-question-fragments.mjs` fails the merge otherwise, and
+  `merge-question-fragments.mjs` writes it into the seed's `QUESTION_EXPLANATIONS`
+  map (keyed by question text).
+- **Spacing is one function**: `apps/api/src/common/mastery/review-schedule.ts`
+  (1 → 3 → 7 → 21 → 45 days; <50% resets, ≥80% stretches). `applyAttemptEvidence`
+  writes `ConceptMastery.nextReviewAt` / `reviewIntervalDays` / `lastReviewedAt`
+  for practice **and** assessments. Rows with a null date are due now.
+- **`GET /learning/review`** returns `{ dueNow, count, concepts[], nextDueAt }`,
+  weakest first and round-robin across subjects; `POST /learning/review/start`
+  builds one set over the due concepts. Both clients show a Home card that hides
+  itself when nothing is due.
+- **Practice never re-serves a question answered correctly in the last 3 days**
+  while an alternative exists, but one question of the chosen concept always
+  survives so that concept's mastery row updates. Selection is Fisher-Yates
+  shuffled (no comparator shuffle), auto-gradable first.
+- **Hot read payloads are cached 30 s per account**
+  (`common/cache/response-cache.service.ts`) and invalidated on practice submit
+  and lesson complete/undo. Never cache `/learning/path`, `/learning/progress`,
+  `/learning/review` or gamification.
 
 ## Assessment / Path / Test — invariants that must not regress
 `docs/ASSESSMENT_EDGE_CASES.md` is the full list; `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs`

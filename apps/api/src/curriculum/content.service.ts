@@ -10,6 +10,7 @@ import {
 } from '../common/content/content-types';
 import { ContentStatus, Visibility, Prisma, ContentType } from '@prisma/client';
 import { StudentIdentityService } from '../common/services/student-identity.service';
+import { ResponseCacheService } from '../common/cache/response-cache.service';
 
 const YOUTUBE_HOSTS = new Set([
   'youtube.com',
@@ -71,6 +72,7 @@ export class ContentService {
     private readonly tenant: TenantAccessService,
     private readonly identity: StudentIdentityService,
     private readonly scope: ContentScopeService,
+    private readonly cache: ResponseCacheService,
   ) {}
 
   private visibleWhere(user: RequestUser): Prisma.ContentItemWhereInput {
@@ -80,6 +82,27 @@ export class ContentService {
   }
 
   async browse(
+    user: RequestUser,
+    query: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      type?: string;
+      subjectId?: string;
+      chapterId?: string;
+      conceptId?: string;
+      grade?: string;
+      sort?: string;
+    } = {},
+  ) {
+    // The Library's first screen is this query: ~70 KB and eight queries over a
+    // remote database. The same filters are re-requested on every back-nav, so a
+    // short per-account cache removes the whole cost on the second look.
+    const key = `${user.sub}|browse|${JSON.stringify(query)}`;
+    return this.cache.wrap(key, () => this.buildBrowse(user, query));
+  }
+
+  private async buildBrowse(
     user: RequestUser,
     query: {
       page?: number;

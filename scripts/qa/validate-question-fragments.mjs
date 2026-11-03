@@ -5,9 +5,14 @@
 //
 // Checks, per question: the chapter exists at that grade, the concept belongs to
 // that chapter, an MCQ has exactly four options with exactly one correct one and
-// an `answer` equal to that option's text, a SHORT_ANSWER has no options, and no
-// text is duplicated inside the fragments or against the questions already in
-// the database. Exit code 1 when anything fails, so it can gate a merge.
+// an `answer` equal to that option's text, a SHORT_ANSWER has no options, the
+// question carries a real `explanation`, and no text is duplicated inside the
+// fragments or against the questions already in the database. Exit code 1 when
+// anything fails, so it can gate a merge.
+//
+// The explanation rule is the point of the file: a new question cannot enter the
+// bank without the reasoning a student reads after answering, which is what
+// stopped 3,335 questions from sharing one template sentence.
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -62,6 +67,19 @@ try {
       if (!q.text || !q.text.trim()) problems.push(`${where}: empty question text`);
       if (!q.answer || !q.answer.trim()) problems.push(`${where}: empty answer`);
       if (!['MCQ', 'SHORT_ANSWER'].includes(q.type)) problems.push(`${where}: type "${q.type}" is not MCQ|SHORT_ANSWER`);
+
+      // A question without a real explanation teaches nothing: the practice
+      // result is the only moment a student is guaranteed to be looking.
+      const explanation = typeof q.explanation === 'string' ? q.explanation.trim() : '';
+      if (!explanation) {
+        problems.push(`${where}: missing "explanation" (why the answer is right - required)`);
+      } else if (explanation === 'Refer to the chapter notes for the detailed solution.') {
+        problems.push(`${where}: explanation is the old template sentence`);
+      } else if (explanation.length < 40) {
+        problems.push(`${where}: explanation is ${explanation.length} chars (needs >= 40)`);
+      } else if (!/[.!?]/.test(explanation)) {
+        problems.push(`${where}: explanation is not a sentence`);
+      }
 
       const key = `${q.grade}|${String(q.subject ?? '').toLowerCase()}|${q.chapter}`;
       const concepts = index.get(key);

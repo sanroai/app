@@ -12,6 +12,8 @@ import {
   ChevronRight,
   ChevronLeft,
   CheckCircle2,
+  XCircle,
+  Info,
   Clock,
   Trophy,
   ArrowLeft,
@@ -19,9 +21,11 @@ import {
   Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { Markdown } from '@/components/markdown';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import type {
+  PracticeAnswerResponse,
   PracticeStartResponse,
   PracticeSubmitResponse,
 } from '@/lib/learning-hooks';
@@ -53,6 +57,7 @@ export default function PracticePage() {
   const [practiceData, setPracticeData] = useState<PracticeStartResponse | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<AnswerMap>({});
+  const [feedback, setFeedback] = useState<Record<string, PracticeAnswerResponse>>({});
   const [results, setResults] = useState<PracticeSubmitResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [restarting, setRestarting] = useState(false);
@@ -100,6 +105,7 @@ export default function PracticePage() {
   }, [practiceData, results]);
 
   const currentQuestion = practiceData?.questions[currentIndex];
+  const currentFeedback = currentQuestion ? feedback[currentQuestion.id] : undefined;
   const totalQuestions = practiceData?.questions.length ?? 0;
   const answeredCount = Object.keys(answers).length;
   const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
@@ -135,6 +141,11 @@ export default function PracticePage() {
       const pending = savePracticeAnswer.mutateAsync({ practiceId, questionId, answer: value });
       pendingSaves.current.push(pending);
       pending
+        .then((response) => {
+          // The API returns the grade *and* the reason. Showing it now, while the
+          // student is still thinking about the question, is the whole point.
+          setFeedback((prev) => ({ ...prev, [questionId]: response }));
+        })
         .catch((err: unknown) => {
           setSaveError(
             err instanceof Error
@@ -357,6 +368,77 @@ export default function PracticePage() {
               </div>
             )}
 
+            {/* The end-of-set review. A score on its own tells a student nothing
+                they can act on; every question carries its answer and the reason. */}
+            {results.review && results.review.length > 0 ? (
+              <div className="mt-8">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-surface-900">Review your answers</h2>
+                  <span className="text-xs text-surface-500">
+                    {results.review.filter((entry) => entry.correct === true).length} correct of{' '}
+                    {results.review.filter((entry) => entry.graded).length} graded
+                  </span>
+                </div>
+                <div className="space-y-3">
+                  {results.review.map((entry, index) => (
+                    <div
+                      key={entry.questionId}
+                      className="rounded-2xl border border-surface-200 bg-white p-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          className={cn(
+                            'mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
+                            entry.correct === true
+                              ? 'bg-green-100 text-green-700'
+                              : entry.correct === false
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-surface-100 text-surface-600',
+                          )}
+                        >
+                          {index + 1}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-surface-900">{entry.text}</p>
+
+                          {entry.graded ? (
+                            <p className="mt-2 text-sm text-surface-600">
+                              Your answer:{' '}
+                              <span
+                                className={cn(
+                                  'font-medium',
+                                  entry.correct === true ? 'text-green-700' : 'text-red-700',
+                                )}
+                              >
+                                {entry.yourAnswer?.trim() || 'not answered'}
+                              </span>
+                            </p>
+                          ) : (
+                            <p className="mt-2 text-sm text-surface-500">
+                              Written answer — your teacher reviews this one.
+                            </p>
+                          )}
+
+                          {entry.correct === false ? (
+                            <p className="mt-1 text-sm text-surface-700">
+                              Correct answer:{' '}
+                              <span className="font-semibold">{entry.correctAnswer}</span>
+                            </p>
+                          ) : null}
+
+                          {entry.explanation ? (
+                            <div className="mt-2 rounded-xl bg-surface-50 p-3 text-sm text-surface-700">
+                              <Markdown>{entry.explanation}</Markdown>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             <div className="mt-8 flex justify-center gap-3">
               <Button variant="outline" onClick={goToConcept}>
                 <ArrowLeft className="h-4 w-4" />
@@ -530,6 +612,66 @@ export default function PracticePage() {
               </div>
             )}
           </div>
+
+          {/* Immediate feedback. The API grades the answer and returns the reason
+              with it, so the student reads why while the question is still in
+              mind - waiting until the end of the set is too late. */}
+          {currentFeedback ? (
+            <div
+              className={cn(
+                'mt-5 rounded-xl border-2 p-4',
+                currentFeedback.correct === true
+                  ? 'border-green-200 bg-green-50'
+                  : currentFeedback.correct === false
+                    ? 'border-red-200 bg-red-50'
+                    : 'border-surface-200 bg-surface-50',
+              )}
+            >
+              <div className="flex items-center gap-2">
+                {currentFeedback.correct === true ? (
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                ) : currentFeedback.correct === false ? (
+                  <XCircle className="h-5 w-5 text-red-600" />
+                ) : (
+                  <Info className="h-5 w-5 text-surface-500" />
+                )}
+                <span
+                  className={cn(
+                    'text-sm font-semibold',
+                    currentFeedback.correct === true
+                      ? 'text-green-700'
+                      : currentFeedback.correct === false
+                        ? 'text-red-700'
+                        : 'text-surface-700',
+                  )}
+                >
+                  {currentFeedback.correct === true
+                    ? 'Correct'
+                    : currentFeedback.correct === false
+                      ? 'Not quite'
+                      : 'Answer saved'}
+                </span>
+              </div>
+
+              {currentFeedback.correct === false && currentFeedback.correctAnswer ? (
+                <p className="mt-2 text-sm text-surface-700">
+                  Correct answer: <span className="font-semibold">{currentFeedback.correctAnswer}</span>
+                </p>
+              ) : null}
+
+              {currentFeedback.explanation ? (
+                <div className="mt-2 text-sm text-surface-700">
+                  <Markdown>{currentFeedback.explanation}</Markdown>
+                </div>
+              ) : null}
+
+              {currentFeedback.explanationSource === 'notes' ? (
+                <p className="mt-2 text-[11px] uppercase tracking-wide text-surface-400">
+                  From the lesson notes
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

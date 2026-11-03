@@ -348,17 +348,18 @@ describe('Practice flow (e2e)', () => {
     // from the cumulative evidence, so the number beside it must be the same
     // cumulative score - the card used to pair the cumulative level with the
     // single-attempt score ("NEEDS INTERVENTION - 100%" while the student was at 29%).
+    //
+    // The concept that must appear in the update is the one the answered question
+    // belongs to: a thin concept is topped up from its chapter, so the requested
+    // concept may legitimately have no questions of its own (and then no standing).
+    const answeredConceptId = stored!.conceptId!;
     const mastery = await prisma.conceptMastery.findUnique({
-      where: { studentId_conceptId: { studentId, conceptId } },
+      where: { studentId_conceptId: { studentId, conceptId: answeredConceptId } },
     });
     expect(mastery).toBeTruthy();
-    // A thin concept is topped up from its chapter, so the same session can carry
-    // evidence for several concepts; the practised concept must still report its
-    // own cumulative standing (the singular `masteryUpdate` is only filled when
-    // the whole session belongs to one concept).
     const entry = (submit.body.masteryUpdates as Array<{ conceptId: string; level: string; score: number }>).find(
-      (update) => update.conceptId === conceptId,
+      (update) => update.conceptId === answeredConceptId,
     );
-    expect(entry).toEqual({ conceptId, level: mastery!.level, score: mastery!.score });
+    expect(entry).toEqual({ conceptId: answeredConceptId, level: mastery!.level, score: mastery!.score });
   });
 });

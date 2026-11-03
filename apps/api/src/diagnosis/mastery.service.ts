@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { MasteryLevel, MasteryThresholds, getQuestionCategory } from '@sanro/types';
 import { MASTERY_EVIDENCE_MIN_QUESTIONS } from '@sanro/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { scheduleAfterEvidence } from '../common/mastery/review-schedule';
 
 export interface GradableQuestion {
   id: string;
@@ -130,6 +131,12 @@ export class MasteryService {
       const combinedScore = Math.round((combinedCorrect / combinedAttempts) * 100);
       const level = masteryLevelForScore(combinedScore, combinedAttempts);
 
+      // Spaced review. The interval is decided by *this* session's accuracy, not
+      // the lifetime average: a student who has finally got a concept right today
+      // should not wait three weeks because of two bad attempts last month.
+      const scheduled = scheduleAfterEvidence(existing?.reviewIntervalDays ?? 0, score);
+      const reviewedAt = new Date();
+
       await this.prisma.conceptMastery.upsert({
         where: { studentId_conceptId: { studentId, conceptId: ev.conceptId } },
         create: {
@@ -140,6 +147,9 @@ export class MasteryService {
           correct: combinedCorrect,
           evidenceCount: existing?.evidenceCount ?? ev.questions,
           level,
+          nextReviewAt: scheduled.dueAt,
+          reviewIntervalDays: scheduled.intervalDays,
+          lastReviewedAt: reviewedAt,
         },
         update: {
           score: combinedScore,
@@ -147,6 +157,9 @@ export class MasteryService {
           correct: combinedCorrect,
           evidenceCount: { increment: ev.questions },
           level,
+          nextReviewAt: scheduled.dueAt,
+          reviewIntervalDays: scheduled.intervalDays,
+          lastReviewedAt: reviewedAt,
         },
       });
 

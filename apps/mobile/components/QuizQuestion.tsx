@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, BorderRadius } from '../constants/theme';
+import { Markdown } from './Markdown';
 
 // Shared question UI used by practice and assessment attempts.
 //
@@ -62,6 +63,57 @@ interface Props {
   onTextBlur?: (value: string) => void;
   reveal?: { correctId?: string; myAnswer?: string } | null;
   compact?: boolean;
+  /**
+   * What the API returned for this answer - the grade and the reason. Practice
+   * passes it so the "why" appears under the options the moment the student
+   * answers; assessments leave it empty, because the correct answer stays hidden
+   * until the attempt is submitted.
+   */
+  feedback?: {
+    correct: boolean | null;
+    correctAnswer?: string;
+    explanation?: string | null;
+    explanationSource?: string | null;
+  } | null;
+}
+
+/** The grade + the reasoning, under the question it belongs to. */
+export function QuestionFeedback({ feedback }: { feedback: Props['feedback'] }) {
+  if (!feedback) return null;
+  const correct = feedback.correct === true;
+  const wrong = feedback.correct === false;
+  return (
+    <View
+      style={[
+        styles.feedback,
+        correct ? styles.feedbackCorrect : wrong ? styles.feedbackWrong : styles.feedbackNeutral,
+      ]}
+    >
+      <View style={styles.feedbackHead}>
+        <Ionicons
+          name={correct ? 'checkmark-circle' : wrong ? 'close-circle' : 'information-circle'}
+          size={16}
+          color={correct ? Colors.success : wrong ? Colors.error : Colors.textSecondary}
+        />
+        <Text style={[styles.feedbackTitle, { color: correct ? Colors.success : wrong ? Colors.error : Colors.textSecondary }]}>
+          {correct ? 'Correct' : wrong ? 'Not quite' : 'Answer saved'}
+        </Text>
+      </View>
+      {wrong && feedback.correctAnswer ? (
+        <Text style={styles.feedbackText}>
+          Correct answer: <Text style={styles.feedbackStrong}>{feedback.correctAnswer}</Text>
+        </Text>
+      ) : null}
+      {feedback.explanation ? (
+        <View style={styles.feedbackBody}>
+          <Markdown selectable>{feedback.explanation}</Markdown>
+        </View>
+      ) : null}
+      {feedback.explanationSource === 'notes' ? (
+        <Text style={styles.feedbackSource}>From the lesson notes</Text>
+      ) : null}
+    </View>
+  );
 }
 
 export function QuizQuestionCard({
@@ -76,6 +128,7 @@ export function QuizQuestionCard({
   onTextBlur,
   reveal,
   compact,
+  feedback,
 }: Props) {
   const options = question.options ?? [];
 
@@ -120,6 +173,7 @@ export function QuizQuestionCard({
           onEndEditing={(e) => onTextBlur?.(e.nativeEvent.text)}
           accessibilityLabel={`Answer for question ${index + 1}`}
         />
+        <QuestionFeedback feedback={feedback} />
       </View>
     );
   }
@@ -177,6 +231,7 @@ export function QuizQuestionCard({
           );
         })}
       </View>
+      <QuestionFeedback feedback={feedback} />
     </View>
   );
 }
@@ -209,4 +264,14 @@ const styles = StyleSheet.create({
   optLetter: { fontSize: 14, fontWeight: '700', color: Colors.textMuted, marginRight: Spacing.sm, width: 18 },
   optText: { fontSize: 14, color: Colors.text, flex: 1 },
   optTextSelected: { fontSize: 14, color: Colors.text, flex: 1, fontWeight: '600' },
+  feedback: { marginTop: Spacing.md, borderRadius: BorderRadius.md, borderWidth: 1, padding: Spacing.md },
+  feedbackCorrect: { borderColor: Colors.success + '55', backgroundColor: Colors.success + '12' },
+  feedbackWrong: { borderColor: Colors.error + '55', backgroundColor: Colors.error + '12' },
+  feedbackNeutral: { borderColor: Colors.border, backgroundColor: Colors.background },
+  feedbackHead: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  feedbackTitle: { fontSize: 13, fontWeight: '700' },
+  feedbackText: { fontSize: 13, color: Colors.text, marginTop: 6 },
+  feedbackStrong: { fontWeight: '700' },
+  feedbackBody: { marginTop: 6 },
+  feedbackSource: { fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase', color: Colors.textMuted, marginTop: 6 },
 });

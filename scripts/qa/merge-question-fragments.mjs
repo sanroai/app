@@ -4,12 +4,14 @@
 //
 // Each fragment is JSON:
 //   { "questions": [ { grade, subject, chapter, concept, type, text, answer,
-//                      marks, difficulty?, options?: [{ text, isCorrect }] } ] }
+//                      explanation, marks, difficulty?, options?: [{ text, isCorrect }] } ] }
 //
 // The seed keeps one `question(...)` array plus a QUESTION_CONCEPT map from the
 // question's text to the concept name (the seed throws when a question has no
-// concept), so both are written here. Idempotent: a question whose text is
-// already in the seed is skipped.
+// concept), so both are written here. `explanation` is written to the seed's
+// QUESTION_EXPLANATIONS map, keyed by the question text - one store for every
+// explanation, whether the question is new or already in the bank.
+// Idempotent: a question whose text is already in the seed is skipped.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -74,15 +76,31 @@ const existing = new Set(
   [...seed.slice(arrOpen, arrClose).matchAll(/^\s{6,}text: ('(?:[^'\\]|\\.)*')/gm)].map((m) => m[1]),
 );
 
+const mapStart = seed.indexOf('const QUESTION_EXPLANATIONS: Record<string, string> = {');
+if (mapStart < 0) throw new Error('QUESTION_EXPLANATIONS was not found');
+const mapOpen = seed.indexOf('{', mapStart);
+const mapClose = closing(seed, mapOpen);
+const explanationMap = seed.slice(mapOpen, mapClose);
+
 const entries = [];
 const mappings = [];
+const explanations = [];
 let skipped = 0;
+let newExplanations = 0;
 for (const file of files) {
   const frag = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8').replace(/^\uFEFF/, ''));
   for (const q of frag.questions ?? []) {
     const subject = SUBJECT_CONST[q.subject];
     if (!subject) throw new Error(`${file}: unknown subject "${q.subject}"`);
     const text = quote(q.text);
+
+    // An explanation can be added to a question that is already in the bank, so
+    // the map is checked before the "already seeded" skip.
+    if (q.explanation && !explanationMap.includes(`${text}:`)) {
+      explanations.push(`  ${text}:\n    ${quote(String(q.explanation).trim())},`);
+      newExplanations += 1;
+    }
+
     if (existing.has(text)) { skipped += 1; continue; }
     const body = [`type: ${quote(q.type)}`, `text: ${text}`, `answer: ${quote(q.answer)}`, `marks: ${Number(q.marks) || 1}`];
     if (q.difficulty) body.push(`difficulty: ${quote(q.difficulty)}`);
@@ -95,22 +113,39 @@ for (const file of files) {
   }
 }
 
-if (!entries.length) {
+if (!entries.length && !explanations.length) {
   console.log(`  ${files.length} fragment(s), ${skipped} question(s) already in the seed - nothing to add`);
   process.exit(0);
 }
 
 // 1. the question array: append before its closing bracket
-const beforeArr = seed.slice(0, arrClose).replace(/\s*$/, '');
-seed = `${beforeArr}\n${entries.join('\n')}\n  ${seed.slice(arrClose)}`;
+if (entries.length) {
+  const beforeArr = seed.slice(0, arrClose).replace(/\s*$/, '');
+  seed = `${beforeArr}\n${entries.join('\n')}\n  ${seed.slice(arrClose)}`;
+}
 
 // 2. the concept map: append before its closing brace
-const mapStart = seed.indexOf('const QUESTION_CONCEPT: Record<string, string> = {');
-if (mapStart < 0) throw new Error('QUESTION_CONCEPT was not found');
-const mapOpen = seed.indexOf('{', mapStart);
-const mapClose = closing(seed, mapOpen);
-const beforeMap = seed.slice(0, mapClose).replace(/\s*$/, '');
-seed = `${beforeMap}\n${mappings.join('\n')}\n  ${seed.slice(mapClose)}`;
+if (mappings.length) {
+  const conceptMapStart = seed.indexOf('const QUESTION_CONCEPT: Record<string, string> = {');
+  if (conceptMapStart < 0) throw new Error('QUESTION_CONCEPT was not found');
+  const conceptOpen = seed.indexOf('{', conceptMapStart);
+  const conceptClose = closing(seed, conceptOpen);
+  const beforeMap = seed.slice(0, conceptClose).replace(/\s*$/, '');
+  seed = `${beforeMap}\n${mappings.join('\n')}\n  ${seed.slice(conceptClose)}`;
+}
+
+// 3. the explanation map: append before its closing brace (offsets are
+//    re-searched above, because step 1 and 2 moved the text around)
+if (explanations.length) {
+  const start = seed.indexOf('const QUESTION_EXPLANATIONS: Record<string, string> = {');
+  if (start < 0) throw new Error('QUESTION_EXPLANATIONS was not found');
+  const open = seed.indexOf('{', start);
+  const close = closing(seed, open);
+  const before = seed.slice(0, close).replace(/\s*$/, '');
+  seed = `${before}\n${explanations.join('\n')}\n  ${seed.slice(close)}`;
+}
 
 fs.writeFileSync(SEED, seed);
-console.log(`  ${files.length} fragment(s): added ${entries.length} question(s), skipped ${skipped}`);
+console.log(
+  `  ${files.length} fragment(s): added ${entries.length} question(s), skipped ${skipped}, wrote ${newExplanations} explanation(s)`,
+);

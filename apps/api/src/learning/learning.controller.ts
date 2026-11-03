@@ -1,6 +1,7 @@
 import { Controller, Get, NotFoundException, Param, Post, Delete, Body, Query, UseGuards, Res, BadRequestException } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { LearningService, clampQuestionCount } from './learning.service';
+import { ReviewService } from './review.service';
 import { PdfTicketService } from './pdf-ticket.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles, SubscriptionRequired } from '../common/decorators/auth.decorators';
@@ -17,6 +18,7 @@ import { readFileSync } from 'node:fs';
 export class LearningController {
   constructor(
     private readonly service: LearningService,
+    private readonly review: ReviewService,
     private readonly pdfTickets: PdfTicketService,
   ) {}
 
@@ -246,6 +248,27 @@ export class LearningController {
     @Param('practiceId') practiceId: string,
   ) {
     return this.service.submitPractice(user, practiceId);
+  }
+
+  /**
+   * "Review today": the concepts whose spaced-review date has arrived, weakest
+   * first and mixed across subjects. Empty for a student with no evidence yet.
+   */
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Get('review')
+  reviewQueue(@CurrentUser() user: RequestUser) {
+    return this.review.getReviewQueue(user);
+  }
+
+  /** One practice set over the concepts that are due today. */
+  @SetMetadata(PARENT_RESTRICTED_KEY, true)
+  @Roles('STUDENT')
+  @Post('review/start')
+  startReview(
+    @CurrentUser() user: RequestUser,
+    @Body() body: { questionCount?: number },
+  ) {
+    return this.review.startReviewPractice(user, body?.questionCount);
   }
 
   @Get('gamification/profile')

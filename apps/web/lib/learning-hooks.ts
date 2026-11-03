@@ -322,6 +322,21 @@ export interface PracticeStartResponse {
 export interface PracticeAnswerResponse {
   correct: boolean | null;
   correctAnswer?: string;
+  /** The "why": an authored explanation, or a sentence quoted from the notes. */
+  explanation?: string | null;
+  explanationSource?: 'authored' | 'notes' | 'answer' | null;
+}
+
+export interface PracticeReviewEntry {
+  questionId: string;
+  type: string;
+  text: string;
+  yourAnswer: string | null;
+  correctAnswer: string;
+  correct: boolean | null;
+  graded: boolean;
+  explanation: string | null;
+  explanationSource: 'authored' | 'notes' | 'answer' | null;
 }
 
 export interface PracticeSubmitResponse {
@@ -329,6 +344,8 @@ export interface PracticeSubmitResponse {
   totalQuestions: number;
   correctAnswers: number;
   masteryUpdate: { level: string; score: number } | null;
+  /** One entry per question, in the order the student saw them. */
+  review?: PracticeReviewEntry[];
 }
 
 export function useStartPractice() {
@@ -360,6 +377,59 @@ export function useSubmitPractice() {
       api<PracticeSubmitResponse>(`/learning/practice/${practiceId}/submit`, { method: 'POST', token }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['learning'] });
+    },
+  });
+}
+
+/* ─── Spaced review ──────────────────────────────────────────────────────────
+ * The concepts whose review date has arrived. `nextReviewAt` is written by the
+ * mastery service after every piece of evidence, so this is simply "what is due"
+ * - no scheduling happens on the client.
+ */
+export interface ReviewConcept {
+  conceptId: string;
+  name: string;
+  chapterId: string;
+  chapterName: string;
+  grade: string;
+  subject: string;
+  level: string;
+  score: number;
+  intervalDays: number;
+  dueAt: string | null;
+  reason: 'due' | 'unscheduled';
+}
+
+export interface ReviewQueue {
+  /** The true backlog. `concepts` is the short session we offer. */
+  dueNow: number;
+  count: number;
+  concepts: ReviewConcept[];
+  nextDueAt: string | null;
+}
+
+export function useReviewQueue({ enabled = true }: { enabled?: boolean } = {}) {
+  const token = useToken();
+  return useQuery<ReviewQueue>({
+    queryKey: ['learning', 'review'],
+    queryFn: () => api<ReviewQueue>('/learning/review', { token }),
+    enabled: !!token && enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useStartReviewPractice() {
+  const queryClient = useQueryClient();
+  const token = useToken();
+  return useMutation({
+    mutationFn: (data: { questionCount?: number } = {}) =>
+      api<PracticeStartResponse & { concepts: ReviewConcept[] }>('/learning/review/start', {
+        method: 'POST',
+        token,
+        body: data,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['learning', 'review'] });
     },
   });
 }

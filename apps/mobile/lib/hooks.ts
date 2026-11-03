@@ -265,11 +265,33 @@ export interface PracticeStartResponse {
   practiceId: string;
   questions: PracticeQuestion[];
 }
+/** What the API returns for one saved answer: the grade and the reason. */
+export interface PracticeAnswerResponse {
+  correct: boolean | null;
+  correctAnswer?: string;
+  explanation?: string | null;
+  explanationSource?: 'authored' | 'notes' | 'answer' | null;
+}
+export interface PracticeReviewEntry {
+  questionId: string;
+  type: string;
+  text: string;
+  yourAnswer: string | null;
+  correctAnswer: string;
+  correct: boolean | null;
+  graded: boolean;
+  explanation: string | null;
+  explanationSource: 'authored' | 'notes' | 'answer' | null;
+}
 export interface PracticeSubmitResponse {
   score: number;
   totalQuestions: number;
   correctAnswers: number;
   masteryUpdate: { level: string; score: number } | null;
+  gradedQuestions?: number;
+  pendingGrading?: number;
+  /** One entry per question, in the order the student saw them. */
+  review?: PracticeReviewEntry[];
 }
 
 export function useStartPractice() {
@@ -286,10 +308,10 @@ export function useStartPractice() {
 export function useSavePracticeAnswer() {
   return useMutation({
     mutationFn: (data: { practiceId: string; questionId: string; answer: string }) =>
-      apiAuthed<{ correct: boolean | null; correctAnswer?: string }>(
-        `/learning/practice/${data.practiceId}/answer`,
-        { method: 'POST', body: { questionId: data.questionId, answer: data.answer } },
-      ),
+      apiAuthed<PracticeAnswerResponse>(`/learning/practice/${data.practiceId}/answer`, {
+        method: 'POST',
+        body: { questionId: data.questionId, answer: data.answer },
+      }),
   });
 }
 
@@ -301,6 +323,52 @@ export function useSubmitPractice() {
         method: 'POST',
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['learning'] }),
+  });
+}
+
+// ─── Spaced review ───────────────────────────────────────
+// The concepts whose review date has arrived. `nextReviewAt` is written by the
+// mastery service after every piece of evidence, so this is "what is due" -
+// no scheduling happens on the client.
+export interface ReviewConcept {
+  conceptId: string;
+  name: string;
+  chapterId: string;
+  chapterName: string;
+  grade: string;
+  subject: string;
+  level: string;
+  score: number;
+  intervalDays: number;
+  dueAt: string | null;
+  reason: 'due' | 'unscheduled';
+}
+
+export interface ReviewQueue {
+  dueNow: number;
+  count: number;
+  concepts: ReviewConcept[];
+  nextDueAt: string | null;
+}
+
+export function useReviewQueue({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery<ReviewQueue>({
+    queryKey: ['learning', 'review'],
+    queryFn: () => apiAuthed<ReviewQueue>('/learning/review'),
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useStartReviewPractice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { questionCount?: number } = {}) =>
+      apiAuthed<PracticeStartResponse & { concepts: ReviewConcept[] }>('/learning/review/start', {
+        method: 'POST',
+        body: data,
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['learning', 'review'] }),
   });
 }
 

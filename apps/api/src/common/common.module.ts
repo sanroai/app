@@ -11,6 +11,7 @@ import { StudentGradeAccessService } from '../common/services/student-grade-acce
 import { StorageService } from '../common/services/storage.service';
 import { JobQueueService } from '../common/services/job-queue.service';
 import { ContentScopeService } from '../common/content/content-scope.service';
+import { ResponseCacheService } from '../common/cache/response-cache.service';
 import { APP_CONFIG_TOKEN } from './common.constants';
 
 @Global()
@@ -32,6 +33,7 @@ import { APP_CONFIG_TOKEN } from './common.constants';
     JobQueueService,
     ContentScopeService,
     SystemInstitutionService,
+    ResponseCacheService,
   ],
   exports: [
     APP_CONFIG_TOKEN,
@@ -47,6 +49,7 @@ import { APP_CONFIG_TOKEN } from './common.constants';
     JobQueueService,
     ContentScopeService,
     SystemInstitutionService,
+    ResponseCacheService,
   ],
 })
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
