@@ -43,15 +43,18 @@ Measured coverage on the current bank (`npx tsx scripts/qa/audit-question-explan
 
 ```
 questions     : 3335
-  authored    : 51   (1.5%)   written explanation (class 10 Science, chapters 1-4)
-  notes       : 2589 (77.6%)  a sentence quoted from the lesson notes
-  answer only : 695  (20.8%)  restates the answer - authoring backlog
+  authored    : 163  (4.9%)   written explanation - every class-10 Science question
+  notes       : 2520 (75.6%)  a sentence quoted from the lesson notes
+  answer only : 652  (19.6%)  restates the answer - authoring backlog
 ```
 
-Production carries the same 51 (`POST /questions/sync-explanations`, super-admin,
-reports `{"authored":51,"updated":51,"orphaned":0}`). The pilot chapters
-(`SCI-10-1` … `SCI-10-4`) have every question authored; that is the shape the
-rest should reach.
+**Every one of the 163 class-10 Science questions (`SCI-10-1` … `SCI-10-13`) has
+an authored explanation**, in the repo, in the dev database and in production
+(`authored=163, science10_authored=163`). That is the pattern the other classes
+should follow; the answer-only bucket is the working list.
+
+Production is synced with `POST /questions/sync-explanations`, which reported
+`{"authored":163,"updated":112,"alreadyCorrect":51,"orphaned":0}`.
 
 ### Where the content lives, and how it reaches production
 
