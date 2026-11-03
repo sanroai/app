@@ -325,6 +325,8 @@ export interface PracticeAnswerResponse {
   /** The "why": an authored explanation, or a sentence quoted from the notes. */
   explanation?: string | null;
   explanationSource?: 'authored' | 'notes' | 'answer' | null;
+  /** True once the server has an answer on file - the question is final. */
+  locked?: boolean;
 }
 
 export interface PracticeReviewEntry {

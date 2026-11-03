@@ -35,6 +35,13 @@ import { isAutoGradedType, parseMultiSelectAnswer } from '@/lib/answer-format';
 type AnswerMap = Record<string, string>;
 
 /**
+ * Objective answer types are final once chosen. MULTI_SELECT is excluded because
+ * its answer is sent on every toggle, so locking it after the first one would make
+ * a multi-select question impossible to complete.
+ */
+const locksOnceAnswered = (type: string) => isAutoGradedType(type) && type !== 'MULTI_SELECT';
+
+/**
  * The submit response plus the optional counters a newer API may add. The web
  * falls back to what it can derive from the questions it already holds.
  */
@@ -106,6 +113,15 @@ export default function PracticePage() {
 
   const currentQuestion = practiceData?.questions[currentIndex];
   const currentFeedback = currentQuestion ? feedback[currentQuestion.id] : undefined;
+  /**
+   * An objective answer is final as soon as it is chosen: the feedback panel shows
+   * the correct answer straight away, so allowing a second click would let a
+   * student switch to it after seeing it. Written answers stay editable (they are
+   * not graded), and a failed save unlocks the question again so it can be retried.
+   */
+  const currentLocked = Boolean(
+    currentQuestion && locksOnceAnswered(currentQuestion.type) && answers[currentQuestion.id] !== undefined,
+  );
   const totalQuestions = practiceData?.questions.length ?? 0;
   const answeredCount = Object.keys(answers).length;
   const progressPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
@@ -133,6 +149,12 @@ export default function PracticePage() {
 
   const handleAnswerChange = useCallback(
     (questionId: string, value: string) => {
+      // A second save would overwrite the graded answer, so an objective question
+      // is answered exactly once. The guard also covers a double click that lands
+      // before the first save has returned.
+      const question = practiceData?.questions.find((q) => q.id === questionId);
+      if (question && locksOnceAnswered(question.type) && answers[questionId] !== undefined) return;
+
       setAnswers((prev) => ({ ...prev, [questionId]: value }));
       setSaveError(null);
       // The server grades the answers it has stored, so every answer has to be
@@ -147,17 +169,23 @@ export default function PracticePage() {
           setFeedback((prev) => ({ ...prev, [questionId]: response }));
         })
         .catch((err: unknown) => {
+          // Unlock the question so the answer can be given again.
+          setAnswers((prev) => {
+            const next = { ...prev };
+            delete next[questionId];
+            return next;
+          });
           setSaveError(
             err instanceof Error
-              ? `We could not save your answer: ${err.message}. Your result may not include it.`
-              : 'We could not save your answer. Your result may not include it.',
+              ? `We could not save your answer: ${err.message}. Your result may not include it - please answer again.`
+              : 'We could not save your answer. Your result may not include it - please answer again.',
           );
         })
         .finally(() => {
           pendingSaves.current = pendingSaves.current.filter((p) => p !== pending);
         });
     },
-    [savePracticeAnswer, practiceId],
+    [savePracticeAnswer, practiceId, practiceData, answers],
   );
 
   const handleNext = useCallback(() => {
@@ -525,7 +553,7 @@ export default function PracticePage() {
                   <button
                     key={opt.id}
                     type="button"
-                    disabled={submitting}
+                    disabled={submitting || currentLocked}
                     onClick={() => handleAnswerChange(currentQuestion.id, opt.text)}
                     className={cn(
                       'w-full rounded-xl border-2 p-4 text-left transition-all disabled:cursor-not-allowed disabled:opacity-70',
@@ -616,6 +644,12 @@ export default function PracticePage() {
           {/* Immediate feedback. The API grades the answer and returns the reason
               with it, so the student reads why while the question is still in
               mind - waiting until the end of the set is too late. */}
+          {currentLocked ? (
+            <p className="mt-4 text-xs font-medium text-surface-500">
+              Your answer is final - a practice answer cannot be changed once it is given.
+            </p>
+          ) : null}
+
           {currentFeedback ? (
             <div
               className={cn(

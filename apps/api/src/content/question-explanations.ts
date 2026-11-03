@@ -1366,4 +1366,562 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     '**The square root of 2** - it cannot be written as a fraction of integers. 3/4, 0.25 (= 1/4) and -7 are all rational.',
   'A decimal that repeats a block of digits for ever is called':
     '**A recurring decimal**. A terminating decimal stops, and an irrational decimal neither terminates nor repeats.',
+  '(a + b) squared is equal to __.':
+    'Multiply (a + b)(a + b) term by term: a times a, a times b, b times a, then b times b, giving **a^2 + 2ab + b^2**. The tempting answer a^2 + b^2 drops the two ab rectangles that appear when each part of the first bracket meets each part of the second. The version with a minus sign belongs to (a - b)^2, not to (a + b)^2.',
+  'Using the identity (x + a)(x + b), the expression x squared + 7x + 12 can be written as __.':
+    'You need two numbers that multiply to **12** and also add to **7**, and 3 with 4 does both, so the factors are (x + 3)(x + 4). Choosing 2 and 6 passes the product test but adds to only 8, which is the usual slip: both conditions must hold. The pair -3 and -4 is wrong because two negative factors would give -7x, not +7x.',
+  'How can you simplify a rational expression in which the numerator and the denominator have a common factor?':
+    'A common factor can be cancelled because dividing the top and bottom by the same non-zero quantity leaves the value unchanged, so cancel it and keep the **simplest form**. For example (x^2 - 4)/(x - 2) becomes (x - 2)(x + 2)/(x - 2) = x + 2. Squaring the parts or adding terms changes the value, so factorise first and cancel only whole factors.',
+  'A square of side (a + b) is divided into two squares of areas a^2 and b^2 and two equal rectangles. If a = 4 and b = 3, what is the total area of the two rectangles?':
+    'Each rectangle has area ab = 4 × 3 = 12, and two of them make **24**. Stopping at 12 counts only one rectangle and forgets its twin on the other side of the square. The 25 is a^2 + b^2 = 16 + 9, which is just the two corner squares, while 49 is the whole square, (a + b)^2 = 7^2.',
+  'Using the identity (a - b)^2 = a^2 - 2ab + b^2, expand (2x - 3)^2.':
+    'Here a = 2x and b = 3, so a^2 = 4x^2, 2ab = 2 × 2x × 3 = **12x**, and b^2 = 9, giving 4x^2 - 12x + 9. The answer 4x^2 - 6x + 9 squares the 2 but forgets to double the middle product. The plus version 4x^2 + 12x + 9 would be the expansion of (2x + 3)^2, so its sign is the giveaway.',
+  'Factorise x^2 - 5x + 6.':
+    'The two numbers must multiply to **+6** and add to **-5**, and -2 with -3 satisfies both. The pair +2 and +3 multiplies correctly but adds to +5, which would flip the middle term to +5x. The pair -1 and -6 adds to -7, so it cannot rebuild -5x even though the product is right.',
+  'Which identity gives (a + b)^2?':
+    'Squaring a binomial means multiplying it by itself, so (a + b)(a + b) = a^2 + ab + ba + b^2 = **a^2 + 2ab + b^2**. Writing only a^2 + b^2 loses the two ab terms, which is the most common error. The identity containing a minus sign before 2ab describes (a - b)^2 instead.',
+  'Which identity gives (a + b)(a - b)?':
+    'Expanding gives a^2 - ab + ab - b^2, and the two middle terms cancel because they are equal and opposite, leaving **a^2 - b^2**. Keeping them as +2ab is the mistake behind a^2 + 2ab + b^2, which comes from (a + b)^2. This shortcut needs one bracket with a plus and one with a minus.',
+  'The identity (a + b)^2 can be shown as the area of':
+    'A square of side (a + b) can be cut into a square a^2, a square b^2 and two rectangles of area ab each, so all four pieces give **a^2 + 2ab + b^2**. A single rectangle of area ab is only one of those pieces, so it cannot show the whole identity. A circle or a triangle has curved or sloping sides and cannot be split into these exact pieces.',
+  'In the square diagram for (a + b)^2, the two rectangles each have area':
+    'The big square has side (a + b), so each rectangle measures a by b and its area is **ab**; two of them supply the 2ab term. The pieces of area a^2 and b^2 are squares in the corners, not rectangles, because their sides are equal. Writing 2ab + a adds an area to a length, so the units no longer match.',
+  'Factorise x^2 - 9 using an identity.':
+    'This is a difference of two squares, since 9 = 3^2, and a^2 - b^2 factorises as (a - b)(a + b), so here it is **(x - 3)(x + 3)**. The answer (x - 3)^2 expands to x^2 - 6x + 9, which brings back a middle term that should be zero. Splitting 9 as -9 and +1 gives -8x in the middle, so it fails too.',
+  'Factorise x^2 + 6x + 9.':
+    'Both ends are perfect squares, x^2 and 3^2, and the middle 6x equals 2 × x × 3, so the expression is the perfect square **(x + 3)^2**. Writing (x - 3)^2 would put -6x in the middle, which has the wrong sign. The pair 9 and 1 multiplies to 9 but adds to 10, not 6.',
+  'Simplify (x^2 - 4) / (x - 2).':
+    'Factorise the top as (x - 2)(x + 2), then cancel the common bracket (x - 2) with the bottom, leaving **x + 2**. Answering x - 2 cancels nothing and simply repeats the bracket that was removed. Leaving x^2 or writing 2 ignores the division; note also that x cannot be 2, because the bottom would then be zero.',
+  'Before cancelling in a rational expression, you must':
+    'You can only cancel something that is a factor of the whole numerator and the whole denominator, so **factorise both** first. For instance (x^2 - 1)/(x - 1) shows nothing useful until the top becomes (x - 1)(x + 1). Squaring both parts or adding terms changes the value instead of simplifying, which is why those shortcuts fail.',
+  'What is the greatest possible length of a chord of a circle of radius 10 cm?':
+    'The longest chord is the one through the centre, the diameter, and it measures 2 × 10 = **20 cm**. Reporting 40 cm doubles the radius twice, since 40 cm would be four radii. The 10 cm answer gives the radius itself, and any chord that misses the centre is shorter than the diameter.',
+  'How many lines of symmetry does a circle have?':
+    'Any line through the **centre** folds a circle exactly onto itself, and there is one such line for every direction, so the number is infinitely many. Saying 4 or 2 usually comes from picturing a square or a rectangle, which do have a small fixed number of folds. A circle has no corners to limit the choice of crease.',
+  'A chord of length 16 cm is 6 cm away from the centre of a circle. What is the radius of the circle?':
+    'The perpendicular from the centre bisects the chord, so half the chord is 8 cm, and r^2 = 6^2 + 8^2 = 36 + 64 = 100, giving **r = 10 cm**. The 14 cm comes from adding 6 + 8 instead of using Pythagoras. Using the full 16 in place of the 8 cm half-chord would give a radius of about 17 cm.',
+  'ABCD is a cyclic quadrilateral with âˆ A = 95Â° and âˆ B = 70Â°. Find âˆ C and âˆ D.':
+    'Opposite angles of a cyclic quadrilateral are supplementary, so angle C = 180 - 95 = **85 degrees** and angle D = 180 - 70 = 110 degrees. Treating A and B as an opposite pair would wrongly make C equal to 70. Subtracting from 360 gives the correct total for C and D but says nothing about each one separately.',
+  'A chord that passes through the centre of a circle is called':
+    'A chord joins two points on the circle, and when it passes through the centre it is the longest one, called a **diameter**. A radius runs from the centre to just one point on the circle, so it is not a chord at all. A tangent touches the circle at a single point and never crosses it, and an arc is part of the curved edge.',
+  'How is the diameter related to the radius?':
+    'The diameter is a chord through the centre made of two radii placed end to end, so d = **2r**. Saying the diameter is half the radius reverses the relation and would make the longer line shorter than the part. The square of the radius is not even a length, so d = r^2 cannot describe a distance.',
+  'Every line of symmetry of a circle passes through':
+    'Folding a circle in half only matches the two halves when the crease passes through the **centre**, so every line of symmetry does. A crease through a random point on the circle, or along a chord that misses the centre, leaves unequal arcs on the two sides. That freedom of direction is also why there are infinitely many such lines.',
+  'The perpendicular from the centre of a circle to a chord':
+    'Joining the centre to the two ends of the chord gives an isosceles triangle with two radii, so the perpendicular from the centre lands on the midpoint and **bisects** the chord. This is the fact that lets you find a radius with Pythagoras. A perpendicular cannot be parallel to the chord, and if it missed the chord there would be nothing to bisect.',
+  'The perpendicular bisector of a chord always passes through':
+    'Every point on the perpendicular bisector of a chord is equally far from both ends, and the **centre of the circle** is one such point, so the line must pass through it. A tangent point lies where the circle is touched from outside and has nothing to do with halving a chord. This is how you find a centre by drawing two chords.',
+  'Angles in the same segment of a circle are':
+    'Angles standing on the same arc, in the same segment, are **equal**, because each is half the angle the arc makes at the centre. Calling them supplementary would mean they add to 180, which is true only for opposite angles of a cyclic quadrilateral. Complementary, meaning they sum to 90, only fits an arc that is a quarter of the circle.',
+  'Four points are concyclic when':
+    'Concyclic means the four points all **lie on one and the same circle**, so each satisfies that circle\'s equation. Forming a square is only one example and is not required, since many rectangles and isosceles trapezia are concyclic too. Lying inside a circle is not enough, because the points must be on the curve, not within it.',
+  'A circle has rotational symmetry of order':
+    'A circle looks unchanged after a turn through any angle, and there are unlimited such angles, so its order of rotational symmetry is **infinite**. An order of 4 belongs to a square, which only matches at 90, 180, 270 and 360 degrees. An order of 1 would mean no turn smaller than a full circle works, which is true only for a shape with no symmetry.',
+  'A square and a rectangle both have a perimeter of 24 cm. The square has side 6 cm and the rectangle measures 8 cm by 4 cm. Which one has the greater area?':
+    'The square has area 6 × 6 = **36 cm^2** while the rectangle has 8 × 4 = 32 cm^2, so the square is larger. A common slip is thinking equal perimeters must mean equal areas, which is false. For a fixed perimeter the square is always the biggest rectangle, because making the shape thinner and longer shrinks its area.',
+  'Use Heron\'s formula to find the area of a triangle whose sides are 13 cm, 14 cm and 15 cm.':
+    's = (13 + 14 + 15)/2 = 21, so area = sqrt(21 × 8 × 7 × 6) = sqrt(7056) = **84 cm^2**. The 168 is double 84, which happens when the final result is doubled by mistake. The 42 is half of 84, a slip from halving the area as well as the perimeter.',
+  'Using Ï€ = 22/7, what is the circumference of a circle of radius 7 cm?':
+    'Circumference = 2 pi r = 2 × 22/7 × 7 = **44 cm**, because the two 7s cancel. The 154 cm is pi r^2 = 22/7 × 49, which is the area and is measured in square units. Getting 22 cm uses pi r only once, as if you had gone around only half the circle.',
+  'A sector of a circle of radius 21 cm has a central angle of 60Â°. Find the area of the sector. (Use Ï€ = 22/7)':
+    'The whole circle has area 22/7 × 21 × 21 = 1386 cm^2, and 60 degrees is 60/360 = 1/6 of a full turn, so the sector is 1386 ÷ 6 = **231 cm^2**. Answering 1386 forgets to take that fraction and gives the whole circle. Using only 21 × 60/360 without pi r^2 mixes this up with the arc length formula.',
+  'Use Heron\'s formula to find the area of a triangle whose sides measure 10 cm, 10 cm and 12 cm.':
+    's = (10 + 10 + 12)/2 = 16, so area = sqrt(16 × 6 × 6 × 4) = sqrt(2304) = **48 cm^2**. The 24 is half of 48, as if one more halving were needed. The 60 comes from 12 × 10 ÷ 2, which treats the side 10 as the height, but the real height on the 12 cm base is 8 cm.',
+  'The ratio of the circumference of a circle to its diameter is':
+    'Dividing the circumference 2 pi r by the diameter 2r cancels everything and leaves **pi**, about 3.14, for every circle. Answering 2 confuses the diameter with twice the radius. A ratio of 1/2 would claim the distance around is half the distance across, which no closed curve can do.',
+  'The circumference of a circle of radius 7 cm is (take pi = 22/7)':
+    'C = 2 pi r = 2 × 22/7 × 7 = **44 cm**, and the 7 cancels neatly. The 154 cm is the area pi r^2 = 22/7 × 49, in square centimetres. The 14 cm is just the diameter, and 22 cm uses pi r with the factor 2 missing.',
+  'Heron\'s formula finds the area of a triangle from':
+    'Heron\'s formula needs only the three sides, since s = (a + b + c)/2 and the area is sqrt(s(s - a)(s - b)(s - c)), so **no height is needed**. Base times height only works when a perpendicular height is known, which is often awkward to find. Angles alone do not fix a size, and a perimeter alone cannot pin down the shape.',
+  'In Heron\'s formula, s stands for':
+    's stands for the semi-perimeter, that is **half the perimeter**, so s = (a + b + c) ÷ 2. Every bracket in the formula subtracts a side from this value. Using the longest side instead would make s - a negative for that same side, and a negative number has no real square root.',
+  'The area of a circle of radius 7 cm is (take pi = 22/7)':
+    'Area = pi r^2 = 22/7 × 7 × 7 = 22 × 7 = **154 square cm**, and the unit is square centimetres because two lengths are multiplied. Returning 44 gives the circumference, the distance around the edge. The 49 is only r^2, before pi is applied.',
+  'A sector of a circle is the region enclosed by':
+    'A sector is the pizza-slice region bounded by two **radii** from the centre together with the arc between their endpoints, so one side is curved. A region cut off by a chord and an arc is a segment, which is a different shape. Two chords, or a diameter with a tangent, do not meet at the centre to form a slice.',
+  'What is the perimeter of a square of side 6 cm?':
+    'A square has four equal sides, so the perimeter is 4 × 6 = **24 cm**. The 36 is the area, 6 × 6, which measures the surface inside rather than the distance around. Answering 12 halves the number of sides, and 6 gives the length of only one side.',
+  'Perimeter is measured in':
+    'Perimeter is a distance travelled around a boundary, so it is measured in **units of length** such as cm or m. Square units belong to area, where two lengths are multiplied together. Cubic units suit volume, and degrees measure angles, so neither can describe a boundary length.',
+  'What is the probability of an impossible event?':
+    'An impossible event has no favourable outcome, so the probability is 0 divided by the total, which is **0**. Answering 1 describes a certain event, which is the exact opposite case. A probability can never be -1 or more than 1, because the favourable outcomes cannot exceed all the outcomes.',
+  'Two fair coins are tossed together. How many outcomes are there in the sample space?':
+    'Each coin has 2 faces, so the pairs are HH, HT, TH and TT, giving 2 × 2 = **4** outcomes. Answering 3 happens when HT and TH are treated as the same result, but the two coins are separate, so order counts. The 8 belongs to three coins, since 2 × 2 × 2 = 8.',
+  'A fair die is rolled once. What is the theoretical probability of getting a prime number?':
+    'The primes on a die are 2, 3 and 5, so 3 favourable outcomes out of 6 give 3/6 = **1/2**. The 1/6 counts only one prime, such as 2, and forgets the others. The 2/3 usually comes from counting 1 as prime, which gives 4/6, but 1 has only one factor and is not prime.',
+  'A fair coin is tossed and then a fair die is rolled. Using a tree diagram, find the total number of outcomes and the probability of getting a head followed by a 6.':
+    'The tree has 2 coin branches and 6 die branches, so there are 2 × 6 = **12** outcomes, and head then 6 is only one path, giving **1/12**. The 1/6 answer forgets the coin, and 1/2 forgets the die. Multiplying the counts is the quick way of reading every path of the tree.',
+  'Probability of an impossible event is':
+    'With no outcome that can make the event happen, the fraction favourable over total is 0, so the probability is **0**. Answering 1 would say the event is certain, which contradicts the word impossible. A value such as -1 is outside the allowed range, because a probability must lie between 0 and 1.',
+  'Probability of a certain event is':
+    'If an event must happen, every outcome in the sample space is favourable, so favourable over total is 1 and the probability is **1**. Answering 0 confuses certainty with impossibility. Writing 100 confuses the probability with its percentage form, since 1 is the same as 100 percent.',
+  'Theoretical probability of a coin landing on heads is':
+    'A fair coin has one head among two equally likely faces, so the theoretical probability is **1/2**, that is 0.5. Answering 1 would claim heads appear every time, which is only true for a two-headed coin. The value 2 is impossible, because no probability can be greater than 1.',
+  'Experimental probability is found by':
+    'Experimental probability comes from actually performing the trial, **counting** how often the event happened, and dividing by the number of trials. Guessing gives no evidence at all. Multiplying by 100 only converts a finished probability into a percentage, so it is a later step, not the method.',
+  'When a die is rolled once, how many outcomes are in the sample space?':
+    'One roll shows exactly one face from 1 to 6, so the sample space has **6** outcomes. The 12 usually comes from doubling as if two dice were rolled, but here there is only one. Answering 1 or 2 counts the dice or the coins rather than the faces on the die.',
+  'What is an event in probability?':
+    'An event is a chosen collection of outcomes, for example getting an even number means {2, 4, 6}, so it is a **set of outcomes we are interested in**. A number between 0 and 1 is a probability, which measures the size of that set out of the whole. The total number of trials is how often the experiment ran, not what we are watching for.',
+  'A tree diagram is used to':
+    'A tree diagram branches once for each event and lists **all possible outcomes**, so the ends of the branches give the whole sample space. You can then count the favourable paths to get a probability. Measuring an angle or finding the area of a circle belongs to geometry and needs no branches at all.',
+  'Tossing two coins gives how many equally likely outcomes?':
+    'Tossing two coins gives HH, HT, TH and TT, so there are **4** equally likely outcomes because 2 × 2 = 4. Saying 3 merges HT with TH, but those are different results once you track which coin shows the head. The 8 appears when three coins are tossed, since 2 × 2 × 2 = 8.',
+  'What is the next term of the sequence 2, 6, 18, 54, ...?':
+    'Each term is 3 times the one before: 2 × 3 = 6, 6 × 3 = 18, 54 × 3 = **162**. The 108 doubles the previous term instead of tripling it, which breaks the constant ratio of 3. The 216 doubles 108, so it uses the wrong multiplier and skips the real one.',
+  'Which term of the arithmetic progression 5, 9, 13, 17, ... is equal to 65?':
+    'With a = 5 and d = 4, the rule a + (n - 1)d = 65 gives 4(n - 1) = 60, so n - 1 = 15 and n = **16**. Answering 15 stops after dividing and forgets to add 1 back, which is the usual slip with this formula. The 17 would need one extra term.',
+  'The third term of a geometric progression is 12 and the fifth term is 48. If the common ratio is positive, find the common ratio and the first term.':
+    'Dividing the fifth term by the third gives r^2 = 48 ÷ 12 = 4, so r = **2** because the ratio is stated positive, and the first term is 12 ÷ 2^2 = **3**. Answering r = 4 forgets to take the square root of 4. Taking r = -2 also squares to 4, but the positive condition rules it out.',
+  'The nth term of a sequence is given by t(n) = 3n âˆ’ 2. What is the 10th term?':
+    'Substitute n = 10 into the rule: 3 × 10 - 2 = 30 - 2 = **28**. The 32 adds 2 at the end instead of subtracting it, which flips the sign. The 25 uses n = 9, which gives the previous term rather than the tenth.',
+  'What is a sequence?':
+    'A sequence is an **ordered list of numbers that follows a rule**, so 2, 4, 6, 8 differs from 8, 6, 4, 2 even though the same numbers appear. Any random group of numbers is not a sequence because there is no pattern to continue. A single number or a fraction has no positions to order, so neither can be a sequence.',
+  'What is the next term of 3, 7, 11, 15, ...?':
+    'The gap is always 4, since 7 - 3 = 4 and 11 - 7 = 4, so the next term is 15 + 4 = **19**. The 18 assumes a gap of 3, which the earlier terms do not support. The 23 adds 8, that is two steps at once, and skips a term.',
+  'A recursive rule describes a term using':
+    'A recursive rule builds each term from **the previous term**, like t(n) = t(n - 1) + 3, so you work through the terms in order. A rule written in terms of n is the explicit form, which can jump straight to any term. A random value cannot produce a predictable sequence, so it cannot be a rule at all.',
+  'An explicit rule gives a term using':
+    'An explicit rule uses **its position number n** directly, so t(50) can be found in one step without listing the earlier terms. A rule using the previous two terms is recursive and needs those values first. The sum of all earlier terms is a running total, not a single term of the sequence.',
+  'In an AP, the difference between consecutive terms is':
+    'In an arithmetic progression the gap between consecutive terms is the same every time, so that difference is **constant**. Doubling each time describes a geometric progression instead. A random difference would destroy the pattern, and a difference of zero is only the special case where every term equals the first.',
+  'The 10th term of the AP 2, 5, 8, ... is':
+    'Here a = 2 and d = 3, so the 10th term is a + 9d = 2 + 9 × 3 = 2 + 27 = **29**. The 26 uses 8 gaps instead of 9, so it lands on the ninth term. The 32 uses 10 gaps, adding one step too many.',
+  'In a geometric progression each term is found by':
+    'In a geometric progression each term is the previous term **multiplied by a fixed number** r, so 3, 6, 12, 24 doubles each time. Adding a fixed number gives an arithmetic progression, not a geometric one. Squaring the previous term grows far too fast to be a fixed ratio, and subtracting a fixed number just steps evenly downwards.',
+  'What is the next term of 2, 6, 18, 54, ...?':
+    'The ratio is 3 because 6 ÷ 2 = 3 and 18 ÷ 6 = 3, so the next term is 54 × 3 = **162**. The 108 adds 54 to itself, which changes the multiplier to about 2 and breaks the pattern. The 72 halves the term instead of multiplying, and 90 adds 36, so neither continues the rule.',
+  'Why did Krishtakka decide that she must learn the Kannada alphabet?':
+    'While the narrator was at a wedding, the new episode of **Kashi Yatre** arrived and Krishtakka could not read one line of it, so she sat silent while the family discussed the story. That helplessness, not any wish to write a novel, is what made her ask for lessons. No friend ever laughed at her in the temple courtyard.',
+  'In ‘Bharat Our Land’, which of these does the poet say has ‘no equal anywhere on earth’?':
+    'The poem gives the claim "no equal anywhere on earth" to the **Himavant**, the Himalayan range, which stands as the country\'s crown. The Ganga is praised as generous and the Upanishads as sacred, but neither is called unequalled. Choosing the river confuses two separate praises in the same passage.',
+  'In ‘Bharat Our Land’, the Ganga is praised chiefly as a symbol of —':
+    'The Ganga is honoured for its **purity** and its **generosity**, water that cleanses as it flows and gives life to the plains it crosses. Courage and wisdom belong to other images in the poem, while strength and permanence are what the mountains suggest. The river is praised for what it gives, not for what it endures.',
+  'At the end of the story, the sixty-two-year-old grandmother bends down and touches her twelve-year-old granddaughter’s feet. Why does she do this, and what does it show about her idea of learning?':
+    'She bends to the feet not of a granddaughter but of a **teacher**, saying a teacher must be respected "irrespective of the gender and age". The gesture shows that learning outranks age and family rank, so an elder can become a pupil and keep her dignity. Reading it as mere obedience to a child misses the point, which is honour for knowledge itself.',
+  'Why did learning to read matter so much to the grandmother?':
+    'Reading gave Krishtakka **independence**: she could open Kashi Yatre herself instead of waiting for someone to read it aloud, and that self-respect changed how she carried herself. The story never mentions money, school rules or travel, so those options describe a different kind of learner. For her the prize was dignity, not usefulness.',
+  'What did the grandmother ask for as her first reading lesson?':
+    'Her first request was the **Kashi Yatre** story itself, the serial she had followed for years and could not read once the narrator was away. A letter, a book of poems or a newspaper would all have been easier texts, but she wanted the one that had shut her out. Learning with a story she loved kept her going.',
+  'What does the story show about learning?':
+    'Krishtakka starts the **Kannada alphabet** at sixty-two and is reading a novel confidently within months, which is the whole argument of the story. Her age is the obstacle she defeats, so the idea that old people forget quickly is contradicted by her ending. No school building or classroom appears anywhere in the account.',
+  'How did the grandmother practise reading?':
+    'She studied at **night**, after the household had gone to bed, and repeated the letters until she knew them by heart, which is why the narrator finds her bent over a book in the dark. Nobody read the pages for her and no radio is mentioned. The progress came from her own daily repetition.',
+  'In the poem \'Bharat Our Land\', what is the land compared to?':
+    'The poem addresses the country as **Bharat Mata**, a mother whose children we are, and her rivers and mountains become her limbs. The river, the mountain and the garden appear as details inside that picture, not as the central comparison. The mother image is what lets geography be loved like a person.',
+  'What does the poem say the people of Bharat share?':
+    'What the people share is **one land and one heritage**, a single civilisation to which many regions and languages belong. The poem never claims one language, one religion or one festival, since that would deny the variety it is celebrating. Shared belonging, not sameness, is its claim.',
+  'Which image best shows patriotism in the poem?':
+    'Calling the **rivers and mountains** the mother\'s limbs turns geography into a body the reader can love, and that is how the poem makes patriotism felt rather than argued. A market, a classroom and a train are ordinary scenes that carry no devotion to the land. The image works because it is intimate, not grand.',
+  'What is imagery in a patriotic poem meant to do?':
+    '**Imagery** works on the feelings: a mountain described as part of the mother makes a reader feel love and pride rather than learn a fact. Facts about government belong to prose, and grammar rules have nothing to do with pictures in a poem. The picture is there to move you, not to inform you.',
+  'Why did Arenla want Sentila to become a weaver rather than a pot maker?':
+    'Arenla knew that pottery meant standing at the wheel through sun and rain for a small return, while **weaving** could be done indoors in any season and paid better for less trouble. She was thinking of her daughter\'s comfort, not obeying any council order. The clay bank was not exhausted, and Sentila was drawn to pots from childhood.',
+  'After Sentila made a pot under Onula’s guidance, what did Onula say was still wrong with it?':
+    'Onula turned the finished pot in her hands and said the **mouth** was all wrong, so the shape would neither hold nor pour as it should. The clay itself had been pounded and wedged properly, which puts the fault in the last shaping rather than the preparation. A thin base or skipped drying is invented here.',
+  'In ‘Gifts of Grace: Honouring Our Vocations’, what does the line ‘The voice of their vocation is the voice of their identity’ mean?':
+    'The line says a person\'s **vocation** speaks for them: the carpenter, boatman and shoemaker are known by the work they do, not by what they are paid for it. The poem does not claim every worker sings, and a vocation is chosen by the worker rather than assigned by the community. Taking "voice" literally as singing loses the metaphor.',
+  'The poem begins and ends with the same line, ‘I hear Bharat celebrating, the varied vocations I hear!’ Why does the poet repeat it?':
+    'Repeating **"I hear Bharat celebrating, the varied vocations I hear!"** at the opening and the close frames the poem as one unbroken celebration, so the country is heard as a chorus of trades rather than a single voice. The last line gathers carpenters, boatmen and masons into one shared act. Calling it padding ignores how neatly the circle closes.',
+  'What makes a pot maker\'s work craftsmanship?':
+    '**Craftsmanship** here means the skill, patience and care that go into shaping each pot until its mouth and curve are true. Machines, speed and sales figures measure output rather than craft, and the chapter is careful to keep the two apart. A pot made fast but crooked is still a bad pot.',
+  'What is a vocation?':
+    'A **vocation** is work a person feels called to, the trade that shapes identity and not only income. A holiday, a tool and a shop are things that sit around work, and none of them is the calling itself. The word carries a sense of purpose, which is why it fits the potter at the wheel.',
+  'What does \'honouring a vocation\' mean in the chapter?':
+    'Honouring a **vocation** means treating the work with respect and doing it as well as one can, the way Onula does at the wheel. Changing jobs constantly, avoiding effort or chasing only the highest income would all be the opposite of honour. Honour shows in the care taken, not in the size of the wage.',
+  'Why are crafts like pottery called gifts of grace?':
+    'Crafts are called **gifts of grace** because they are handed down through families and practised with devotion, so the skill arrives as an inheritance rather than a purchase. Nothing about them is free and nothing about them is easy, since years of practice sit behind every pot. The phrase expresses gratitude, not price.',
+  'What does \'dignity of labour\' mean?':
+    '**Dignity of labour** means that every honest job, at the wheel or in the field, carries its own worth and deserves respect. The idea that only office work is respectable is exactly what the chapter sets out to challenge. Work is judged by how it is done, not by how much it pays.',
+  'How does the chapter show respect for the pot maker\'s work?':
+    'Respect is shown by **describing** the work closely: the kneading of the clay, the turning of the mouth, the meaning a pot carries in a home. Calling the work easy or likening the potter to a machine would belittle it, and ignoring the workshop would leave nothing to admire. Attention is the form respect takes here.',
+  'How does a pot maker build skill over time?':
+    'Skill grows through **repeated practice** at the wheel, where the hands learn a pressure that no explanation can pass on. Better clay alone cannot shape a mouth, watching once cannot train the fingers, and working only on festivals leaves the clay cold. The body has to learn the craft by doing it again and again.',
+  'What happens to a pot that is not shaped carefully?':
+    'Clay records every careless press, so a badly shaped pot **collapses** on the wheel or dries lopsided and will not sit level. Firing cannot repair a weak shape, it only fixes the fault permanently. Nothing turns into glass and nothing escapes the fire.',
+  'Where does the text find evidence of the pankhi, the small plumed fan, being used in ancient India?':
+    'The oldest evidence the text cites is in the **Buddhist wall paintings at Ajanta**, where a small plumed fan appears beside attendants in panels of the 2nd century CE. Mughal miniatures are some fourteen centuries later, so they cannot be the earliest proof. The brass engravings and palm-leaf manuscripts belong to other crafts entirely.',
+  'Which step does the text suggest as one of the first to preserve the craft of the pankha?':
+    'The first step suggested is to **celebrate pankhas**, to look at them and tell the stories and skill they carry, because a craft nobody values dies before anyone can ban or buy it. Stopping exports, swapping them for machines and locking them in museums would all take the fan out of daily life instead of reviving it. Admiration keeps a craft alive.',
+  'In ‘Canvas of Soil’, the phrase ‘Brushstrokes of seeds, planted true’ suggests that —':
+    'The metaphor makes the **sower** the painter: a seed dropped in a straight line is the gardener\'s first stroke on the soil. No seed is literally painted, and the gardener is not copying a finished picture. The likeness runs from garden to painting, not from painting to garden.',
+  'The last line of ‘Canvas of Soil’ says, ‘Gardens become paintings still.’ What does the word ‘still’ add to the comparison between a garden and a painting?':
+    '**"Still"** carries two meanings at once: the garden is still (even now) a painting, endlessly repainted by growth and season, and it is also a still life, the painting of quiet objects such as flowers and fruit. Reading it only as "motionless" loses the pun on the still-life form. The garden is both a living picture and a painted one.',
+  'What is a pankha?':
+    'A **pankha** is a hand fan, held and waved to move air, often a plumed or palm-leaf object rather than a machine. A lamp, a pot and a mat are other household things, but none of them is held to make a breeze. The name belongs to the thing that cools you by movement.',
+  'Which materials are traditionally used to make a pankha?':
+    'Pankhas are plaited and stitched from **bamboo, palm leaves and cloth**, materials a village can gather and work by hand. Steel, glass, plastic and cement belong to factory production, which is precisely what the hand fan is being compared against. The materials are part of what makes it a craft.',
+  'What does \'winds of change\' suggest in the chapter?':
+    'The title means that **change** is already blowing through the country, and a craft survives only by bending with it, as the fan takes new designs and new uses. It is not a remark about the weather, and it certainly does not argue that old crafts should be forgotten. The wind is a warning and an invitation at once.',
+  'How can a traditional craft survive today?':
+    'A craft survives by finding **new designs and new uses**, such as a pankha sold as decoration or as a gift, so it reaches buyers a plain fan no longer reaches. Refusing to change or halting production freezes it, and copying machines abandons the very skill worth saving. Adaptation keeps the hand in the work.',
+  'What does \'canvas of soil\' refer to?':
+    'The **canvas of soil** is the ground itself, treated as a painter treats cloth: a surface prepared, marked and coloured with plants. A pot, a crop field and a mud wall are all made of earth, but none of them is being used as a picture surface. The comparison depends on the soil being looked at, not used up.',
+  'Which sense does the phrase \'canvas of soil\' mainly appeal to?':
+    'The phrase appeals mainly to **sight**, because a canvas is something you look at and the image asks you to see the bed as a painted surface of colour and shape. Soil has a smell and a texture as well, but the canvas comparison is purely visual. The poem is making you look, not smell or listen.',
+  'Why is gardening described as an art?':
+    'Gardening is called an art because it needs **design, patience and a sense of beauty**: choosing what grows where and waiting for the planting to compose itself. Water and vegetables are only its materials and its results, and a useful garden can still be badly arranged. Art lies in the arrangement, not the produce.',
+  'What does a gardener do that a painter also does?':
+    'Both **arrange colours and shapes** deliberately, the painter with pigment and the gardener with leaf, flower and stone. The gardener uses no brush and sells no pictures, so the likeness lies in the planning rather than the tools. Two different crafts can share one way of seeing.',
+  'Why had Ravi’s grandfather come to live with Ravi’s family?':
+    'Grandpa had slipped in his own **garden** and lain there all night because nobody was at home to hear him, and that fright is what made the family bring him to the city. Illness, rent and getting lost are not the cause. The accident mattered because living alone had made it dangerous.',
+  'Why did Grandpa resent his daughter’s instruction that he should not go out on his own?':
+    'He had run his own house, money and garden for **seventy-five years**, so a rule made for his safety felt like being demoted to a child or locked in. His old friends, the safety of the streets and the newspaper shop are details he mentions, not the real wound. The quarrel is about dignity, not geography.',
+  'Which sense does the second stanza of ‘I Cannot Remember My Mother’ chiefly rely on?':
+    'The second stanza is built on **smell**: the shiuli flowers and the scent that drifted from the morning temple service. The blue of the distant sky belongs to a later stanza and the hummed tune to the first, so those senses are placed in the wrong part of the poem. Each stanza remembers her through a different sense.',
+  '‘I Cannot Remember My Mother’ repeats the line ‘I cannot remember my mother’, yet almost every line of the poem is about her. How do you explain this seeming contradiction?':
+    'What is missing is her **face** and her everyday presence; what survives is a set of sensory traces, a tune over his playthings, the shiuli scent, her stillness filling the sky. The refrain measures the loss rather than denying the memory, so absence and presence share one line. Calling it forgetfulness ignores how much of her the poem keeps.',
+  'What does the \'M\' in Vitamin-M stand for?':
+    'The title is a joke with a serious point: **Vitamin-M** is no tablet or mineral but the "medicine" of love and company that lonely elders actually lack. Morning exercise keeps the body well, yet the story shows Grandpa fading for want of conversation rather than for want of movement. What he is short of cannot be bought at a chemist.',
+  'What do old people need most from their families?':
+    'Grandpa craves **time, attention and respect**, someone to sit with him and ask what he thinks. Gifts and clothes are things a family can send without staying, and silence is what made his loneliness worse rather than a cure. Company is the one thing that cannot be delivered by a courier.',
+  'Why is independence important for an elderly person?':
+    'Being able to decide small things, when to walk and what to buy, keeps **self-respect** alive, because being managed tells a person that their judgement no longer counts. This is not about saving the family money, and nobody claims elders need no help at all. The point is that help should support choice, not replace it.',
+  'How can young people support an elder\'s independence?':
+    'Support means **asking before deciding** and helping where help is actually wanted, so the elder stays in charge of his own life. Taking over every task or ignoring his wishes is control dressed up as care, and moving him to a home removes the independence altogether. Small permissions restore more than large gifts.',
+  'In the poem, how does the child remember the mother?':
+    'The child remembers her through **tunes, smells and sounds**: a tune hummed over his toys, the fragrance of shiuli flowers, the quiet of a temple morning. There are no photographs, letters or phone calls in the poem, because the point is that the senses keep what pictures cannot. The mother arrives through the body, not an album.',
+  'Who is the speaker of the poem?':
+    'The speaker is a **child** who has lost his mother and is piecing her together from sense impressions, which is why the images are so small and domestic. A mother remembering a child would reverse the poem, and no teacher or gardener appears anywhere in it. The short lines sound like someone thinking quietly.',
+  'What is sensory memory in the poem?':
+    '**Sensory memory** is a memory that arrives through a smell, a sound or a touch before it arrives as a fact, the way a fragrance can bring a whole person back. A list learnt by heart, a photograph in a drawer and a friend\'s story are records rather than sensations. The poem trusts the senses more than the mind.',
+  'What feeling does the poem create through absence?':
+    'The poem creates **quiet grief mixed with tenderness**: the loss is real, yet nothing in it is bitter and the mother comes back as gentleness rather than as a wound. There is no anger at her, no celebration and no fear, and the tone stays soft throughout. Sadness and love are held in the same breath.',
+  'In which event did Dr Deepa Malik win the silver medal at the 2016 Rio Paralympic Games?':
+    'Her own account is that the breakthrough came at the 2016 Rio Games, when she \'secured the silver medal in the shot-put event\'. **Shot-put** was the event, though swimming is the sport she had loved and India\'s first Paralympic medal in 1972 also came in swimming, which is the mix-up the other choices rely on.',
+  'In ‘Nine Gold Medals’, what did the eight other runners do when the smallest athlete stumbled and fell?':
+    'Stanza 6 shows the eight runners \'pulled up on their heels\', which means they stopped, and then \'one by one\' turned back to help. **Pulled up** is the clue that they gave up the race; waiting at the finish line would have left the boy still lying \'on the asphalt\', and the poem never shows them running on.',
+  'A banner above the field said ‘Special Olympics’. Why does the poet say it ‘could not have been more on the mark’?':
+    'The banner fits because the **Special Olympics** exists to promote inclusion, and the runners turned rivals into helpers, which is that idea in action. The nine medals are a result of the kindness, not the reason the banner was apt, since medals alone are not what the Special Olympics stands for.',
+  'Dr Malik says her goal is a society where everyone, ‘regardless of ability, is treated with dignity and given a fair chance to succeed’. How is this different from feeling sorry for persons with disabilities?':
+    'Pity looks down on a person and treats disability as a loss to be mourned; **dignity** treats that person as an equal, whose ability is real and whose chance is a right. That is why she asks for accessible sport, equipment and fair chances rather than sympathy, and calls disability \'a unique strength waiting to be unleashed\'.',
+  'What do the Paralympics show the world?':
+    'The text says the Games \'go beyond competition, to quell stereotypes and redefine possibilities\', and seeing \'the strength, skill, and competitive spirit\' of para-athletes breaks down preconceived notions. So they show **determination** beating the limits others assume; the idea that only able-bodied athletes matter is the stereotype they quell.',
+  'What is resilience?':
+    'The glossary defines **resilience** as the ability to recover quickly from difficult circumstances, and Dr Malik links it to the mental strength that helped her face being underestimated. It is a bounce-back quality rather than speed or a medal, and it is the opposite of avoiding a problem, because she \'embraced challenges\' instead.',
+  'What is the difference between empathy and sympathy?':
+    'The textbook sorts the words this way: **empathy** says \'I can imagine how you feel\', while sympathy says \'I am so sorry for what is happening to you\'. Empathy shares the feeling and sympathy offers it from outside, so calling them the same thing loses the point, and sympathy is not the stronger of the two.',
+  'Which action best shows compassion?':
+    'Compassion turns feeling into action, like the textbook\'s example of staying with someone so that they \'don\'t feel lonely\'. **Helping without being asked** is that action, while saying sorry and walking away stops at sympathy and telling a person to try harder blames them instead of sharing the weight.',
+  'In the poem \'Nine Gold Medals\', why do the runners stop?':
+    'Stanza 4 explains it: the runners charge ahead, but \'the smallest among them, he stumbled and staggered / And fell to the asphalt\'. The stopping is caused by **one fall**, not by weather or by the crowd, and the poem mentions none of the rain or tiredness that the other choices invent.',
+  'Why does every runner receive a gold medal in the poem?':
+    'All nine get **gold medals** because they came to the finish line \'holding hands still\', after giving up a race they had trained months for. The clock is not the reason, since they had just walked the dash together; the poem treats the medals as an honour for the kindness rather than a timing coincidence.',
+  'What does solidarity mean?':
+    '**Solidarity** is the fellow feeling that makes people act as one, and the poem shows it when the nine \'joined hands\' and finished together. Winning at any cost and working alone are its opposites, because solidarity costs you something for another person\'s sake, just as the eight runners gave up their own race.',
+  'What is the poem\'s message about competition?':
+    'The eight runners \'had trained for so long to compete\' and then threw that chance away to lift a stranger, so the poem ranks **kindness** above coming first. It never says losing is shameful or that races should end; it says the standing ovation and \'nine beaming faces\' spoke for themselves.',
+  'Why had Shruti not told her father about the fusion rehearsals?':
+    'Shruti spells out her fear: Nabin \'will think it a desecration of the violin to be played to Western tunes\', since he believes Hindustani classical music is the only music worth playing. Her silence is **fear of his disapproval**, not a plan to surprise him, because she keeps promising to \'bring this up\' at dinner and dreads the moment.',
+  'After hearing the group rehearse, what did Nabin praise most in Shruti’s playing?':
+    'Nabin\'s praise is precise: she \'did not lose sight of the notes of the raga even once\'. **Keeping the raga** inside a fusion piece is what convinces him, so he is not praising speed or a solo, and he never wanted her to abandon Western music, since the point is that the classical notes survived the experiment.',
+  'In the first stanza of ‘A Friend Found in Music’, how does the poet describe music?':
+    'The poem opens with \'Music is the ocean / That pulls me to the shore\', so the **ocean** is its first picture of being drawn in. The rhythm line follows inside the same stanza, while the friend and the therapy images appear in the closing stanzas.',
+  '‘Music is the therapy / I need when I feel blue. / Music lifts my spirits / To make sure I pull through.’ What does ‘pull through’ add to ‘lifts my spirits’?':
+    '\'Lifts my spirits\' names the change of mood; **\'pull through\'** adds that the lift is what carries her past the hard time itself, so music gets her to the other side of sadness instead of only cheering her for a moment. That is why the poem can call it a therapy and then \'the needed friend / When no one seems to care\'.',
+  'What happens when tradition meets innovation in the chapter?':
+    'In this play both survive: Shruti plays fusion but never loses \'the notes of the raga\', and Nabin ends by saying \'each bay, its own wind\'. So **tradition is kept alive with new ideas**, and the father\'s early fear that fusion would destroy the tradition turns out, in his own words, to be \'baseless\'.',
+  'Why is the chapter titled \'Twin Melodies\'?':
+    'The title names the two traditions on one stage: **Hindustani classical**, with its ragas and aalaaps, and Indo-Western fusion, with tabla, flute, violin and keyboard together. The \'twin\' idea also covers the two generations, father and daughter, whose melodies finally agree; no twins or broken instruments appear in the play.',
+  'What is classical music known for?':
+    'Classical music here means **ragas and aalaaps**, a fixed and highly structured system that Nabin says must be studied slowly, since his rule is one performance in six months so that \'familiarity breeds contempt\'. It is not short beats or electronic sound, and it is not voiceless either, as his own family were trained vocalists.',
+  'How does contemporary music differ from classical music?':
+    'The fusion group adds a **keyboard** and mixes Western tunes with Indian ragas, and that mixing is what makes it contemporary. It does not mean less work, because the group rehearses every day and keeps rhythm and tune, so \'no practice\' and \'no rhythm\' get the idea backwards.',
+  'How can music act as a friend?':
+    'The poem\'s last lines call music \'the needed friend / When no one seems to care\', so the friendship is the **comfort** it gives in loneliness and sadness. Music never speaks in words, which is why it is a friend of feeling rather than conversation, and it does not do homework or earn money.',
+  'What does the chapter say about learning music?':
+    'Nabin\'s own life is the proof, since he \'worked his fingers to the bone\', and he tells Shruti to \'work on your art and everything will follow\'. So **years of patient practice** are needed, and because he is the principal of a music school who teaches her, the claim that music needs no teacher is the opposite of what happens.',
+  'What does \'consolation\' mean?':
+    '**Consolation** is the comfort you give someone who is sad, and the poem uses music that way when it is \'the therapy I need when I feel blue\'. A prize, a note or applause may be part of music, but none of them is comfort offered to a person in pain.',
+  'Which line best shows music as consolation?':
+    '\'When I was sad, the raga held me like a hand\' turns music into a **hand** that holds you, and that is comfort given to someone low. The full hall, the tuned tabla and the red shawl only describe a concert setting, so they show a performance rather than consolation.',
+  'What does Khetaram do with a letter whose right corner has been torn off?':
+    'That torn corner \'signifies that the missive bears news of death\', and Khetaram says \'Ashubh Samachar cannot be carried into the house\'. So he reads it **outside, twice**, and then tears it up, because \'bad news must be destroyed\'; he does not carry it inside, send it back or hand it to an elder.',
+  'According to the text, how heavy is a Gramin Dak Sewak’s mailbag allowed to be?':
+    'The text states the rule plainly: \'Regulations stipulate that his load cannot exceed **28 kilos**.\' The figure matters because the imprint of his footprints shows the weight he really carries; 50 is not a weight limit at all, it is the temperature at which a state holiday must be declared.',
+  'In Charles Swain’s poem ‘Words’, why are words compared to ‘summer birds’?':
+    'The line is \'But words, like summer birds, depart, / And leave but **empty air**\', so the comparison is about words flying off and leaving nothing behind. They are not sweet singers, they do not return each year, and they build no nests; the point is how quickly careless words vanish.',
+  'Explain the contrast the poet draws between ‘hosts of words’ and ‘a little said, and truly said’.':
+    'A host of words may \'reach the head\' but never \'touch the heart\', while **\'a little said, and truly said\'** can \'deeper joy impart\'. The poem judges words by truth and feeling rather than number, which is why the voice that cheers \'a lonely home\' may have \'the fewest words to say\' and still be the dearest.',
+  'What does \'few words, how dear\' suggest?':
+    'The last stanza ends \'Hath oft the fewest words to say; / But, oh! those few, how dear!\' So **few words** are precious because a short, sincere message can carry deep feeling. Long letters are not praised here, and words are certainly not worthless, since the poem spends four stanzas showing their power.',
+  'Why are written words precious to a family far away?':
+    'A letter crosses miles that a family cannot, carrying **news and love** such as births, weddings, money orders and condolences, which is why the post is the \'sole link\' for remote hamlets. Good paper, easy writing and official signatures describe the form of a letter, not the reason it matters to a mother or a son.',
+  'What does the postman represent in the chapter?':
+    'Khetaram is \'a trusted link\' who walks 20 km a day \'defying all elements\', and people like him are called \'a part and parcel of our social fabric\'. So the postman stands for **trust and service**; speed and profit, power and authority, wealth and comfort are exactly what his job does not give him.',
+  'Why is the postman trusted by the villagers?':
+    '**Fifteen years** of delivery through sandstorms, 50-degree heat and border country made him \'a warmly received man\', and the villagers defend him when a scheme to replace him is proposed. He does read letters aloud, but that is a service they ask for because they trust him, not the cause of the trust.',
+  'What power do words have, according to the chapter?':
+    'The chapter shows words doing all three: news of a birth brings jaggery and joy, death news has to be handled with care, and money orders hold families together. So **comfort, union and healing** are their power, and saying that words only give information ignores the poem\'s claim that a few of them can \'deeper joy impart\'.',
+  'Which word best describes a letter that brings good news?':
+    '**Welcome** is the word we pair with good news, since \'welcome news\' means news we are glad to receive. Heavy and empty describe the torn-corner letter of death, and silent describes no letter at all, so none of them fits a happy message.',
+  'What is a Gramin Dak Sewak?':
+    'A **Gramin Dak Sewak** is the village postal worker, the name India\'s rural \'delivery agents\' have carried since 2001, and they make up more than half of the postal workforce. Khetaram is one, carrying the mailbag on foot where no road or railway reaches.',
+  'Why is the Gramin Dak Sewak important in rural India?':
+    'He is the \'sole link between the oases of humanity in India\'s extremes and their faraway families\', delivering mail within 24 hours of dispatch and bringing money orders that families live on. That makes him a **connector** of remote villages, not a teacher, a road mender or a stamp seller.',
+  'According to the letter of 19 June 1995, how long must a person pursue a subject to reach world-class standard in any field?':
+    'The letter says that \'to reach world-class standard in any field, one has to be singularly and intensively pursuing the subject for **at least ten years**\'. The mother even measures her own book by that span: \'publishing this book is a dream I have chased in the last ten years\'. Money does not set the measure she gives.',
+  'What does the mother mean when she tells Ming to ‘Count the cost in years of effort, financial investments and sacrifice’?':
+    'She asks Ming to weigh the price honestly, and only then to \'plunge\' if it is \'still burning in your blood\', so the counting comes **before** commitment rather than instead of it. She never tells her daughter to quit when a dream looks costly, and she is not talking about salary or about only rich families being allowed to dream.',
+  'In ‘Believe in Yourself’, why is ‘the first step’ called the hardest?':
+    'The poem gives the reason in stanza 3: \'There is such ease in comfort / To maintain the status quo, / But this isn\'t what we are made for\'. So the first step is hard because it means **leaving comfort behind**; the line about the crowd explains that nobody is watching, not why the step is difficult.',
+  '‘Believe in Yourself’ opens with the line ‘There is no crowd to see’. What does the absence of a crowd suggest about believing in yourself?':
+    'It means the choice is made without witnesses or applause, since \'It\'s just you and the future / And where you want to be\', so **self-belief** has to be its own witness. The step is taken between the person and the future rather than in front of an audience, which is why the poem speaks to \'you\' directly and ends on believing in yourself.',
+  'What does the mother\'s letter advise in \'Follow That Dream\'?':
+    'The letter\'s first line sets the tone: \'By all means follow that dream\', and she adds that great people \'pursue it till it comes true\'. So the advice is **perseverance**, though an honest kind, because she also asks Ming to count the cost first; she never suggests the easiest path or copying a friend\'s dream.',
+  'Why does a letter from a parent help a young person?':
+    'A parent\'s letter gives **encouragement** and the feeling that someone stands behind you, which the letter itself shows when it describes a winner thanking \'a host of people that formed his/her support network\'. It is not about fees, rules or orders to come home, but about being believed in.',
+  'What is the first step towards a dream, according to the chapter?':
+    'The poem\'s last stanza says \'You just need to believe in yourself / For your future to be on track\', so the first step is **self-belief**. Announcing the dream, waiting for the right moment and borrowing money are all things a person can do without ever starting, which is why the poem puts belief first.',
+  'What usually stands between a person and their dream?':
+    'The poem asks \'Will it pull you forward / Or push you back in **fear**?\', naming fear as the force that stops a person at the edge of change. The letter adds the other half, since many people \'have never got beyond just wishful thinking\', so it is fear plus inaction rather than talent or friends.',
+  'What does self-belief help a person do?':
+    '**Self-belief** is what lets a person act with \'no crowd to see\', try something difficult and get up again when it goes wrong, because the future is still theirs to shape. It does not promise a life without mistakes or success without effort, and it is not a reason to ignore advice.',
+  'Which sentence best expresses self-belief?':
+    '\'I may fail today, but I will try again tomorrow\' accepts failure and still chooses to continue, which is **self-belief** in action. The other sentences give up before starting or hand all the power to other people, and that is the opposite of the poem\'s closing call to believe in yourself.',
+  'Why is the first step the hardest?':
+    'The first step takes the most **courage**, because it is made with \'no crowd to see\' and no proof that it will work, and it demands the biggest change, leaving \'the status quo\'. Its difficulty is not about length, money or planning; the poem says that once it is taken there is \'no turning back\'.',
+  'What helps a person take the first step towards a goal?':
+    'A large goal feels impossible until it is cut into **small, clear actions**, and each finished one is proof that the next can be done. Waiting for perfect conditions keeps you in the comfort zone the poem warns against, and comparing yourself with others only adds the fear that belief is meant to answer.',
+  'In the puri investigation, which of these is something you can measure?':
+    'A stopwatch gives you a number with a unit for the **time taken by the puri to puff up**, so two trials can be compared fairly. The colour of the flour is something you judge by eye, and the brand of oil is only a label, not a quantity. Something you can measure must give a number you can record and repeat.',
+  'Why should you change only one thing at a time while doing an experiment?':
+    'A fair test keeps every other condition the same, so a difference in the result can only come from **the one thing you changed**. Change the flame and the amount of dough together and you cannot tell which one made the puri puff faster. Believing that changing many things at once gives a quicker answer is what spoils the test.',
+  'Which is the best record to keep while investigating?':
+    'A **written note of what you changed, what you observed and what you measured** lets another student repeat your test and check the claim. Recording only the final result throws away the conditions, so nobody can explain why it happened. A guess written down is still a guess, not evidence.',
+  'In a fair test, how many variables should you change at a time?':
+    'Exactly **one** variable is changed in each trial, while every other condition is held the same. That way any difference in the result can be traced back to that single change. Changing two or three together mixes their effects and leaves you guessing which one mattered.',
+  'The variable you deliberately change is called the:':
+    'The **independent variable** is the one you choose and change on purpose, such as the height of a ramp or the amount of dough. The dependent variable is the one you then measure, because its value depends on your choice. Calling the measured value independent is the commonest mix-up.',
+  'Why should a measurement include a unit?':
+    'A number alone cannot say what was measured, because **5** could mean 5 cm, 5 m or 5 seconds. The unit names the quantity and the scale, so another student can repeat your reading exactly. Dropping the unit turns a real measurement into a meaningless figure.',
+  'What is a controlled variable?':
+    'A **controlled variable** is a condition you deliberately keep the same in every trial, like the amount of dough or the flame setting. Keeping it fixed means the variable you changed is the only possible cause of a difference in the result. Confusing it with the variable being tested is the usual error.',
+  'Which is a testable scientific question?':
+    'You can test **whether the height of a ramp changes how fast a ball rolls** by timing the ball at several heights and comparing. Questions about school timings, favourite sports or pretty colours rest on opinion, so no measurement can settle them. A scientific question must be answerable with data.',
+  'Why is careful observation important in an experiment?':
+    'Careful looking and measuring supplies **reliable evidence** that other people can check and repeat, instead of a guess. Observation never proves an idea in one go - it can support it or knock it down, which is why readings are taken again. Trusting a hunch over recorded data is the habit to avoid.',
+  'Which tool helps observe very small objects?':
+    'A **hand lens or microscope** magnifies a tiny object so details such as cells or small insects become visible. A measuring tape, stopwatch or thermometer only measures length, time or temperature and none of them enlarges what you see. Reaching for a measuring instrument when you need magnification is the usual mistake.',
+  'Why should observations be recorded at once?':
+    'Details fade and get reshaped in memory within minutes, so writing them down **at once** keeps the record accurate. Wait until evening and you may quietly write 45 mL where you actually read 40 mL. Recording is part of the method, not a chore done to please a teacher.',
+  'A table of readings is useful because it':
+    'A table lines the readings up in order, so a **pattern** such as a steady rise or fall is easy to spot. It does not hide mistakes - a wrong value usually stands out as an odd row - and it does not replace a graph, which shows the shape of the pattern. Making the report longer is not its purpose.',
+  'Which part of the cell controls all its activities?':
+    'The **nucleus** holds the genetic instructions and directs everything the cell does, including growth, repair and division. The cytoplasm is where many reactions happen but it gives no orders, and the cell wall only gives shape and support. Treating the largest or outermost part as the control centre is the mistake.',
+  'Which scientist first observed cells in thin slices of cork in 1665?':
+    'In 1665 **Robert Hooke** looked at thin cork slices through his own microscope and named the tiny empty boxes \'cells\'. Van Leeuwenhoek came later and was the first to see living cells, while Mendel studied inheritance and Pasteur studied germs. Swapping Hooke with Leeuwenhoek is the usual slip.',
+  'Which is the correct order of levels of organisation?':
+    '**Cell, tissue, organ, organ system, organism** - each level is built from the one before it, as similar cells group into a tissue and tissues build an organ. Swapping organ and tissue breaks that rule, since a tissue is simpler than the organ it forms. Reading from a whole organism downwards gives the reverse order.',
+  'Which structure is found only in plant cells?':
+    'A **cell wall** of cellulose surrounds a plant cell and gives it a firm shape, and animal cells have none. The cell membrane, cytoplasm and nucleus occur in both kinds of cell, so they cannot be the plant-only feature. The membrane is a thin living boundary, not the stiff outer wall.',
+  'Put these in order from smallest to largest: organ, cell, tissue, organ system.':
+    'The order is **cell, then tissue, then organ, then organ system**, because each larger unit is built from the smaller one. A tissue is a group of similar cells, an organ is made of tissues working together, and an organ system is a group of organs. Starting with the organ reverses the whole chain.',
+  'Name two useful jobs done by microorganisms.':
+    'Microorganisms make **curd and bread** and also break down dead waste into simple nutrients that return to the soil, and some bacteria fix nitrogen for plants. Their job is not only to cause disease. Assuming every microbe is harmful hides these everyday uses.',
+  'Which part of the cell controls its activities?':
+    'The **nucleus** carries the DNA instructions and decides what the cell makes and when it divides. The cell membrane only controls what enters and leaves, while the vacuole stores water and sap. Thinking that the control must sit on the outer boundary is the mistake.',
+  'The jelly-like substance filling the cell is':
+    '**Cytoplasm** is the jelly-like fluid that fills the cell and holds the organelles in place. The nucleus is a distinct body within it, a plastid is a food-making or colouring structure, and the cell wall is the stiff outer covering. Confusing the fluid with the structures floating in it is the usual error.',
+  'Which organelle makes food in a plant cell?':
+    'The **chloroplast** holds the green pigment chlorophyll, which traps sunlight so the plant can make its own food. The vacuole stores water and sap, the nucleus stores instructions, and the cell membrane controls what passes through. A storage part or a boundary cannot make food.',
+  'Which is the correct order from smallest to largest?':
+    '**Cell, tissue, organ, organism** - each step is built from the one before, as similar cells form a tissue and tissues form an organ. The option that starts with an organ goes from big to small, and the one starting with a tissue breaks the rule that a cell comes first. Size order must always begin at the cell.',
+  'Which microorganism is used to make curd?':
+    '**Bacteria** such as Lactobacillus feed on the sugar in milk and turn it sour, thickening it into curd. Protozoa and algae live mostly in water and do not curdle milk, and viruses cannot grow in milk by themselves. Assuming any microbe can make curd ignores which one really does the job.',
+  'Which microorganisms are used to make bread rise?':
+    '**Yeast** is a fungus that feeds on sugar in the dough and releases carbon dioxide gas, and the trapped bubbles push the dough up. Algae, protozoa and most bacteria do not give off that gas in dough. It is the gas, not the flour, that lifts the bread.',
+  'According to the WHO, health is a state of complete __.':
+    'The WHO defines health as complete **physical, mental and social well-being**, not merely the absence of illness. A person with no fever can still be anxious or lonely and is not fully healthy. Reading health as fitness alone or as good marks at school misses most of the definition.',
+  'Diabetes is an example of a __ disease.':
+    '**Diabetes** is a non-communicable disease: it comes from the body\'s own insulin problem and cannot pass from one person to another. It is not a deficiency disease either, since it is not caused by a missing vitamin in the diet. Assuming every long-term disease must be a deficiency is the slip.',
+  'Why must an antibiotic course be completed fully instead of being stopped as soon as you feel better?':
+    'The first doses only weaken the bacteria, so stopping early leaves the **strongest survivors** alive to multiply again. Those survivors are the ones the drug works on least, so the next infection resists it. Feeling better is not the same as being fully cured.',
+  'Which of these is a communicable disease?':
+    '**Dengue** passes from one person to another through the bite of an infected mosquito, so it is communicable. Diabetes, asthma and cancer begin inside the body and are not carried by contact, air or water. A disease you can catch must have a route of transmission.',
+  'Antibiotics are effective against:':
+    'Antibiotics attack structures that **bacteria** possess, such as their cell wall, so they cure bacterial infections like strep throat. Viruses have no cell wall and use the host cell\'s machinery, which is why a cold or flu does not respond to them. Expecting one medicine to cure every illness is the error.',
+  'What is the difference between a sign and a symptom?':
+    'A **sign** is something another person can see or measure, such as a rash, a high temperature or a swollen joint. A **symptom** is what only the patient feels, such as a headache or tiredness. Using the two words as if they mean the same hides this difference.',
+  'Why does not completing a course of antibiotics cause resistance?':
+    'A partial dose kills only the weaker bacteria, and the **strongest survivors** then multiply and pass on their toughness. The next course meets a population the same drug struggles to kill, and we call that resistance. Finishing the full course removes those survivors.',
+  'Which of these is part of a healthy lifestyle?':
+    '**Regular exercise and a balanced diet** keep weight, strength and immunity in good order. Fried food every day, sleeping at 3 am and skipping breakfast all strain the body and raise the risk of disease later. One good habit repeated daily is worth more than an occasional effort.',
+  'Why is a clean environment important for our health?':
+    'Clean surroundings remove the breeding places of mosquitoes, flies and germs, so **it stops the spread of diseases**. Safe water and proper waste disposal are the main reason cholera and diarrhoea fall. Treating cleanliness as only a matter of how the roads look misses its health value.',
+  'Which habit helps keep our surroundings clean?':
+    'Putting waste **only into dustbins** keeps garbage away from water sources and stops flies and rats from gathering. Spitting on the road, burning plastic in the open and leaving litter in the park all move germs and harmful fumes into the shared space. Each of those habits spreads the problem instead of removing it.',
+  'Health means':
+    'Health is **physical, mental and social well-being** together, as the WHO states. Being able to run fast or having strong muscles covers only the physical part, and a person with no illness may still feel lonely or worried. Absence of disease is only one piece of the picture.',
+  'Which habit most supports mental well-being?':
+    'Talking about feelings with **someone you trust** eases worry and stops small problems from growing big. Staying awake all night, skipping meals and avoiding all friends cut you off from support and unsettle sleep and mood. Sharing how you feel is a skill, not a weakness.',
+  'A magnetic compass is placed below a wire. When the switch is closed, the compass needle gets deflected. What does this show?':
+    'A current flowing through a wire sets up a **magnetic field** around it, and that field pushes the compass needle aside. Oersted noticed exactly this in 1820, which first linked electricity with magnetism. Heat cannot turn a compass needle, and the needle does not lose its magnetism.',
+  'Which of the following changes will make an electromagnet stronger?':
+    'Every extra **turn of the coil** adds another ring of magnetic field, so more turns give a stronger electromagnet. A longer connecting wire only adds resistance, and removing the iron nail takes away the core that concentrates the field. Reversing the cell\'s terminals swaps the poles but not the strength.',
+  'Why is nichrome wire used as the heating element in appliances such as electric irons and room heaters?':
+    '**Nichrome** has a much higher resistance than copper, so for the same current it turns more electrical energy into heat. Copper conducts better, which is exactly why it stays cool instead of glowing. Nichrome still conducts current - it is not an insulator - and its lightness is not the reason it is chosen.',
+  'Which parts of a dry cell act as its two terminals, and why is the cell called dry?':
+    'The **zinc container** is the negative terminal and the **carbon rod with the metal cap** is the positive terminal. It is called dry because the electrolyte inside is a thick moist paste, not a liquid that could spill. Assuming the whole metal case must be positive is the usual mistake.',
+  'A dry cell produces electricity by':
+    'Inside a dry cell, **chemical reactions** between the zinc, the moist paste and the carbon rod release energy as electrical energy. Sunlight is used only by solar cells, and friction or magnetism alone cannot drive a cell. A cell stores chemicals, and the electricity is produced as they react.',
+  'What makes a rechargeable battery different from a dry cell?':
+    'A rechargeable battery can be **charged again** by passing current through it in the reverse direction, which undoes the chemical change. A dry cell\'s reaction cannot be reversed, so it is thrown away once it is flat. No battery lasts forever or works without chemicals.',
+  'A wire with higher resistance produces':
+    'For the same current, a wire of **higher resistance** converts more electrical energy into heat, so it gets hotter. That is why a thin, long nichrome wire glows while a thick copper lead stays cool. Resistance slows the current but does not stop it.',
+  'Which appliance works mainly on the heating effect of current?':
+    'An **electric iron** changes electrical energy into heat in its nichrome element, which is the heating effect of current. A fan and a loudspeaker use the magnetic effect to spin a motor or vibrate a cone, and a doorbell uses an electromagnet to strike a gong. Heat is not what moves those parts.',
+  'What did Oersted discover?':
+    '**Oersted** found that a compass needle swings when current flows in a nearby wire, proving that a current creates a magnetic field. He never claimed that current flows only in coils, nor that magnets produce light. That one small observation began the study of electromagnetism.',
+  'The magnetic field around a straight wire is':
+    'The field forms **circles around the wire**, lying in planes at right angles to it. It is not along the wire, and it is not absent while current flows. Reversing the current only reverses the direction in which those circles go round.',
+  'How can an electromagnet be switched off?':
+    'An electromagnet is magnetic only while current flows, so **stopping the current** switches it off at once. Cooling the coil does nothing, and pulling out the iron core only weakens the field. This instant on-off control is what a permanent magnet cannot offer.',
+  'Why is an electromagnet used in a scrap yard?':
+    'A scrap-yard electromagnet lifts **iron and steel** scrap and then drops it the moment the current is switched off. It does not attract plastic or aluminium, and it needs electricity to work. A permanent magnet could pick the load up but could not let go of it.',
+  'A rubber band is stretched and its length increases. Which effect of force does this show?':
+    'Stretching makes the rubber band longer, so the force has changed its **shape**. The band is not speeding up or turning, and a force of this kind does not change its mass. Judging every force by speed alone misses this third effect.',
+  'Which of the following is a non-contact force?':
+    '**Gravitational force** pulls from a distance, so the Earth pulls a falling stone through empty air without touching it. A bat hitting a ball and muscular force both need contact, and friction needs two surfaces rubbing. A force that needs touching is a contact force.',
+  'A small steel coin sinks in water, but a bigger wooden block placed in the same water floats. Which statement explains this?':
+    'The wood floats because the **upthrust** on it equals its weight, while the steel coin\'s weight is greater than the upthrust, so it sinks. Size alone does not decide floating - density does, and steel is much denser than water. Water never pushes an object downwards to make it sink.',
+  'An object has a mass of 1 kg. Its weight is about 10 N on the Earth but only about 1.6 N on the Moon. Explain why the mass stays the same while the weight changes.':
+    '**Mass** is the amount of matter in the object, so 1 kg stays 1 kg everywhere you take it. **Weight** is the pull of gravity on that matter, and the Moon\'s gravity is about one-sixth of the Earth\'s, so 10 N becomes about 1.6 N. Weight changes with gravity, but the matter does not.',
+  'A force can change an object\'s':
+    'A force can change an object\'s **shape, speed or direction** - bending a rod, slowing a rolling ball or turning it aside. Its mass, temperature and colour are not altered as a direct effect of the push or pull. Force explains changes in motion, not changes in matter.',
+  'Opening a door is an example of':
+    'Opening a door means pushing the handle away from you or pulling it towards you, so it is a **push or a pull**. Gravity and friction act on the hinge, but neither is the force you apply to move the door. Every force you apply with your body is a push or a pull.',
+  'Which is a non-contact force?':
+    '**Magnetic force** acts across a gap, so a magnet can move an iron pin without touching it. Muscular force needs your body to press on the object, and friction and air resistance both need surfaces in contact. Acting at a distance is what makes a force non-contact.',
+  'Which force acts only when two surfaces touch?':
+    '**Friction** arises only where two surfaces are pressed together and slide, or try to slide, so it vanishes once they separate. Gravity and magnetic force act across gaps, and electrostatic force can pull a charged balloon without touching it. Contact is friction\'s defining condition.',
+  'Mass is measured in':
+    '**Mass** is measured in kilograms, the unit of the amount of matter. Newtons measure weight, which is a force, while metres measure length and litres measure volume. Reporting a weight in kilograms is the commonest unit mix-up.',
+  'Weight of an object changes with':
+    'Weight is the pull of gravity, so it changes with **the strength of gravity** - 10 N on Earth becomes about 1.6 N on the Moon. Temperature, shape and colour make no difference to it, while the mass stays the same everywhere. Only gravity changes the weight of a given object.',
+  'An object floats when upthrust is':
+    'An object floats when the **upthrust equals or exceeds its weight**, so the forces balance or the upward push wins. If the upthrust is less than the weight, the object sinks to the bottom. Comparing upthrust with mass mixes a force with a quantity of matter.',
+  'Upthrust on an object in water acts':
+    '**Upthrust** is the upward push a fluid gives a body placed in it, so it acts upwards, against gravity. It is not sideways and not zero, because the water pressure on the bottom of the object is greater than on the top. That difference in pressure is what holds a boat up.',
+  'Pressure is defined as':
+    'Pressure measures how concentrated a push is: **force per unit area**, written P = F/A and measured in pascal (Pa). The same force spread over half the area gives twice the pressure, which is why a drawing pin\'s point sinks in easily. Mass per unit volume is not a pressure at all - that quantity is density.',
+  'A rubber sucker pressed on a smooth flat surface is hard to pull off. Why does it stick?':
+    'Pressing the sucker squeezes air out, so the pressure inside it falls, and the **air pressure outside is greater** and pushes the rubber firmly onto the surface. Pulling it off means overcoming that outside push. If the pressure inside were higher, it would push the sucker away instead of holding it.',
+  'Why is it safer to keep the doors and windows of a house open during a storm with very high-speed winds?':
+    'Fast-moving air over the roof has low pressure, so the ordinary pressure inside the house can push the roof upwards. With **doors and windows open**, air moves in and out, the inside pressure drops, and the difference across the roof shrinks. Wind does enter an open house - it does not stay outside.',
+  'What is the eye of a cyclone, and what is the weather like in that region?':
+    'The eye is the **calm centre of a cyclone**, a roughly circular region of lowest pressure where winds are light and the sky may even be clear. Around it, the eyewall carries the strongest winds and the heaviest rain. It forms because air spiralling inward rises and leaves a hollow core.',
+  'Pressure equals':
+    'Pressure is **force divided by area**, so a 100 N push on 2 m2 gives 50 Pa. Doubling the area for the same force halves the pressure, which is why wide straps and snowshoes feel comfortable. Force multiplied by area is not a meaningful quantity here, and area divided by force would make pressure smaller when the area shrinks.',
+  'Why does a sharp knife cut better than a blunt one?':
+    'A sharp edge touches the food over a tiny area, so **the same force acts on a much smaller area** and the pressure becomes very large, letting the blade slice through. A blunt knife spreads that force over a wide edge, so the pressure is small. Extra mass helps a little, but sharpness works through area, not weight.',
+  'Atmospheric pressure is caused by':
+    'Air has weight, and the tall column of air above you presses down on everything, so atmospheric pressure comes from **the weight of the air above us** - about 100,000 Pa at sea level. The Moon\'s gravity is far too weak and far too distant to press our air down. Heat and rotation move air about, but they do not give it weight.',
+  'Atmospheric pressure decreases as we':
+    'As we **go higher above sea level** there is less air above us, so the weight pressing down is smaller and atmospheric pressure falls - that is why climbers puff on mountains. Going deeper into a mine adds more air above you, so the pressure rises instead.',
+  'Wind blows from':
+    'Air always moves from a **high pressure area to a low pressure area**, because the extra push on the high side drives it towards the crowded low side. The bigger the difference between the two areas, the faster the wind blows. The reverse direction would mean air pushing itself into the already crowded region.',
+  'High-speed winds form when':
+    'Wind is driven by differences in air pressure, so **the pressure difference between two areas is large** when air rushes in fast - this is how cyclones get their fierce winds. Gentle breezes mean nearly equal pressures. Rain usually comes with a storm, but it is a result of the rising air, not the cause of the wind.',
+  'Lightning is caused by':
+    'Friction between rising air and water droplets builds up electric charge in a cloud, and when the charge grows large enough a **huge electric discharge** jumps to the ground or to another cloud as lightning. The flash heats the air so fast that it expands and you hear thunder. Wind rubbing the ground is not the source of this charge.',
+  'A cyclone is':
+    'A cyclone is **a large rotating storm with very low pressure at its centre**, where air rushes inward, spirals up and drops heavy rain over hundreds of kilometres. The low-pressure core and closed circulation are what make it a storm system. A short shower and a hot dry wind like the loo have neither.',
+  'What is a constituent particle of a substance?':
+    'A constituent particle is **the basic unit that makes up a larger piece** of a substance - however far you crush a sugar crystal, the smallest bit that is still sugar is its particle. It is far too small to see with the naked eye or an ordinary microscope. A mixture of two substances is not a particle of either.',
+  'Which state of matter has a definite volume but no fixed shape?':
+    'A **liquid** keeps its volume but takes the shape of the container it is poured into, because its particles stay close together yet slide past one another. A solid keeps a fixed shape as well, while a gas keeps neither volume nor shape.',
+  'Sugar is added to water in a glass and stirred until it dissolves. The final level of the solution is lower than the level reached just after adding the sugar. What does this show?':
+    'Water particles are not packed tightly - there are **empty spaces between them**, and the dissolved sugar particles slip into those gaps, so the level settles lower than the sugar pile suggested. Nothing is destroyed: the sugar is still there and the water tastes sweet. Escaping vapour would carry water away, not sugar.',
+  'Define the melting point and the boiling point of a substance.':
+    'The **melting point** is the fixed temperature at which a solid turns into a liquid at atmospheric pressure, such as 0 C for ice. The **boiling point** is the fixed temperature at which a liquid turns into vapour throughout its bulk, such as 100 C for water. Each pure substance has its own pair of values.',
+  'Matter is made up of':
+    'All matter is built from **very small particles** - atoms and molecules - with empty space between them, whether the material is a stone, milk or air. Treating matter as one continuous solid cannot explain dissolving, diffusion or squeezing a gas. Not everything is made of gold, and air itself is matter made of particles.',
+  'Which observation shows that particles of matter are very small?':
+    'A single drop of ink colours a whole glass of water without any separate bits being visible, so the colouring particles must be **extremely small** and must spread into the gaps between water particles. Whether a stone sinks or ice floats tells you about density, not about particle size.',
+  'Particles of a gas are far apart, so a gas':
+    'Because the particles of a gas are **far apart with lots of empty space**, pushing on it brings them closer, so a gas can be compressed easily. That same spacing is why a gas has no fixed shape, flows freely and has a very low density. A fixed shape belongs to a solid.',
+  'Solids have a fixed shape because their particles':
+    'In a solid the particles are **held closely together with strong attraction**, so each one can only vibrate about a fixed position and the shape does not change on its own. Particles that move about freely belong to a liquid or a gas. Having mass does not decide whether a shape is fixed.',
+  'The temperature at which a solid becomes a liquid is its':
+    'The fixed temperature at which a solid changes into a liquid is its **melting point** - 0 C for ice. The boiling point is where a liquid becomes a gas, and the freezing point is the same value reached while cooling, named from the other direction. Dew point describes water vapour condensing out of air.',
+  'At the boiling point a liquid':
+    'At the boiling point the vapour pressure inside equals the air pressure, so bubbles of vapour form **throughout the liquid**, not just at its surface, and the whole liquid changes into a gas. Evaporation from the surface only happens at temperatures below the boiling point, so it is not the same process.',
+  'Which state has a definite volume but no definite shape?':
+    'A **liquid** has particles close enough to hold a definite volume, but loose enough to slide, so it takes the shape of its container. A solid fixes both shape and volume, while a gas fixes neither. Plasma, like the glowing gas in a tube light, behaves like a gas and has no fixed volume.',
+  'Which state has neither a definite shape nor a definite volume?':
+    'A **gas** spreads out to fill any container because its particles are far apart and move freely, so it keeps neither a definite shape nor a definite volume. A liquid holds on to its volume, and a solid keeps both. Plasma also flows and fills its container, but the everyday answer for this pair of missing properties is a gas.',
+  'Sugar dissolved in water gives a mixture in which the components cannot be seen separately even with a microscope. Such a mixture is called':
+    'When the parts are spread so evenly that you cannot pick them out even under a microscope, the mixture is **uniform**, also called homogeneous. A compound is a new substance formed by chemical combination, an element is one kind of atom, and a non-uniform mixture still shows separate parts.',
+  'Which of the following is an element?':
+    '**Sulfur** is an element: every particle in it is a sulfur atom and nothing else. Water (H2O), common salt (NaCl) and iron sulfide (FeS) are each built from two elements chemically joined, so all three are compounds, not elements.',
+  'Iron filings and sulfur powder are mixed and then heated strongly to give a black mass. Which observation shows that a compound has been formed and not a mixture?':
+    'Heating makes iron and sulfur combine chemically into iron sulfide, which is **not attracted by a magnet**, and the iron and sulfur can no longer be separated from it. In a mixture the iron would still jump to a magnet and the yellow sulfur would still be visible.',
+  'What does the word pure mean in science, and what kind of particles does a pure substance contain?':
+    'In science **pure** means a single substance with nothing else mixed into it, so it cannot be separated into other kinds of matter by any physical process. A pure substance consists of one type of particle throughout, whether atoms of an element or molecules of a compound. A clean-looking mixture such as sea water is still not pure.',
+  'A mixture in which the parts can be seen separately is':
+    'When the different parts can still be seen as separate pieces - like sand and iron filings, or oil floating on water - the mixture is **non-uniform**, also called heterogeneous. A uniform mixture looks the same throughout, while a compound or an element is a single substance rather than a visible blend.',
+  'Sugar dissolved in water forms':
+    'Sugar disappears completely and the sweet liquid looks the same everywhere, so it is a **uniform mixture**, also called a solution. An element is one kind of atom, a suspension has visible particles that settle, and a non-uniform mixture would still show separate parts.',
+  'Which is a pure substance?':
+    '**Distilled water** contains only water particles, so it is a pure substance in the scientific sense. Air is a mixture of several gases, milk is water with fat and protein, and sea water carries dissolved salts and other material, so none of those three is pure.',
+  'Which method separates a dissolved solid from water?':
+    'A dissolved solid passes straight through filter paper, so you must **evaporate** the water and let the solid come back as crystals. Hand picking and sieving need visible separate pieces, and filtration only traps particles that were never dissolved.',
+  'An element is a substance made of':
+    'An element is made of **only one kind of atom**, such as iron (Fe) or oxygen (O2), and it cannot be split into simpler substances by chemical means. Two or more kinds of atoms joined in a fixed ratio make a compound, and a random mixture of atoms is just a mixture.',
+  'Which of these is an element?':
+    '**Iron** is an element: every particle in a piece of iron is an iron atom. Salt is sodium chloride, water is hydrogen joined to oxygen, and air is a mixture of several gases, so those three are a compound, a compound and a mixture.',
+  'In a compound the elements are combined':
+    'In a compound the elements always combine in a **fixed ratio by mass** - water is always 1 g of hydrogen to 8 g of oxygen. That is why a compound has a definite chemical formula and a fixed melting point. A mixture, by contrast, can be made in any proportion at all.',
+  'Which of these is a compound?':
+    '**Water** is a compound: hydrogen and oxygen are chemically joined inside every water molecule, and you cannot separate them by filtering or boiling. Oxygen and iron are elements, and air is a mixture of gases rather than a compound.',
+  'When sugar is dissolved in water to make a solution, the sugar is the':
+    'The substance that dissolves is the **solute**, so the sugar is the solute and the water is the solvent; together they form the solution. A suspension is not part of a solution at all - it is a mixture whose particles settle on standing.',
+  'At a particular temperature, salt is added to water and stirred. After some time the added salt stops dissolving and settles at the bottom. The solution is now':
+    'When no more salt can dissolve at that temperature and the extra salt collects at the bottom, the solution is **saturated**. A dilute solution still has plenty of room for more solute, and an unsaturated one would keep dissolving the salt instead of leaving it behind.',
+  'Some baking soda remains undissolved at the bottom of water at 20 degrees Celsius. When the water is heated to 50 degrees Celsius, this baking soda dissolves. What does this show?':
+    'More baking soda dissolves in water at 50 C than at 20 C, so its **solubility increases with temperature** - warming the water lets it hold more dissolved solid. Baking soda does not melt at 50 C, and a chemical reaction would create a new substance rather than simply dissolving the same powder.',
+  'Define density and state its SI unit.':
+    'Density is the **mass present in a unit volume**: density = mass / volume, and its SI unit is the **kilogram per cubic metre (kg/m3)**. A block of 2 kg occupying 0.001 m3 has a density of 2000 kg/m3, which is why density lets you compare materials fairly whatever their size.',
+  'In salt water, the solvent is':
+    'The solvent is the liquid that does the dissolving, so in salt water the **water** is the solvent and the salt is the solute. The solution is the mixture as a whole, not one of its parts, and air plays no role unless the water is exposed to it.',
+  'The substance that dissolves in a solvent is the':
+    'The substance that dissolves is the **solute**, and it is usually the one present in the smaller amount. The solvent is the liquid that does the dissolving, and the two together make the solution. A suspension is a different kind of mixture altogether.',
+  'For most solids, raising the temperature of water':
+    'For most solids, dissolving needs energy to pull the particles apart, so **raising the temperature increases how much dissolves** - far more sugar dissolves in hot tea than in cold water. Cooling a saturated solution usually makes the extra solute reappear as crystals.',
+  'Solubility means':
+    'Solubility is the **maximum amount of solute** that can dissolve in a given amount of solvent at a given temperature, often quoted as grams per 100 g of water. Colour, density and boiling speed are different properties and have nothing to do with how much dissolves.',
+  'A solution that cannot dissolve any more solute at that temperature is':
+    'A solution that can hold no more solute at that temperature is **saturated**, so any extra solute simply settles at the bottom. It is not dilute, because dilute means only a little solute has dissolved, and it is not unsaturated, because an unsaturated solution can still dissolve more.',
+  'An object floats in water when its density is':
+    'An object floats when its **density is less than that of water**, about 1000 kg/m3, so the upward push of the water balances its weight before it sinks fully. Wood at roughly 600 kg/m3 floats, while iron at roughly 7800 kg/m3 sinks. Density is mass per volume, so comparing it to a volume mixes up two different quantities.',
+  'Density is calculated as':
+    'Density is **mass divided by volume**, d = m/V - a 200 g block of 50 cm3 has a density of 4 g/cm3. Volume divided by mass gives the opposite number and is not density, and force divided by area is pressure, a different quantity.',
+  'A dilute solution contains':
+    'A dilute solution holds **a small amount of solute in a large amount of solvent**, so its taste or colour is weak. A saturated solution holds the maximum solute possible, and a solution cannot have no solute at all - with none dissolved there is nothing to call a solution.',
+  'Which spherical mirror has a reflecting surface that curves outwards?':
+    'A **convex mirror** bulges towards you, so its reflecting surface curves outwards and it always gives a small, upright image with a wide field of view. A concave mirror curves inwards like the hollow of a spoon, and a plane mirror or a plain glass plate is flat.',
+  'A ray of light strikes a plane mirror. The angle between the incident ray and the normal is 30 degrees. What is the angle of reflection?':
+    'The law of reflection says the angle of incidence equals the angle of reflection, and both are measured from the **normal**, so the reflected ray also leaves at **30 degrees**. Subtracting from 90 gives 60 only if you wrongly measured from the mirror surface, and 150 comes from subtracting from 180.',
+  'A student wants to burn a small hole in a sheet of paper using sunlight. Which arrangement will work?':
+    'A **concave mirror** brings parallel sunlight together at a real focus, and at that bright spot the concentrated energy scorches the paper. A convex mirror and a concave lens spread light out instead of collecting it, and a plane mirror only reflects a broad beam that never concentrates.',
+  'How can you tell a convex lens from a concave lens by looking at the shape of the lens?':
+    'Look at where the lens is thick: a **convex lens is thicker in the middle** than at its rim, like a lentil, while a **concave lens is thinner in the middle** and thicker at its rim. That shape decides whether parallel rays bend together or spread apart, so the outline alone tells you which lens it is.',
+  'Which mirror is used as a vehicle rear-view mirror?':
+    'A **convex mirror** is fitted because it gives a wide field of view and always shows an upright, diminished image, so the driver sees more of the traffic behind. A concave mirror would magnify objects and could show them upside down, and a lens is not a mirror at all.',
+  'A concave mirror can':
+    'A concave mirror curves inwards, so parallel rays falling on it are reflected so that they **converge to a focus**, which is why it can concentrate sunlight or form a real image. A convex mirror is the one that spreads light out. A mirror reflects light; it does not stop it or turn it into heat only.',
+  'The angle of incidence is always':
+    'By the law of reflection, the angle of incidence is always **equal to the angle of reflection**, and both are measured from the normal. That is why a ray arriving at 30 degrees to the normal leaves at 30 degrees - not at 60, which would come from measuring from the mirror surface.',
+  'The incident ray, the reflected ray and the normal all lie':
+    'The incident ray, the reflected ray and the normal at the point of incidence all lie **in the same plane** - this is the second part of the law of reflection. They are not inside the mirror, and the normal is perpendicular to the surface, not at right angles to the rays.',
+  'A convex lens is thicker':
+    'A convex lens is **thicker in the middle** than at its edges, which is why it is also called a converging lens - it bends parallel rays towards the centre. A lens that is thicker at its edges than in the middle is concave, and its thickness is not the same everywhere.',
+  'A concave lens is used to correct':
+    'A **concave lens** diverges light, which pushes the image back so that a short-sighted person, who sees near objects clearly but distant ones blurred, can focus on far objects. Long-sightedness needs a convex lens, and colour blindness or night blindness is not corrected by changing the shape of the lens.',
+  'A convex lens makes parallel rays':
+    'A convex lens bends parallel rays inwards so that they **converge to a point** called the principal focus, at a distance equal to its focal length. A concave lens is the one that makes parallel rays diverge outwards, and a convex lens never leaves them parallel.',
+  'Which lens spreads parallel rays apart?':
+    'A **concave lens** is thinner in the middle, so rays passing through it are bent away from the axis and spread apart, which is called divergence. A convex lens brings parallel rays together, and a plane mirror reflects light instead of letting it pass through.',
 };

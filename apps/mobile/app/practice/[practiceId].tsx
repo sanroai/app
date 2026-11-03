@@ -23,6 +23,13 @@ export default function PracticeScreen() {
   const saveAnswer = useSavePracticeAnswer();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [feedback, setFeedback] = useState<Record<string, PracticeAnswerResponse>>({});
+  /**
+   * Objective questions answered on this device. The choice is final as soon as it
+   * is tapped: the feedback appears immediately with the correct answer, so letting
+   * a second tap change it would let a student pick the right option after seeing
+   * it. A failed save clears the lock so the answer can be given again.
+   */
+  const [locked, setLocked] = useState<Record<string, boolean>>({});
   const [result, setResult] = useState<PracticeSubmitResponse | null>(null);
 
   const { data, isFetching, isError, error, refetch } = useQuery<PracticeData>({
@@ -49,7 +56,14 @@ export default function PracticeScreen() {
         .then((response) => {
           setFeedback((prev) => ({ ...prev, [qid]: response }));
         })
-        .catch(() => undefined)
+        .catch(() => {
+          // Unlock so the answer can be given again.
+          setLocked((prev) => {
+            const next = { ...prev };
+            delete next[qid];
+            return next;
+          });
+        })
         .finally(() => {
           pendingSaves.current = pendingSaves.current.filter((p) => p !== promise);
         });
@@ -58,7 +72,9 @@ export default function PracticeScreen() {
   );
 
   const select = (qid: string, optionText: string) => {
+    if (locked[qid]) return;
     Keyboard.dismiss();
+    setLocked((prev) => ({ ...prev, [qid]: true }));
     setAnswers((prev) => ({ ...prev, [qid]: optionText }));
     trackSave(qid, optionText);
   };
@@ -272,6 +288,8 @@ export default function PracticeScreen() {
             onTextChange={(value) => typeAnswer(q.id, value)}
             onTextBlur={(value) => persistAnswer(q.id, value)}
             feedback={feedback[q.id] ?? null}
+            // A chosen answer is final: `reveal` disables the option buttons.
+            reveal={locked[q.id] ? {} : null}
           />
         ))}
 

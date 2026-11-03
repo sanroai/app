@@ -271,6 +271,8 @@ export interface PracticeAnswerResponse {
   correctAnswer?: string;
   explanation?: string | null;
   explanationSource?: 'authored' | 'notes' | 'answer' | null;
+  /** True once the server has an answer on file - an objective question is final. */
+  locked?: boolean;
 }
 export interface PracticeReviewEntry {
   questionId: string;

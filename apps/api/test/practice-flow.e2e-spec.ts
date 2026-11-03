@@ -264,6 +264,55 @@ describe('Practice flow (e2e)', () => {
     }
   });
 
+  it('refuses to change an answer once it has been given', async () => {
+    const path = await api(app, 'get', '/learning/path', token);
+    const conceptId = path.body.next?.conceptId ?? path.body.track?.[0]?.conceptId;
+
+    const start = await api(app, 'post', '/learning/practice/start', token, { conceptId, questionCount: 5 });
+    const practiceId = start.body.practiceId as string;
+    const question = (start.body.questions as Array<{ id: string; options?: Array<{ text: string }> }>).find(
+      (q) => (q.options?.length ?? 0) > 1,
+    );
+    expect(question).toBeTruthy();
+
+    const stored = await prisma.question.findUnique({
+      where: { id: question!.id },
+      include: { options: { orderBy: { order: 'asc' } } },
+    });
+    const correct = stored!.options.find((o) => o.text === stored!.answer) ?? stored!.options[0];
+    const wrong = stored!.options.find((o) => o.text !== correct.text);
+    expect(wrong).toBeTruthy();
+
+    // Answer wrongly first - the feedback immediately shows the right option.
+    const first = await api(app, 'post', `/learning/practice/${practiceId}/answer`, token, {
+      questionId: question!.id,
+      answer: wrong!.text,
+    });
+    expect(first.status).toBe(201);
+    expect(first.body.correct).toBe(false);
+    expect(first.body.correctAnswer).toBe(correct.text);
+    expect(first.body.locked).toBe(true);
+
+    // Switching to the answer it just revealed must not count: the stored answer
+    // stays the first one, and the grade stays wrong.
+    const second = await api(app, 'post', `/learning/practice/${practiceId}/answer`, token, {
+      questionId: question!.id,
+      answer: correct.text,
+    });
+    expect(second.body.locked).toBe(true);
+    expect(second.body.correct).toBe(false);
+
+    const saved = await prisma.practiceAnswer.findFirst({
+      where: { practiceSetId: practiceId, questionId: question!.id },
+    });
+    expect(saved?.answer).toBe(wrong!.text);
+    expect(saved?.isCorrect).toBe(false);
+
+    const submit = await api(app, 'post', `/learning/practice/${practiceId}/submit`, token, {});
+    expect(submit.status).toBe(201);
+    expect(submit.body.correctAnswers).toBe(0);
+  });
+
   it('refuses to submit the same practice session twice', async () => {
     const path = await api(app, 'get', '/learning/path', token);
     const conceptId = path.body.next?.conceptId ?? path.body.track?.[0]?.conceptId;

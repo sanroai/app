@@ -2032,6 +2032,36 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     });
     if (!question) throw new NotFoundException('Question not found');
 
+    const isObjective = this.mastery.isObjectiveType(question.type);
+
+    // An answer is final once given. The feedback panel shows the correct answer
+    // immediately, so allowing a second save would let a student click the right
+    // option *after* seeing it and turn a wrong answer into a right one - the
+    // score would then measure reading, not knowledge. A repeat call returns the
+    // grade already stored (so a client retrying a dropped request still gets the
+    // answer it gave) and never overwrites it.
+    //
+    // Written answers are not graded, so they stay editable until submit: locking
+    // them would only punish a typo.
+    const existing = await this.prisma.practiceAnswer.findUnique({
+      where: { practiceSetId_questionId: { practiceSetId: practiceId, questionId } },
+      select: { answer: true, isCorrect: true },
+    });
+    const alreadyAnswered =
+      typeof existing?.answer === 'string' && existing.answer.trim().length > 0;
+
+    if (isObjective && alreadyAnswered) {
+      const lockedFeedback = await this.feedbackFor([question]);
+      const lockedResolved = lockedFeedback.get(question.id);
+      return {
+        correct: existing?.isCorrect ?? null,
+        correctAnswer: question.answer,
+        explanation: lockedResolved?.explanation ?? null,
+        explanationSource: lockedResolved?.source ?? null,
+        locked: true,
+      };
+    }
+
     let isCorrect: boolean | null = null;
     let correctAnswer: string | undefined;
 
@@ -2039,7 +2069,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
     // resolved here so a correct answer can never be marked wrong.
     const gradedAnswer = normaliseAnswerToOptionText(question, answer);
 
-    if (this.mastery.isObjectiveType(question.type)) {
+    if (isObjective) {
       const graded = this.mastery.gradeAssessmentQuestion(
         { id: question.id, type: question.type, marks: question.marks ?? 1, answer: question.answer, options: question.options },
         gradedAnswer,
@@ -2065,6 +2095,8 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
       correctAnswer,
       explanation: resolved?.explanation ?? null,
       explanationSource: resolved?.source ?? null,
+      // Objective answers are locked from now on; a written one can still change.
+      locked: isObjective,
     };
   }
 
