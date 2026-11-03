@@ -1422,9 +1422,9 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'The square has area 6 × 6 = **36 cm^2** while the rectangle has 8 × 4 = 32 cm^2, so the square is larger. A common slip is thinking equal perimeters must mean equal areas, which is false. For a fixed perimeter the square is always the biggest rectangle, because making the shape thinner and longer shrinks its area.',
   'Use Heron\'s formula to find the area of a triangle whose sides are 13 cm, 14 cm and 15 cm.':
     's = (13 + 14 + 15)/2 = 21, so area = sqrt(21 × 8 × 7 × 6) = sqrt(7056) = **84 cm^2**. The 168 is double 84, which happens when the final result is doubled by mistake. The 42 is half of 84, a slip from halving the area as well as the perimeter.',
-  'Using Ï€ = 22/7, what is the circumference of a circle of radius 7 cm?':
+  'Using π = 22/7, what is the circumference of a circle of radius 7 cm?':
     'Circumference = 2 pi r = 2 × 22/7 × 7 = **44 cm**, because the two 7s cancel. The 154 cm is pi r^2 = 22/7 × 49, which is the area and is measured in square units. Getting 22 cm uses pi r only once, as if you had gone around only half the circle.',
-  'A sector of a circle of radius 21 cm has a central angle of 60°. Find the area of the sector. (Use Ï€ = 22/7)':
+  'A sector of a circle of radius 21 cm has a central angle of 60°. Find the area of the sector. (Use π = 22/7)':
     'The whole circle has area 22/7 × 21 × 21 = 1386 cm^2, and 60 degrees is 60/360 = 1/6 of a full turn, so the sector is 1386 ÷ 6 = **231 cm^2**. Answering 1386 forgets to take that fraction and gives the whole circle. Using only 21 × 60/360 without pi r^2 mixes this up with the arc length formula.',
   'Use Heron\'s formula to find the area of a triangle whose sides measure 10 cm, 10 cm and 12 cm.':
     's = (10 + 10 + 12)/2 = 16, so area = sqrt(16 × 6 × 6 × 4) = sqrt(2304) = **48 cm^2**. The 24 is half of 48, as if one more halving were needed. The 60 comes from 12 × 10 ÷ 2, which treats the side 10 as the height, but the real height on the 12 cm base is 8 cm.',

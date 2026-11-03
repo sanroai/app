@@ -25,8 +25,7 @@ const CP1252_TO_BYTE = new Map<number, number>([
 ]);
 
 /** The lead characters of the sequences this repairs. */
-const MOJIBAKE = /[ÃÂâð]/;
-
+const MOJIBAKE = /[\u00c3\u00c2\u00e2\u00f0\u00cf\u00d0]/;
 export function looksMojibake(value: string | null | undefined): boolean {
   if (!value) return false;
   return MOJIBAKE.test(value);
@@ -48,16 +47,6 @@ function toCp1252Bytes(value: string): Buffer | null {
   return bytes;
 }
 
-/** windows-1252 decoding, used only for the round-trip check. */
-function fromCp1252Bytes(bytes: Buffer): string {
-  let out = '';
-  for (const byte of bytes) {
-    const special = [...CP1252_TO_BYTE].find(([, b]) => b === byte);
-    out += special ? String.fromCharCode(special[0]) : String.fromCharCode(byte);
-  }
-  return out;
-}
-
 export function repairMojibake<T extends string | null | undefined>(value: T): T {
   if (typeof value !== 'string' || value.length === 0) return value;
   if (!looksMojibake(value)) return value;
@@ -66,12 +55,14 @@ export function repairMojibake<T extends string | null | undefined>(value: T): T
     const bytes = toCp1252Bytes(value);
     if (!bytes) return value;
 
+    // A sequence that is not valid UTF-8 decodes to U+FFFD, and that is not a
+    // repair - it means the bytes were never mis-decoded text in the first place.
     const repaired = bytes.toString('utf8');
     if (repaired.includes('\uFFFD')) return value;
     if (repaired === value) return value;
-    // Only accept an exactly reversible repair, so a genuine "é" or "°" that is
-    // already correct is left alone.
-    if (fromCp1252Bytes(Buffer.from(repaired, 'utf8')) !== value) return value;
+    // The decode has to be reversible at the byte level: re-encoding the result
+    // must give exactly the bytes we decoded, otherwise something was guessed.
+    if (!Buffer.from(repaired, 'utf8').equals(bytes)) return value;
 
     return repaired as T;
   } catch {
