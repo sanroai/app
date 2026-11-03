@@ -66,6 +66,9 @@ node scripts/qa/probe-practice-scoring.mjs     # Starts a practice set, answers 
 node scripts/qa/probe-review-queue.mjs         # Spaced review + practice feedback end to end (queue, start, answer, submit, reschedule)
 npx tsx scripts/qa/audit-question-explanations.mts  # Authored / notes-quoted / answer-only explanation coverage
 node scripts/qa/apply-question-explanations.mjs     # Apply the seed's authored explanations to an existing DB (no re-seed)
+node scripts/qa/export-explanations-input.mjs --list # Chapters still needing authored explanations, with counts
+node scripts/qa/export-explanations-input.mjs --codes SCI-8-1,SCI-8-2 --out artifacts/qa/explanations/input-a.json
+node scripts/qa/merge-explanations.mjs --dir artifacts/qa/explanations  # Validate + merge authored explanation files
 node scripts/qa/probe-latency.mjs              # Cold vs warm latency per screen against a live API
 node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths codes with the 2026 book (14 chapters)
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
@@ -548,6 +551,15 @@ Android 11+.
   that last bucket as the authoring backlog).
 - **`submitPractice` returns `review[]`**, one entry per question in the order the
   student saw them (text, their answer, the correct answer, graded flag, reason).
+- **An answer is final once given.** `savePracticeAnswer` returns the grade already
+  stored (`locked: true`) instead of overwriting it, because the feedback panel
+  reveals the correct answer immediately - without the lock a student could click
+  the right option *after* seeing it and turn a wrong answer into a right one.
+  Written answers stay editable (they are not auto-graded, so locking them would
+  only punish a typo). Both clients disable the options as soon as one is chosen
+  and unlock them again if the save fails. Covered by
+  `test/practice-flow.e2e-spec.ts` → *refuses to change an answer once it has been
+  given*.
 - **A new question cannot enter the bank without an explanation**:
   `scripts/qa/validate-question-fragments.mjs` fails the merge otherwise. Every
   explanation lives once, in `apps/api/src/content/question-explanations.ts`

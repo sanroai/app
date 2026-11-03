@@ -33,11 +33,32 @@ as "feedback".
 Where it appears:
 
 - **immediately** — `POST /learning/practice/:id/answer` returns
-  `{ correct, correctAnswer, explanation, explanationSource }`, so the client
-  paints the reason under the question the student just answered;
+  `{ correct, correctAnswer, explanation, explanationSource, locked }`, so the
+  client paints the reason under the question the student just answered;
 - **at the end of the set** — `POST /learning/practice/:id/submit` returns
   `review[]`, one entry per question (text, your answer, correct answer, whether
   it was graded, explanation).
+
+### The answer is final
+
+Because the correct answer is revealed the moment a question is answered, the
+answer itself has to be final — otherwise a student clicks the option they have
+just been shown and the score measures reading rather than knowledge.
+
+- The API stores the **first** answer and returns it (with `locked: true`) on any
+  repeat call, instead of overwriting it. A dropped request retried by the client
+  therefore still gets the grade it already had.
+- Both clients disable the option buttons as soon as one is chosen, show
+  *"Your answer is final"*, and unlock the question again if the save fails so it
+  can be retried.
+- **Written answers stay editable** until submit: they are not auto-graded, so
+  locking them would only punish a typo.
+- `MULTI_SELECT` is never locked after one tap (its answer is sent on every
+  toggle) — it is not used in the current bank, but the rule would be wrong.
+
+Guard: `test/practice-flow.e2e-spec.ts` → *refuses to change an answer once it has
+been given* (answers wrongly, tries to switch to the revealed answer, checks the
+stored row and the final score).
 
 Measured coverage on the current bank (`npx tsx scripts/qa/audit-question-explanations.mts`):
 

@@ -277,20 +277,24 @@ export default function PracticeScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         {questions.map((q, i) => (
-          <QuizQuestionCard
-            key={q.id}
-            question={q}
-            index={i}
-            total={questions.length}
-            selected={answers[q.id] ?? null}
-            onSelect={(optionText) => select(q.id, optionText)}
-            textAnswer={answers[q.id] ?? ''}
-            onTextChange={(value) => typeAnswer(q.id, value)}
-            onTextBlur={(value) => persistAnswer(q.id, value)}
-            feedback={feedback[q.id] ?? null}
-            // A chosen answer is final: `reveal` disables the option buttons.
-            reveal={locked[q.id] ? {} : null}
-          />
+          <View key={q.id}>
+            <QuizQuestionCard
+              question={q}
+              index={i}
+              total={questions.length}
+              selected={answers[q.id] ?? null}
+              onSelect={(optionText) => select(q.id, optionText)}
+              textAnswer={answers[q.id] ?? ''}
+              onTextChange={(value) => typeAnswer(q.id, value)}
+              onTextBlur={(value) => persistAnswer(q.id, value)}
+              feedback={feedback[q.id] ?? null}
+              // A chosen answer is final: `reveal` disables the option buttons.
+              reveal={locked[q.id] ? {} : null}
+            />
+            {locked[q.id] ? (
+              <Text style={styles.lockedNote}>Your answer is final - it cannot be changed.</Text>
+            ) : null}
+          </View>
         ))}
 
         <TouchableOpacity
@@ -332,6 +336,7 @@ const styles = StyleSheet.create({
   resultScroll: { flex: 1, backgroundColor: Colors.background },
   resultContent: { alignItems: 'center', padding: Spacing.xl, paddingBottom: Spacing.xxxl },
   resultNote: { fontSize: 12, color: Colors.textMuted, marginTop: Spacing.sm, textAlign: 'center' },
+  lockedNote: { fontSize: 11, color: Colors.textMuted, marginTop: -Spacing.sm, marginBottom: Spacing.md, marginLeft: Spacing.xs },
   reviewWrap: { width: '100%', marginTop: Spacing.xl },
   reviewHeading: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: Spacing.md },
   reviewCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.md, marginBottom: Spacing.sm },

@@ -96,6 +96,14 @@ if (cardVisible) {
       /lesson notes|is the answer|is correct|->|means/i.test(panelText) && panelText.length > 80,
       `${panelText.length} chars`,
     );
+
+    // The answer is final: every option is disabled once one is chosen, and the
+    // page says so - otherwise the student could click the option the feedback
+    // just revealed.
+    const disabledOptions = await page.locator('button.rounded-xl.border-2[disabled]').count();
+    check('options are locked once answered', disabledOptions >= 2, `${disabledOptions} disabled`);
+    check('the page says the answer is final', /answer is final/i.test(panelText));
+
     await page.screenshot({ path: path.join(OUT, 'learning-practice-feedback.png') });
   }
 }
