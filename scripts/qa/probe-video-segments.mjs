@@ -26,8 +26,27 @@ const token = await login(gradeArg >= 0 && argv[gradeArg + 1] === '8' ? 'student
   : gradeArg >= 0 && argv[gradeArg + 1] === '9' ? 'student9@sanroai.com'
   : 'student@sanroai.com');
 
-const get = async (path) => {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * GET with rate-limit handling.
+ *
+ * This probe walks every chapter hub (~229 of them), which is well over the API's
+ * 120 requests/minute limit if it runs flat out. It used to require
+ * `RATE_LIMIT_MAX` raised on the server; instead it paces itself and retries a
+ * 429 (honouring Retry-After), so it runs against a deployment with the default
+ * limit.
+ */
+const get = async (path, attempt = 0) => {
   const res = await fetch(`${API}${path}`, { headers: { Authorization: `Bearer ${token}` } });
+  if (res.status === 429 && attempt < 5) {
+    // Honour the server's Retry-After: the window is 60 s, so a 15 s cap can keep
+    // landing inside the same throttled window and burn every retry.
+    const retryAfter = Number(res.headers.get('retry-after') ?? 0);
+    const waitMs = Math.min(retryAfter > 0 ? retryAfter * 1000 : 5000, 65000);
+    await sleep(waitMs);
+    return get(path, attempt + 1);
+  }
   return { status: res.status, json: await res.json().catch(() => null) };
 };
 
@@ -45,6 +64,9 @@ let derived = 0;
 const failures = [];
 
 for (const chapterId of chapterIds) {
+  // A light pace keeps most of the run under the limit, so the retry above is the
+  // exception rather than the rule.
+  await sleep(150);
   const hub = await get(`/learning/chapters/${chapterId}`);
   if (hub.status !== 200) {
     failures.push(`${chapterId}: hub ${hub.status}`);
