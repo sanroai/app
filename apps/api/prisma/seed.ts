@@ -18,6 +18,7 @@ import {
 import { TOPUP_QUESTIONS, TOPUP_QUESTION_CONCEPTS } from './question-topups';
 import { QUESTION_EXPLANATIONS } from '../src/content/question-explanations';
 import { CONCEPT_MICRO_NOTES } from '../src/content/concept-notes';
+import { QUESTION_ADDITIONS } from '../src/content/question-additions';
 
 loadApiEnv();
 
@@ -33573,6 +33574,58 @@ async function seedConceptMicroNotes(db: PrismaClient) {
   return { created, updated };
 }
 
+/**
+ * Creates the authored question additions on a fresh install.
+ *
+ * Twenty-seven concepts held three question rows that were really two questions,
+ * so mastery could never reach three pieces of evidence on them. These are the
+ * genuinely different questions. The deployed copy is inserted by
+ * `POST /questions/sync-additions`, because a deployment is never re-seeded.
+ */
+async function seedQuestionAdditions(db: PrismaClient) {
+  let created = 0;
+  let skipped = 0;
+  for (const addition of QUESTION_ADDITIONS) {
+    const chapter = await db.chapter.findFirst({
+      where: { code: addition.chapterCode },
+      select: { id: true, grade: true, subjectId: true, subject: { select: { boardId: true } } },
+    });
+    if (!chapter) continue;
+    const concept = await db.concept.findFirst({
+      where: { name: addition.concept, topic: { chapterId: chapter.id } },
+      select: { id: true, topicId: true },
+    });
+    if (!concept) continue;
+    const existing = await db.question.findFirst({ where: { text: addition.text }, select: { id: true } });
+    if (existing) {
+      skipped += 1;
+      continue;
+    }
+    await db.question.create({
+      data: {
+        boardId: chapter.subject.boardId,
+        grade: chapter.grade,
+        subjectId: chapter.subjectId,
+        chapterId: chapter.id,
+        topicId: concept.topicId,
+        conceptId: concept.id,
+        type: addition.type as never,
+        status: 'APPROVED',
+        source: 'SEED',
+        difficulty: addition.difficulty as never,
+        marks: addition.marks,
+        text: addition.text,
+        answer: addition.answer,
+        explanation: addition.explanation,
+        language: 'EN',
+        options: { create: addition.options },
+      },
+    });
+    created += 1;
+  }
+  return { created, skipped };
+}
+
 async function main() {
   const target = parseTarget(TARGET_URL);
   const modeLabel = MODE === 'system' ? 'system only' : MODE === 'qa' ? 'QA fixtures' : 'system + demo';
@@ -33620,6 +33673,10 @@ async function main() {
   const microNotes = await seedConceptMicroNotes(prisma);
   if (microNotes.created || microNotes.updated) {
     console.log(`[seed] concept micro-notes: ${microNotes.created} created, ${microNotes.updated} updated`);
+  }
+  const additions = await seedQuestionAdditions(prisma);
+  if (additions.created || additions.skipped) {
+    console.log(`[seed] question additions: ${additions.created} created, ${additions.skipped} already present`);
   }
   await ensureSystemInstitution();
   const { academicYear, institution } = await seedPlansAndInstitution();

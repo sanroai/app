@@ -45,7 +45,7 @@ try {
       id: true,
       name: true,
       topic: { select: { chapter: { select: { code: true, name: true, grade: true, subject: { select: { code: true } } } } } },
-      content: { select: { id: true } },
+      content: { select: { id: true, type: true } },
       questions: { select: { text: true, answer: true }, take: 3 },
     },
     orderBy: [{ topic: { chapter: { code: 'asc' } } }, { name: 'asc' }],
@@ -57,7 +57,11 @@ try {
     grade: concept.topic.chapter.grade,
     subject: concept.topic.chapter.subject.code,
     concept: concept.name,
-    hasOwnContent: concept.content.length > 0,
+    // A concept needs a note when it has none of its own - a *video* it carries
+    // is not a note, and the concept page only falls back to the chapter when it
+    // has no content at all, so a video-only concept would otherwise show no
+    // reading material whatsoever (exactly one concept was in this state).
+    hasOwnContent: concept.content.some((item) => item.type === 'NOTES'),
     questions: concept.questions.map((q) => ({ text: q.text, answer: q.answer })),
   }));
 

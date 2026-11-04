@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { TenantAccessService } from '../common/security/tenant-access.service';
 import { AuditService } from '../common/services/audit-notifications.service';
 import { QUESTION_EXPLANATIONS } from '../content/question-explanations';
+import { QUESTION_ADDITIONS } from '../content/question-additions';
 import { repairMojibake } from '../common/text/repair-encoding';
 
 @Injectable()
@@ -20,6 +21,84 @@ export class QuestionsService {
     private readonly tenant: TenantAccessService,
     private readonly audit: AuditService,
   ) {}
+
+  /**
+   * Inserts the authored question additions into this database.
+   *
+   * The seed is the only thing that ever created questions, and a deployment is
+   * never re-seeded - so a question authored after a deployment had no path into
+   * it. This does the insert; the seed calls the same map on a fresh install.
+   *
+   * Idempotent: a question whose text already exists is skipped, so re-running
+   * changes nothing. Every entry is resolved through its chapter code and concept
+   * name (never an id), and an entry that does not resolve is reported rather than
+   * silently skipped.
+   */
+  async syncQuestionAdditions() {
+    let created = 0;
+    let skipped = 0;
+    const unresolved: string[] = [];
+
+    for (const addition of QUESTION_ADDITIONS) {
+      const chapter = await this.prisma.chapter.findFirst({
+        where: { code: addition.chapterCode },
+        select: { id: true, grade: true, subjectId: true, subject: { select: { boardId: true } } },
+      });
+      if (!chapter) {
+        unresolved.push(`${addition.chapterCode}: no such chapter`);
+        continue;
+      }
+
+      const concept = await this.prisma.concept.findFirst({
+        where: { name: addition.concept, topic: { chapterId: chapter.id } },
+        select: { id: true, topicId: true },
+      });
+      if (!concept) {
+        unresolved.push(`${addition.chapterCode}: no concept "${addition.concept}"`);
+        continue;
+      }
+
+      const existing = await this.prisma.question.findFirst({
+        where: { text: addition.text },
+        select: { id: true },
+      });
+      if (existing) {
+        skipped += 1;
+        continue;
+      }
+
+      await this.prisma.question.create({
+        data: {
+          boardId: chapter.subject.boardId,
+          grade: chapter.grade,
+          subjectId: chapter.subjectId,
+          chapterId: chapter.id,
+          topicId: concept.topicId,
+          conceptId: concept.id,
+          type: addition.type as QuestionType,
+          status: 'APPROVED',
+          source: QuestionSource.SEED,
+          difficulty: addition.difficulty as 'EASY' | 'MEDIUM' | 'HARD',
+          marks: addition.marks,
+          text: addition.text,
+          answer: addition.answer,
+          explanation: addition.explanation,
+          language: 'EN',
+          options: { create: addition.options },
+        },
+        select: { id: true },
+      });
+      created += 1;
+    }
+
+    return {
+      authored: QUESTION_ADDITIONS.length,
+      created,
+      skipped,
+      unresolved: unresolved.length,
+      unresolvedEntries: unresolved.slice(0, 10),
+    };
+  }
 
   /**
    * Applies the authored explanations (the shared QUESTION_EXPLANATIONS map) to

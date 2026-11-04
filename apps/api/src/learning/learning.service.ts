@@ -14,6 +14,7 @@ import { chapterPageFiles, chapterPageRemoteUrls, chapterPagesAreBookLevel } fro
 import { parseYouTubeVideoId, youtubeThumbnailUrl } from '../curriculum/content.service';
 import { awardStudentXp, XP_PER_PRACTICE_CORRECT, XP_PRACTICE_COMPLETION } from '../common/xp';
 import { resolveQuestionFeedback, QuestionFeedback } from './question-feedback';
+import { withoutRepeats } from './question-fingerprint';
 import { Prisma } from '@prisma/client';
 
 /** The API prefix every chapter PDF link is built with. */
@@ -1603,10 +1604,12 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     // Preference order: the concept's own unseen questions, then unseen siblings
     // (new material), and only then the questions the student just answered.
+    // The window is a few wider than the set so that a question dropped as a repeat
+    // (see `withoutRepeats`) is replaced rather than shrinking the set.
     const candidates =
       conceptQuestions.length === 0
-        ? [...freshSiblings, ...recentSiblings].slice(0, take)
-        : [...freshConcept, ...freshSiblings, ...recentConcept, ...recentSiblings].slice(0, targetSize);
+        ? [...freshSiblings, ...recentSiblings].slice(0, take + 4)
+        : [...freshConcept, ...freshSiblings, ...recentConcept, ...recentSiblings].slice(0, targetSize + 4);
 
     let questions = candidates;
     // A concept practice always credits the concept the student picked: if every
@@ -1623,7 +1626,9 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     const autoGradable = this.shuffle(questions.filter((q) => this.mastery.isObjectiveType(q.type)));
     const written = this.shuffle(questions.filter((q) => !this.mastery.isObjectiveType(q.type)));
-    const chosen = [...autoGradable, ...written].slice(0, take);
+    // Two questions that ask the same thing are one question: a set never carries
+    // both (the bank has a handful of those, and the second adds no evidence).
+    const chosen = withoutRepeats([...autoGradable, ...written]).slice(0, take);
 
     const sessionConceptIds = [
       ...new Set(chosen.map((q) => q.conceptId).filter((id): id is string => Boolean(id))),
@@ -1717,7 +1722,7 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     const gradable = this.shuffle(pool.filter((q) => this.mastery.isObjectiveType(q.type)));
     const written = this.shuffle(pool.filter((q) => !this.mastery.isObjectiveType(q.type)));
-    const shuffled = this.shuffle([...gradable, ...written].slice(0, take));
+    const shuffled = this.shuffle(withoutRepeats([...gradable, ...written]).slice(0, take));
 
     const practiceSet = await this.prisma.practiceSet.create({
       data: {

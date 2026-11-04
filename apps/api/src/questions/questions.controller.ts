@@ -37,6 +37,18 @@ export class QuestionsController {
   }
 
   /**
+   * Inserts the authored question additions this database is missing.
+   *
+   * Super-admin only and idempotent. A deployment is never re-seeded, so this is
+   * how a question authored after the last deploy reaches it.
+   */
+  @Roles(Role.SUPER_ADMIN)
+  @Post('sync-additions')
+  syncAdditions() {
+    return this.service.syncQuestionAdditions();
+  }
+
+  /**
    * Repairs question and option text that was decoded with the wrong codec
    * (`â†'` -> `→`). Super-admin only and idempotent; the curriculum is never
    * re-seeded in production, so this is the only way to fix those rows there.
