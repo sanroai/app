@@ -4478,4 +4478,1278 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'Alternate interior angles lie on opposite sides of the transversal with equal slant, so they are **equal**. Calling them supplementary is the rule for the same-side interior pair.',
   'Alternate angles lie on':
     'The alternate pair takes **opposite sides of the transversal**, one at each parallel line. The same side describes the co-interior pair, which adds to 180 degrees.',
+  'The sum of two odd numbers is always':
+    'Two odd numbers can be written as 2a+1 and 2b+1, so their sum is 2a+2b+2, a multiple of 2 and therefore **even**. Calling it odd forgets that the two leftover 1s pair up into another 2.',
+  'What is the 15th odd number?':
+    'Odd numbers follow 2n - 1, so the 15th is 2 x 15 - 1 = 30 - 1 = **29**. Picking 31 gives the 16th odd number, one place too far along the list.',
+  'In a 3 × 3 magic square made with the numbers 1 to 9, what is the magic sum?':
+    'The numbers 1 to 9 add to 45, and a 3 x 3 square has three equal rows, so each row is 45 / 3 = **15**. Answering 45 divides by nothing and reports the total of all nine cells as one line.',
+  'The Fibonacci numbers are 1, 1, 2, 3, 5, 8, 13, 21, ... Which of these is the next even Fibonacci number after 8?':
+    'Keep going after 8: the next terms are 13, 21 and 34, and 34 = 2 x 17 is **even**, the first even one past 8. Choosing 21 stops a step too early, since 21 is still odd.',
+  'What is a magic square?':
+    'A **magic square** is a grid where every row, every column and both diagonals add up to the same total, which is the rule that makes it magic. Thinking it is about colours or circles confuses the decoration of a picture with the arithmetic.',
+  'In a 3 x 3 magic square using the numbers 1 to 9, what is the magic total?':
+    'The numbers 1 to 9 add to 45, and three equal rows share that total, so each line is 45 / 3 = **15**. Choosing 9 divides 45 by 5 as if a row held five cells, and 18 doubles the right answer.',
+  'Which number sits in the centre of the 3 x 3 magic square made with 1 to 9?':
+    'The four lines through the middle total 4 x 15 = 60, counting every cell once except the centre, counted four times: 45 + 3 x centre = 60 gives **5**. Choosing 9 assumes the largest number belongs in the middle, but then its four lines cannot all reach 15.',
+  'What does the parity of a number tell us?':
+    '**Parity** is only the even or odd split: a number is even when 2 divides it exactly, odd when it leaves remainder 1. Size or digit count says nothing about this, since 3 and 1000001 are both odd.',
+  'In the Fibonacci sequence 1, 1, 2, 3, 5, 8, 13, 21, which terms are even?':
+    'The even terms are 2 and 8, at positions 3 and 6, and the pattern repeats because odd + odd = even while even + odd = odd, so **every third term** is even. Saying every second term would make 3, 13 and 21 even, yet all three are odd.',
+  'Which of these Fibonacci numbers is odd?':
+    '13 leaves remainder 1 when divided by 2, so it is **odd**, while 8, 34 and 2 each equal twice a whole number. The last digit decides quickly: 8, 4 and 2 are even endings, 3 is not.',
+  'The sum of an even and an odd number is always':
+    'An even number is 2a and an odd number is 2b+1, so the sum is 2(a+b)+1, which is **odd** by definition. Calling it even assumes both remainders cancel, but only one remainder of 1 is there.',
+  'The nth odd number is given by':
+    'The odd numbers are 1, 3, 5, ..., and the nth is 2n - 1, since 2n counts up in twos and starting one lower lands on **2n - 1**. Using 2n + 1 gives 3 for n = 1, which skips the first odd number.',
+  'Using 2n - 1, the 10th odd number is':
+    'Put n = 10 into the rule 2n - 1: 2 x 10 - 1 = 20 - 1 = **19**. Answering 20 forgets to subtract the 1, and 9 comes from putting n = 5 instead of n = 10.',
+  'In a 3 x 3 magic square of 1 to 9, the magic sum is':
+    'The cells 1 to 9 add to 45 and the square has three rows of equal total, so each line is 45 / 3 = **15**. Choosing 12 or 18 picks a round number near the answer instead of dividing the real total.',
+  'In a 4 x 4 magic square using 1 to 16, the magic sum is':
+    'The numbers 1 to 16 add to 136, and a 4 x 4 square has four equal rows, so each line is 136 / 4 = **34**. Answering 17 halves 34, as though the total were shared among eight lines.',
+  'Which number comes next: 1, 1, 2, 3, 5, 8, ___?':
+    'Each term is the sum of the two terms before it, so 5 + 8 = **13**. Choosing 11 adds only 3 to 8, which uses one previous term instead of both.',
+  'Each Virahanka number is the sum of':
+    'A **Virahanka number** is the Indian name for a Fibonacci number, built by adding the two terms just before it: 1, 1, 2, 3, 5, 8. Adding 1 to the previous term instead gives 1, 2, 3, 4, 5, which is just counting.',
+  'The sum of two even numbers is always':
+    'Two even numbers are 2a and 2b, so their sum is 2(a+b), a multiple of 2 and therefore **even**. Choosing prime confuses evenness with having factors, and 4 + 8 = 12 shows the sum need not be prime.',
+  'The three angles of a triangle add up to':
+    'The three angles of any triangle total **180 degrees**, half a full turn, because a line through one vertex parallel to the opposite side makes them fit along a straight angle. The 360 degrees answer copies the quadrilateral total, where an extra triangle adds 180 more.',
+  'Which set of lengths can form a triangle?':
+    'Only 6 + 8 = 14 is greater than 13, while 13 + 6 and 13 + 8 also beat the remaining side, so **6 cm, 8 cm, 13 cm** closes into a triangle. In 5, 6, 11 the two shorter sides add to exactly 11, flattening the figure into a straight line.',
+  'In a triangle, two angles measure 48° and 67°. Find the third angle.':
+    'The three angles total 180 degrees, so the third is 180 - 48 - 67 = 180 - 115 = **65 degrees**. Adding the two given angles instead of subtracting them gives 115, which is their sum, not the missing angle.',
+  'In a triangle, an altitude is 9 cm and the side to which it is drawn is 12 cm. What is the area of the triangle?':
+    'Area = 1/2 x base x height = 1/2 x 12 x 9 = **54 square cm**. Choosing 108 drops the half and gives the area of the rectangle that surrounds the triangle.',
+  'What is the included angle between two sides of a triangle?':
+    'The **included angle** is the one formed where those two sides meet, so its arms are exactly the two given sides. Picking the largest angle ignores position, yet SAS needs the angle sandwiched between the named sides.',
+  'Knowing two sides and the included angle corresponds to which construction condition?':
+    'Two sides plus the angle between them is Side-Angle-Side, written **SAS**, because that angle is included by the two given sides. SSS needs all three lengths, and ASA needs two angles with the side lying between them.',
+  'What does SAS stand for?':
+    '**SAS** is short for Side-Angle-Side, and the order tells you the angle sits between the two named sides. Reading it as Side-Area-Side substitutes area, which is a computed quantity and never a given part.',
+  'Which condition uses the lengths of all three sides?':
+    '**SSS** stands for Side-Side-Side, so it is used when all three lengths are known and the angles are not. SAS and ASA each supply an angle, so neither of them needs all three sides.',
+  'Can you draw a triangle with sides 2 cm, 3 cm and 8 cm?':
+    'Since 2 + 3 = 5 and 5 is less than 8, the short sides cannot reach across the longest one, so **no triangle** exists. Saying yes always ignores the triangle inequality, which every valid triangle must obey.',
+  'Which tools do you need to construct a triangle from three sides?':
+    'Three given lengths are transferred with a **ruler and a compass**: draw one side, then swing arcs of the other two lengths until they meet. A protractor measures angles, so it belongs to the ASA or SAS construction, not this one.',
+  'Can a triangle have sides 3 cm, 4 cm and 9 cm?':
+    'Here 3 + 4 = 7, which is less than 9, so the two shorter sides fall short of the longest and **no triangle** can be drawn. Being right angled does not help, because even then the longest side must be shorter than the other two together.',
+  'The sum of any two sides of a triangle is always':
+    'The triangle inequality says any two sides together are **greater than the third side**, or the free ends cannot meet away from the line. Equal to would give a flat, degenerate figure, and less than cannot close at all.',
+  'Two angles and the side between them determine':
+    'Fixing two angles fixes the third as well, since it is 180 minus their sum, and the side between them then scales the whole shape, giving **one unique triangle**. Many triangles would need a free angle or a free side, and this data leaves none.',
+  'This condition is known as':
+    'Two angles with the side between them is Angle-Side-Angle, **ASA**, the same name used in the congruence tests. SAS also takes two sides, so the presence of two angles is what separates the two labels.',
+  'The angles of a triangle add up to':
+    'Every triangle\'s interior angles total **180 degrees**, which follows from drawing one line parallel to a side through the opposite vertex. The 360 degrees value belongs to a full turn or to a quadrilateral, not to a triangle.',
+  'Two angles of a triangle are 50 and 60 degrees. The third is':
+    'Subtract the two known angles from 180: 180 - 50 - 60 = **70 degrees**. Reporting 110 adds the two given angles instead of subtracting them from 180.',
+  'An altitude of a triangle is a line from a vertex':
+    'An **altitude** drops from a vertex and meets the opposite side at a right angle, so it measures the perpendicular height. A line to the midpoint is a median, and one that bisects the vertex angle is an angle bisector.',
+  'How many altitudes does a triangle have?':
+    'Each of the three vertices has its own perpendicular to the opposite side, so a triangle has **three** altitudes. Saying one assumes only the base matters, but any of the three sides can serve as a base.',
+  'What is 3/4 of 48?':
+    'One quarter of 48 is 12, so three quarters is 3 x 12 = **36**, which is also 48 / 4 x 3. Answering 12 stops after a single quarter instead of taking three of them.',
+  'What is 2/5 × 3/7?':
+    'Multiply straight across: 2 x 3 = 6 and 5 x 7 = 35, giving **6/35**. The 10/21 answer cross-multiplies 2 x 5 and 3 x 7, which is part of the rule for adding, not multiplying.',
+  'What is the reciprocal of 5/8?':
+    'The **reciprocal** turns the fraction upside down, so 5/8 becomes 8/5, and 5/8 x 8/5 = 40/40 = 1 confirms it. Keeping the fraction unchanged is the common slip, but a fraction times itself only gives 25/64.',
+  'How many 1/4-litre glasses can be filled from 3 litres of juice?':
+    'Three litres hold 3 divided by 1/4 = 3 x 4 = **12** quarter-litre glasses, because four quarters fill each litre. Answering 9 looks like 3 x 3, but every litre gives four glasses, not three.',
+  'What does cancelling a common factor do to a fraction?':
+    'Cancelling divides the numerator and the denominator by the same common factor, so the value stays the same and the fraction appears in a **simpler form**. Believing the value changes mistakes smaller numbers for a smaller quantity.',
+  'Simplify 12/18 by cancelling the common factor 6.':
+    '12 / 6 = 2 and 18 / 6 = 3, so cancelling by 6 turns the fraction into **2/3**. Stopping at 6/9 divides by 2 instead of 6, leaving a common factor of 3 still inside.',
+  'What is 15/25 in its simplest form?':
+    'Both numbers divide by 5: 15 / 5 = 3 and 25 / 5 = 5, so the simplest form is **3/5**, with no factor shared any more. Writing 5/3 turns the fraction upside down and changes its value from 0.6 to about 1.67.',
+  'In 24 ÷ 4 = 6, which number is the dividend?':
+    'In 24 divided by 4 equals 6, the number being split is **24**, the dividend, and it sits before the division sign. Choosing 4 names the divisor, the count of groups rather than the amount shared.',
+  'In 24 ÷ 4 = 6, which number is the divisor?':
+    'The **4** is the divisor because it tells how many equal groups the 24 is broken into. Choosing 24 reads the sum right to left, making the dividend do the dividing.',
+  'In 24 ÷ 4 = 6, which number is the quotient?':
+    'The **6** is the quotient, the result of splitting 24 into 4 equal groups of six. Choosing 4 again names the divisor, which is an input, not the outcome of the sharing.',
+  'What is 3/4 of 40?':
+    'One quarter of 40 is 10, so three quarters is 3 x 10 = **30**, the same as 40 / 4 x 3. Choosing 10 takes just one quarter, while 120 multiplies by 3 without dividing first.',
+  'What is 2/5 of 25?':
+    'One fifth of 25 is 5, so two fifths is 2 x 5 = **10**. Answering 5 finds only a single fifth, and 15 is what is left after two fifths are removed.',
+  'What is 2/3 x 3/5?':
+    'Multiply across: 2 x 3 = 6 and 3 x 5 = 15, so the product is 6/15, which cancels by 3 to **2/5**. Writing 5/8 adds the numerators and the denominators instead of multiplying them.',
+  'To multiply two fractions you':
+    'To multiply fractions you **multiply numerators and multiply denominators**, needing no common denominator because you are taking a part of a part. Finding a common denominator is the rule for adding, where the parts must first be the same size.',
+  'The reciprocal of 3/7 is':
+    'Flipping 3/7 gives **7/3**, and 3/7 x 7/3 = 21/21 = 1 confirms it. Choosing -3/7 adds a minus sign, but a reciprocal only swaps which number sits on top.',
+  'A fraction multiplied by its reciprocal gives':
+    'A fraction times its reciprocal is (a/b) x (b/a) = ab/ab = **1**, because every factor cancels in pairs. Getting the fraction itself would need the reciprocal to equal 1, which is only true for the number 1.',
+  'Dividing by 1/2 is the same as':
+    'Dividing by 1/2 asks how many halves fit inside, and each whole holds two of them, so it is the same as **multiplying by 2**. Dividing by 2 would shrink the number, the opposite of what happens when the divisor is below 1.',
+  'What is 3/4 divided by 1/4?':
+    '3/4 divided by 1/4 = 3/4 x 4/1 = 12/4 = **3**, because three quarters of a litre contain exactly three quarter-litre parts. Writing 3/16 multiplies by 1/4 when the rule is to multiply by the reciprocal.',
+  'Two figures are congruent when they have':
+    '**Congruent** figures match in both shape and size, so equal angles keep the shape and equal sides keep the size, letting one figure sit exactly over the other. Same area only is not enough, since a thin rectangle and a square can share an area yet never overlap.',
+  'Each angle of an equilateral triangle measures':
+    'The three angles of an equilateral triangle are equal and add to 180 degrees, so each one is 180 / 3 = **60 degrees**. Picking 90 degrees treats it as right-angled, which leaves only 90 degrees for the two remaining equal angles.',
+  'In a triangle, two sides are equal and the angle opposite one of them is 50°. What is the angle opposite the other equal side?':
+    'The angles opposite equal sides are equal, so the side matching the one facing 50 degrees also faces **50 degrees**. A common slip is to subtract 50 from 180 and halve the rest, giving 65 degrees, which ignores that both base angles are already fixed at 50.',
+  'One triangle has sides 5 cm, 6 cm and 7 cm; another has sides 5 cm, 7 cm and 6 cm. Are they congruent?':
+    'Both triangles carry the same three lengths 5 cm, 6 cm and 7 cm, and SSS says three matching sides fix a triangle completely, so they are **congruent**. Naming SAS confuses the rule, because SAS needs two sides with the angle between them, which is not measured here.',
+  'The SAS condition is used to check':
+    'SAS compares two sides and the angle between them in one triangle with the matching parts of the other, so it decides whether the triangles are **congruent**. Using it to find the area mixes up a matching test with the formula half x base x height.',
+  'Two triangles are congruent when they are':
+    '**Congruent** triangles agree on all three sides and all three angles, so a copy of one lands exactly on the other. Same area only fails because triangles of 4 by 9 and 6 by 6 both have area 18 while their sides differ.',
+  'Which pieces of information are needed for the SAS condition?':
+    'The letters run Side-Angle-Side, so two sides are given and the angle must be the one where those sides meet, making it the **included angle**. Two angles and one side belongs to ASA or AAS, which never measures a second side.',
+  'What does ASA stand for?':
+    'The letters stand for **Angle-Side-Angle**, meaning one angle, then the side touching it, then the second angle, so the side sits between two angles. Replacing Side with Area or Sum invents words the abbreviation never contains.',
+  'In the ASA condition, the given side must be':
+    'ASA reads Angle-Side-Angle, and the middle letter marks the side joining the two named angles, so it must be the **included side**. Calling it the longest side confuses a position in the name with a length, and the included side can be short.',
+  'In the AAS condition, the equal side is':
+    'AAS takes two angles and a side that is not the included one, so the given side lies outside the two angles rather than **between** them. Saying it is always between them simply describes ASA, and no rule makes the non-included side the longest.',
+  'Congruent figures have':
+    '**Congruent** figures are exact copies, needing equal angles for the same shape and equal sides for the same size. Same shape with different sizes describes similar figures, such as two equilateral triangles of different side lengths.',
+  'Two squares of side 5 cm are':
+    'Each square has four 5 cm sides and four right angles, so every matching part is equal and the two are **congruent**. Similar but not congruent is wrong because similarity allows different sizes, and here 5 cm equals 5 cm.',
+  'The SSS condition checks congruence using':
+    'SSS stands for Side-Side-Side, so the test compares all three pairs of sides and matching lengths make the triangles **congruent**. The area and two angles give no side length, so neither can rebuild the triangle here.',
+  'If two triangles have all three sides equal, they are':
+    'With three matching sides the SSS rule forces all three angles to match as well, so the triangles are **congruent**. Similar only is wrong because similar allows sides in proportion, whereas here they are actually equal.',
+  'In a triangle, angles opposite equal sides are':
+    'The isosceles triangle result links a side to the angle facing it, so equal sides produce equal opposite angles, and both are **equal**. Calling them supplementary would make two angles add to 180 degrees, which is impossible while a third angle remains.',
+  'An isosceles triangle has two equal sides, so it has':
+    'Equal sides face equal angles, so the two equal sides leave two angles of the same size, the **base angles**. Three equal angles would require all three sides equal, which makes an equilateral triangle, not merely isosceles.',
+  'Each angle of an equilateral triangle is':
+    'The angles of any triangle add to 180 degrees and an equilateral triangle has them all equal, so each is 180 / 3 = **60 degrees**. Answering 90 degrees forgets that a right angle leaves only 90 degrees for two angles still needing to be equal.',
+  'An equilateral triangle has':
+    'An equilateral triangle has all three sides the same and all three angles 180 / 3 = 60 degrees, so it carries **three equal sides and three equal angles**. Two equal sides describes an isosceles triangle, whose third side may be a different length.',
+  'What is (−6) × 7?':
+    'Multiply the sizes first: 6 x 7 = 42, then use the sign rule, since a negative times a positive is negative, giving **-42**. The answer -13 comes from adding 6 and 7 instead of multiplying them.',
+  'What is (−72) ÷ (−8)?':
+    'Divide the sizes, 72 / 8 = 9, and a negative divided by a negative is positive, so the result is **9**. Choosing -9 keeps a minus sign that should have cancelled, since the two negatives cancel each other.',
+  'What must be added to (−15) to get 0?':
+    'The number needed is the additive inverse of -15, and -15 + **15** = 0. Answering -15 would add two negatives to reach -30, moving further from zero instead of returning to it.',
+  'Use the distributive property to find (−8) × 102.':
+    'Write 102 as 100 + 2: (-8) x 100 = -800 and (-8) x 2 = -16, so -800 - 16 = **-816**. The answer -806 comes from making the second product -6, a slip over the value of 8 x 2.',
+  'Which integer lies between -2 and 0?':
+    'On a number line the integers run -2, -1, 0, so the only one strictly between -2 and 0 is **-1**. Choosing 1 lands on the positive side of zero, to the right of both numbers rather than between them.',
+  'On a number line, which integer is to the right of -4?':
+    'Values grow as you move right, and -3 is greater than -4, so **-3** sits to its right. Picking -5 or -7 walks the wrong way, because those numbers are smaller than -4 and lie to its left.',
+  'What is the value of -7 + 7?':
+    'A number plus its opposite cancels out, so -7 + 7 = **0**. The answer -14 treats both terms as negative, but the second one is positive and cancels the first completely.',
+  'What does the commutativity of multiplication mean?':
+    'Commutative means the order can be swapped without changing the result, so a x b = b x a holds, as 3 x 4 = 4 x 3 = 12 shows: that is **commutativity**. The line a x 1 = a is the identity property, where nothing is swapped at all.',
+  'Which equation shows commutativity of multiplication?':
+    'Swapping the factors keeps the product, and 6 x 4 = 4 x 6 = 24 shows the order does not matter, which is **commutativity**. The line 6 x 1 = 6 shows the identity property, since multiplying by 1 only returns the number.',
+  'Is subtraction commutative?':
+    'Test it: 8 - 3 = 5 but 3 - 8 = -5, and different results mean subtraction is **not commutative**. Answering yes, always relies on a lucky case such as 5 - 0, where the order happens to make no difference.',
+  'The additive inverse of -9 is':
+    'The additive inverse cancels the number in a sum, and -9 + **9** = 0, so it is 9. Answering 1/9 gives the reciprocal, which is used in multiplication and not in addition.',
+  'A number added to its additive inverse gives':
+    'An additive inverse is built to cancel its partner, so a + (-a) = **0** for every integer, as 6 + (-6) = 0 shows. Answering twice the number mistakes the inverse for a second copy of the number itself.',
+  'What is (-6) x (-4)?':
+    'The sizes multiply to 6 x 4 = 24, and a negative times a negative is positive, so the product is **24**. The answer -24 keeps a minus sign that the two negatives already cancelled.',
+  'The product of a positive and a negative integer is':
+    'Take 5 x (-3) = **-15**: a single negative factor makes the whole product negative, whatever the sizes involved. Saying positive pretends both factors share a sign, which only happens with two negatives or two positives.',
+  'What is (-36) divided by 9?':
+    'Divide the sizes, 36 / 9 = 4, and a negative divided by a positive is negative, so the answer is **-4**. Choosing 324 multiplies the two numbers instead of dividing them.',
+  'Dividing two negative integers gives':
+    'The two minus signs cancel, so (-12) / (-3) = **4**, a positive number. Saying the result is negative applies the rule for one negative only, which fits a positive divided by a negative.',
+  'Using the distributive property, 5 x (7 + (-3)) equals':
+    'The bracket gives 7 + (-3) = 4, then 5 x 4 = **20**, and distributing gives 5 x 7 + 5 x (-3) = 35 - 15 = 20 as well. The answer -20 comes from reading 7 + (-3) as -4, as though the larger number carried the minus.',
+  'Which equation shows the distributive property for integers?':
+    'Multiplication spreads over the bracket, so a x (b + c) becomes a x b + a x c, which is **distribution**. The line a + b = b + a is commutativity of addition and multiplies nothing.',
+  'What is the HCF of 24 and 36?':
+    'Write 24 = 2 x 2 x 2 x 3 and 36 = 2 x 2 x 3 x 3, so the shared primes 2 x 2 x 3 give the HCF **12**. The answer 6 keeps each shared prime only once, dropping a 2 that both numbers contain.',
+  'What is the LCM of 12 and 18?':
+    'With 12 = 2 x 2 x 3 and 18 = 2 x 3 x 3, the LCM takes the highest power of each prime, 2 x 2 x 3 x 3 = **36**. The answer 72 adds an extra 2 that neither number requires.',
+  'What is the HCF of two co-prime numbers?':
+    'Co-prime numbers share no factor other than 1, so their HCF is **1**, as with 8 and 9. Giving the product confuses HCF with LCM, since the product is the least common multiple of a co-prime pair.',
+  'The HCF of two numbers is 6 and their LCM is 72. If one number is 24, what is the other?':
+    'Use HCF x LCM = product: 6 x 72 = 432, and 432 / 24 = **18**. The answer 12 comes from dividing 432 by 36 rather than by the 24 that was given.',
+  'What is prime factorisation?':
+    '**Prime factorisation** writes a number as a product of primes only, so 36 becomes 2 x 2 x 3 x 3 with no factor left to split. Dividing by 2 is merely one step of that work, and writing the number in words leaves the factors untouched.',
+  'What is the prime factorisation of 36?':
+    'Halve and divide by primes: 36 = 2 x 18 = 2 x 2 x 9 = **2 x 2 x 3 x 3**, and all four factors are prime. The form 2 x 18 stops too early since 18 is not prime, and 4 x 9 hides a composite on each side.',
+  'What does LCM stand for?':
+    'LCM means the **Lowest Common Multiple**, the smallest number that both given numbers divide into exactly. Reading Long Common Measure or Least Counting Method invents words the abbreviation never contains.',
+  'What is the LCM of 6 and 8?':
+    'Multiples of 6 are 6, 12, 18, 24 and multiples of 8 are 8, 16, 24, so the first shared value is **24**. The answer 48 is a common multiple but not the lowest, since 24 already works.',
+  'To find the LCM by prime factorisation you take':
+    'For the LCM each prime is taken with its largest count across the numbers, so 12 = 2 x 2 x 3 and 18 = 2 x 3 x 3 give 2 x 2 x 3 x 3 = **36**. Taking the lowest powers or only the common primes produces the HCF, which is much smaller.',
+  'The HCF of 24 and 36 is':
+    'The common factors of 24 and 36 are 1, 2, 3, 4, 6 and 12, so the highest is **12**. The answer 72 is the LCM, the smallest shared multiple rather than a shared factor.',
+  'The HCF of two numbers is always':
+    'The HCF divides each number exactly, so it is a **factor** of both, just as 12 divides 24 and 36. Claiming a multiple reverses the idea, since a common multiple is the LCM and is larger than both numbers.',
+  'The prime factorisation of 60 is':
+    'Divide 60 by primes in turn: 60 = 2 x 30 = 2 x 2 x 15 = **2 x 2 x 3 x 5**, and that product returns 60. The form 6 x 10 leaves both 6 and 10 composite, so it is not a prime factorisation.',
+  'The LCM of 9 and 12 is':
+    'Here 9 = 3 x 3 and 12 = 2 x 2 x 3, so the LCM is 2 x 2 x 3 x 3 = **36**, the first value in both lists 9, 18, 27, 36 and 12, 24, 36. The answer 108 multiplies 9 by 12, a shared multiple but not the smallest.',
+  'The LCM of two numbers is always':
+    'The LCM is the smallest number that each given number divides into, so it is a **multiple** of both, like 36 for 9 and 12. Calling it a factor reverses this, because a common factor is the HCF and is smaller.',
+  'The HCF of two co-prime numbers is':
+    'Co-prime numbers have no common factor above 1, as with 8 and 9, so their HCF is **1**. Giving their product swaps HCF for LCM, since 8 x 9 = 72 is the least common multiple of that pair.',
+  'Which pair is co-prime?':
+    '8 = 2 x 2 x 2 and 9 = 3 x 3 share no prime factor, so 8 and 9 have HCF **1** and are co-prime. The pair 6 and 10 shares a factor of 2, which already breaks co-primality.',
+  'For two numbers, HCF x LCM equals':
+    'The rule HCF x LCM = **product** holds for any two numbers, so 12 and 18 give 6 x 36 = 216 = 12 x 18. Adding the numbers has no such link and gives 30, far from the product.',
+  'Two numbers have HCF 4 and LCM 48. Their product is':
+    'Use HCF x LCM = product, so 4 x 48 = **192** is the product of the two numbers. The answer 52 simply adds 4 and 48, replacing the rule with a wrong one.',
+  'What is 0.4 × 0.3?':
+    '4 x 3 = 12, and each factor carries one decimal place, so the product needs **2 decimal places**: 0.12. Adding the factors instead of multiplying them, 0.4 + 0.3 = 0.7, is what makes 0.7 look tempting.',
+  'What is 56.8 ÷ 100?':
+    'Dividing by 100 shifts the decimal point two places left, so 56.8 becomes **0.568**. Stopping after a single place gives 5.68, which is the result of dividing by 10, not by 100.',
+  'What is 9 ÷ 4?':
+    '9 / 4 leaves 2 with remainder 1, and 1 / 4 = 0.25, so the quotient is **2.25**. Discarding the remainder and writing a plain 2 throws away that quarter of the whole.',
+  'Without multiplying exactly, which of these can be the product of 4.8 × 21?':
+    '5 x 21 = 105, so the product must sit just under that, and the single decimal place in 4.8 points to **100.8**. Forgetting the decimal place altogether gives 1008, which is ten times too large for a number near 100.',
+  'Which is the best estimate of 4.9 x 6.1?':
+    '4.9 rounds to 5 and 6.1 rounds to 6, so the estimate is 5 x 6 = **30**, close to the true 29.89. Rounding 6.1 up to 7 overshoots to 35, which is too far from the real product.',
+  'Why do we estimate before calculating?':
+    'An estimate sets a rough target, so a final answer far from it signals a slip in the **calculation**. Expecting the estimate to deliver an exact answer confuses rounding, which always loses detail, with the real work.',
+  '19.8 is closest to which whole number?':
+    '19.8 lies 0.2 below 20 but 0.8 above 19, so the nearer whole number is **20**. Rounding down to 19 ignores that its gap is four times wider than the gap to 20.',
+  'When you multiply 0.3 by 0.4, how many decimal places does the answer have?':
+    'One decimal place plus one decimal place gives **2 decimal places**, so 0.3 x 0.4 = 0.12. Guessing 3 places overshoots, because the count is the sum of the places in the two factors, not their product.',
+  'What is 0.3 x 0.4?':
+    '3 x 4 = 12, and two one-place decimals demand 2 places, so the product is **0.12**. Keeping only one place gives 1.2, and adding the factors as 0.3 + 0.4 = 0.7 answers a different operation.',
+  'What is 2.5 x 4?':
+    '25 x 4 = 100, and the single decimal place in 2.5 turns that into 10.0, so the product is **10**. Shifting the point one place too far gives 1.0, a factor of ten too small.',
+  'What is 0.5 x 0.2?':
+    '5 x 2 = 10, and two one-place decimals make 2 places, so the product is **0.10**, which equals 0.1. Writing 1.0 shifts the point one place too far right and makes the answer ten times too big.',
+  'What is 1.5 x 4?':
+    '15 x 4 = 60, and the one decimal place in 1.5 makes that 6.0, so the answer is **6**. Moving the point two places instead of one gives 0.6, ten times too small for 1.5 x 4.',
+  'What is 45 divided by 100?':
+    '45 is the same as 45.0, and dividing by 100 moves the point two places left to **0.45**. Moving only one place gives 4.5, which is 45 divided by 10 instead of by 100.',
+  'Dividing a number by 1000 moves the decimal point':
+    '1000 has three zeros, so dividing by it shifts the point **three places to the left** and makes the number smaller. Moving right would multiply, and one place belongs to dividing by ten only.',
+  'What is 7 divided by 2?':
+    '7 / 2 is 3 with 1 left over, and 1 / 2 = 0.5, so the answer is **3.5**. Writing 3 drops that remainder, while 0.35 moves the point too far and shrinks the answer tenfold.',
+  'What is 9 divided by 4?':
+    '9 / 4 is 2 with 1 left over, and 1 / 4 = 0.25, giving **2.25**. Rounding that quarter to 0.5 gives 2.5, which would need 10 / 4 and not 9 / 4.',
+  'Roughly, 4.8 x 5.1 is about':
+    '4.8 rounds to 5 and 5.1 rounds to 5, so the product is about 5 x 5 = **25**. Answering 2.5 drops a decimal place and is ten times too small for a number near 24.5.',
+  'Why estimate before multiplying decimals?':
+    'An estimate fixes the rough size, so an answer ten times off stands out at once as a misplaced **decimal point**. Treating the estimate as a substitute for the exact product misunderstands its job, which is only to check.',
+  'What is the mean of 4, 6, 8 and 10?':
+    'The total is 4 + 6 + 8 + 10 = 28, and 28 / 4 = **7**. Stopping at the total 28 forgets to divide by the number of values, which is the step that turns a sum into a mean.',
+  'Which of these is a statistical question?':
+    'Sleep hours differ from student to student, so answering it means collecting **data** from the whole class. Asking the age of one teacher has a single fixed reply, with nothing to gather or compare.',
+  'The mean of five numbers is 12. What is their total?':
+    'Total = mean x count = 12 x 5 = **60**. Dividing 12 by 5 instead gives 2.4, which reverses the relationship and treats the mean as if it were the total.',
+  'The data 3, 4, 4, 5, 6, 7, 30 has one value that is very different from the rest. Which measure is least affected by that value?':
+    'Six of the seven values sit between 3 and 7, so the middle value of 5 keeps the **median** close to them. The mean climbs to 59 / 7 = 8.4 because the 30 is poured into the total, and the range doubles.',
+  'Which of these is a statistical statement?':
+    'The word **most** can only come from surveying students, so the claim rests on collected data and might prove false. Saying the Sun rises in the east is a fixed fact, true without counting anything.',
+  'What makes a statement statistical?':
+    'A statement is statistical when it rests on **data** gathered across many cases, so its truth is checked by counting. Merely using numbers is not enough, since 2 + 2 = 4 contains numbers yet never varies.',
+  'What is the mean of 2, 4 and 6?':
+    'The total is 2 + 4 + 6 = 12, and 12 / 3 = **4**, since the mean shares that total among three values. Dividing by 4 because four digits appear in the adding is the slip that produces 3.',
+  'What does each dot in a dot plot show?':
+    'Each **dot** stands for one single observation, and repeated values stack dots in a column above the same number. Reading a tall stack as the average confuses a count of items with a summary of them.',
+  'A dot plot shows 3, 3, 4, 5, 5, 5. How many dots are above the number 5?':
+    'The value 5 appears three times in the list, so **3 dots** are stacked above it. Reading the tallest column as the answer gives 5, which is the value itself rather than the count of dots.',
+  'What is a dot plot most useful for?':
+    'One dot per observation means the height of each column shows the **frequency** of that value at a glance. It is a counting picture, not a measuring instrument, so angles and triangles lie outside its purpose.',
+  'Which is a statistical question?':
+    'Sleep hours vary from student to student, so answering needs **data** collected from the whole class. Asking how long I slept last night draws one answer from one person, which needs no collecting at all.',
+  'A statistical question expects':
+    'A question asked of a whole group will get different replies, and that **variation** is exactly what the data records. Expecting one fixed answer describes a fact question, where no collection is needed.',
+  'What is the mean of 10, 20 and 30?':
+    'The total is 10 + 20 + 30 = 60, and 60 / 3 = **20**. Answering 15 comes from halving the largest value instead of dividing the total by the count of three.',
+  'The mean is found by':
+    'The **mean** is the total shared out equally, so you add every value and divide by how many there are. Taking the middle value describes the median, and the most common value is the mode, a different measure.',
+  'Three friends have 2, 4 and 6 sweets. Shared equally, each gets':
+    'The total is 2 + 4 + 6 = 12 sweets, and 12 / 3 = **4** each. Halving the total to 6 stops one step early, because sharing among three people needs that final division.',
+  'The mean can be seen as the value each item would get if':
+    'Redistribution makes the mean the fair share, so each item receives total / count, here 12 / 3 = **4**. Removing the largest value instead changes the data rather than sharing it out.',
+  'Which is affected more by an outlier?':
+    'An outlier is poured straight into the total, so the **mean** shifts in proportion to how large it is. The median depends only on position in the ordered list, so one extreme value barely moves it.',
+  'The median of 3, 5, 7, 9, 11 is':
+    'Five values are already in order, so the middle one is the third, which is **7**. Adding everything to reach 35 answers the total, a different question from finding the middle.',
+  'The perpendicular bisector of a line segment passes through':
+    'A perpendicular bisector meets the segment at its **midpoint** and makes 90 degrees there, so both halves match exactly. Passing through one end would give a perpendicular at that end, which cuts nothing in half.',
+  'An angle of 84° is bisected. What is the measure of each half?':
+    'Bisecting halves the opening, and 84 / 2 = **42 degrees**, with 42 + 42 returning the original 84. The pair 48 + 48 = 96 does not rebuild 84, which is how that option is ruled out.',
+  'Three regular hexagons meet at a point. What is the sum of the three angles at that point?':
+    'Each interior angle of a regular hexagon is 120 degrees, and 120 + 120 + 120 = **360 degrees**, exactly one full turn. A total of 180 would cover only half the point, so the shapes could not close up.',
+  'Which regular polygon cannot tile the plane on its own?':
+    'A regular pentagon has interior angles of 108 degrees, and no whole number of 108s makes **360**. Squares at 90, hexagons at 120 and triangles at 60 all divide 360 exactly, so each of them tiles.',
+  'Which tool is used to copy an angle accurately?':
+    'Copying an angle means transferring its arc and chord with a **compass**, then joining the marks with a ruler. A scale alone measures length but cannot reproduce an opening between two rays.',
+  'When you copy an angle, the new angle must be':
+    'A copy is congruent to the original, so the new opening is **equal to the original angle** and both measure the same. Making it twice or half changes the size, which is a different construction.',
+  'What is an angle made of?':
+    'An angle is the opening between **two rays** that start from one shared point called the vertex. Three straight lines or a closed circle have no single common starting point to measure the opening from.',
+  'A perpendicular bisector of a segment':
+    'Equal arcs drawn from both ends cross above and below, so the joining line passes the **midpoint** at 90 degrees and splits the segment into two equal parts. Being parallel would mean never meeting the segment at all.',
+  'Which tool draws a perpendicular bisector?':
+    'Equal arcs from both endpoints cross at two points, and a ruler joins them to give the **perpendicular bisector**. A protractor can mark a 90 degree turn but cannot locate the true midpoint of the segment.',
+  'An angle bisector divides an angle into':
+    'An angle bisector splits the opening into **two equal angles**, each exactly half of the original. Cutting three equal parts needs trisection, which is a different construction with different steps.',
+  'The bisector of a 70 degree angle gives two angles of':
+    'Bisecting halves the measure, so 70 / 2 = **35 degrees** each, and 35 + 35 rebuilds the original 70. Answering 140 doubles the angle instead of halving it, the opposite of bisecting.',
+  'Tiling means covering a region with shapes':
+    'A **tiling** covers the whole region exactly, so nothing is left bare and nothing is counted twice. Allowing small gaps would leave holes between the shapes, which is not a tiling at all.',
+  'Which shape tiles a floor without gaps?':
+    'Four corners of a **square** give 90 + 90 + 90 + 90 = 360 at every meeting point, so the copies close perfectly. A circle leaves curved gaps however it is placed, since its round edge cannot meet a straight one.',
+  'Which regular polygons tile the plane on their own?':
+    'Only **triangles, squares and hexagons** have interior angles of 60, 90 and 120, and each divides 360 exactly, so whole numbers fit round a point. Pentagons at 108 and octagons at 135 always leave a gap.',
+  'At a tiling vertex the angles must add up to':
+    'Around any point the tiles complete one full turn, so their angles total **360 degrees** with no gap and no overlap. A total of 180 would only cover a straight line and leave half the point empty.',
+  'Which of the following is a perfect square?':
+    '12 x 12 = 144, so 144 is the **perfect square**, and 13 x 13 = 169 is the next one above it. Choosing 108 mistakes an even number for a square, yet 10 x 10 = 100 and 11 x 11 = 121 skip straight past it.',
+  'The sum of the first n odd numbers is equal to __.':
+    'Adding the first n odd numbers gives n x n every time: 1 + 3 = 4 = 2 x 2 and 1 + 3 + 5 = 9 = 3 x 3, so the total is **n squared**. Answering 2n just doubles the last odd number instead of adding all n of them.',
+  'The cube root of 125 is 5. Explain how you can check that this is correct.':
+    'Cubing 5 means 5 x 5 x 5 = 125, which returns the number we started from, so the cube root of 125 is **5**. Squaring instead gives 25, so a student who reads cube as square stops at 25 and never reaches 125.',
+  'Which of these is a perfect square?':
+    '12 x 12 = 144, so 144 is the **perfect square**, while 132 falls between 11 x 11 = 121 and 12 x 12 = 144. Choosing 150 assumes a round number must be a square, yet 144 and 13 x 13 = 169 enclose it.',
+  'The cube of 5 is:':
+    'The cube of 5 is 5 x 5 x 5 = **125**, not 5 x 5 = 25. Choosing 625 multiplies by 5 once more, since 5 x 5 x 5 x 5 = 625, which makes it the fourth power of 5 rather than the cube.',
+  'Find the square root of 729.':
+    '20 x 27 = 540 and 7 x 27 = 189, so 27 x 27 = 729 and the square root is **27**. Guessing 24 comes from the nearby 24 x 24 = 576, which is 153 short of 729.',
+  'What is a taxicab number?':
+    'A **taxicab number** is a number that is the sum of two positive cubes in two different ways, and the smallest is 1729 = 1 + 1728 and also 729 + 1000. Looking for squares is the usual mistake, since 1729 is not one, and using one cube twice only doubles it.',
+  'What is the square of 13?':
+    '13 x 13 = 169, which splits neatly as 13 x 10 = 130 plus 13 x 3 = 39, giving **169**. Choosing 26 doubles 13 instead of multiplying it by itself, which is what squaring asks for.',
+  'What is the square root of 144?':
+    '12 x 12 = 144, so the square root of 144 is **12**. Halving 144 to get 72 confuses the square root with half the number, but 72 x 72 = 5184, nowhere near 144.',
+  'What is the cube of 4?':
+    '4 x 4 = 16 and 16 x 4 = **64**, which is the cube of 4. Choosing 16 stops one multiplication too early at the square 4 x 4, so it answers the square, not the cube.',
+  'What is special about a taxicab number?':
+    'A **taxicab number** has two different pairs of cubes with the same total: 1729 = 1^3 + 12^3 and also 9^3 + 10^3. Calling it a perfect square is the common slip, yet 41^2 = 1681 and 42^2 = 1764 leave no square at 1729.',
+  'Which is the smallest taxicab number?':
+    '**1729** is the smallest taxicab number, since 1729 = 1^3 + 12^3 and also 9^3 + 10^3. Choosing 729 = 9^3 or 512 = 8^3 mistakes a single cube for a sum of two cubes.',
+  'In the expression 5 to the power 4 = 625, the number 4 is called the __.':
+    'In 5^4 = 625 the 5 is the base and the 4 says how many times it is used as a factor, so 4 is the **exponent**. Calling 4 the base swaps the roles, which would mean multiplying 4 by itself five times to get 1024.',
+  'Using the laws of exponents, 4 to the power 6 multiplied by 4 to the power 3 equals __.':
+    'The bases match, so the exponents add: 4^6 x 4^3 = 4^(6+3) = **4 to the power 9**. Choosing 4 to the power 18 multiplies 6 by 3 instead of adding them, and 8 to the power 9 also changes the base.',
+  'The standard (scientific) form of 20800 is __.':
+    '20800 = 2.08 x 10000 = **2.08 x 10 to the power 4**, moving the point four places left. Writing 208 x 10 to the power 2 breaks standard form, where the first factor must be at least 1 and less than 10.',
+  '3⁴ equals:':
+    '3^4 = 3 x 3 x 3 x 3 = 9 x 9 = **81**. Answering 27 gives 3^3, one factor of 3 short, and 12 comes from multiplying 3 by 4 instead of using 3 four times as a factor.',
+  '10⁻³ equals:':
+    '10^-3 = 1/10^3 = 1/1000 = **0.001**, a 1 sitting three places right of the point. Choosing 0.003 multiplies the exponent 3 by the base 10 rather than using 3 as a count of decimal places.',
+  'Simplify 2⁵ × 2³ using the laws of exponents.':
+    'The bases are equal, so the exponents add: 2^5 x 2^3 = 2^(5+3) = 2^8 = **256**. Multiplying 5 by 3 gives 2^15 = 32768, which is the trap behind the wrong choices.',
+  'Write 4,500,000 in scientific notation.':
+    '4,500,000 = 4.5 x 1,000,000 = **4.5 x 10^6**, moving the point six places to leave 4.5. Counting five zeros instead of six gives 4.5 x 10^5 = 450,000, ten times too small.',
+  'What is 2^5?':
+    '2^5 means five factors of 2: 2 x 2 x 2 x 2 x 2 = **32**. Choosing 25 multiplies 2 by 5 instead of using 2 five times, and 16 stops early at 2^4.',
+  'Using the laws of exponents, a^m x a^n equals':
+    'Multiplying a^m by a^n gives m copies of a followed by n more, so the product is **a^(m + n)**. Choosing a^(m x n) is the rule for a power of a power, (a^m)^n, not for a product.',
+  'What is the value of 7^0?':
+    '7^0 = **1** for any non-zero number, because 7^2 divided by 7^2 = 7^(2-2) = 7^0 and a number divided by itself is 1. Answering 0 treats the exponent as a number to write down, but 7^0 means no factors of 7 at all.',
+  'What is 2^-3?':
+    'A negative exponent inverts the base: 2^-3 = 1/2^3 = 1/8 = **0.125**. Choosing -8 keeps the minus sign on the answer instead of turning it into a fraction, and -6 subtracts rather than exponentiates.',
+  'How is 45,000 written in scientific notation?':
+    '45,000 = 4.5 x 10,000 = **4.5 x 10^4**, since the point shifts four places. Writing 45 x 10^3 is the right size but not standard form, which needs a first factor between 1 and 10.',
+  'The earliest physical evidence of people recording numbers is a set of __ carved on bone.':
+    'Notched bones such as the Ishango tally record counts one mark at a time, so the earliest physical evidence is a set of **tally marks**. Choosing Arabic or Hindu numerals assumes written symbols came first, though place-value numerals appear thousands of years later.',
+  'The landmark numbers of the Roman numeral system are I, V, X, L, C, D and __.':
+    'The Roman landmarks are I = 1, V = 5, X = 10, L = 50, C = 100, D = 500 and **M = 1000**. Repeating I or V in that list adds nothing new, and Z is not a Roman symbol at all.',
+  'What is the idea of a base in a number system, and why does it make multiplication easy?':
+    'In a base-n system each landmark is n times the one before, so the landmarks are the **powers of n** and n^a x n^b = n^(a+b) stays on the list. Thinking of the base as something you add gives no such shortcut, since addition does not combine powers.',
+  'The Roman numeral for 90 is:':
+    '90 is 100 less 10, and placing X before C subtracts it, so the numeral is **XC**. Choosing CX reads the pair left to right without subtracting, which gives 110 instead of 90.',
+  'The base-5 number 23 equals which decimal number?':
+    'The base-5 numeral 23 means 2 x 5 + 3 = 10 + 3 = **13** in base 10. Reading it as thirteen straight away ignores that the left digit is worth five times the right one.',
+  'Write 42 in Roman numerals.':
+    '42 = 40 + 2 = XL + II = **XLII**, with XL standing for 50 - 10. Writing XXXXII fails because no Roman symbol may repeat four times, so 4 is IV and 40 is XL.',
+  'Why did early people count in groups?':
+    'Grouping tallies in fives or tens turns a long row of marks into a few small groups that can be read at a glance, so counting in **groups** won. The common error is believing only tens and hundreds work, when any handy group size speeds recording.',
+  'In an abacus, what does each spike represent?':
+    'Each spike stands for one **place value** - units, tens, hundreds - and the beads on it count how many of that place. Treating a spike as just a bead holder misses that sliding a bead one spike left multiplies its worth by ten.',
+  'In the number 4,305, what is the place value of the digit 3?':
+    'The 3 in 4,305 sits in the hundreds column, so its place value is 3 x 100 = **300**. Answering 3000 puts the digit in the thousands column, which the 4 already occupies.',
+  'In a place value chart, moving one place to the left makes the value':
+    'Each place is ten times the one on its right, so a move one place left makes the value **ten times larger**. Answering ten times smaller reverses the direction, which is what happens when a digit moves one place right.',
+  'How many tally marks are grouped together before a diagonal stroke is drawn?':
+    'Four upright strokes go down first, then a fifth diagonal stroke crosses them to close the group of five, so **4** marks are drawn before the diagonal. Answering 5 counts the finished group instead of the upright marks.',
+  'In base 2 (binary), which digits are used?':
+    'Base 2 uses only **0 and 1**, because the next place starts as soon as you pass 1. Answering 0 to 9 describes base 10, and 0 to 7 base 8, both offering far more digits than binary allows.',
+  'What is the binary numeral 101 equal to in base 10?':
+    'Place values double, so 101 in binary is 1 x 4 + 0 x 2 + 1 x 1 = 4 + 0 + 1 = **5**. Reading 101 as a decimal hundred-and-one ignores that each place doubles instead of multiplying by ten.',
+  'Which statement about the diagonals of a rectangle is always true?':
+    'Both diagonals are hypotenuses of congruent right triangles, so they are **equal in length and bisect each other** at the centre. Assuming they are perpendicular borrows a property of a rhombus, where the diagonals really do meet at right angles.',
+  'Three angles of a quadrilateral measure 80°, 100° and 120°. What is the measure of the fourth angle?':
+    'The four angles of a quadrilateral total 360 degrees, so the fourth is 360 - (80 + 100 + 120) = 360 - 300 = **60 degrees**. Answering 40 uses 340 as the total, but the sum is fixed at 360.',
+  'In parallelogram ABCD, ∠A = (2x + 10)° and ∠B = 3x°. What is the value of x?':
+    'Adjacent angles of a parallelogram are supplementary, so 2x + 10 + 3x = 180 gives 5x = 170 and **x = 34**. Answering 36 solves 5x = 180 and silently drops the +10.',
+  'In trapezium ABCD, AB is parallel to DC. If ∠A = 65° and ∠B = 75°, find ∠D and ∠C, giving a reason for each answer.':
+    'With AB parallel to DC, the angles on the same side of each transversal add to 180 degrees: angle D = 180 - 65 = **115** and angle C = 180 - 75 = **105**. Subtracting from 360 instead gives 295 and 285, which forgets the pair-wise 180 rule.',
+  'Which property is true of every rectangle?':
+    'The diagonals of any rectangle are **equal in length**, since each is the hypotenuse of a right triangle built from the same two sides. Saying all four sides are equal describes a square, which is one special rectangle rather than every rectangle.',
+  'What is the sum of the angles of a quadrilateral?':
+    'A diagonal splits a quadrilateral into two triangles, and 2 x 180 = **360 degrees**. Answering 180 is the sum for a single triangle, so one of the two triangles is being ignored.',
+  'How does a rhombus differ from a parallelogram?':
+    'A rhombus is a parallelogram with all four sides **equal**, while a parallelogram only needs opposite sides equal. Claiming a rhombus has no parallel sides is wrong twice over, because its opposite sides are parallel by definition.',
+  'How many pairs of parallel sides does a trapezium have?':
+    'A trapezium has exactly **one pair** of parallel sides, usually called the two bases. Answering two pairs describes a parallelogram, where both pairs of opposite sides are parallel.',
+  'What is true of a kite?':
+    'A kite has **two pairs of adjacent sides** equal, so the equal sides meet at a corner rather than facing each other. Thinking all four sides are equal describes a rhombus, whose equal sides are also opposite.',
+  'Each angle of a rectangle measures':
+    'A rectangle has four right angles, so each measures **90 degrees**, and 4 x 90 = 360 degrees as the quadrilateral sum demands. Choosing 45 halves the corner, which is what a diagonal does to an angle, not the corner itself.',
+  'Three angles of a quadrilateral are 80, 90 and 100 degrees. The fourth is':
+    'The angles add to 360 degrees, so the fourth is 360 - (80 + 90 + 100) = 360 - 270 = **90 degrees**. Answering 110 subtracts only 80 and 100, quietly leaving the 90 out of the total.',
+  'In a parallelogram, opposite angles are':
+    'Opposite angles of a parallelogram are **equal**, because each pair opens between the same two parallel lines. Saying they are supplementary only confuses them with adjacent angles, which do add to 180 degrees.',
+  'Which part of a plant grows under the ground?':
+    'The **root** grows down into the soil and stays under the ground. A flower grows on top of the plant, so it can never be the part hidden in the soil.',
+  'A mango plant has small white flowers. What does each flower slowly become?':
+    'After a flower is pollinated, it slowly grows into a **fruit** with seeds inside. A stem only holds the leaves up, so it does not grow out of a flower.',
+  'A cow lives in a shed, and the farmer gives it grass and water every day. What kind of animal is the cow?':
+    'A **domestic animal** is one that people keep and look after, like a cow in a shed that gets grass and water. A wild animal finds its own food in the forest and does not live in a shed.',
+  'Name one animal that lives in a forest and one animal that lives in our home.':
+    '**Wild animals** such as the lion live in the forest and find their own food, while domestic animals such as the dog live with us and we feed them. A lion kept in a house could not find its own food, so the two kinds are not the same.',
+  'What does a flower slowly become after it is pollinated?':
+    'Once a flower is pollinated, its centre swells and becomes a **fruit** that holds the seeds. A leaf only makes food for the plant, so it never turns into a fruit.',
+  'Which part of a plant holds the flower up?':
+    'The **stem** is the strong stalk that carries the flower up high so bees can reach it. A root stays under the soil, so it cannot hold the flower up in the air.',
+  'Which of these is a domestic animal?':
+    'A **cow** lives with people, who feed it and keep it safe in a shed. A lion and a tiger hunt their own food in the forest, so they are wild animals.',
+  'What do we get from a hen?':
+    'A hen is a bird, and it lays **eggs** that we collect and eat. Milk comes from animals like the cow, so a hen does not give us milk.',
+  'Where do wild animals live?':
+    '**Wild animals** make their homes in forests, where they find food and water on their own. A classroom or a shop is built by people, so no wild animal lives there.',
+  'Which wild animal is called the king of the jungle?':
+    'The **lion** is strong and brave and rules the forest, so people call it the king of the jungle. A goat and a hen are small farm animals that eat grass and grain.',
+  'Which part of a plant takes in water from the soil?':
+    'The **root** takes in water from the soil and sends it up to the whole plant. A leaf sits high in the air, so it cannot pull water out of the ground.',
+  'Which part of a plant makes food using sunlight?':
+    'The **leaf** uses sunlight to make food for the plant. A root lives under the ground in the dark, so it cannot use sunlight to make food.',
+  'Which part of our body helps us to smell a flower?':
+    'The **nose** has tiny openings that catch the smell of a flower. The ear only hears sounds, so it cannot tell you how a flower smells.',
+  'Which parts of our body do we use to walk and run?':
+    'Our **legs** are strong and carry the whole body, so they help us walk and run. Our ears only listen, so they cannot move us from place to place.',
+  'We eat different parts of plants as food. Which one of these is a leaf that we eat?':
+    '**Spinach** is a green leaf, and we cook and eat its leaves. A carrot is the root of the plant, so it grows under the soil.',
+  'Why should we eat many different kinds of food every day?':
+    'Each food gives our body something different, like fruits for vitamins and **milk** for strong bones. Eating only one kind of food leaves the body missing many things it needs.',
+  'Which part of the body helps us to see?':
+    'The **eyes** take in light so we can see colours and shapes. The ears hear sound and the nose smells, so neither of them can show us the world.',
+  'How many sense organs do we have?':
+    'We have **five** sense organs: eyes, ears, nose, tongue and skin. Four is one short, because the skin that feels touch is also a sense organ.',
+  'Which part of the body helps us to bend our arm?':
+    'The **elbow** is the joint in the middle of the arm that lets it fold and bend. The knee bends the leg, so it cannot help an arm move.',
+  'Which part of the body helps us to walk?':
+    'Our **legs** push against the ground and move us forward one step at a time. The eyes only look, so they cannot carry the body anywhere.',
+  'Which of these is a fruit?':
+    'A **mango** is a fruit because it grows from a flower and has a seed inside. A potato grows under the soil as a stem, so it is not a fruit.',
+  'Which of these is a vegetable?':
+    'A **potato** is a vegetable that we cook and eat with our meals. A banana is sweet and grows from a flower, so it is a fruit.',
+  'A balanced diet has':
+    'A **balanced diet** mixes many foods, like rice, dal, vegetables and milk, in the right amounts. Eating only sweets fills the stomach but does not give the body what it needs.',
+  'Why should we drink milk every day?':
+    '**Milk** has calcium, which makes our bones and teeth hard and strong. Milk being cold or sweet does not make bones grow.',
+  'Which of these plants is a tree?':
+    'A **mango tree** is tall and has one thick hard stem called a trunk. Grass is short and soft and has no trunk, so it is not a tree.',
+  'Which part of a flower is brightly coloured and attracts bees and butterflies?':
+    'The **petals** are the bright coloured parts that catch the eye of bees and butterflies. Roots stay hidden under the soil, so insects never see them.',
+  'A potted plant is kept inside a dark room for many days. What will most likely happen to it?':
+    'Without light a plant cannot make food, so its **leaves turn pale** and it grows weakly. A plant does not grow faster in the dark, because darkness stops it making food.',
+  'Why do most plants need soil to grow?':
+    'Soil holds the plant firmly so it does not fall over, and its roots take **water and minerals** from it. A plant with no soil has nothing to grip, so it topples and dries out.',
+  'A plant with a thick hard stem that lives for many years is a':
+    'A **tree** has one thick, hard, woody stem and can live for many years. A herb has a soft green stem and lives only a short time.',
+  'Which of these is a herb?':
+    '**Mint** is a small plant with a soft green stem, so it is a herb. A banyan tree has a huge hard trunk and lives for hundreds of years.',
+  'Which part of a flower is usually brightly coloured to attract insects?':
+    '**Petals** are the coloured parts of a flower that invite bees to come and visit. The stem is the plain stalk that carries the flower, so it does not attract insects.',
+  'The small green leaf-like parts at the base of a flower are called':
+    'The small green parts at the base are **sepals**, and they protect the flower while it is still a bud. Petals are the coloured parts inside, so they are not the green ones outside.',
+  'What happens to a plant that gets no water for many days?':
+    'Without water the plant cannot stand up straight, so it **wilts** and dries up. Thinking nothing changes is wrong, because a plant needs water every day to stay fresh.',
+  'Why do plants kept in a dark cupboard turn pale?':
+    'In the dark a plant cannot make food, so its **leaves turn pale**. Too much water would make the soil wet, but it would not turn the leaves pale.',
+  'Which soil holds a lot of water and is sticky when wet?':
+    '**Clay soil** is sticky when wet and holds a lot of water inside it. Sandy soil has big grains with gaps, so water runs straight through it.',
+  'What do roots get from the soil?':
+    'Roots take **water and minerals** from the soil and send them up to the plant. Sunlight falls from the sky onto the leaves, so roots underground never get it.',
+  'Which of these animals is born from an egg?':
+    'A **hen** is a bird, and birds hatch out of eggs. A dog and a cat are born alive and drink their mother\'s milk.',
+  'A frog begins its life as a small animal with a tail that swims in water. What is this young one called?':
+    'A **tadpole** is the small baby with a tail that swims in water before it grows legs. A puppy is a baby dog, so it has nothing to do with a frog.',
+  'Baby animals drink milk from their mother. Which baby does NOT drink its mother\'s milk?':
+    'A **tadpole** is a baby frog that eats plants in the water and never drinks milk. A puppy drinks its mother\'s milk, so it does not fit the question.',
+  'What is a large group of cows moving together in a field called?':
+    'A large group of cows moving and feeding together is called a **herd**. A flock is the word for a group of birds, so it cannot name a group of cows.',
+  'Which animal hatches from an egg?':
+    'A **hen** comes out of an egg when it hatches. A cow and a dog are born alive, so no egg is involved for them.',
+  'What is a baby frog called?':
+    'A baby frog is a **tadpole**, and it lives in water with a tail. A calf is a baby cow, so it is not the young one of a frog.',
+  'A butterfly comes out of a':
+    'A butterfly comes out of a **chrysalis**, the hard case it made around itself. A nest is built by birds, so a butterfly never comes out of one.',
+  'Which is the correct order of a butterfly\'s life?':
+    'A butterfly starts as an **egg**, becomes a caterpillar, then a chrysalis, and at last flies out as a butterfly. Starting with the butterfly is backwards, because the grown one is the last stage.',
+  'What is a baby cow called?':
+    'A baby cow is called a **calf**, and it drinks milk from its mother at first. A kitten is a baby cat, so it belongs to a different animal.',
+  'What is a baby dog called?':
+    'A baby dog is called a **puppy**, and it is small and playful when it is born. A calf is a baby cow, so it cannot be the name for a young dog.',
+  'A group of lions is called a':
+    'A group of lions is called a **pride**. A herd is a group of cows or elephants, so it does not name a lion family.',
+  'A group of fish is called a':
+    'A group of fish swimming together is called a **school**. A pride is a group of lions, so that word is used for big cats and not for fish.',
+  'The baby plant inside a seed starts to grow and comes out of the seed. What is this process called?':
+    'When a seed gets water and warmth, the baby plant inside wakes up and pushes out through the seed coat, and this sprouting is called **germination**. Pollination is different: pollen moves between flowers, so it has nothing to do with a seed sprouting.',
+  'Which part of a plant carries water from the roots up to the leaves?':
+    'The **stem** works like a thin pipe that runs from the roots up to the leaves and carries water through it. A flower only makes seeds, so it cannot carry water anywhere.',
+  'Which of these foods is the root of a plant that we eat?':
+    'A **carrot** grows under the ground as the root of the plant, and that root is the part we pull out and eat. Spinach is the leafy green part and an apple is a fruit, so neither one is a root.',
+  'Name one medicinal plant and write one way in which people use it.':
+    '**Tulsi** is a medicinal plant, and its leaves are boiled into a home remedy that soothes coughs and colds. A rose is grown only for its pretty flowers and scent, so calling it medicinal misses what it is actually used for.',
+  'What does a seed need to germinate?':
+    'A seed sprouts only when it gets **water, air and warmth** together, because water softens the seed coat while air and warmth wake the baby plant. Sunlight alone is not enough, since a seed buried in the soil never sees the sun.',
+  'Which part of a germinating seed appears first?':
+    'The **root** comes out first, because the young plant must hold itself down in the soil and start drinking water. The leaf appears much later, once the shoot has grown up towards the light.',
+  'Which part of a plant carries water from the root to the leaves?':
+    'Water travels up from the roots to the leaves through the **stem**, which holds tiny tubes like straws inside it. A flower sits at the top and makes seeds, so it never carries water.',
+  'Which part of a plant makes food from sunlight, water and air?':
+    'The **leaf** is the plant\'s kitchen, using sunlight, water and air to cook food for the whole plant. Roots only hold the plant down and drink water, so they cannot make any food.',
+  'Which of these foods comes from a plant root?':
+    'A **carrot** is a root that grows under the soil, and that is the part we dig up and eat. Rice is a grain that comes from a seed, and spinach is a leaf.',
+  'Which of these foods comes from a plant seed?':
+    '**Rice** is a grain, and a grain is really the seed of the rice plant, so it comes from a seed. A potato is a swollen stem that grows underground, and a carrot is a root.',
+  'Which plant is used to make a medicine for coughs?':
+    '**Tulsi** leaves are used in cough syrups and home remedies because they help soothe a sore throat. A rose is grown for its flowers and sweet smell, so it is not used for cough medicine.',
+  'What are plants used as medicine called?':
+    'Plants that are used to cure illnesses are called **medicinal plants**, like tulsi for coughs and neem for skin problems. Ornamental plants are grown only to make a garden look beautiful.',
+  'Which part of the body is made of bones and protects the heart and the lungs?':
+    'The **rib cage** is a bony cage in the chest that wraps around the heart and lungs and keeps them safe. The skull is also made of bone, but it guards the brain in the head, not the heart.',
+  'Our bones cannot move on their own. What pulls them so that we can bend our arm?':
+    '**Muscles** are stretchy parts stuck to the bones, and when they tighten they pull the bone and bend your arm. Skin only covers the body, so it cannot pull a bone at all.',
+  'After we swallow, food travels down a long tube to the stomach. What is this tube called?':
+    'Swallowed food slides down the **food pipe**, a long tube that joins the mouth to the stomach. The wind pipe is for air and goes to the lungs, so food must never enter it.',
+  'Why is it important to chew our food well before swallowing it?':
+    'Chewing turns food into small, soft pieces that are easy to swallow and easy for the body to **digest**. Gulping big lumps makes swallowing hard and leaves the stomach with much more work to do.',
+  'Which teeth help us to bite and cut food?':
+    'The flat, sharp **front teeth** bite into an apple or a roti and cut it into pieces you can chew. The back teeth are broad and crush food, so they cannot cut it.',
+  'How many sets of teeth does a person have in a lifetime?':
+    'We grow **two** sets of teeth, the small milk teeth first and then the stronger permanent teeth. Teeth do not keep growing again and again, so a knocked-out adult tooth never comes back by itself.',
+  'What do we call the place where two bones meet?':
+    'The place where two bones join together is called a **joint**, and it lets the bones bend and move. A muscle is the stretchy part that pulls the bone, not the meeting point of two bones.',
+  'Which of these protects the heart and lungs?':
+    'The **rib cage** is the set of curved bones around your chest that shields the heart and lungs. The skull protects the brain instead, and the arm and leg bones guard nothing inside the chest.',
+  'Which joint lets the arm move in a circle?':
+    'The **shoulder joint** works like a ball sitting in a socket, so the whole arm can swing round in a full circle. The elbow only bends and straightens, so it cannot turn the arm in a circle.',
+  'Muscles help us to':
+    'Muscles are joined to bones and pull on them, and that is how we **move our bones** to walk, run and lift things. Thinking is done by the brain, so muscles do not think.',
+  'Where does digestion begin?':
+    'Digestion starts **in the mouth**, where the teeth break food into bits and saliva makes it soft and wet. The stomach receives the food only later, after it has travelled down the food pipe.',
+  'Which tube carries food from the mouth to the stomach?':
+    'The **food pipe** is the tube that carries chewed food down from the mouth into the stomach. The wind pipe carries air and leads to the lungs, so food does not go that way.',
+  'Which of these materials is soft and can be pressed easily?':
+    '**Cotton** is soft and squashy, so you can squeeze it or press it flat between your fingers. A stone and an iron nail are hard, so pressing them does not change their shape.',
+  'Which of these lets light pass through it so that we can see what is behind it?':
+    '**Clear glass** is transparent, which means light passes straight through it and you can see the tree outside. A wooden door or a brick wall blocks light completely, so nothing shows through.',
+  'A marble, a brick, a book and a matchbox are placed on a slope. Which one rolls down because of its round shape?':
+    'The **marble** is round and smooth, so it rolls down the slope instead of staying put. A brick and a matchbox have flat sides, so they only slide a little or stop.',
+  'Why are the windows of a room made of glass instead of wood?':
+    '**Glass** is transparent, so sunlight comes into the room and we can look outside through it. Wood is opaque, so a wooden window would block the light and hide the view.',
+  'Which of these materials is hard?':
+    '**Iron** is hard and strong, so it does not squash when you press it and is used for nails and tools. Cotton and wool are soft and fluffy, so they give way easily.',
+  'Which material can be easily pressed and squeezed?':
+    'A **sponge** is full of tiny holes and air, so it squeezes small in your hand and then springs back. A stone or a brick is solid all through, so it cannot be squeezed at all.',
+  'Which of these is transparent?':
+    '**Clear glass** lets light pass through it, so you can see clearly whatever is behind it. Wood and a brick are opaque, and a metal plate also stops light.',
+  'A material through which we cannot see at all is':
+    'A material that blocks all the light, so nothing can be seen through it, is **opaque**, like wood or brick. Transparent materials such as clear glass let you see right through them.',
+  'Materials that can be bent into different shapes are':
+    '**Flexible** materials, like rubber or thin wire, can be bent and twisted into new shapes without breaking. Being opaque only means light cannot pass, so it says nothing about bending.',
+  'Which material is used to make a window pane because of its property?':
+    '**Glass** is chosen for window panes because it is transparent, so daylight comes in while you still see outside. Iron is strong but heavy and blocks light, so it would make a dark wall, not a window.',
+  'Why is cotton used for making clothes?':
+    '**Cotton** is soft on the skin and soaks up sweat, so cotton clothes feel cool and comfortable in summer. It is not transparent and it is not heavy, so the idea that cotton is see-through or very weighty is wrong.',
+  'Which material is best for a cooking pot handle?':
+    '**Wood** does not carry heat quickly, so a wooden handle stays cool enough to hold while the pot is hot. Iron is strong but it heats up fast, so an iron handle would burn your hand.',
+  'Which of these foods is rich in protein and helps to build our muscles?':
+    '**Pulses** such as dal and rajma are full of protein, which the body uses to build and repair muscles. Sugar gives quick energy and butter gives fat, so neither one builds muscle.',
+  'Milk is rich in a mineral that makes our bones and teeth strong. Which mineral is it?':
+    'Milk is full of **calcium**, the mineral that hardens bones and teeth and keeps them strong. Iron helps the blood carry oxygen, so it is not the mineral that milk is famous for.',
+  'A child eats only rice and potatoes every day. Which nutrient is the child getting plenty of from this food?':
+    'Rice and potatoes are starchy foods, so they give plenty of **carbohydrates** that the body burns for energy. Vitamins and proteins come from fruits, dal and milk, which this child is not eating.',
+  'What happens to a child who does not get enough good food for a long time?':
+    'With too little good food for a long time a child grows weak, falls ill again and again and may stay short for their age, a condition called **malnutrition**. Skipping food for one day does not do this, because the harm comes from months of poor food.',
+  'Which nutrient gives us energy to work and play?':
+    '**Carbohydrates** in rice, roti and potatoes are the body\'s main fuel and give us energy to run and play. Proteins mainly build and repair the body, so they are not our main energy food.',
+  'Which nutrient helps our body to grow and repair itself?':
+    '**Proteins** from dal, eggs and milk are the body\'s building blocks, used to grow taller and to repair cuts and worn-out parts. Carbohydrates mainly give energy, so they do not build new body parts.',
+  'Which vitamin do we get from sunlight?':
+    'Our skin makes **vitamin D** when sunlight falls on it, and this vitamin helps calcium make the bones strong. Vitamin C comes from fruits like oranges, not from sitting in the sun.',
+  'Oranges and lemons are rich in which vitamin?':
+    'Oranges and lemons are sour fruits packed with **vitamin C**, which keeps the gums healthy and helps us fight colds. Vitamin D is made in the skin from sunlight, so it is not what these fruits give.',
+  'Which food group should we eat the least of?':
+    '**Fats and sugars** such as butter, oil, sweets and cold drinks give plenty of energy but few nutrients, so they should be eaten only in small amounts. Fruits, vegetables, milk and grains are needed in bigger amounts every day.',
+  'Milk, curd and cheese belong to which food group?':
+    'Milk, curd and cheese are all made from milk, so they belong to the **dairy** group that gives us calcium and protein. Cereals are grains like wheat and rice, so they are a different group.',
+  'What is malnutrition?':
+    '**Malnutrition** means poor health caused by not getting the right kind and amount of food over a long time. Eating plenty of fruit or drinking lots of water keeps you healthy, so those are not malnutrition.',
+  'Which condition is caused by a lack of vitamin A?':
+    'Vitamin A keeps our eyes healthy, so too little of it causes **poor eyesight**, especially trouble seeing in dim light. Weak bones come from too little calcium and vitamin D, not from a lack of vitamin A.',
+  'Which of these animals has a body suited to living in water?':
+    'A **fish** has fins for swimming and gills for taking oxygen out of the water, so it can stay under water all its life. A camel is built for dry desert sand and a sparrow is built for flying in the air.',
+  'A camel can travel for many days in a desert without eating. Which part of its body stores fat that gives it energy?':
+    'The **hump on its back** is a store of fat that the camel slowly burns for energy when there is no food in the desert. Wide feet only stop it sinking into soft sand, so they store nothing.',
+  'In a food chain, green plants make their own food. What are they called?':
+    'Green plants are called **producers** because they make their own food from sunlight, water and air. Consumers are animals that must eat plants or other animals, so they cannot make food.',
+  'What are decomposers? Name one of them.':
+    '**Decomposers** are living things such as fungi and bacteria that break down dead plants and animals and turn them back into soil. A lion that hunts other animals is a predator, not a decomposer.',
+  'A camel\'s hump helps it to':
+    'The hump is a lump of fat that the camel burns for energy when food is scarce, so it helps the camel **store fat for use in the desert**. A hump cannot help an animal swim, fly or climb a tree.',
+  'What is adaptation?':
+    'An **adaptation** is a body part or habit, like a camel\'s hump or a fish\'s gills, that helps a living thing survive where it lives. A change of season happens in the weather, not in the body of the living thing.',
+  'Green plants are called producers because they':
+    'Plants are called producers because they **make their own food** using sunlight, water and air. Animals that eat other animals are consumers, so eating others is not what a producer does.',
+  'An animal that eats only plants is called':
+    'A **herbivore** such as a cow or a goat eats only plants like grass and leaves. A carnivore eats only the flesh of other animals, so it is the opposite of a plant eater.',
+  'What do decomposers do?':
+    'Decomposers like mushrooms and bacteria **break down dead plants and animals into soil**, so the goodness goes back into the earth. Making food from sunlight is the job of green plants, not of decomposers.',
+  'Which of these is a decomposer?':
+    'A **mushroom** is a fungus that feeds on dead leaves and wood and breaks them down. A mango tree makes its own food from sunlight, and a cow and a parrot eat plants instead.',
+  'Which animal is adapted to live in water?':
+    'A **fish** has gills for breathing in water and fins for swimming, so it is built for life in water. An earthworm lives in damp soil and a camel in the desert, so neither is a water animal.',
+  'What is a habitat?':
+    'A **habitat** is the place where a living thing lives, like a pond for a fish or a forest for a monkey. The sound an animal makes or the food it eats is not the place where it lives.',
+  'Which of these is the solid form of water?':
+    'When water freezes it becomes **ice**, which keeps its own shape and does not flow, so it is the solid form. Steam and water vapour are the gas form, and rain is liquid drops falling, not a solid.',
+  'Johads in Rajasthan are traditional small earthen dams built to do what?':
+    'A johad is a small earthen dam that catches **rainwater** so it sinks slowly into the ground and refills wells and groundwater. Thinking johads carry river water to the sea confuses them with canals, which are dug to move water along, not to catch rain.',
+  'Describe what happens to water when the Sun heats it and the vapour later cools high in the sky.':
+    '**Evaporation** by the Sun\'s heat turns water from oceans and rivers into vapour, which cools high up and condenses into droplets that form clouds. Those droplets join, grow heavy and fall back as rain, snow or hail, so the water keeps moving round and round.',
+  'A school wants more rainwater to seep into the ground instead of running off. Which change would help most?':
+    'A soak pit is a hole in open ground that lets **rainwater** sink slowly into the soil and refill the groundwater. Paving or concreting the ground seals the surface, so rain runs off into drains instead of soaking in.',
+  'Which kind of water do living beings need for drinking and growing crops?':
+    'Living beings need **freshwater**, the low-salt water found in rivers, lakes and rain, for drinking and for watering crops. Ocean, sea and salt water all hold too much salt, which harms plants and makes people thirstier.',
+  'Most of the water on the Earth\'s surface is':
+    'About 97 out of every 100 parts of water on the Earth\'s surface is **salty** sea water, which is why the oceans cover most of the planet. Fresh water is only a tiny share, so calling most water fresh or drinkable badly overestimates what we can use.',
+  'Why is ocean water not fit for drinking?':
+    'Sea water has so much **salt** dissolved in it that drinking it pulls water out of our body cells and makes us more thirsty and ill. Being cold, muddy or colourless does not stop water being drinkable, so salt is the real problem.',
+  'Plants that grow in water are called':
+    'Plants that grow in or on water are called **aquatic plants**, like lotus and water hyacinth, and their soft stems and air spaces suit a wet home. Desert, hill and climbing plants grow on land, so their names describe dry or hilly places, not water.',
+  'Which of these is a water plant?':
+    'The **lotus** is a water plant: its roots stay in the mud below a pond while its leaves and flowers rise to the surface. A cactus stores water in a desert, and neem and rose grow in ordinary soil, so none of them lives in water.',
+  'Which part of a water plant helps it float on the surface?':
+    'Water plants stay afloat because their leaves and stems hold tiny **air spaces**, which make them light and buoyant like a float. Deep roots, thorns or thick bark only anchor or protect a plant, so they give no upward push in water.',
+  'Which form of water is ice?':
+    'Ice is the **solid** form of water because its particles are packed tightly and hold a fixed shape. Liquid water flows and takes the shape of its container, while vapour and gas are the free-moving forms.',
+  'Water is found in how many forms?':
+    'Water exists in **three** forms: solid ice, liquid water and the gas called water vapour, and heating or cooling moves it from one to another. Two or one would leave out ice, liquid water or vapour, and four names a form that does not exist.',
+  'Which is a source of fresh water?':
+    'A **river** carries fresh water that falls as rain on the land, so it can be used for drinking and farming. The ocean, the sea and a salt pan all hold salty water, which is not fresh at all.',
+  'Rain is the main source of':
+    'Rain is the main source of **fresh water on land** because it refills rivers, lakes, ponds and underground stores. Sea, ocean and salt water are salty, and rain falling on them does not make them fresh, so they cannot be the answer.',
+  'In the water cycle, water vapour rises and forms':
+    'In the water cycle, rising water vapour cools high in the air and condenses into tiny droplets that gather as **clouds**. Wells and rivers are places water collects on the ground, and snow is only one kind of falling water, not what vapour forms.',
+  'What powers the water cycle?':
+    'The **Sun\'s heat** drives the water cycle by evaporating water from oceans, rivers and lakes, and the same warmth lifts the vapour into the air. Wind, the Moon and tides shift water about, but without the Sun there would be no evaporation to start the cycle.',
+  'Groundwater is water that':
+    'Groundwater is the water that **soaks into the soil** through pores and cracks and collects in the spaces deep underground. Water in tanks is stored by people, and water flowing on a road or rising as vapour is not underground at all.',
+  'Which practice helps recharge groundwater?':
+    'Collecting rainwater in **pits** lets it sink into the soil and refill the groundwater, which is what recharge means. Blocking drains, paving open ground and digging more borewells all cut the water seeping down or pump it out, so they lower the water table.',
+  'What are the small streams that join a river and make it wider and stronger called?':
+    'Small streams that join a river and add to its water are called **tributaries**, which is why a river grows wider and stronger downstream. A delta is mud dropped where a river meets the sea, a reservoir is stored water behind a dam, and a canal is a man-made channel.',
+  'A river that flows only when it receives water in the rainy season is called what?':
+    'A river that carries water only after rain is a **seasonal river**, so it may dry up in the hot months. A perennial river flows all year, a tributary is a joining stream, and a delta is the mud fan at the mouth.',
+  'What is a dam, and what is the large water body that stores the blocked water called?':
+    'A dam is a **wall built across a river** that blocks the flow and stores water behind it, and that lake of stored water is called a reservoir. The stored water is then released slowly for drinking, farming and making electricity.',
+  'Heavy rain is forecast and flooding is likely in your area. Which action follows the flood safety advice?':
+    'Flood advice is to keep an **emergency bag** with food, medicines and a torch ready so you can leave fast. Driving through flood water, swimming in it or touching fallen wires risks drowning or shock, since moving water hides deep holes and live wires.',
+  'What is a delta?':
+    'A **delta** is the flat land built at a river\'s mouth, where the slowing water drops the mud and sand it carried. The place a river begins is its source, a joining stream is a tributary, and a dried bed is just an empty channel.',
+  'The Godavari finally joins which water body?':
+    'The Godavari flows east across the Deccan and empties into the **Bay of Bengal**. The Arabian Sea lies west of India, and the Gulf of Kutch and the Red Sea are far away from the Godavari\'s course.',
+  'Small streams that join a river are called':
+    'Streams that feed a bigger river are called **tributaries**, and each one adds water so the main river widens. Deltas, canals and lakes are different things: mud at the mouth, a dug channel, and a still water body.',
+  'Which of these pollutes a river?':
+    'Dumping **waste and chemicals** into a river poisons the water and harms fish, plants and people who use it. Rain, fish and trees on the banks are all natural parts of a river\'s life and do not pollute it.',
+  'What is the best way to keep a river clean?':
+    'Treating **sewage** before it enters the river removes the germs and dirt that make water unsafe, so it is the strongest step. Washing clothes, bathing cattle and throwing flowers all add waste to the river instead of taking it out.',
+  'Why are rivers important to people?':
+    'Rivers matter because they supply **water** for drinking, irrigation and transport, and they also support fish and fertile soil. Looking beautiful is a small bonus, and rivers can neither be dumping grounds nor stop the rain.',
+  'A tributary is a stream that':
+    'A tributary is a smaller stream that **joins a larger river** and adds its water to it. Water from a well, a stream that dries up and a channel that only reaches the sea all fail to describe a stream feeding a bigger river.',
+  'Name a tributary of the Godavari.':
+    'The **Manjira** is a tributary that joins the Godavari, so it belongs to the Godavari basin. The Ganga, the Narmada and the Kaveri are separate rivers with their own courses, so none of them is a branch of the Godavari.',
+  'A perennial river flows':
+    'A **perennial** river flows all year round because rain, melting snow and springs keep feeding it. Flowing only in winter, only in summer or only in the rainy season describes a seasonal river instead.',
+  'A seasonal river flows':
+    'A **seasonal** river carries water only in the rainy season and may shrink into separate pools in the dry months. Flowing all year describes a perennial river, while flowing only at night or never describes no real river at all.',
+  'A dam is built across a river to':
+    'A dam is built to **store water and control its flow**, so floods can be checked and water released when fields need it. Shortening a river, stopping fish or drying a delta are not aims of a dam, and a dam never removes water from the river system.',
+  'The water stored behind a dam is called a':
+    'The water held behind a dam is called a **reservoir**, and it works like a huge tank on the river. A canal is a dug channel, a delta is mud at the mouth, and a tributary is a joining stream.',
+  'During a flood you should':
+    'When a flood comes you should move to **higher ground** and stay there until the water falls. Crossing the river, staying in a low room or swimming in flood water puts you in the path of fast dirty water that can sweep you away.',
+  'Why is flood water dangerous to drink?':
+    'Flood water carries **sewage, dirt and germs** mixed in from drains, fields and toilets, so drinking it can cause serious illness. Being cold, salty or full of oxygen does not make water unsafe in the way that sewage does.',
+  'What were the coloured patches that grew on the uttapam left in the tiffin box for three days?':
+    'The coloured patches are **mould**, a colony of thousands of tiny microbes that settled on the moist uttapam and multiplied for three days. Salt, oil or sugar would not grow into fuzzy coloured patches, because only living things grow that way.',
+  'Which three things do microbes need in order to grow?':
+    'Microbes need **moisture, air and the right temperature** to grow, and food left warm and damp gives them all three. Salt, sugar and oil actually slow microbes down, and sunlight, soil or darkness are not the things that make food spoil.',
+  'Why is mustard oil poured over a jar of pickle?':
+    'The oil forms a layer that keeps **air** away from the pickle, and without air the microbes cannot grow. That is why an oily, sealed jar of pickle stays good for months instead of spoiling.',
+  'Chillies are dried in the Sun before they are ground into powder. Why does drying help the powder last longer?':
+    'Drying drives out the **moisture** that microbes need, so the powder has no water left for them to grow in. Drying does not make food colder, add helpful microbes or add oil, so those reasons cannot explain why dried chillies keep well.',
+  'Which teeth are used to cut food?':
+    '**Incisors** are the flat front teeth, and their straight edge bites and cuts food into pieces you can chew. Canines are pointed for tearing, while molars and premolars have broad tops for grinding.',
+  'Which teeth are used to tear food?':
+    '**Canines** are the pointed teeth beside the incisors, shaped to grip and tear tough food. Incisors cut and molars and premolars grind, so a flat or broad tooth cannot do a tearing job.',
+  'Which teeth grind food into small pieces?':
+    '**Molars** sit at the back of the mouth with wide bumpy tops that crush and grind food into small bits. Canines are pointed for tearing and incisors are the front cutting teeth, so neither of them can grind.',
+  'What is a cavity?':
+    'A cavity is a **hole in a tooth** made when acids from sweet food and germs eat away the hard enamel. It is not a brush, a sweet or a kind of tooth, so those names describe other things completely.',
+  'How can we avoid choking while eating?':
+    'Taking **small mouthfuls and chewing slowly** keeps each bite soft and small, so it slides down the food pipe safely. Eating while running, talking and laughing, or rushing lets a lump slip into the windpipe and block breathing.',
+  'Which habit helps keep our teeth healthy?':
+    'Rinsing the **mouth after eating** washes away bits of food and acid that germs feed on, so it protects teeth between brushings. Skipping brushing at night, drinking only cold drinks and eating sweets all day feed the germs that cause cavities.',
+  'What causes coloured patches on old food?':
+    'The patches are **mould**, a kind of microbe that grows into a fuzzy coloured colony on food left too long. Cold air, plain water or extra salt do not grow into patches, because only living microbes multiply like that.',
+  'Microbes can be seen only with a':
+    'Microbes are far too small to see with our eyes, so a **microscope** with strong lenses is needed to make them look big. A telescope views faraway stars, a mirror only reflects, and a stethoscope listens to the heart and lungs.',
+  'Microbes need which conditions to grow?':
+    'Microbes grow best with **moisture, air and warmth**, which is why damp warm food spoils fastest. Salt, cold and bright sunlight actually slow or stop them, so any one of those alone cannot be what they need.',
+  'If we remove any one thing microbes need, they':
+    'If any one of the things microbes need is removed, they **cannot grow**, so the food keeps longer. They do not grow faster, get bigger or turn into vitamins, because without air, water or warmth their growth simply stops.',
+  'Drying preserves food by removing':
+    'Drying preserves food by removing **moisture**, the water microbes need to grow and multiply. Colour, taste and vitamins are not what drying takes out to stop spoilage, so those choices miss the real reason.',
+  'Chillies dried in the Sun can be kept for':
+    'Dried chillies have almost no water left, so they can be kept for **a whole year** without spoiling. One week, one hour or one day would make drying pointless, since the food would go bad almost at once.',
+  'Why is oil poured over pickle?':
+    'The oil forms a seal that stops **air** reaching the pickle, and microbes need air to grow. Adding sweetness, cooling the food or adding water would not preserve it, and extra water would actually help microbes.',
+  'Pickling also uses salt and acid because they':
+    'Salt and acid make the pickle too **salty and sour** for microbes, so they cannot grow and the food keeps. They do not add sweetness, colour or weight, which is why pickle stays safe without a fridge.',
+  'Which of these best describes a green school?':
+    'A green school is judged by what it does: it **manages waste**, saves water and power, and plants and tends trees. Green paint on the walls is only a colour, so a painted building that still wastes water is not a green school.',
+  'In the segregation game, which colour box is labelled for wet waste?':
+    '**Green** is the box for wet waste such as peels and cooked food, because green is the colour used for kitchen and garden waste. Blue is the dry-waste box, so a plastic bottle belongs there and dropping it into green spoils the compost.',
+  'Name any three School Explorer Teams and one thing each team would look at in the school.':
+    'Each team has one job: **Water Watchers** hunt leaking taps, Electricity Savers spot fans left on in empty rooms, and Waste Warriors check litter and bins. A team with no fixed job only walks around, so swapping their jobs means nobody actually checks the taps.',
+  'During a fire drill the corridor is filling with smoke. What is the correct thing to do?':
+    'Smoke rises and fills the top of a corridor first, so you **crawl low** where the air is cleaner and cover your mouth with cloth. Running and shouting makes you breathe in more smoke, and going back inside after reaching the assembly point puts you in the fire again.',
+  'What does recycling mean?':
+    'Recycling means **making new things from used materials**, like turning old paper into fresh sheets or broken glass into new bottles. Burning rubbish destroys the material for good and dirtying the drain blocks water, so neither one is recycling.',
+  'Which of these materials can be recycled?':
+    '**Paper and glass** can be collected, pulped or melted and shaped into new products again and again. Tea leaves and kitchen peels are wet waste that rots into compost, so they are never sent to a recycling factory.',
+  'Who are recyclers?':
+    'Recyclers are the **people who collect and process used materials** so they can be turned into new products instead of being dumped. A person selling brand new toys has nothing to do with it, because nothing used is being collected or remade.',
+  'Where should you go if there is a fire in the school?':
+    'The safe place is the **assembly point**, reached quickly but without running or pushing, so the teacher can count everyone. Going to the classroom for your bag or hiding in the toilet leaves you inside a burning building where nobody knows where you are.',
+  'What should you do if there is a lot of smoke?':
+    'Smoke collects near the ceiling, so the cleaner air is near the floor and you should **crawl low** with your nose and mouth covered. Standing up and running through the smoke means breathing the worst of it, and a cupboard gives you no way out.',
+  'What must you never do during a fire?':
+    'Once you are out you must **never go back inside**, because the fire can spread in seconds and firefighters cannot search a building full of students. Crawling low, staying calm and reaching the assembly point are all correct actions, not mistakes.',
+  'A green school is one that':
+    'A green school **manages waste, saves water and plants trees**, so its daily habits help the environment. Green paint on the walls is only decoration, and using more electricity is the exact opposite of what a green school does.',
+  'Which programme encourages clean schools in India?':
+    '**Swachh Bharat Swachh Vidyalaya** is the school part of the Swachh Bharat mission, and it pushes for clean toilets, safe water and waste segregation in schools. Make in India is about factories and Digital India about computers, so neither one is about cleanliness.',
+  'Which team checks leaking taps?':
+    'The **Water Watchers** are the team given the job of finding dripping taps, overflowing tanks and water being wasted. Waste Warriors watch the dustbins instead, so a leaking tap during their round goes unreported.',
+  'What do the School Explorer Teams do first?':
+    'Every team starts by **observing and recording** what it finds, because you cannot fix a problem you have not written down. Buying new bins or planting a garden is a later step, and it happens only after the survey shows what is really needed.',
+  'Which is wet waste?':
+    '**Vegetable peels** are soft, wet kitchen scraps that rot quickly and can be turned into compost. Plastic bottles, glass and metal cans are dry waste that does not rot at all, so they belong in a different bin.',
+  'Wet waste is best used to make':
+    'Wet waste such as peels and leaves rots down into **compost**, a dark material that feeds the soil and helps plants grow. Glass, paper and plastic are dry waste that has to be recycled, not left to rot.',
+  'A fire drill teaches students to':
+    'A drill practises the real thing: **leave the building quickly and calmly** by the marked route and line up outside. Collecting your bag first costs precious seconds, and using a lift during a fire can trap you if the power fails.',
+  'Where should everyone gather during a fire drill?':
+    'Everyone lines up at the **assembly point**, a safe open spot away from the building where each class can be counted. Standing on the roof or staying in the classroom keeps you inside the danger zone, and a fire extinguisher is equipment to use, not a meeting place.',
+  'On which date is Republic Day celebrated in India?':
+    'Republic Day falls on **26 January**, the day in 1950 when the Constitution came into force and India became a republic. 15 August is Independence Day, so it marks freedom from British rule, not the day our rules began.',
+  'Why is 26 January 1950 an important day for India?':
+    'On that day India began to follow its **Constitution**, the special book of rules that says how the country is run and what rights people have. India became free in 1947, so 1950 is about the rule book and not about independence.',
+  'What does the National Emblem of India show, and what does it stand for?':
+    'The emblem shows **three lions** standing on a circular platform with the Ashoka Chakra below, copied from Ashoka\'s pillar at Sarnath. Those lions stand for strength, courage and confidence, which is why the emblem appears on coins and government papers.',
+  'Why do some Indian currency notes have raised prints and symbols?':
+    'Raised lines, dots and symbols let a person **feel** a note and tell its value without seeing it. They exist so people with visual impairment can identify notes safely, and they have nothing to do with weight or with which state printed the note.',
+  'What does diversity mean?':
+    'Diversity means **many different kinds of people, languages and customs** living together in one place. It is the opposite of everyone being the same, so a country with one language and one way of life would not be diverse.',
+  'Which colours are in the Indian tricolour?':
+    'The flag has three bands of **saffron, white and green**, with the blue Ashoka Chakra in the middle band. Red, blue and yellow are not on it, and orange is only a rough word for the deeper saffron shade at the top.',
+  'What does the blue Ashoka Chakra in the flag stand for?':
+    'The blue wheel with 24 spokes stands for **duty**, reminding citizens to do the right thing at every step of life. It is not a sign of victory in war or of the sea, which is why the wheel carries no weapons and no waves.',
+  'From which date did India begin to follow its Constitution?':
+    'India began following the Constitution on **26 January 1950**, the day it was declared in force across the country. 15 August 1947 was independence, and 26 January 1947 is close in date but a full year before the rule book started.',
+  'Why is 26 January celebrated as Republic Day?':
+    'It is Republic Day because the **Constitution came into force** that day in 1950, making India a republic with elected leaders. Independence Day marks freedom from British rule in 1947, which is a different event remembered in August.',
+  'What does the spirit of togetherness help a country do?':
+    'When people follow the **same rules together**, schools run, roads stay safe and help reaches those who need it. Avoiding rules or keeping groups apart does the opposite, because a country works only when everyone pulls in the same direction.',
+  'On which date is Republic Day celebrated?':
+    'Republic Day is **26 January**, because on that date in 1950 the Constitution of India came into force. 15 August marks Independence Day and 2 October marks Gandhi Jayanti, so neither of them is the republic\'s day.',
+  'What happens at school on Republic Day?':
+    'The school gathers for a ceremony where the **flag is unfurled** and the National Anthem is sung together. It is not a day for closing school or holding exams, because the whole point is to stand together and remember the day.',
+  'What is the Constitution?':
+    'The Constitution is the **book of rules for the country**, listing how the government works and what rights and duties citizens have. It is not a story book or a map, because it lays down laws that everyone, leaders included, must follow.',
+  'When did India begin to follow its Constitution?':
+    'India started following its Constitution on **26 January 1950**, the day it came into force. Independence came on 15 August 1947, so anyone who picks that date is confusing freedom with the day the rule book began.',
+  'What does the saffron colour of the flag stand for?':
+    'The saffron band at the top stands for **strength and courage**, the quality that helps people face difficulty. Peace and truth belong to the white band, so reading those meanings into saffron mixes up the two colours.',
+  'What does the green colour of the flag stand for?':
+    'Green stands for **growth and prosperity**, because green is the colour of crops and living things. Peace and truth belong to white and courage to saffron, so attaching them to green confuses the three bands.',
+  'Whose signature appears on Indian currency notes?':
+    'Every note carries the signature of the **Governor of the Reserve Bank of India**, because the RBI is the body that prints and issues currency. The President and the Prime Minister do not issue notes, so their signatures never appear on money.',
+  'How many languages are printed on an Indian currency note?':
+    'Indian notes print the amount in **many languages**, including Hindi and English, with the value also shown in the other scheduled languages. Printing only English or only Hindi would shut out most of the country, which is why that panel is crowded.',
+  'Which place is the southernmost tip of India?':
+    '**Indira Point** in the Nicobar Islands is the southernmost tip of India, lying further south than Kanyakumari. Kanyakumari is only the tip of the mainland, so it is the common trap, but the islands stretch further down.',
+  'Why do mangroves have roots that stick out of the muddy salt water?':
+    'The mud of a mangrove swamp holds very little air, so the tree sends **roots above the water to breathe**. They do not store salt for people to collect, and a tree makes its own food from sunlight instead of catching fish.',
+  'How do tiny corals help other creatures of the sea?':
+    'Corals build hard skeletons that pile up into **reefs**, and those reefs give shelter, food and hiding places to fish and other sea animals. A bare sandy stretch of sea has nowhere to hide, which is why so much sea life gathers around coral.',
+  'The Western Ghats have over 50 protected areas. What does a protected area mean?':
+    'A protected area is **land the government keeps safe**, where trees may not be cut and animals may not be hunted. A forest where timber is cut every year is the opposite of that, so the answer describes exactly what protection forbids.',
+  'Where is the largest mangrove forest in the world?':
+    'The **Sundarbans**, in the delta of the Ganga and Brahmaputra, is the largest mangrove forest in the world. The Thar is a dry desert and the Western Ghats are hills, so neither has the salty tidal mud that mangroves need.',
+  'Why do mangrove roots come up out of the water?':
+    'Mangrove roots push up out of the water **to breathe**, taking in air above the mud-soaked swamp. Storing salt or holding flowers is not their job, and a tree does not catch fish with its roots.',
+  'How do mangrove roots help the land?':
+    'The tangled roots **hold the soil** and slow the waves, so the coast is not washed away during storms. They do not stop rain or dry up a river, because roots grip mud rather than control the weather.',
+  'Which animal is found only in the Western Ghats?':
+    'The **lion-tailed macaque** lives only in the rain forests of the Western Ghats, with a silver mane around its face. The one-horned rhinoceros belongs to Assam, so it is not found in these southern hills.',
+  'What are protected areas?':
+    'Protected areas are **places kept safe by the government** so that trees, animals and the land itself are not harmed. A park where cricket is played or a plot open for building is not protected, because the whole point is to leave nature undisturbed.',
+  'Why do many Indian rivers begin in the Western Ghats?':
+    'The Western Ghats **catch very heavy rain**, and that water runs down the slopes to start rivers such as the Godavari and the Krishna. The hills are not made of loose sand, so the rain flows off in streams instead of draining away instantly.',
+  'Where is Indira Point, the southernmost tip of India?':
+    'Indira Point sits on Great Nicobar, in the **Andaman and Nicobar Islands**, which is why it lies further south than any mainland place. Lakshadweep, Gujarat and Kerala are all further north, so none of them holds the southern tip.',
+  'What is an island?':
+    'An island is **land surrounded by water on all sides**, so you must cross water to reach it. A lake is water rather than land, and ground beside a river is joined to the mainland, so neither of them is an island.',
+  'What are corals?':
+    'Corals are **tiny sea animals** that take minerals from the water and build hard skeletons around themselves. They are not plants and not plain rock, because a coral polyp is a living creature that feeds and grows.',
+  'Why are coral reefs important?':
+    'Reefs are built by corals, and they **shelter many kinds of sea creatures**, giving fish food and safe places to breed. They do not stop the tides or make the sea salty, because those come from the moon\'s pull and from salt already in the water.',
+  'Mangrove roots rise above the water so the tree can':
+    'Roots that rise above the water let the tree take in air, which is how a mangrove **breathes** in airless mud. Storing salt or catching fish is not what the roots are for, and flowers grow on branches, not on roots.',
+  'Mangroves grow in':
+    'Mangroves grow in **wet, salty coastal land** where tides wash over the roots twice a day. Dry desert sand and high mountain slopes have no tide and far too little water, so mangroves cannot survive there.',
+  'What is a protected area?':
+    'A protected area is **land kept safe** by law so that plants and animals can live without being harmed. Land used for farming or for building houses is worked by people, which is exactly what protection sets the land aside to prevent.',
+  'Silent Valley National Park is in':
+    'Silent Valley National Park lies in the **Western Ghats in Kerala**, and it is one of the rain forests that shelters the lion-tailed macaque. Assam, Rajasthan and Punjab have very different land, from wet grassland to desert, so the park is not in them.',
+  'Plucking the rubber bands of a rubber band guitar makes them vibrate and produce sound. Which form of energy is this?':
+    'The band moves back and forth very fast, and this **vibration** shakes the air so our ears hear a note. Picking light energy confuses a moving string with something that glows, but nothing here is glowing or burning.',
+  'Which of these are fuels that keep cars and scooters running?':
+    'Engines burn **petrol and diesel** inside them, and the burning fuel releases the energy that pushes the wheels round. Water and air cannot burn, so they cannot supply energy to an engine.',
+  'What is clean energy, and from which three natural sources do we get it?':
+    '**Clean energy** is electricity made from the Sun, wind and water, and making it leaves no smoke or harmful waste behind. Burning coal or oil is the dirty route, because its smoke pollutes the air we breathe.',
+  'You see a broken electric wire lying on the ground near your school. What should you do?':
+    'A fallen wire may still be carrying **electric current**, and the ground around it can be live, so keep well back and call an adult. Joining the ends or poking the wire with a stick puts your body in the path of the current.',
+  'What is solar power?':
+    'Solar panels catch **sunlight** and change it into electricity, so solar power comes straight from the Sun. Energy from burning coal describes a coal power station, and food gives our bodies energy rather than our homes.',
+  'How is wind power used to make electricity?':
+    'Moving air pushes the **blades of a windmill**, and the turning shaft drives a generator that makes electricity. Wind cannot be burnt like coal, so trying to burn it for heat is a mistake.',
+  'Why are solar and wind power called clean energy?':
+    'Sunlight and wind arrive free and are used without burning anything, so they add no **smoke or polluting gases** to the air. Being cheap to buy is not why they are clean, and they certainly do not need fuel to run.',
+  'What is the source of energy for all living things?':
+    'Every living thing gets its energy from **food**, which the body breaks down to keep the heart, muscles and brain working. Petrol and cooking gas are fuels for machines and stoves, not for living bodies.',
+  'Why do we feel tired when we are hungry?':
+    'Food is the body\'s fuel, so when the stomach is empty the body has less **energy** to spend on walking, thinking and playing. Bones do not go soft and blood does not stop moving when you miss a meal.',
+  'Which organ uses energy even while we sit or sleep?':
+    'The **brain** keeps working all the time, controlling breathing, heartbeat and dreams, so it spends energy even in deep sleep. Hair, nails and teeth are not busy organs; they are slow-growing parts that use almost nothing.',
+  'A moving ball has':
+    'Anything in motion carries **movement energy**, so a rolling or flying ball can push another ball or knock down a tower of blocks. Saying it has no energy is wrong, because energy is exactly what keeps it moving.',
+  'A plucked rubber band gives out':
+    'A plucked band springs back and forth, and that **vibration** travels through the air to our ears as sound. Saying it has movement energy only misses the sound, and nothing here glows, so there is no light.',
+  'What gives energy to vehicles?':
+    'Vehicles burn **petrol and diesel** in their engines, and the burning fuel pushes the pistons that turn the wheels. Water, sand and air alone do not burn, so they cannot power a car or a scooter.',
+  'Cooking gas is a':
+    'Cooking gas burns in the stove and gives out heat, which is exactly what a **fuel** does. It is stored in a cylinder as a gas, not dug out of the ground as a mineral and certainly not a vitamin for the body.',
+  'Why should we never touch a switch with wet hands?':
+    'Water lets current pass easily, so wet skin carries **electricity** into your body and gives you a dangerous shock. The switch does not break or get dirty from a wet touch; the real danger is the current reaching you.',
+  'What should be done before repairing an appliance?':
+    'Switching off the power cuts the **current** off, so the wires cannot shock the person working on them. Using bare hands or standing in water is the opposite of safe, because both make a shock far more likely.',
+  'Which is clean energy?':
+    '**Solar energy** comes from sunlight and makes no smoke or waste while it is being used. Coal, petrol and diesel all have to be burnt, and burning them releases polluting gases into the air.',
+  'Why is clean energy better for the Earth?':
+    'Clean sources such as the Sun and wind give power without burning fuel, so the air stays free of **smoke and soot**. Working only at night is false, since sunlight is strongest by day and wind blows at any hour.',
+  'How are the two sets of threads arranged when a fabric is woven?':
+    'In weaving one set of threads runs straight and the other crosses it, passing **over one thread and under the next** to lock the cloth together. Gluing or knotting threads would make a heap of loose lumps, not a flat fabric.',
+  'What is the process of twisting cotton fibres together to make thread or yarn called?':
+    '**Spinning** pulls loose cotton fibres out and twists them so they hold together as one strong thread. Weaving is the step after this, where threads are crossed to make cloth, so it cannot be the twisting step.',
+  'Where does silk fibre come from, and how is the silk thread taken out?':
+    'The silk moth spins a **cocoon** around itself, and the cocoons are dipped in hot water so the fine thread can be unwound in one long piece. Silk does not come from sheep like wool, and it does not come from a plant.',
+  'Riya joins two pieces of old cloth with a running stitch to make a mat. Which description matches her stitch?':
+    'A running stitch goes **up and down in a straight line**, leaving a small gap between each pass of the needle. Threads crossed over and under each other is weaving, which makes new cloth instead of joining two pieces.',
+  'What is handloom cloth?':
+    'Handloom cloth is woven on a **loom worked by hand**, usually in a home or small workshop, so every metre carries the weaver\'s own rhythm. Cloth from a powerloom factory is made by machine, which is the opposite of handloom.',
+  'What is weaving?':
+    'Weaving means crossing two sets of threads so they go **over and under** one another, which builds a flat sheet of cloth. Dyeing only adds colour to cloth that already exists; it does not create the fabric.',
+  'For how long have people in India known how to weave?':
+    'Woven cloth and loom weights are found in Indian sites thousands of years old, so weaving here is about **4,000 years** old. Fifty or two hundred years is far too short for a craft this ancient.',
+  'What are synthetic fibres?':
+    'Synthetic fibres are **made by people from chemicals**, usually from petroleum, inside factories. Fibres obtained from plants and animals are natural fibres, so they belong to the other group.',
+  'Which of these is a synthetic fibre?':
+    '**Nylon** is made in a factory from chemicals, so it is a synthetic fibre. Jute, cotton and silk all come from plants or animals and are therefore natural.',
+  'Why do synthetic clothes dry quickly?':
+    'Synthetic threads are smooth and do not soak up much **water**, so the water runs off and the cloth dries fast. Being white or very thin has nothing to do with how quickly a cloth dries.',
+  'Which is a natural fibre?':
+    '**Cotton** grows in the boll of the cotton plant, so it comes straight from nature. Nylon, polyester and acrylic are all made from chemicals in factories.',
+  'Silk comes from':
+    'Silk thread is unwound from the **cocoon of the silkworm**, a moth larva that spins it before becoming an adult. Sheep give wool, not silk, and cotton and jute come from plants.',
+  'Spinning turns fibres into':
+    'Spinning draws out loose fibres and twists them into **yarn or thread**, which is then ready for weaving. Cloth is made later on a loom, so spinning cannot turn fibres into cloth directly.',
+  'Which tool was traditionally used for spinning?':
+    'A **spinning wheel**, the charkha, was turned by hand to twist cotton into thread. A loom is for weaving thread into cloth, and a needle is for stitching, so neither one spins.',
+  'Weaving is done on a':
+    'A **loom** holds the lengthwise threads tight so the cross threads can be passed over and under them. A furnace is for melting metal or firing pots, and a spinning wheel makes thread, not cloth.',
+  'In weaving, threads cross':
+    'The two sets pass **over and under each other**, and that interlocking is what makes the cloth firm. Threads laid side by side only would just lie loose and slide apart.',
+  'A running stitch is made by':
+    'The needle goes **up and down in a line**, with a small gap between each stitch. Gluing or cutting the cloth is not stitching at all, because no thread joins the two pieces.',
+  'A running stitch is used to':
+    'A running stitch **joins two pieces of cloth** along a seam, and it can also mend or gather them. Dyeing and weaving happen before stitching, and spinning makes the thread itself.',
+  'What actually causes day and night on Earth?':
+    'The Earth spins on its axis, so the side facing the Sun is lit while the other side is in shadow, and that turning gives us **day and night**. The Sun does not travel around us each day; it only looks that way because we are turning.',
+  'How many seasons does India experience, based on how nature changes every few months?':
+    'Indian tradition names **six seasons**, from spring through summer, the rains, autumn, early winter and deep winter. Three or four is the count used in many other countries, not the Indian one.',
+  'Why do farmers grow different crops in different seasons?':
+    'Each crop has its own need for **heat and water**, so wheat suits the cool winter, rice the rainy months and millets the hot summer. Sowing every crop at the same time would leave many of them without the weather they need.',
+  'Diwali is celebrated in autumn, after the crops have been harvested. What does this show about our festivals?':
+    'Diwali comes soon after the **harvest**, when the granaries are full, so the festival is tied to the farming year. Saying festivals have no link with nature ignores this timing, and Diwali does not mark the start of the monsoon.',
+  'Why do we have day and night?':
+    'The Earth turns on its **axis** once about every 24 hours, carrying each place into sunlight and then into shadow. The Sun does not circle the Earth, and the Moon is far too small to cover the whole sky each night.',
+  'In which direction does the Sun seem to rise?':
+    'The Earth turns from west to east, so the Sun first appears over the **east** and later sinks in the west. Seeing it rise in the west would mean the planet was spinning the other way.',
+  'What is a globe?':
+    'A globe is a small **model of the Earth** shaped like the real ball, so the continents sit at the right places and distances. A flat map on paper is a drawing of the surface, not a ball-shaped model.',
+  'What does a seasons\' journal record?':
+    'A seasons\' journal notes the **same spot through the year**, writing down what the trees, birds, sky and weather are doing. Listing only birds or one day\'s rain is too narrow to show a season changing.',
+  'Which signs tell farmers that the rains are coming?':
+    'The **koel\'s call** and ants carrying their eggs to higher ground are old signs that the monsoon is near. Leaves turning red belongs to autumn in cold lands, and a drying river means the opposite of rain.',
+  'How many observation periods does a seasons\' journal use in a year?':
+    'The journal is kept for **four** observation periods, so each season gets one careful look across the year. Twelve entries would be monthly notes, which is more than the four periods this journal asks for.',
+  'The Earth rotates on its':
+    'The Earth spins on its **axis**, the imaginary line that runs through the poles, and one full turn takes a day. The equator is a line drawn around the middle of the planet, not the line it turns on.',
+  'How many seasons are traditionally named in India?':
+    'Indian tradition names **six** seasons, each about two months long, from spring to deep winter. Two or four is too few, since the calendar lists vasanta, grishma, varsha, sharad, hemant and shishir.',
+  'Which is the rainy season called in the Indian tradition?':
+    '**Varsha** comes from the word for rain, so it names the monsoon season. Grishma is the hot summer and Shishir the cold winter, so neither of them means the rains.',
+  'Crops grown in the rainy season are called':
+    '**Kharif** crops are sown with the monsoon rains and harvested in autumn, and rice is the best-known one. Rabi crops are the winter ones, like wheat, so that label does not fit here.',
+  'Wheat is usually grown in the':
+    'Wheat needs cool weather while it grows and ripens in the **winter season**, which is why it is called a rabi crop. Sowing it in the rainy months would rot the plants with far too much water.',
+  'Which festival marks the harvest in many parts of India?':
+    '**Pongal** is the Tamil harvest festival, when the new rice is cooked and shared with family. Holi welcomes spring and Raksha Bandhan celebrates brothers and sisters, so neither is a harvest festival.',
+  'Many Indian festivals are linked to':
+    'Most festivals follow the **farming and seasonal cycle**, marking sowing, harvest or the arrival of the rain. Earthquakes and tides are natural events too, but they do not set the festival calendar.',
+  'The Sun seems to rise in the east because the Earth turns':
+    'The Earth spins **from west to east**, so the eastern side of a place meets the Sun first each morning. If it turned from east to west, the Sun would seem to come up in the west.',
+  'Why is the Earth called our blue planet when seen from space?':
+    'From space the oceans cover about three-fourths of the globe, so sunlight bouncing off that water makes the whole planet look **blue**. Borders are invisible lines drawn on maps, so they cannot colour the planet.',
+  'Why do rosy starlings fly thousands of kilometres to India every winter?':
+    'They fly here because India gives them **warm weather and food** such as locusts and grasshoppers when their Russian home freezes. Laying eggs in snow is mistaken thinking, since snow is the very condition they are fleeing.',
+  'Which spice did travellers from Portugal bring to India from South America, and what did Indian cooks use before it arrived?':
+    'Portuguese traders carried the **chilli** from South America, a plant Indian cooks had never used before. Until then heat came from **black pepper**, which is why pepper was such a valuable trade spice.',
+  'More than three-fourths of Brazil\'s milk now comes from the Gir, Kankrej and Ongole breeds. What does this tell us?':
+    'They are **Indian cattle breeds** that now supply most of Brazil\'s milk, which shows they were taken there and did well in new conditions. Thinking Indian cows cannot give milk abroad is wrong, since these breeds outproduce local ones far away.',
+  'What does \'Vasudhaiva Kutumbakam\' mean?':
+    'The Sanskrit phrase joins vasudha, the whole earth, with kutumbakam, family, so it means **the world is one family**. The claim that the Earth belongs to us alone is the opposite idea, because the saying gives every living being a place.',
+  'Which bird flies thousands of kilometres to India every winter?':
+    'The **rosy starling** arrives in huge flocks from Central Asia each winter and feeds on insects across Indian fields. The baya weaver and Indian roller live here all year, so neither is a long-distance migrant.',
+  'Why does nature have no boundaries?':
+    'Wind and water carry **air, seeds and animals** across every map line, so life keeps moving whatever countries decide. Saying the Earth has no land confuses the shape of the planet with a current, since it is mostly sea but still has continents.',
+  'What did Rakesh Sharma say when asked how India looked from space?':
+    'Asked by the Prime Minister how India looked from orbit, **Rakesh Sharma** answered \'Saare Jahaan Se Achcha\', a line from a famous patriotic song. Vasudhaiva Kutumbakam is an old Sanskrit saying, not the sentence he spoke on that call.',
+  'From space, what can an astronaut see of the Earth?':
+    'From orbit the eye picks out the **broad shapes of land and sea**, because coastlines and deserts are enormous. State borders and city roads are far too thin to be seen at that height, so those answers confuse a map with the real view.',
+  'Why must we protect the Earth?':
+    'Earth is the **only planet we know that has life**, with air, water and living things found nowhere else so far. Being closest to the Sun or the biggest planet describes Mercury and Jupiter, not Earth.',
+  'Why is Earth called the blue planet?':
+    'Seen from space the oceans give the planet its colour, because **most of its surface is covered with water**. Blue rocks and blue plants are rare or absent, so they cannot tint an entire world.',
+  'From space, an astronaut sees the Earth as':
+    'Borders exist only in laws and on maps, so from orbit the planet looks like **one whole without borders**, just land, sea and clouds. Counting many separate countries is a map habit, since no boundary line is printed on the ground.',
+  'Why do migratory birds fly to India in winter?':
+    'India stays mild while northern lands freeze, so birds come for **warmer weather and food** and fly home in spring. Building houses or escaping the sea does not fit what migration is, since birds move to find warmth and eat.',
+  'Which bird flies thousands of kilometres to India each winter?':
+    'The **rosy starling** travels in enormous flocks from Central Asia and spreads over Indian fields each winter. A peacock, sparrow or crow lives here all year round and never makes that long journey.',
+  'Which food came to India from another continent?':
+    'The **potato** reached India from South America with European traders, so it has no ancient Indian history. Wheat, millet and rice were grown here for thousands of years, so they are native crops.',
+  'Foods travelling between countries shows that':
+    'When a dish uses ingredients from many lands, it shows that **people and cultures are connected** through trade and travel. Saying only one country grows food ignores how much of what we eat arrived from elsewhere.',
+  'Why do animals move across borders?':
+    'Animals cross any line in search of **food, water and seasons**, following rain or grazing grounds wherever they lead. Animals do not carry passports and are not told to move by people, so those reasons describe human travel.',
+  'Nature has no boundaries because':
+    'Wind, rivers and migrating animals carry **air, water and living things** across every border without stopping. Having no maps or no oceans is simply untrue, since both maps and oceans plainly exist.',
+  'Which of these best describes science?':
+    'Science is a **way of thinking, observing and doing** that helps us understand the world, so it is far wider than one subject or one room. Calling it a list of facts to memorise misses the questioning and testing at its heart.',
+  'In the scientific method, what do we do right after observing something and asking a question about it?':
+    'Once a question is formed, the next step is to **guess a possible answer**, called a hypothesis, which can then be tested. Writing a final answer at once skips the testing that decides whether the guess is right.',
+  'A pen stops writing. How would you test the guess that its ink has finished?':
+    'You test the guess by **opening the pen and checking the refill**, because only that shows whether the ink is truly finished. If ink remains, the guess was wrong, so you make a new one, such as dried ink, and test it another way.',
+  'A bicycle repair person looks for where air is leaking from a flat tyre, and an electrician checks whether the bulb or the switch is faulty. What are they both doing?':
+    'Both are **testing one idea at a time** to locate the fault, which is the scientific method used in daily life. Guessing without checking anything would leave them swapping parts at random.',
+  'A student notices that a plant kept near the window is bending towards the sunlight and wonders why. What is the next step of the scientific method the student should take?':
+    'After noticing and asking why, the next step is to **guess a possible answer**, such as the plant growing towards light. Writing a conclusion without testing skips the evidence that any conclusion must rest on.',
+  'Which of these best describes working like a scientist?':
+    'Working like a scientist means **testing a guess through experiments or more observations** before believing it. Accepting the first answer that comes to mind is the opposite, because a scientist checks before deciding.',
+  'Which everyday event can be explained by science?':
+    '**Ice melting in water** is a change of state that can be measured and explained by heat moving into the ice. A made-up story, a game rule or a festival name has no measurable cause to investigate.',
+  'Science helps us to':
+    'Knowing the pattern behind events lets us **understand and predict** them, like expecting ice to melt in a warm room. Memorising without thinking or ignoring evidence is the opposite of how science works.',
+  'What is the first step of a scientific study?':
+    'Every study begins with **noticing something and asking a question** about it. Writing the report or buying equipment comes much later, and a guess without a question has nothing to test.',
+  'Which is an observation, not an opinion?':
+    '**The plant grew 2 cm in a week** is a measurement anyone can repeat and check. Calling a plant the prettiest is a personal view, because beauty is not measured the same way by two people.',
+  'Which is the usual order of the scientific method?':
+    'A study starts with a **question**, moves to a testable **hypothesis**, then runs an experiment, and ends with a **conclusion** drawn from the results. Putting the conclusion first is backwards, since it must come out of evidence.',
+  'A hypothesis is':
+    'A hypothesis is a **testable possible answer** to a question, offered before any evidence is collected. A proven fact or a final conclusion comes after testing, so calling a guess either of those confuses the start with the end.',
+  'Why should an experiment be repeated?':
+    'Repeating an experiment shows whether the same result appears again, which is how we judge that it is **reliable**. Running it again just to use up materials or make it longer wastes effort without testing anything.',
+  'In a fair test, you change':
+    'A fair test keeps everything the same except **one thing**, so any change in the result can be traced to that single cause. Changing everything at once leaves you unable to tell which change caused what.',
+  'A scientist records results because':
+    'Written results let other people **check and repeat** the work, which is what makes evidence trustworthy. Writing neatly for its own sake misses the point, since notes matter because others can examine them.',
+  'What is meant by the biodiversity of a region?':
+    'Biodiversity counts the **variety of plants and animals** living in an area, so a forest with many species scores higher than a field with one crop. Counting people or measuring rainfall describes something else, not the living variety.',
+  'A rose plant has many brown, woody, hard stems that branch very close to the ground and are not as thick as a tree\'s stem. It belongs to which group?':
+    'A **shrub** has several woody stems branching close to the ground and stays shorter than a tree. A herb has a soft green stem, so hard brown wood rules that group out.',
+  'Describe the two patterns of venation in leaves and give one example of each.':
+    'In **reticulate venation** the veins branch into a net on both sides of the midrib, as in hibiscus, while **parallel venation** runs side by side, as in banana and grass. Reading a net pattern as parallel is the usual mix-up, since the two run in opposite ways.',
+  'Deodar trees in the Himalayas have a conical shape and sloping branches. How does this help them?':
+    'The **conical shape with sloping branches** lets snow slide off instead of piling up and snapping the wood. Roots growing above the soil or storing water in branches has nothing to do with that shape.',
+  'What does grouping mean when we study plants and animals?':
+    'Grouping means **arranging living things by their common features**, such as stem type or venation, so patterns become easy to see. Naming everything or pasting leaves in a scrapbook collects facts without sorting them.',
+  'Two students group the same set of plants differently: one uses height and the other uses the presence of flowers. What does this show?':
+    'Both groupings are valid because each student chose **different common features** as the basis, height in one case and flowers in the other. Saying only one can be correct ignores that grouping depends on the feature picked.',
+  'A plant has seeds with two cotyledons. Which combination of features is it most likely to show?':
+    'A seed with **two cotyledons** marks a dicot, which usually has **reticulate venation** and a **taproot**, as in mustard and hibiscus. Parallel veins with fibrous roots belong to monocots, so mixing one from each side contradicts the pattern.',
+  'Which of these plants is a monocot?':
+    '**Maize** is a grass, and grasses are monocots with one cotyledon, parallel veins and fibrous roots. Mustard, hibiscus and chickpea are dicots, so each of them carries two seed leaves.',
+  'Biodiversity means':
+    'Biodiversity is the **variety of living things** in a place, counting the species of plants, animals and microbes there. The size of a forest or the rainfall describes the setting, not the number of different species in it.',
+  'Which place is likely to have the most biodiversity?':
+    'A **tropical rainforest** stays warm and wet all year, so it supports a huge number of species in a small area. A sandy desert or a snowy peak is harsh and dry or cold, so far fewer species can live there.',
+  'Why do we group living things?':
+    'Grouping lets us **study them by shared features**, so we can compare a whole group at once instead of one at a time. Making lists longer or simply counting them brings no understanding of how the living things are alike.',
+  'A plant with a soft green stem and very short height is a':
+    'A **herb** has a soft green stem and stays short, like mint or grass. A tree or shrub has a hard woody stem, which this plant clearly does not have.',
+  'Which plant is a shrub?':
+    'A **rose bush** has several woody stems branching near the ground and no single tall trunk. Mint is a herb and a money plant is a climber, so neither matches that form.',
+  'Parallel venation means the veins run':
+    'In parallel venation the veins run **side by side** from the base to the tip without joining into a net. A net-like pattern is reticulate venation, so that description belongs to the other type.',
+  'Reticulate venation is usually found in plants with':
+    'Reticulate venation normally appears in dicots, which have **two seed leaves**, as in hibiscus and mango. A plant with one seed leaf usually shows parallel veins, so that pairing is reversed.',
+  'A monocot seed has':
+    'A monocot seed carries **one cotyledon**, the single seed leaf that feeds the young plant. Two cotyledons is the dicot rule, so that count belongs to the other group.',
+  'A camel survives in the desert because it':
+    'A camel **stores water and tolerates heat**, and the fat in its hump supplies energy when food is scarce. A thick coat for snow or a liking for rivers suits cold or wet places, not a desert.',
+  'A fish survives in water because it has':
+    'A fish takes oxygen dissolved in water through its **gills**, which is why it can keep breathing while submerged. Lungs or a fur coat suit land animals, so those features would fail underwater.',
+  'Which number shows that a number divisible by both 4 and 6 need not be divisible by 24?':
+    '12 = 4 x 3 = 6 x 2, so it is divisible by both 4 and 6, yet 12 / 24 is not a whole number, which makes **12** the counterexample. Picking 48 or 72 proves nothing, because both of those are themselves multiples of 24.',
+  'A number leaves a remainder of 3 when divided by 5. Which expression describes every such number, where n is a whole number?':
+    'Such a number is a multiple of 5 plus the leftover 3, so it has the form **5n + 3**, giving 3, 8, 13, 18 and 23 with remainder 3 each time. The form 3n + 5 fails because at n = 2 it gives 11, which leaves 1, not 3.',
+  'Using the alternating-sign digit sum test, find the remainder when 328105 is divided by 11.':
+    'Reading from the right, 5 - 0 + 1 - 8 + 2 - 3 = -3, and -3 + 11 = **8**, so 328105 leaves remainder 8. Answering 0 comes from adding the digits plainly as 3+2+8+1+0+5 = 19, which is the test for 3 and 9, not for 11.',
+  'If the number 4z2 is a multiple of 9, where z is a digit, find the value of z and explain your reasoning.':
+    'The digit sum is 4 + z + 2 = 6 + z, and the only digit making that a multiple of 9 is **3**, since 6 + 3 = 9, so 432 = 9 x 48. Saying z = 6 hunts for 6 + z = 12 without noticing that 12 is not a multiple of 9.',
+  'A number is divisible by 2 if':
+    'The ones digit decides the pairing, so a number is divisible by 2 exactly when its **last digit is even**, that is 0, 2, 4, 6 or 8, as in 348 and 2650. Ending in 5 signals a multiple of 5 instead, and a digit sum belongs to the rules for 3 and 9.',
+  'A number is divisible by 9 when':
+    'Every power of 10 leaves remainder 1 on division by 9, so a number and its **digit sum** leave the same remainder, as 432 shows with 4 + 3 + 2 = 9. Counting digits, or looking at the last digit, copies the ones-digit tests for 2, 5 and 10 instead.',
+  'How many factors does a prime number have?':
+    'A prime such as 7 is divisible only by 1 and by itself, so it has exactly **two** factors. Answering one forgets that 1 divides every number, and three or many describes a square or composite such as 9 or 12.',
+  'What does a digit in the tens place represent?':
+    'Each step to the left multiplies the face value by 10, so the 4 in 47 stands for 4 x 10 = 40, which is **ten times its face value**. One tenth of its face value reverses the direction, and that is what the tenths place after a decimal point does.',
+  'A number is divisible by 5 if':
+    'The multiples of 5 run 5, 10, 15, 20, so the ones digit is always 0 or 5, and the test is **its last digit is 0 or 5**. Being even settles division by 2 only, and a digit sum of 5 fails on 23, which has 2 + 3 = 5 but is not a multiple of 5.',
+  'Is 4,356 divisible by 3?':
+    'The digit sum is 4 + 3 + 5 + 6 = 18, and 18 / 3 = 6, so 4,356 is **divisible by 3** because it equals 3 x 1452. Rejecting it for being even applies the rule for 2, and nothing about 3 requires the last digit to be 3.',
+  'The HCF of 12 and 18 is':
+    '12 = 2 x 2 x 3 and 18 = 2 x 3 x 3, so the shared factors are one 2 and one 3, giving 2 x 3 = **6**. The answer 36 is the LCM of the pair, not the HCF, and 3 stops one shared factor short.',
+  'The number 3a has value':
+    'In the two-digit number 3a the 3 sits in the tens place, so it is worth 3 x 10 = 30 and the number equals **30 + a**. Writing 3 + a treats that 3 as a units digit, and 3a x 10 would push the number into the hundreds.',
+  'Which percentage is equal to the fraction 3/8?':
+    'Multiply by 100: 3/8 x 100 = 300/8 = **37.5%**, which the decimal 0.375 confirms. The figure 33.3% belongs to 1/3, and 62.5% is 5/8, the part left over from the whole.',
+  'Which of these is equal to 0.125?':
+    'Percent means per hundred, so 0.125 x 100 = **12.5%**, matching 125/1000 = 1/8. Writing 0.125% shifts the point the wrong way and makes the value a hundred times too small.',
+  'A school has 750 students, and 12% of them come to school by bus. How many students come by bus?':
+    '12% of 750 = 12/100 x 750 = 0.12 x 750 = **90 students**, so 90 students travel by bus. The answer 75 comes from taking 10% and stopping there, and 88 is a two-student slip in that subtraction.',
+  'A shopkeeper buys a chair for ₹1,200 and sells it for ₹1,500. Find his profit and his profit per cent.':
+    'Profit = 1500 - 1200 = 300 rupees, and profit per cent = 300/1200 x 100 = **25%**, since the percentage is always taken on the cost price. Dividing by the selling price 1500 instead gives 20%, which is the usual slip.',
+  'What is 3/4 as a percentage?':
+    '3/4 x 100 = 300/4 = **75%**, and the decimal 0.75 x 100 gives the same figure. Reading the fraction as the digits 3 and 4 in order produces 34%, and 80% is really 4/5.',
+  'Which decimal is equal to 40%?':
+    '40% = 40/100 = **0.4**, because dividing by 100 moves the point two places left. Answering 0.04 divides by 1000 instead, and 4.0 multiplies by 10.',
+  'What is 25% of 240?':
+    'Since 25% = 1/4, the share is 240 / 4 = **60**, which matches 0.25 x 240. Choosing 96 means working out 40% instead, and 50 is a slip while dividing by 4.',
+  'An item bought for 200 rupees is sold for 250 rupees. What is the profit percent?':
+    'Profit = 250 - 200 = 50 rupees, and profit per cent = 50/200 x 100 = **25%**. The answer 20% divides the profit by the selling price 250, and 50% simply repeats the profit of 50 as a percentage.',
+  'What is 7/10 as a percentage?':
+    '7/10 x 100 = 700/10 = **70%**, and the decimal 0.7 written per hundred agrees. Copying the digits in reverse gives 17%, and 7% drops the 10 in the denominator.',
+  'Which fraction equals 0.25?':
+    '0.25 = 25/100, which reduces by 25 to **1/4**, and a quarter of 100 is 25. The fraction 1/2 gives 0.5, double the value, while 1/5 gives 0.2, which is smaller.',
+  'What is 15% of 200?':
+    '15% of 200 = 15/100 x 200 = 15 x 2 = **30**, because 200/100 = 2. Answering 15 repeats the per cent as the answer, and 20 is the 10% share, not the 15% share.',
+  'An item priced at 500 rupees is sold at 450 rupees. What is the loss percent?':
+    'Loss = 500 - 450 = 50 rupees, and loss per cent = 50/500 x 100 = **10%**, taken on the cost price 500. The answer 50% treats the loss of 50 as if the cost were 100, and 5% divides by 1000.',
+  'A square has side 5 cm. A new square is drawn on its diagonal. What is the area of the new square?':
+    'The diagonal squared is 5^2 + 5^2 = 25 + 25 = 50, and the square on the diagonal has area **50 cm^2**. The answer 25 cm^2 is the area of the original square, which measures the side and not the diagonal.',
+  'A square of side 10 cm is replaced by a square of half its area. Between which two whole centimetres does the side of the new square lie?':
+    'The original area is 100 cm^2, half of it is 50 cm^2, and the side is root 50 = 7.07 cm, so it lies between **7 cm and 8 cm**. Choosing 5 cm and 6 cm halves the side rather than the area, which would leave only 25 cm^2.',
+  'A ladder 13 m long rests against a vertical wall with its foot 5 m away from the wall. How high up the wall does the ladder reach?':
+    '13^2 - 5^2 = 169 - 25 = 144, and root 144 = **12 m**, so the top of the ladder is 12 m up. Answering 14 m adds the squares as 169 + 25 and treats the foot distance as the other leg.',
+  'The hypotenuse of an isosceles right triangle is 12 cm. Find the area of the square drawn on one of the equal sides.':
+    'The square on the hypotenuse has area 12 x 12 = 144 cm^2 and, in an isosceles right triangle, that equals twice the square on an equal side, so 144 / 2 = **72 cm^2**. Answering 144 cm^2 forgets that the hypotenuse is the longest side, so its square is the larger one.',
+  'Baudhayana\'s theorem states that in a right triangle the square on the hypotenuse equals':
+    'The rule says the square on the diagonal equals **the sum of the squares on the other two sides**, so a 3-4-5 triangle gives 25 = 9 + 16. Taking the difference is the step used to recover a missing leg, not the statement of the theorem.',
+  'An isosceles right triangle has equal sides 3 cm. What is the hypotenuse?':
+    'The legs give 3^2 + 3^2 = 9 + 9 = 18, and root 18 simplifies to **3 root 2 cm**, about 4.24 cm. Answering 6 cm doubles the leg instead of using Pythagoras, and 9 is the sum of the squares, not the hypotenuse.',
+  'To double the area of a square, its side must be multiplied by':
+    'If the side grows k times, the area grows k^2 times, so k^2 = 2 and k is **the square root of 2**, about 1.41. Multiplying the side by 2 makes the area four times as large, and multiplying by 1 changes nothing.',
+  'Joining the midpoints of a square gives a new square whose area is':
+    'For a square of side s the midpoint square has side s / root 2, so its area is s^2 / 2, which is **half of the original**. Answering one quarter halves the side itself rather than the area.',
+  'In a right triangle the sides are 6 cm and 8 cm. The hypotenuse is':
+    '6^2 + 8^2 = 36 + 64 = 100, and root 100 = **10 cm**. Adding the legs as 6 + 8 = 14 is the perimeter habit, and 48 is their product rather than the hypotenuse.',
+  'If the hypotenuse of an isosceles right triangle is 10 cm, each equal side is':
+    'Each leg x satisfies x^2 + x^2 = 100, so 2x^2 = 100, x^2 = 50 and x = root 50 = **5 root 2 cm**, about 7.07 cm. Choosing 5 cm halves the hypotenuse instead of dividing it by root 2.',
+  'A square of side 4 cm has area 16 square cm. A square of double that area has side':
+    'Double the area is 32 cm^2, so the side is root 32 = **4 root 2 cm**, about 5.66 cm. Doubling the side to 8 cm gives 64 cm^2, which is four times the original area.',
+  'A square of side 6 cm is halved in area. The new side is':
+    'The area drops from 36 to 18 cm^2, so the new side is root 18 = **3 root 2 cm**, about 4.24 cm. Halving the side to 3 cm quarters the area and leaves only 9 cm^2.',
+  'A map has the representative fraction 1 : 60,00,000. What actual distance does 1 cm on the map represent?':
+    '1 cm stands for 60,00,000 cm, and 60,00,000 / 100 gives 60,000 m, which is 60,000 / 1000 = **60 km**. The answer 600 km slips one place value while converting metres to kilometres.',
+  'The angles of a triangle are in the ratio 1 : 3 : 5. What is the measure of the largest angle?':
+    'The parts total 1 + 3 + 5 = 9, and 180 / 9 = 20 degrees per part, so the largest angle is 5 x 20 = **100 degrees**. Answering 90 degrees assumes the biggest angle must be a right angle and ignores the split.',
+  'Six workers can build a wall in 12 days. How many days will nine workers take to build the same wall, working at the same rate?':
+    'The wall needs 6 x 12 = 72 worker-days, so 9 workers finish it in 72 / 9 = **8 days**, since more workers means less time. Answering 18 days multiplies the workers instead of dividing and treats the case as direct proportion.',
+  '₹2,700 is divided among A, B and C in the ratio 2 : 3 : 4. How much does C receive?':
+    'The parts total 2 + 3 + 4 = 9, so 2700 / 9 = 300 per part and C takes 4 x 300 = **1,200 rupees**. The answer 900 is B\'s share of three parts, and 1,350 simply halves the money instead of taking C\'s four parts.',
+  'A map scale of 1 : 100000 means 1 cm on the map represents':
+    '1 cm on the map is 100000 cm on the ground, and 100000 cm = 1000 m = **1 km**. Reading it as 100 km mistakes centimetres for kilometres and loses a factor of 100000.',
+  'A sum of 120 rupees is shared in the ratio 1 : 2 : 3. What is the largest share?':
+    'The parts total 1 + 2 + 3 = 6, so each part is 120 / 6 = 20 rupees and the largest share is 3 x 20 = **60 rupees**. The answer 40 rupees is the middle share of two parts, not the biggest one.',
+  'Divide 90 in the ratio 2 : 7. The parts are':
+    'The parts total 2 + 7 = 9, so each part is 90 / 9 = 10 and the shares are 2 x 10 = 20 and 7 x 10 = **70**, that is 20 and 70. Splitting into 30 and 60 uses the ratio 1 : 2 and ignores the given 2 : 7.',
+  'Two quantities are in inverse proportion when one increases and the other':
+    'In inverse proportion the product stays constant, so doubling one quantity halves the other, which is why it **decreases in the same ratio**. Saying the other also increases describes direct proportion, where the ratio of the two stays fixed.',
+  'On a map with scale 1 : 50000, 2 cm represents':
+    '2 cm on the map is 2 x 50000 = 100000 cm on the ground, and 100000 cm = **1 km**. The answer 500 m measures only 1 cm of the 2 cm taken, and 5 km loses a factor of 10.',
+  'If a : b : c = 2 : 3 : 5 and the total is 100, then c is':
+    'The parts total 2 + 3 + 5 = 10, so one part is 100 / 10 = 10 and c = 5 x 10 = **50**. Choosing 60 reads c as six parts, which would push the total past 100.',
+  'Divide 63 in the ratio 4 : 5. The larger part is':
+    'The parts total 4 + 5 = 9, so one part is 63 / 9 = 7 and the larger share is 5 x 7 = **35**. The answer 28 is the smaller share of four parts, and 45 comes from splitting into 7 parts instead of 9.',
+  'If 6 workers finish a job in 10 days, 12 workers will take':
+    'The job needs 6 x 10 = 60 worker-days, so 12 workers take 60 / 12 = **5 days**, half the time for double the workers. Answering 20 days doubles the days along with the workers, which applies direct proportion to an inverse case.',
+  'Which expression is equal to 7 × 98?':
+    '7 x 98 = 7 x (100 - 2) = **7 x 100 - 7 x 2**, because 700 - 14 = 686 is the true product. The distractor 7 x 90 + 8 treats 98 as 90 + 8 but forgets to multiply the 8 by 7, landing on 638.',
+  'Using the identity (a + b)(a − b) = a^2 − b^2, what is (x + 5)(x − 5)?':
+    'With a = x and b = 5 the identity gives x^2 - 5^2, so the answer is **x^2 - 25** because the +5x and -5x terms cancel. The choice x^2 + 25 treats the rule as a^2 + b^2, adding 25 instead of subtracting it.',
+  'Use a suitable identity to compute 96 × 104.':
+    '96 x 104 = (100 - 4)(100 + 4) = 10000 - 16 = **9984**, since the cross terms cancel in the difference-of-squares identity. The answer 10016 comes from adding 16 to 10000, which is what (100 + 4)(100 + 4) would give.',
+  'Expand (3x + 2)(3x − 2). Then use the same identity to find the value of 32 × 28.':
+    '(3x + 2)(3x - 2) = (3x)^2 - 2^2 = **9x^2 - 4**, and 32 x 28 = (30 + 2)(30 - 2) = 900 - 4 = 896. Dropping the b^2 term leaves 9x^2 alone, the usual slip when the last square is forgotten.',
+  'Expand (x + 5)^2.':
+    '(x + 5)^2 = x^2 + 2(x)(5) + 5^2 = **x^2 + 10x + 25**, and the doubling of the middle term is the step that matters. Writing x^2 + 5x + 25 forgets the factor 2 in 2ab, so the middle term comes out half as large.',
+  'Which equation shows the distributive property?':
+    'The distributive property spreads a factor over a sum, so 3 x (4 + 5) = **3 x 4 + 3 x 5** with both sides equal to 27. The line 3 x 4 = 4 x 3 shows the commutative property, which only swaps the order of the factors.',
+  'If one factor is doubled and the other stays the same, the product':
+    'Writing the product as a x b, doubling one factor gives (2a) x b = 2(ab), so it **doubles**. Saying it becomes four times as large confuses this with doubling both factors at once.',
+  'What does this chapter show about different methods of multiplication?':
+    'Long multiplication, splitting by place value and using algebraic identities are all rearrangements of the same product, so **they all give the same product**. The claim that the answers differ ignores that only the layout changes, never the value.',
+  'Expand (a - b)^2.':
+    '(a - b)(a - b) = a^2 - ab - ba + b^2 = **a^2 - 2ab + b^2**, with the two middle terms adding to -2ab. The choice a^2 + 2ab + b^2 copies the (a + b)^2 expansion and keeps the wrong sign on the middle term.',
+  'Use the distributive property: 7 x 102 =':
+    '7 x 102 = 7 x (100 + 2) = 700 + 14 = **714**, since the 7 is shared over both parts of the sum. The answer 702 comes from multiplying only 7 x 100 and then adding a bare 2 instead of 7 x 2.',
+  'If both factors of a product are doubled, the product becomes':
+    'Doubling both factors gives (2a)(2b) = 4ab, so the product becomes **four times as large**. Saying twice as large counts the doubling of only one factor and ignores the other.',
+  'Which property lets you split 6 x 14 into 6 x 10 + 6 x 4?':
+    'Breaking 6 x 14 into 6 x 10 + 6 x 4 shares the 6 over the sum 10 + 4, which is **the distributive property**. The commutative property only swaps the order of two factors and cannot split a number into parts.',
+  'Both terms of the ratio 3 : 5 are multiplied by 7. How does the new ratio 21 : 35 compare with 3 : 5?':
+    '21/35 simplifies back to 3/5, so multiplying both terms by the same number leaves **the same ratio**. Calling it 7 times the original forgets that the two terms grew together, so their comparison never changed.',
+  'What is the ratio 72 : 96 in its simplest form?':
+    'Divide both terms by their highest common factor 24: 72/24 = 3 and 96/24 = 4, so the answer is **3 : 4**. Stopping at 6 : 8 still has a common factor of 2 left, so it is not in simplest form.',
+  'A car covers 180 km in 4 hours at a steady speed. At the same speed, how long will it take to cover 405 km?':
+    'The speed is 180/4 = 45 km/h, so 405 km takes 405/45 = **9 hours**. Choosing 8 hours would need a speed of about 50.6 km/h, faster than the car is actually travelling.',
+  '₹4,200 is shared between Ravi and Meena in the ratio 3 : 4. How much does each of them get?':
+    'The 3 + 4 = 7 equal parts make one part 4200/7 = 600 rupees, so Ravi gets 3 x 600 = 1800 and Meena 4 x 600 = 2400, that is **1800 rupees and 2400 rupees**. Splitting the amount as 2100 each would make the shares equal and lose the 3 : 4 ratio.',
+  'If 3 pens cost 30 rupees, what do 7 pens cost at the same rate?':
+    'Three pens for 30 rupees means 10 rupees per pen, so seven pens cost 7 x 10 = **70 rupees**. The answer 63 rupees treats the price of a pen as 9 rupees, a slip in dividing 30 by 3.',
+  'A recipe for 4 people needs 200 g of rice. How much is needed for 10 people?':
+    'Four people need 200 g, so one person needs 50 g and ten people need 10 x 50 = **500 g**. The answer 400 g doubles 200 g as though the number of people had only doubled instead of rising two and a half times.',
+  'How many metres are there in 2.5 kilometres?':
+    'One kilometre is 1000 m, so 2.5 km = 2.5 x 1000 = **2500 m**. The answer 250 m moves the decimal one place the wrong way, as if a kilometre were only 100 m.',
+  'Write the ratio 18 : 24 in its simplest form.':
+    'Both terms divide by 6, giving 18/6 = 3 and 24/6 = 4, so the ratio is **3 : 4**. The choice 2 : 3 comes from cancelling a different number from each term, which changes the value instead of simplifying it.',
+  'If 5 books cost 250 rupees, the cost of 8 books is':
+    'Five books for 250 rupees means 50 rupees per book, so eight books cost 8 x 50 = **400 rupees**. The answer 350 rupees charges only about 33 rupees for each extra book instead of the same 50.',
+  'A car covers 180 km in 3 hours. How far in 5 hours at the same speed?':
+    'The speed is 180/3 = 60 km/h, so in 5 hours the car covers 5 x 60 = **300 km**. The answer 270 km implies a speed of 54 km/h, which does not match the three-hour journey given.',
+  'How many grams are there in 3.5 kilograms?':
+    'One kilogram is 1000 g, so 3.5 kg = 3.5 x 1000 = **3500 g**. The answer 350 g shifts the decimal one place too far, as if a kilogram held only 100 g.',
+  'Simplify the ratio 45 : 60.':
+    'The highest common factor of 45 and 60 is 15, and 45/15 = 3 with 60/15 = 4, so the ratio is **3 : 4**. Stopping at 9 : 12 leaves the factor 3 uncancelled, and 5 : 6 changes the value rather than simplifying it.',
+  'The changing shapes of the bright part of the Moon seen from the Earth from one day to the next are called':
+    'The Moon always keeps the same face towards us, but the sunlit part we see changes shape night by night, and these shapes are **the phases of the Moon**. The orbit is the path the Moon travels around the Earth, not the pattern of light we see.',
+  'After a full Moon day, the bright portion of the Moon keeps decreasing for about two weeks. This period is called':
+    'The fortnight from full moon down to new moon, when the lit portion shrinks, is the **waning period (Krishna Paksha)**. The waxing period (Shukla Paksha) is the other half of the month, when the lit part grows from new to full.',
+  'Twelve lunar months add up to about 354 days, while a solar year is about 365 days. How do luni-solar calendars stay in step with the seasons?':
+    'Twelve lunar months fall about 11 days short of the solar year, so **an extra intercalary month (Adhika Maasa) is added every two to three years**. Adding a day to February belongs to the solar Gregorian calendar, which follows the Sun alone.',
+  'What is the mean solar day, and which natural motion is it based on?':
+    'The mean solar day is the average time from the Sun\'s highest position one day to its highest position the next, about 24 hours, and it rests on the **rotation of the Earth about its own axis**. Confusing it with the year would instead use the Earth\'s orbit around the Sun.',
+  'The Moon\'s phases are caused by':
+    'The Moon shines only by reflected sunlight, so **its changing position relative to the Sun and Earth** decides how much of the lit half faces us. The Earth\'s shadow falls on the Moon only during a lunar eclipse, not on ordinary nights.',
+  'About how long is one complete cycle of Moon phases?':
+    'From one new moon through full and back to new takes about 29.5 days, so one cycle is **about 29 to 30 days**. The figure of 365 days is a solar year, the Earth\'s own journey around the Sun.',
+  '\'Waxing\' means the lit part of the Moon is':
+    'Waxing describes the lit part of the Moon **growing bigger** night by night, from new moon towards full moon. Reading it as getting smaller describes the waning half of the month instead.',
+  'The Moon is not visible on the night of':
+    'At new moon the Moon sits between the Earth and the Sun, so its lit half faces away from us and it is **the new moon** that cannot be seen. At full moon the whole lit face is turned towards the Earth, the brightest night of the month.',
+  'A lunar calendar is based on':
+    'A lunar calendar counts months by **the phases of the Moon**, each month running from one new moon to the next in about 29.5 days. The Earth\'s orbit alone belongs to a solar calendar, which fixes the year but not the month.',
+  'A luni-solar calendar keeps track of':
+    'A luni-solar calendar follows **both Moon phases and the solar year**, keeping lunar months but adding an extra month so festivals stay in their season. Following only the Moon would let the calendar drift about 11 days a year.',
+  'One solar day is the time the Earth takes to':
+    'A solar day runs from noon to noon, that is **one rotation of the Earth relative to the Sun**, about 24 hours. Orbiting the Sun once is a year, which is roughly 365 times longer.',
+  'One year is the time the Earth takes to':
+    'A year is the time the Earth takes to **orbit the Sun once**, about 365 and a quarter days. Rotating once on its axis is a single day, a far shorter motion.',
+  'In a pond habitat, which of the following is an abiotic component?':
+    'Water is non-living, so it is the **abiotic** part of the pond, while fish, algae and duckweed are all living and therefore biotic. Counting algae as abiotic mistakes a living, food-making plant for the water around it.',
+  'Different populations of plants, animals and microorganisms living together and interacting in the same habitat form a':
+    'Several different populations sharing a habitat and interacting make up a **community**, the living part of an ecosystem. A population holds only one species, so that label misses all the other organisms present.',
+  'What would happen in a forest ecosystem if all the decomposers suddenly disappeared?':
+    'Decomposers break dead matter into minerals, so without them dead plants and animals would **pile up and nutrients would not return to the soil**. Expecting richer soil assumes dead matter rots by itself, but the minerals stay locked inside it.',
+  'Orchids grow on the branches of a large tree. Name this type of interaction and explain how each organism is affected.':
+    'The orchid gains physical support from the branch while the tree is neither helped nor harmed, which is **commensalism**. Calling it mutualism would claim the tree benefits too, but a branch gains nothing from the orchid.',
+  'Which is an abiotic component of an ecosystem?':
+    'Sunlight is non-living, so it is an **abiotic** part of the ecosystem, while grass, deer and bacteria are all living. Listing bacteria as abiotic mistakes a microorganism for a non-living factor.',
+  'Biotic components are':
+    'Biotic components are **the living parts of an ecosystem**, which includes plants, animals, fungi and microorganisms. Limiting them to plants or to animals leaves out whole groups such as the decomposers.',
+  'All the deer in a forest form a':
+    'All the deer of one species in a forest make a **population**, a group of the same kind living together. A community would need the other species as well, such as the grass they eat and the tigers that hunt them.',
+  'An ecosystem includes':
+    'An ecosystem is **living things and their non-living surroundings**, so the community plus soil, water, air and sunlight. Counting only the plants leaves out the animals, the microbes and the physical habitat.',
+  'A relationship where both species benefit is called':
+    'When both partners gain, as a bee does from nectar and a flower from pollination, the relationship is **mutualism**. Parasitism has a similar close association but leaves one partner harmed.',
+  'In parasitism':
+    'In **parasitism** one organism lives on or in another, feeds at its expense and harms it, as a tick does on a dog. Claiming both benefit describes mutualism, where the host would gain rather than lose.',
+  'In a food chain, green plants are':
+    'Green plants make their own food by photosynthesis, so they stand at the base of a food chain as **producers**. Calling them consumers ignores that they do not eat other organisms for energy.',
+  'Decomposers are important because they':
+    'Fungi and bacteria break dead matter into simple minerals and **return nutrients to the soil** for plants to use again. Eating living animals is the work of predators, not of decomposers.',
+  'The range of distances from a star over which water remains liquid is called the':
+    'The band of distances where a planet receives just enough starlight for liquid water is **the habitable zone**. The hydrosphere is the water on a planet itself, not the belt of distances around a star.',
+  'How does the ozone layer help in sustaining life on Earth?':
+    'Ozone in the stratosphere absorbs most incoming ultraviolet radiation, so **it blocks harmful ultraviolet rays coming from the Sun**. Trapping heat is the greenhouse effect, a different role played by gases such as carbon dioxide.',
+  'The greenhouse effect on Earth is mild and keeps the temperature just right. What would happen if the Earth had no atmosphere at all?':
+    'Without an atmosphere there is no blanket to hold radiated heat, so **the Earth would lose heat to space and become too cold**. The idea that it would get hotter ignores that the atmosphere also keeps warmth in.',
+  'What is meant by the triple planetary crisis? Name its three parts.':
+    'The three linked environmental emergencies that together threaten life are the **triple planetary crisis: climate change, biodiversity loss and pollution**. Naming only climate change leaves out the species loss and the pollution pressing on the same ecosystems.',
+  'The habitable zone is the region around a star where':
+    'The habitable zone is the range of distances where **water can exist as a liquid**, neither boiling away nor freezing solid. A region of zero gravity does not exist near a star, since gravity weakens with distance but never vanishes.',
+  'Why is Earth\'s distance from the Sun important for life?':
+    'Earth sits where sunlight is neither too intense nor too weak, so **it keeps temperatures suitable for liquid water**, the condition life needs. The speed of spin is set by the Earth\'s rotation, not by how far it lies from the Sun.',
+  'The ozone layer protects life from':
+    'The ozone layer absorbs ultraviolet light high in the stratosphere, so it shields life from **harmful ultraviolet rays** that damage DNA and skin. It does nothing about meteorites, which burn up lower in the atmosphere.',
+  'Earth\'s magnetic field helps by':
+    'The magnetic field turns aside the charged particles of the solar wind, so **deflecting charged particles from the Sun** keeps the atmosphere from being stripped away. It does not create oxygen, which comes from photosynthesis and ancient volcanic release.',
+  'Which is a renewable resource?':
+    'Sunlight is constantly renewed by the Sun, so **solar energy** is renewable, unlike coal, petroleum and natural gas. Those three are fossil fuels formed over millions of years and will not be replaced within human time.',
+  'Why must we conserve non-renewable resources?':
+    'Coal, oil and gas formed from buried remains over millions of years, so **they take millions of years to form** and are used far faster than they are made. Believing they are easy to replace ignores that no new supply is being created now.',
+  'Why is reproduction essential for a species?':
+    'Reproduction passes genetic material to the next generation, so **it keeps the species from dying out** as individuals age and die. Producing food is nutrition, a function of the individual, not of reproduction.',
+  'Which is the biggest threat to life on Earth today?':
+    'Habitat destruction and pollution remove the places and conditions species need, so **loss of habitats and pollution** is the biggest threat today. Too much rainfall is a local weather event, not the worldwide driver of extinction.',
 };

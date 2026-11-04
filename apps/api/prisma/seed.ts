@@ -22641,7 +22641,7 @@ const scienceQuestions = [
       answer: '2/5',
       marks: 1,
       difficulty: 'MEDIUM',
-      options: [{ text: '2/5', isCorrect: true }, { text: '6/15', isCorrect: false }, { text: '5/8', isCorrect: false }, { text: '1/2', isCorrect: false }],
+      options: [{ text: '2/5', isCorrect: true }, { text: '6/9', isCorrect: false }, { text: '5/8', isCorrect: false }, { text: '1/2', isCorrect: false }],
     }),
     question('7', MATHS, 'Working with Fractions', {
       type: 'MCQ',
