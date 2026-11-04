@@ -64,6 +64,20 @@ to the model and costs a request.
 It returns `null` when the question is not about the open material, which is what
 sends it to the model instead of recycling the wrong notes.
 
+**What "the book" is for a concept.** A concept used to have two possible sources of
+notes: its own `ContentItem`s, or - when it had none - the chapter's. 847 of the
+1,089 concepts had none, so a question about *that concept* was answered from notes
+written for the whole chapter. The concept micro-notes (848 of them, stored as a
+`NOTES` item titled `<concept> - Key Idea`) close that: a concept that had nothing
+now has three lines about itself, and they are what `ctx.notes` carries, so both the
+instant answer and the model prompt are grounded in the concept rather than the chapter.
+
+Measured on concepts whose micro-note is their only content: **reply in 6-8 ms**,
+with **100%** of the note's content words present in the reply - the answer is the
+note, reformatted. Guard: `node scripts/qa/probe-concept-grounding.mjs` (it reports a
+concept that has its own chapter-level notes as *skipped*, not passed, so the guard
+cannot be satisfied by the wrong source).
+
 ## Step 3 — the student's own data
 
 "What am I weak in?" reads `ConceptMastery` for the caller (levels `WEAK` and

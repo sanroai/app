@@ -64,6 +64,7 @@ node scripts/qa/validate-question-fragments.mjs --dir artifacts/qa/<date>  # Che
 node scripts/qa/merge-question-fragments.mjs --dir artifacts/qa/<date>  # Merge questions-*.json into the seed + concept map
 node scripts/qa/probe-practice-scoring.mjs     # Starts a practice set, answers it correctly, checks the server scores 100
 node scripts/qa/probe-review-queue.mjs         # Spaced review + practice feedback end to end (queue, start, answer, submit, reschedule)
+node scripts/qa/probe-concept-grounding.mjs    # The tutor answers from a concept's own micro-note, not the model
 npx tsx scripts/qa/audit-question-explanations.mts  # Authored / notes-quoted / answer-only explanation coverage
 node scripts/qa/apply-question-explanations.mjs     # Apply the seed's authored explanations to an existing DB (no re-seed)
 node scripts/qa/export-explanations-input.mjs --list # Chapters still needing authored explanations, with counts
