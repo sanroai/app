@@ -1604,14 +1604,16 @@ async getConceptDetail(user: RequestUser, conceptId: string) {
 
     // Preference order: the concept's own unseen questions, then unseen siblings
     // (new material), and only then the questions the student just answered.
-    // The window is a few wider than the set so that a question dropped as a repeat
-    // (see `withoutRepeats`) is replaced rather than shrinking the set.
-    const candidates =
+    // Repeats are dropped *before* the set is cut, so a question that asks the same
+    // thing as one already chosen is replaced by the next candidate in the same
+    // preference order - never by jumping ahead to a question the student just
+    // answered, and never by handing out a shorter set.
+    const ordered =
       conceptQuestions.length === 0
-        ? [...freshSiblings, ...recentSiblings].slice(0, take + 4)
-        : [...freshConcept, ...freshSiblings, ...recentConcept, ...recentSiblings].slice(0, targetSize + 4);
+        ? [...freshSiblings, ...recentSiblings]
+        : [...freshConcept, ...freshSiblings, ...recentConcept, ...recentSiblings];
 
-    let questions = candidates;
+    let questions = withoutRepeats(ordered).slice(0, targetSize);
     // A concept practice always credits the concept the student picked: if every
     // question of it was answered recently, one comes back rather than a set made
     // only of other concepts.
