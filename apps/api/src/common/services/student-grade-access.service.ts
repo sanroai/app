@@ -2,6 +2,7 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RequestUser } from '../types/auth-context';
 import { StudentIdentityService } from './student-identity.service';
+import { ResponseCacheService } from '../cache/response-cache.service';
 
 /**
  * The classes a signed-in student may read.
@@ -41,7 +42,23 @@ export class StudentGradeAccessService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly identity: StudentIdentityService,
+    private readonly cache: ResponseCacheService,
   ) {}
+
+  /**
+   * Drop the cached learning payloads of the student whose classes changed.
+   *
+   * `/learning/home`, the chapter list and the path are cached per account for a
+   * short time, so adding a class would otherwise stay invisible to the student
+   * (and to the admin who just changed it) until the entry expired.
+   */
+  private async invalidateStudent(studentId: string): Promise<void> {
+    const student = await this.prisma.student.findUnique({
+      where: { id: studentId },
+      select: { userId: true },
+    });
+    if (student?.userId) this.cache.invalidateAccount(student.userId);
+  }
 
   /** Access of the signed-in user (unrestricted for anyone who is not a student). */
   async forUser(user: RequestUser): Promise<GradeAccess> {
@@ -101,6 +118,7 @@ export class StudentGradeAccessService {
           ]
         : []),
     ]);
+    await this.invalidateStudent(studentId);
   }
 
   /** Add one enrolment without touching the others. */
@@ -112,5 +130,6 @@ export class StudentGradeAccessService {
       update: {},
       create: { studentId, grade: value },
     });
+    await this.invalidateStudent(studentId);
   }
 }
