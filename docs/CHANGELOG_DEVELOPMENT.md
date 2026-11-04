@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-04 — Concept micro-notes: 281 concepts get their own three-line note
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-04 |
+| Task | Give the concepts that have no content of their own a note about *that concept* instead of the chapter's |
+| Reason | 847 of the 1,089 concepts carry no content, so their page fell back to the chapter's notes - written for the chapter, which rarely answers "what is this concept?" |
+| Entities affected | `ContentItem` (type NOTES), `ContentAssignment` |
+| Database changes | Production and dev: **281** NOTES items created (`<concept> - Key Idea`), each assigned to every institution |
+| API changes | **New** `POST /content/concept-notes/sync` (SUPER_ADMIN, idempotent) |
+| Frontend changes | none - the concept page already renders NOTES items |
+| Seed/import changes | New map `apps/api/src/content/concept-notes.ts` (keyed `<chapter code>\|<concept name>`), applied by `seedConceptMicroNotes` on a fresh install; new tooling `export-concept-notes-input.mjs` / `merge-concept-notes.mjs` |
+| Migration | none |
+| Verification | Production sync `{"authored":281,"created":281,"missing":0}`; a live concept payload returns the note (e.g. *Neutralisation*: "What it is / Why it works / Common mistake"); explanations unchanged at `3335/3335` |
+| Known issues | 566 concepts still need a micro-note (classes 1-7 and part of 8-10). Content visibility is the subtle part: platform content reaches an institution-bound student **only through an assignment**, so each note is `PUBLIC` + `directSanroAvailable` + assigned to every institution - an institution-scoped row with no institution is filtered out |
+
 ### 2026-11-04 — Every question now has a written explanation (3,335 / 3,335)
 
 | Field | Detail |

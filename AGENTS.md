@@ -69,6 +69,9 @@ node scripts/qa/apply-question-explanations.mjs     # Apply the seed's authored 
 node scripts/qa/export-explanations-input.mjs --list # Chapters still needing authored explanations, with counts
 node scripts/qa/export-explanations-input.mjs --codes SCI-8-1,SCI-8-2 --out artifacts/qa/explanations/input-a.json
 node scripts/qa/merge-explanations.mjs --dir artifacts/qa/explanations  # Validate + merge authored explanation files
+node scripts/qa/export-concept-notes-input.mjs --list # Concepts still needing a micro-note, with counts
+node scripts/qa/export-concept-notes-input.mjs --grade 10 --out artifacts/qa/concept-notes/input-a.json
+node scripts/qa/merge-concept-notes.mjs --dir artifacts/qa/concept-notes  # Validate + merge concept micro-notes
 node scripts/qa/probe-latency.mjs              # Cold vs warm latency per screen against a live API
 node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths codes with the 2026 book (14 chapters)
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
@@ -579,9 +582,10 @@ Android 11+.
   survives so that concept's mastery row updates. Selection is Fisher-Yates
   shuffled (no comparator shuffle), auto-gradable first.
 - **Hot read payloads are cached 30 s per account**
-  (`common/cache/response-cache.service.ts`) and invalidated on practice submit
-  and lesson complete/undo. Never cache `/learning/path`, `/learning/progress`,
-  `/learning/review` or gamification.
+  (`common/cache/response-cache.service.ts`) and invalidated on practice submit,
+  lesson complete/undo and **class-enrolment changes**. Content-level changes
+  (explanation and micro-note syncs) clear the whole cache. Never cache
+  `/learning/path`, `/learning/progress`, `/learning/review` or gamification.
 
 ## Assessment / Path / Test — invariants that must not regress
 `docs/ASSESSMENT_EDGE_CASES.md` is the full list; `node artifacts/qa/2026-11-02/probe-assessment-edge.mjs`

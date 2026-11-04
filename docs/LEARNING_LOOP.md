@@ -181,7 +181,39 @@ recent only to fill a set that would otherwise be short.
 Both shuffle with Fisher-Yates (the old `.sort(() => Math.random() - 0.5)`
 comparator is biased and repeats pairs).
 
-## 4. Keeping it fast
+## 4. Concept micro-notes
+
+847 of the 1,089 concepts carry no content of their own, so their page falls back
+to the **chapter's** notes - written for the chapter as a whole, which rarely
+answers "what is *this* concept?".
+
+A micro-note answers it in three blocks, on one line:
+
+> **What it is:** The reaction in which an acid and a base cancel each other out.
+> **Why it works:** The H+ from the acid and the OH- from the base join to form
+> water, leaving the metal ion and the acid radical to pair up as a salt:
+> NaOH + HCl -> NaCl + H2O. **Common mistake:** Leaving out the water, or pairing
+> the ions the wrong way round and naming the wrong salt.
+
+- They live in `apps/api/src/content/concept-notes.ts`, keyed
+  `<chapter code>|<concept name>` (concept names repeat across classes).
+- `scripts/qa/export-concept-notes-input.mjs` writes the batch input (concept,
+  chapter and its questions), `merge-concept-notes.mjs` validates every key
+  against the database before writing.
+- `ContentService.syncConceptNotes` (and `POST /content/concept-notes/sync`,
+  super-admin) turns each entry into a **NOTES** content item titled
+  `<concept> - Key Idea`, so the concept page renders it under Study notes with no
+  client change.
+- Visibility matters: platform content is only visible to an institution-bound
+  student **through an assignment**, so each note is created `PUBLIC` +
+  `directSanroAvailable` and assigned to every institution. An institution-scoped
+  row with no institution is filtered out by `ContentScopeService` - that was the
+  first bug this feature hit.
+
+281 of the 847 are authored (classes 8, 9, 10). The rest are the same pipeline;
+`export-concept-notes-input.mjs --list` shows what is left.
+
+## 5. Keeping it fast
 
 Every screen re-requests the same payload on back-navigation, and the API runs in
 a different region from its database, so each query costs a network round trip.
@@ -213,7 +245,7 @@ Two further findings from measuring production (`scripts/qa/probe-screen-waterfa
   the email and password in the URL. It is now `method="post"` and the button is
   disabled until hydration.
 
-## 5. Invariants that must not regress
+## 6. Invariants that must not regress
 
 - A practice answer **always** returns an explanation, and it is never the legacy
   template sentence. Guard: `node scripts/qa/probe-review-queue.mjs`.
@@ -224,7 +256,7 @@ Two further findings from measuring production (`scripts/qa/probe-screen-waterfa
   returns a question of another class.
 - The review queue mixes subjects when more than one subject is due.
 
-## 6. What is deliberately not here
+## 7. What is deliberately not here
 
 - **No more content volume.** The bank covers every concept; the gap was feedback
   and scheduling.
