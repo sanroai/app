@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-04 — Every question now has a written explanation (3,335 / 3,335)
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-04 |
+| Task | Finish authoring explanations for the whole question bank |
+| Reason | The feedback panel is the only moment a student is guaranteed to be looking at the question; before this pass 2,380 questions fell back to a sentence quoted from the notes (or a bare restatement of the answer) |
+| Entities affected | `Question.explanation` |
+| Database changes | Production and dev: **3,335 of 3,335** questions carry an authored explanation; Neon reports `without_authored=0` and every class shows `missing=0` |
+| API changes | none (the sync endpoint already existed) |
+| Frontend changes | none |
+| Seed/import changes | The map is now 3,335 entries. Four questions were corrected because a second option was also correct: palindrome `5,445` -> `5,425`, fraction `6/15` -> `6/9`, germination "moist soil in darkness" -> "dry soil in sunlight", non-uniform motion "motion along a circle" -> "motion that covers equal distances in equal times" |
+| Migration | none |
+| Verification | `sync-explanations` returned `{"authored":3335,"updated":466,"alreadyCorrect":2869,"orphaned":0}`; `audit-question-explanations` shows `authored 3335 (100%), notes 0, answer only 0`; Neon `total=3335, without_authored=0` and per-class `missing=0`; `probe-learning-ui` **10/10** (options locked after answering, the panel carries a real reason, arrows render correctly); API **679/679** |
+| Known issues | The bank still contains near-duplicate questions (several chapters ask the same thing in two phrasings) and a few stems that are thin on their own; those are question-bank quality items for a future pruning pass, not explanation gaps |
+
 ### 2026-11-03 — Answers are final, and the question text is no longer double-encoded
 
 | Field | Detail |

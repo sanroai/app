@@ -64,18 +64,39 @@ Measured coverage on the current bank (`npx tsx scripts/qa/audit-question-explan
 
 ```
 questions     : 3335
-  authored    : 551  (16.5%)  written explanation - all of class 10, plus class-9 Science 1-6
-  notes       : 2268 (68.0%)  a sentence quoted from the lesson notes
-  answer only : 516  (15.5%)  restates the answer - authoring backlog
+  authored    : 3335 (100%)   a written explanation on every question
+  notes       :    0
+  answer only :    0
 ```
 
-**Every question in class 10 is authored - 476 of 476 across Science, Mathematics
-and English** - in the repo, in the dev database and in production. Class 9 is
-under way (Science chapters 1-6), and the answer-only bucket is the working list.
+**Every question in every class (1-10, Science, Mathematics and English) carries
+an authored explanation**, in the repo, in the dev database and in production
+(Neon: `total=3335, without_authored=0`). The last sync reported
+`{"authored":3335,"updated":466,"alreadyCorrect":2869,"orphaned":0}`.
 
-Production is synced with `POST /questions/sync-explanations`; the class-10 run
-reported `{"authored":476,"updated":108,"alreadyCorrect":368,"orphaned":0}` and
-Neon confirms `class 10: 476/476`.
+### How the content was authored
+
+The volume (3,335 explanations) needed a pipeline, not a typing session:
+
+1. `scripts/qa/export-explanations-input.mjs --list` shows the chapters that still
+   need work, with counts; `--codes A,B,C --out file.json` writes the exact input
+   for a batch (question text, type, answer, distractors).
+2. Batches of 50-60 were authored in parallel and saved as
+   `explanations-*.json`.
+3. `scripts/qa/merge-explanations.mjs --dir artifacts/qa/explanations` validates
+   every entry - the question text must match the database **exactly**, the
+   explanation must be a real sentence of at least 40 characters, never the legacy
+   template - and appends the survivors to the map. Anything that fails is
+   reported and skipped, never silently written.
+4. `apply-question-explanations.mjs` (local) or `POST /questions/sync-explanations`
+   (deployed) writes them to the database.
+
+The batch pass also surfaced content defects that the merge could not fix itself,
+each corrected in the seed, the dev database and production: a palindrome question
+whose distractor `5,445` was also a palindrome (now `5,425`), a fraction question
+where `6/15` equalled the keyed `2/5` (now `6/9`), a germination question whose
+dark-but-moist pot would also have germinated (now dry soil), and a non-uniform
+motion item whose "motion along a circle" distractor was also non-uniform.
 
 ### Where the content lives, and how it reaches production
 

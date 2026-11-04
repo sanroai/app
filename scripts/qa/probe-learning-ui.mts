@@ -115,10 +115,17 @@ if (started.body?.practiceId) {
     check('answering shows the verdict immediately', await panel.isVisible().catch(() => false));
 
     const panelText = (await page.locator('main').innerText().catch(() => '')).replace(/\s+/g, ' ');
+    // Read the feedback panel itself (the box around the verdict) so the check is
+    // about the explanation, not about the question text above it.
+    const panelBody = await page
+      .locator('text=/^(Correct|Not quite|Answer saved)$/')
+      .first()
+      .evaluate((el) => (el.closest('div.rounded-xl') as HTMLElement | null)?.innerText ?? '')
+      .catch(() => '');
     check(
       'the reason is rendered under the question',
-      /lesson notes|is the answer|is correct|->|means/i.test(panelText) && panelText.length > 80,
-      `${panelText.length} chars`,
+      panelBody.replace(/\s+/g, ' ').length > 120 && !/Refer to the chapter notes/i.test(panelBody),
+      `${panelBody.replace(/\s+/g, ' ').length} chars in the panel`,
     );
 
     // The answer is final: every option is disabled once one is chosen, and the
