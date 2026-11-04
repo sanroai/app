@@ -8518,7 +8518,7 @@ const scienceQuestions = [
       answer: 'Pot D, which had moist soil and was kept in direct sunlight',
       marks: 1,
       difficulty: 'MEDIUM',
-      options: [{ text: 'Pot D, which had moist soil and was kept in direct sunlight', isCorrect: true }, { text: 'Pot A, which was kept in direct sunlight without water', isCorrect: false }, { text: 'Pot B, which had excess water standing above the soil', isCorrect: false }, { text: 'Pot C, which had moist soil but was kept in complete darkness', isCorrect: false }],
+      options: [{ text: 'Pot D, which had moist soil and was kept in direct sunlight', isCorrect: true }, { text: 'Pot A, which was kept in direct sunlight without water', isCorrect: false }, { text: 'Pot B, which had excess water standing above the soil', isCorrect: false }, { text: 'Pot C, which had dry soil and was kept in direct sunlight', isCorrect: false }],
     }),
     question('6', SCIENCE, 'Living Creatures: Exploring their Characteristics', {
       type: 'SHORT_ANSWER',
@@ -16153,7 +16153,7 @@ const scienceQuestions = [
       answer: 'motion in which the speed changes',
       marks: 1,
       difficulty: 'MEDIUM',
-      options: [{ text: 'motion in which the speed changes', isCorrect: true }, { text: 'motion in a straight line at a constant speed', isCorrect: false }, { text: 'motion with no speed at all', isCorrect: false }, { text: 'motion along a circle', isCorrect: false }],
+      options: [{ text: 'motion in which the speed changes', isCorrect: true }, { text: 'motion in a straight line at a constant speed', isCorrect: false }, { text: 'motion with no speed at all', isCorrect: false }, { text: 'motion that covers equal distances in equal times', isCorrect: false }],
     }),
     question('7', SCIENCE, 'Measurement of Time and Motion', {
       type: 'MCQ',

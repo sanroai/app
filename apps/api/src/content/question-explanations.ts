@@ -5752,4 +5752,936 @@ export const QUESTION_EXPLANATIONS: Record<string, string> = {
     'Reproduction passes genetic material to the next generation, so **it keeps the species from dying out** as individuals age and die. Producing food is nutrition, a function of the individual, not of reproduction.',
   'Which is the biggest threat to life on Earth today?':
     'Habitat destruction and pollution remove the places and conditions species need, so **loss of habitats and pollution** is the biggest threat today. Too much rainfall is a local weather event, not the worldwide driver of extinction.',
+  'A number increased by 7 gives 19. Which equation shows this?':
+    'Adding 7 to the unknown x gives 19, so the equation is **x + 7 = 19**, and x = 12 checks because 12 + 7 = 19. Writing x - 7 = 19 reverses the operation and gives x = 26, which is not the number described.',
+  'Solve 3x = 27.':
+    'Divide both sides by 3 to get x = 27 / 3 = **9**, and 3 times 9 = 27 confirms it. Subtracting 3 instead of dividing leaves 24, which is 3x - 3 and not x.',
+  'Is x = 4 a solution of 5x − 3 = 17?':
+    'Putting x = 4 into the left side gives 5 times 4 - 3 = 20 - 3 = **17**, which equals the right side. Reading 5x as 5 + x and testing 5 + 4 - 3 = 6 is the mistake that makes the answer look wrong.',
+  'The sum of three times a number and 8 is 35. What is the number?':
+    'Three times the number plus 8 is 35, so 3x = 35 - 8 = 27 and x = **9**, since 3 times 9 + 8 = 35. The option 7 comes from dividing 35 by 5 instead of first removing the 8 and then dividing by 3.',
+  'In the equation x + 3 = 8, what is the left hand side?':
+    'Everything written to the left of the equals sign is the left hand side, so it is **x + 3**, while 8 is the right hand side. Picking x on its own leaves out the 3 and treats one term as the whole side.',
+  'In 2y - 1 = 9, what is the right hand side?':
+    'The right hand side is everything after the equals sign, which here is just **9**, while 2y - 1 is the left hand side. Naming 2y - 1 puts the whole expression on the wrong side, and 1 is only the number being subtracted.',
+  'In a true equation, the left hand side and the right hand side are':
+    'A true equation is a balance, so both sides name the same value and are **equal**, as in 2 + 3 = 5. Saying the sides are always different describes an inequality, which is not what the equals sign claims.',
+  'What is the trial and error method used for?':
+    'Trial and error means testing values one by one until the two sides match, so it finds the **unknown** that makes the equation true. Plotting dots or drawing a triangle belongs to other chapters and does not balance an equation.',
+  'To solve x + 2 = 7 by trial and error, which value of x works?':
+    'Substituting x = 5 gives x + 2 = 5 + 2 = **7**, so the two sides agree and 5 works. Trying 9 gives 11 and trying 2 gives 4, so those fail, and 7 forgets that 2 must be added to the unknown.',
+  'Why is the trial and error method sometimes slow?':
+    'Every guess must be substituted and checked, so when the answer is far away you may need **many trials** before one works. No compass is involved and any value can be written down, so those reasons do not explain the slowness.',
+  'A number increased by 7 gives 15. The equation is':
+    'Increasing the number by 7 means adding 7, so the equation is **x + 7 = 15** and x = 8 checks as 8 + 7 = 15. Writing x - 7 = 15 turns the increase into a decrease and gives x = 22.',
+  'Three times a number is 21. The equation is':
+    'Three times the unknown is written 3x, so the equation is **3x = 21** and x = 7 checks as 3 times 7 = 21. Writing x + 3 = 21 adds 3 instead of multiplying, which gives 18 rather than 7.',
+  'If you subtract 5 from one side of an equation, you must':
+    'An equation only stays true when both sides get the same treatment, so subtracting 5 from one side means subtracting 5 from the **other side** too. Changing one side alone breaks the balance and turns a true statement into a false one.',
+  'Solve x - 4 = 10.':
+    'Adding 4 to both sides gives x = 10 + 4 = **14**, and 14 - 4 = 10 checks the answer. Subtracting 4 instead gives 6, while multiplying 10 by 4 gives 40, which treats a subtraction as if it were a division.',
+  'How do you check that x = 5 solves 2x + 1 = 11?':
+    'Replace x by 5 and work out the left side: 2 times 5 + 1 = 10 + 1 = **11**, so the two sides agree. Dividing both sides by 5 changes the equation instead of testing the value, so it cannot confirm a solution.',
+  'Is x = 3 a solution of 4x - 2 = 10?':
+    'Substituting 3 gives 4 times 3 - 2 = 12 - 2 = **10**, which matches the right hand side, so 3 is a solution. The claim that 4(3) - 2 = 14 comes from adding 2 instead of subtracting it.',
+  'The sum of two consecutive numbers is 25. The smaller is':
+    'The two numbers are x and x + 1, so 2x + 1 = 25, giving 2x = 24 and x = **12**, and 12 + 13 = 25 checks. Answering 13 gives the larger number, while 11 would need 11 + 12 = 23, which is short of 25.',
+  'A pen costs 5 rupees more than a pencil. Together they cost 25 rupees. The pencil costs':
+    'Let the pencil cost p, then the pen costs p + 5, so 2p + 5 = 25, 2p = 20 and p = **10 rupees**. The 15 rupee answer is the pen\'s price, produced by giving the pencil the extra 5 as well instead of halving the remaining 20.',
+  'In the Sierpinski carpet, every remaining square is divided into 9 equal squares and the central square is removed. How many squares remain at Step 2?':
+    'Each square becomes 9 smaller squares and the middle one is removed, leaving 8, so at Step 2 the count is 8 times 8 = **64**. Answering 16 squares the 8 instead of multiplying, and 81 counts the 9 parts without removing any centre.',
+  'In the Koch snowflake, each straight segment is replaced at the next step by 4 segments, each one-third of its length. What happens to the perimeter at each step?':
+    'Four segments each one-third of the old length give 4 times 1/3 = **4/3** of the previous perimeter, so it grows at every step. Taking 3/4 reverses the fraction and would shrink the perimeter instead of expanding it.',
+  'A cuboid measures 5 cm long, 3 cm wide and 2 cm high. What is the shape of its top view?':
+    'From above only length and width are visible, so the top view is a **5 cm by 3 cm rectangle**. The 5 cm by 2 cm answer pairs length with height, which is the front view rather than the top view.',
+  'A cube has edge 4 cm. Its net is cut from a sheet of paper. Find the area of the paper needed for the net.':
+    'A cube has 6 identical square faces, each 4 times 4 = 16 cm^2, so the net needs 6 times 16 = **96 cm^2** of paper. Counting only 4 faces as if the net were a ring would give 64 cm^2 and leave the cube open.',
+  'What kind of shape is the Sierpinski gasket?':
+    'Begin with a triangle and remove the middle triangle again and again, and the same pattern repeats at smaller scales, which makes a **fractal**. A hexagon or a circle has smooth edges and never generates smaller copies of itself that way.',
+  'What makes a shape a fractal?':
+    'A fractal repeats the same detail at every scale, so a magnified part looks like the whole, which is **self-similarity**. Having four equal sides describes a square, and having no symmetry is not a property that fractals need.',
+  'What is a net of a solid?':
+    'A net is the flat outline of all the faces joined edge to edge, so it folds up into the **solid**. A line of symmetry is a fold line on a flat shape, not a set of faces that closes into a 3D object.',
+  'Which view shows an object as seen from above?':
+    'Looking straight down gives the **top view**, which shows length and width but not height. The front view and side view are taken horizontally, so they also show the height.',
+  'The Sierpinski carpet is made by repeatedly removing':
+    'Divide each square into a 3 by 3 grid and delete the centre square, that is the **middle ninth**, then repeat the rule. Removing the outer border would keep the middle and produce the opposite pattern.',
+  'The Koch snowflake is built by repeatedly':
+    'Each straight segment is replaced by a zigzag of four shorter segments, a **jagged bump**, and the rule then repeats on every new segment. Removing whole triangles describes the Sierpinski gasket, not the snowflake.',
+  'How many squares are in the net of a cube?':
+    'A cube has 6 faces, so its net is made of **6** connected squares. Answering 12 counts the edges of a cube instead of its faces, and 8 is the number of corners.',
+  'How many views are usually drawn to describe a solid object?':
+    'Three views are standard: **front, top and side**, and together they pin down the shape. Two views can leave one dimension unknown, so a pair alone is usually not enough.',
+  'The mean of 5 numbers is 12. What is their total?':
+    'The total is mean times count, so 12 times 5 = **60**, and 60 / 5 = 12 returns the mean. The wrong option divides 12 by 5, which reverses the operation and makes the total smaller than the mean.',
+  'On a line graph, a horizontal line segment shows that the quantity being plotted ___':
+    'A horizontal segment has no rise and no fall, so the plotted quantity **stays the same** along it. A falling line shows a decrease, so reading a flat stretch as a drop confuses the two directions.',
+  'The mean of 8 observations is 25. When one observation is removed, the mean of the remaining 7 observations becomes 24. Find the observation that was removed.':
+    'The 8 observations add to 8 times 25 = 200 and the remaining 7 add to 7 times 24 = 168, so the removed value is 200 - 168 = **32**. Subtracting 25 - 24 = 1 mistakes the fall in the mean for the value that left the set.',
+  'A circle graph shows that a family spends 25% of its monthly income of ₹32,000 on rent. How much rent does the family pay?':
+    'One quarter of 32,000 is 32,000 / 4 = **Rs 8,000**, since 25% means 25 out of every 100. The answer of Rs 6,400 uses 20% instead of 25%, and Rs 800 shifts the decimal one place too far.',
+  'Why is the mean called a balance point?':
+    'The gaps above the mean add up to the same total as the gaps below it, so the data balances on that value, which is why the mean is a **balance point**. The middle value is the median and the most common value is the mode.',
+  'If one very large value is added to a data set, the mean':
+    'The mean is built from the total, so a very large value raises the total and therefore **increases** the mean. The median often stays about the same, which is why the mean is said to be dragged by extremes.',
+  'On a line graph, a rising line shows':
+    'Moving right along the horizontal axis the line goes up, so the quantity is **increasing**. Reading a rise as a fall reverses the direction that a downward slope would show.',
+  'What is an infographic?':
+    'An infographic combines a picture, labels and numbers so that information can be taken in at a glance, so it is a **picture that presents information**. A long paragraph of text is plain writing, with no visual structure at all.',
+  'What is the mean of 4, 8 and 12?':
+    'The sum is 4 + 8 + 12 = 24 and there are 3 values, so the mean is 24 / 3 = **8**. The answer 24 is the total, stopping one step early, while 6 divides that total by 4.',
+  'If the smallest value in a data set is removed, the mean usually':
+    'Removing a value smaller than the mean leaves the rest higher on average, so the mean **increases**. It would stay exactly the same only if the removed value equalled the mean, which the smallest value does not.',
+  'A flat horizontal line on a line graph means':
+    'A horizontal line keeps the same height as you move along, so the **value did not change**. A sloping line is what records a rise or a fall, so a flat line is not a sign of missing data.',
+  'Why must an infographic be read carefully?':
+    'Axes and pictures can be stretched, so the **scale** can make a small difference look large. The graph is not automatically wrong, but its numbers must be checked against the drawn size.',
+  'A trick asks you to think of a number n, multiply it by 3, add 6, and then divide the result by 3. What is the final answer?':
+    'Start with 3n, add 6 to get 3n + 6, then divide the whole thing by 3: (3n + 6) / 3 = **n + 2**. Dividing the 3n but not the 6 gives n + 6, which forgets that the 6 is divided as well.',
+  'In a number pyramid each number is the sum of the two numbers directly below it. If the bottom row of a three-row pyramid is a, b, c, what is the top number?':
+    'The middle row is a + b and b + c, so the top is (a + b) + (b + c) = **a + 2b + c**. Writing a + b + c counts the middle b only once, although it is used in both bricks below.',
+  'Take the two-digit number 47. Reverse its digits, subtract the smaller number from the larger, and write the difference as 9 multiplied by a whole number.':
+    'Reversing 47 gives 74, and 74 - 47 = **27**, which is 9 times 3, so the multiplier is 3. Subtracting the digits alone (7 - 4 = 3) skips the place-value step that produces 9 times the digit difference.',
+  'In a calendar, the four numbers in a 2 × 2 block add up to 64. What is the smallest of the four numbers?':
+    'Write the block as n, n + 1, n + 7 and n + 8, so 4n + 16 = 64, 4n = 48 and n = **12**. Taking 64 / 4 = 16 gives the mean of the four entries, not the smallest one.',
+  'In a \'think of a number\' trick, why does the answer always come back to the starting number?':
+    'Each instruction is undone by a later one, so the expression reduces to n and the operations **cancel out**. It is algebra rather than magic, and it works for every starting number, so nothing is guessed.',
+  'In a number pyramid, each brick holds':
+    'A brick holds the **sum** of the two bricks directly below it, so 3 and 5 give 8. Using the difference instead is what turns 3 and 5 into 2 rather than 8.',
+  'In a calendar, the number below a date is':
+    'Dates run in rows of seven, so the entry directly below a date is that date **plus 7**. Adding 1 moves to the next column in the same row, not to the week underneath.',
+  'For a fixed sum, the largest product of two numbers is obtained when the numbers are':
+    'With a fixed sum the product is largest when the two numbers are **as close to each other as possible**, since 10 and 10 beat 11 and 9. Putting 1 against the rest makes one factor tiny and the product small.',
+  'Think of a number, double it, add 6, halve it, subtract the number. The answer is':
+    'Start with 2n, add 6 to get 2n + 6, halve it to n + 3, then subtract n to leave **3**. Halving only the 2n and not the 6 gives n + 6 - n = 6, which is the usual slip.',
+  'In a number pyramid the top brick of 3 and 5 is':
+    'Each brick is the sum of the two below it, so the top of 3 and 5 is 3 + 5 = **8**. Writing 53 joins the digits side by side instead of adding them, and 15 multiplies them.',
+  'In a calendar, the sum of a date and the date one week later is 31. The first date is':
+    'A week later the date is 7 more, so x + (x + 7) = 31, giving 2x = 24 and x = **12**, which checks as 12 + 19 = 31. Choosing 10 gives 10 + 17 = 27, four short of 31.',
+  'Two numbers add up to 20. Their largest possible product is':
+    'Splitting 20 as evenly as possible gives 10 times 10 = **100**, which beats 11 times 9 = 99 and 12 times 8 = 96. The answer 96 comes from that lopsided pair 12 and 8.',
+  'What is the traditional food of a state in India usually based on?':
+    'Each state cooks mainly with the **crops that grow in it**, because local rice, wheat, millet or coconut is cheap and fresh there. Thinking festival dishes or railway stall food define a state\'s daily food mistakes a special treat for the everyday meal.',
+  'Which food components are called energy-giving foods?':
+    '**Carbohydrates and fats** are the energy-giving components, because the body burns them to get the power it needs to walk, study and play. Vitamins and minerals supply no energy, so pairing them with water as energy foods confuses protection with fuel.',
+  'Describe how you would test a food item for starch and for fat, and state the result that shows each nutrient is present.':
+    'Diluted **iodine** turning the food blue-black proves starch, while pressing the food on paper shows fat as a greasy see-through patch. Judging fat by a colour change in iodine, or starch by the oily patch, swaps the two tests and reports the wrong nutrient.',
+  'Rohan often eats potato wafers and drinks carbonated drinks. Why are such foods called junk food?':
+    'Junk food gives plenty of **sugar and fat** energy but almost no protein, minerals, vitamins or fibre, so it fills the stomach without building or protecting the body. Calling it rich in roughage is backwards, since wafers and colas contain very little fibre.',
+  'Which nutrient is called a body-building food because it helps in the growth and repair of our body?':
+    '**Protein** is the body-building component, since the body uses it to make new cells for growth and to repair worn-out tissue. Fat is mainly a store of energy, so choosing it for growth confuses fuel with building material.',
+  'Which pair of food items are both plant sources of protein?':
+    '**Pulses and beans** are plant proteins, grown in pods and eaten as dal or curry to supply the building material the body needs. Paneer and egg also give protein but both come from animals, so that pair cannot be the plant one.',
+  'Which food components are called protective nutrients?':
+    '**Vitamins and minerals** protect the body by keeping it healthy and helping it fight disease, even though they are needed only in tiny amounts. Carbohydrates and fats are energy foods, so naming them protective confuses fuel with defence.',
+  'A person whose gums bleed and whose wounds heal slowly is likely to be lacking which nutrient in the diet?':
+    '**Vitamin C** keeps gums firm and helps wounds heal, so bleeding gums and slow-healing cuts are the classic sign of too little of it. Iron shortage causes tiredness and pale skin, not sore gums, so it is the wrong pick here.',
+  'Why do people in different regions eat different foods?':
+    '**Climate and soil** decide which crops can grow in a region, so people cook with whatever grows cheaply around them. Believing that some foods are banned in certain areas ignores farming and invents a rule that does not exist.',
+  'Rice is a staple food mainly in':
+    'Rice needs standing water in the field, so it is the **staple in regions with plenty of water** and rain. A desert cannot flood its fields like that, so rice cannot be the main crop there.',
+  'Which food group gives us energy?':
+    '**Carbohydrates** such as rice, wheat and potato are the body\'s main fuel and are broken down quickly when we need power. Vitamins and minerals are protective rather than fuel, so picking them for energy mixes up the two jobs.',
+  'Which of these is a carbohydrate-rich food?':
+    '**Rice** is mostly starch, a carbohydrate, so it supplies energy quickly and is the main grain eaten across India. Spinach is rich in vitamins and minerals and milk in protein and calcium, so neither is the carbohydrate pick.',
+  'Proteins are needed for':
+    '**Proteins** build new cells for growth and repair torn or worn-out tissue, which is why growing children and injured people need more. Carbohydrates supply quick energy instead, so giving them the building job is the common slip.',
+  'Vitamins and minerals are called protective nutrients because they':
+    'Vitamins and minerals are called **protective nutrients** because they keep the body healthy and help it fight disease. They supply almost no energy, so saying they give the most energy mistakes protection for fuel.',
+  'A balanced diet contains':
+    'A balanced diet supplies **all the nutrients in the right amounts**, so carbohydrates, proteins, fats, vitamins, minerals, water and roughage all appear in suitable quantity. Eating only proteins or only fruit leaves gaps, so a single food group can never be balanced.',
+  'Which meal is closest to a balanced diet?':
+    'Rice, dal, vegetables and curd together give **carbohydrate, protein, vitamins, minerals and some fat**, so the plate covers every need. A packet of chips gives mostly fat and salt, so it lacks protein, vitamins and fibre.',
+  'Which test detects starch in food?':
+    'Starch reacts with **iodine** to give a blue-black colour, so that colour change is the positive sign of starch. A greasy patch on filter paper shows fat rather than starch, so using it here would test the wrong nutrient.',
+  'A greasy translucent patch on paper shows the food contains':
+    'Fat leaves a **greasy translucent patch** on paper because oil soaks in and lets light pass, which is the standard fat test. Starch shows up instead as a blue-black colour with iodine, so it cannot cause the oily mark.',
+  'Which of these is a magnetic material?':
+    '**Cobalt** is one of the few metals, like iron and nickel, that a magnet attracts, so it is a magnetic material. Wood, rubber and glass are not attracted at all, so none of them can be the magnetic one.',
+  'A bar magnet is broken into two pieces. What poles does each piece have?':
+    'Breaking a magnet simply makes two smaller magnets, so each piece still has **one north pole and one south pole**. Expecting a piece with no poles forgets that poles always come in pairs and cannot be separated.',
+  'How is a magnetic compass used to find the directions at a place?':
+    'The **compass needle** swings until it lies along the north-south line, because it is a tiny magnet lining up with Earth\'s field. Rotating the box so the dial marks match the needle then lets you read every direction at once.',
+  'The ends of two metal bars push each other away when brought close. What can be concluded?':
+    'A push apart means **like poles** are facing each other, and only a magnet can repel a magnet, so both bars are magnets. If one bar were plain iron the magnet would pull it in, so attraction is the case that fits a single magnet.',
+  'What is a lodestone?':
+    '**Lodestone** is a rock of magnetite that nature has already magnetised, so it behaves like a magnet without any human work. A laboratory or school magnet is man-made, so calling lodestone artificial reverses where it comes from.',
+  'Which of these is an artificial magnet?':
+    'An **artificial magnet** is one made by people, such as the ring magnet shaped in a school laboratory. A lodestone is natural and a plain iron bar is not yet magnetised, so neither of them is artificial.',
+  'A bar magnet is placed on a sheet of paper and iron filings are sprinkled over it. At which part of the magnet do most of the filings stick?':
+    'Most filings cling to the **two ends**, because the magnetic pull is strongest at the poles and almost absent in the middle. Expecting an even spread over the whole bar ignores the weak middle region between the poles.',
+  'A bar magnet is broken into two equal pieces. Which poles does each piece have?':
+    'Each half becomes a complete small magnet, so it carries **both a north pole and a south pole**. A piece with only one pole is impossible, because cutting a magnet only shortens it and never separates its poles.',
+  'Which material is attracted by a magnet?':
+    '**Iron** is magnetic, so a magnet pulls it, which is why iron filings and iron nails stick to a magnet. Wood, plastic and glass are not attracted, so a magnet passes them by without any pull.',
+  'Materials not attracted by a magnet are called':
+    'Materials a magnet does not attract are **non-magnetic**, such as wood, plastic and glass. Calling them magnetic confuses them with iron, nickel and cobalt, the metals a magnet actually pulls.',
+  'What is lodestone?':
+    'A **naturally occurring magnet** is what lodestone is: magnetite rock that Earth itself magnetised long ago. A man-made magnet is the opposite case, and a compass needle is a magnet shaped by people for a purpose.',
+  'A freely suspended magnet always points':
+    'A freely hanging magnet lines up **north and south**, because its poles are pulled by Earth\'s magnetic field. Saying it points east and west would mean the needle sits at right angles to that field, which it never does.',
+  'If you break a bar magnet into two pieces, each piece':
+    'Each broken piece becomes a smaller complete magnet with **its own north and south pole**. A piece that loses magnetism completely is impossible, because breaking a magnet does not destroy its magnetism.',
+  'A magnetic pole can never exist':
+    'A magnetic pole can never exist **alone**, because poles always appear in pairs, one north and one south. A single free north pole has never been found, so no magnet can be left with one pole.',
+  'Two north poles brought together will':
+    'Two north poles are **like poles**, so they push each other away instead of joining. Expecting them to stick together treats like poles as if they attract, which is the rule for unlike poles.',
+  'Like poles ___ and unlike poles ___.':
+    '**Like poles repel** and **unlike poles attract**, so a north and a north push apart while a north and a south pull together. Saying like poles attract reverses the rule and would turn every compass needle the wrong way.',
+  'A magnetic compass is used to find':
+    'A magnetic compass finds **direction**, because its needle settles along the north-south line and the dial then gives east and west too. It has no scale, so it cannot measure temperature, weight or speed.',
+  'The needle of a compass always settles along':
+    'The compass needle settles along the **north-south direction**, lined up with Earth\'s magnetic field. A needle that stayed east-west would sit at right angles to that field, so it could not work as a compass.',
+  'How many centimetres make one metre?':
+    'One metre is divided into **100 centimetres**, so 100 cm make exactly 1 m. Saying 1000 cm forgets that centi means a hundredth, and it is 1000 millimetres that make a metre.',
+  'Deepa and her friends disagreed about whether the school or the garden was closer. Why did their answers differ?':
+    'A distance only means something when both people measure from the **same starting point**, so the answers differed because each girl began at her own house. Using different units would still give the same order once converted, so that is not the real fault.',
+  'A scale has a broken end, so its zero mark cannot be used. How can you still measure the length of an object with it?':
+    'Start at any full mark such as **1.0 cm**, read the far end, and subtract: 10.4 cm minus 1.0 cm gives 9.4 cm. Starting from the broken end itself adds the missing bit to the length, so the reading comes out too big.',
+  'The pendulum of a clock swings to and fro, while the hands of the clock move along a circle. Which pair correctly names these two motions?':
+    'The **pendulum** repeats the same to-and-fro path, which is oscillatory motion, while the hands travel around a circle, which is circular motion. Calling the hands linear ignores that their path curves, so that pair is wrong.',
+  'A road is 3 km long. What is its length in metres?':
+    'One kilometre is **1000 metres**, so 3 km is 3 x 1000 = **3000 m**. Answering 300 m divides by ten instead of multiplying by a thousand, which is the usual slip with the kilo prefix.',
+  'An object is said to be in motion when':
+    'An object is in **motion** when its position changes with time compared with a chosen reference point. Changing shape or staying in the same spot is not motion, because neither changes the object\'s place.',
+  'Passengers sitting in a moving bus are at rest with respect to the bus but in motion with respect to a building outside. What does this show?':
+    'Rest and motion are relative, so whether something moves depends on the **reference point** you choose, here the bus or the building. Saying motion can be judged without any reference point removes the very thing that allows the comparison.',
+  'How many centimetres are there in one metre?':
+    '**100 centimetres** make one metre, so a 1 m rod reads 100 cm on a tape. Confusing it with 1000 mixes up the metre-millimetre relation, since 1000 mm make a metre.',
+  'Which unit would you use for the length of a pencil?':
+    'A pencil is a few centimetres long, so **centimetre** gives a small handy reading like 15 cm. Kilometre and metre are far too big for a pencil, and litre measures volume rather than length.',
+  'How many metres are there in one kilometre?':
+    'One kilometre equals **1000 metres**, so a 5 km road is 5000 m long. Saying 100 or 10 mistakes the kilo prefix for a much smaller step than a thousand.',
+  'Which is the smallest unit?':
+    '**Millimetre** is the smallest of these units, since 10 mm make 1 cm and 1000 mm make 1 m. Kilometre is the largest one listed, so choosing it for the smallest reverses the order completely.',
+  'When measuring with a ruler you should':
+    'Place the object **from the zero mark** so the reading at the far end is the length itself. Tilting the ruler or looking from far away adds a slant or a wrong angle of view, so the reading drifts from the true length.',
+  'A worn-out end of a ruler causes':
+    'A worn-out end hides the true zero, so every reading is shifted and you get an **error in measurement**. The object itself does not change, so a ruler can never make something longer or heavier.',
+  'A reference point is used to decide whether an object is':
+    'A reference point is a fixed object you compare against, so it decides whether something is **moving or at rest**. It says nothing about weight, temperature or size, so those pairs do not fit its purpose.',
+  'An object is said to be at rest if it':
+    'An object is **at rest** when its position does not change with time compared with the reference point. Moving in a circle or changing shape still involves change, so neither of those counts as staying at rest.',
+  'The motion of a swing is':
+    'A swing goes back and forth over the same path again and again, which is **oscillatory motion**. A fan\'s blade sweeps around a circle instead, so calling a swing circular confuses the two shapes of movement.',
+  'A fan blade moves in':
+    'Each point of a fan blade travels around a circle about the hub, so the motion is **circular**. A swing moves to and fro instead, so oscillatory motion describes it and not the blade.',
+  'A passenger in a moving bus is at rest with respect to':
+    'The passenger keeps the same position relative to **the other passengers**, so with that reference point they are at rest. Trees, the bus stand and the road are left behind, so each of them shows the passenger in motion.',
+  'Which of these materials has a lustrous appearance?':
+    '**Aluminium foil** shines because its smooth metal surface reflects light straight back, and that shiny look is called lustre. Paper, jute and rubber have dull, rough surfaces that scatter light in all directions, so they never look lustrous.',
+  'Which two properties are possessed by all materials?':
+    'Every material has **mass and volume**, because anything made of matter has weight and takes up space, however small it is. Transparency, lustre or solubility belong to some materials only, so they cannot be shared by all.',
+  'Sugar disappears when stirred in water, but sawdust does not. What does this tell you about the two materials?':
+    '**Sugar is soluble** in water, so its tiny particles spread through the water and it seems to vanish, while sawdust is **insoluble** and stays separate. The common mistake is thinking the sugar is gone for good - it is still there, just dissolved.',
+  'Sara hides behind a frosted glass door. Her brother can make out that someone is there but cannot see her clearly. What kind of material is the frosted glass?':
+    'Frosted glass lets light pass but scatters it, so shapes show as a blur without clear detail, which makes it **translucent**. Clear glass would show Sara sharply and a brick would block all light, so neither matches what he saw.',
+  'What is a material?':
+    'A **material** is any substance we use to make an object, such as wood for a chair or cotton for a shirt. How heavy something is, or whether it is shiny, are properties of an object, not the meaning of the word.',
+  'A pen is made of plastic, metal and ink. What does this show?':
+    'Plastic makes the body, metal makes the nib and ink makes the writing fluid, which shows one object can be built from **more than one material**. The wrong idea is that every part of an object must be the same substance.',
+  'Which statement correctly describes a hard material?':
+    'A **hard** material resists being pressed, bent or scratched, so it keeps its shape when you push or cut it. A shiny surface is lustre and dissolving is solubility, so mixing those up with hardness is the usual slip.',
+  'Rubber is harder than sponge but softer than iron. What does this show about hardness?':
+    'Hardness is a **relative property**, meaning we judge it by comparing two materials, so rubber sits between soft sponge and hard iron. Calling rubber the hardest, or saying all materials are equally hard, ignores those comparisons.',
+  'A chair is an object made of the material':
+    'A chair is built from **wood** because wood is strong enough to hold a person and can be shaped into legs and a back. Glass, water and air cannot support weight, so none of them can serve as the material for a chair.',
+  'The same object could be made from different materials because':
+    'Each material brings **different properties**, so a glass, steel or plastic cup all work but feel and behave differently. Saying all materials are equal would mean a glass cup and a steel cup were exactly interchangeable.',
+  'Materials that shine are called':
+    'Materials with a smooth surface that reflects light, like polished metal, are called **lustrous**. Opaque, soluble and brittle describe blocking light, dissolving in water and breaking easily, so none of them means shining.',
+  'Which material is lustrous?':
+    '**Gold** is a metal with a smooth, reflective surface, so it shines brightly and is lustrous. Chalk, wood and cotton have rough or dull surfaces that scatter light instead of bouncing it back, so they look dull.',
+  'Which material is soft?':
+    '**Cotton** is soft because its fibres can be squeezed and pressed easily with your fingers. Iron, stone and glass resist scratching and pressing and keep their shape, which makes them hard rather than soft.',
+  'A material that dissolves in water is':
+    'Sugar or salt stirred into water mixes completely and seems to vanish, so such a material is **soluble**. Insoluble, lustrous and opaque describe not dissolving, shining and blocking light, so none of them fits.',
+  'Which of these is insoluble in water?':
+    '**Sand** is insoluble - its grains stay whole and settle at the bottom however long you stir. Sugar, salt and lemon juice all mix into water and seem to disappear, which is what soluble means.',
+  'Volume of a liquid is measured in':
+    '**Litres** measure how much space a liquid fills, which is its volume. Kilograms measure mass, metres measure length and newtons measure force, so none of them can report how much water sits in a bottle.',
+  'A material you cannot see through at all is':
+    'An **opaque** material blocks light completely, so nothing behind it can be seen at all. Transparent and translucent materials let some light through, and lustre is about shining, not about seeing through.',
+  'The volume of a solid block is measured in':
+    'A block takes up space in three directions, so its volume is measured in **cubic centimetres**. Degrees measure temperature, newtons measure force and grams measure mass, so none of them reports the space a block fills.',
+  'Which material is translucent?':
+    '**Butter paper** lets light through only partly, so you see a glow but no clear picture, which is what translucent means. Clear glass is transparent, while a brick or metal spoon blocks light completely.',
+  'What is the normal temperature of a healthy human body taken to be?':
+    'A healthy body holds about **37.0 degrees Celsius**, the warmth at which our organs work best. A room at 27 degrees is too cool for a living body, 42 degrees is a dangerous fever and 98.6 is that same heat on the Fahrenheit scale.',
+  'What is the usual temperature range of a laboratory thermometer?':
+    'A laboratory thermometer is marked from about **-10 degrees Celsius to 110 degrees Celsius**, wide enough for ice-cold and nearly boiling experiments. The narrow 35 to 42 range belongs to a clinical thermometer, which is built only for body heat.',
+  'Why can we not always rely on our sense of touch to decide whether a body is hot or cold?':
+    'Touch only compares, so the same tap water feels cool to a hand warmed in hot water and warm to a hand chilled in ice water, which means it gives no **measurement**. Two hands can report opposite things about one body, while a thermometer gives a single number.',
+  'A body is at 27 °C. Using the relation given in the chapter, what is this temperature on the kelvin scale?':
+    'Adding 273.15 to the Celsius reading gives 27 + 273.15 = **300.15 K**, because 0 degrees Celsius equals 273.15 K. The answer 273.15 K is just the freezing point of water, and kelvin is never written with a degree sign.',
+  'Along with other weather parameters, the data on air temperature collected at weather stations is used for':
+    'Weather stations record temperature with pressure, humidity and rainfall so computers can work out what is coming, which is **weather forecasting**. Body heat, the mass of air in a room and the boiling point of water are separate measurements.',
+  'Generally, how does the air temperature of a place change as summer approaches and as winter arrives?':
+    'Air temperature **rises as summer approaches and falls during winter**, because the Sun\'s rays strike the ground more directly and for longer hours in summer. A pattern that never changed would mean the Sun\'s angle made no difference at all.',
+  'A temperature of 37.0 °C on the Celsius scale is the same as which reading on the Fahrenheit scale?':
+    'Using F = (9/5 x C) + 32 gives (9/5 x 37) + 32 = 66.6 + 32 = **98.6 degrees Fahrenheit**. Answers such as 98.4 or 97.4 come from rounding too early or skipping the 32 added at the end.',
+  'Which statement about the Fahrenheit scale is correct?':
+    'Scientists work in Celsius and kelvin, so the **Fahrenheit scale** has largely dropped out of scientific use even though some countries still report weather in it. Kelvin, not Fahrenheit, is the SI unit, and clinical thermometers usually carry both scales.',
+  'Why is touch unreliable for measuring temperature?':
+    'Touch tells you only whether something feels hotter or colder than your hand, not **how many degrees** it is. Thinking it works in degrees, or is always accurate, ignores that two hands in the same water can disagree about it.',
+  'A laboratory thermometer is used to measure':
+    'A laboratory thermometer measures the **temperature of objects and liquids**, such as water being heated in a beaker during an experiment. A clinical thermometer is the one limited to body heat, while pressure and humidity need other instruments.',
+  'A clinical thermometer measures':
+    'A clinical thermometer is built for the narrow range around **human body temperature**, so a doctor can read a fever quickly. Boiling water, room air and wind speed are either outside its scale or measured with a different instrument.',
+  'Air temperature is usually measured with a':
+    'Air temperature is read from a thermometer kept in the **shade**, so direct sunlight does not add its own heat to the bulb. A thermometer left in the sun reads far too high, and a rain gauge or barometer measures something else.',
+  'Water freezes at what temperature on the Celsius scale?':
+    'On the Celsius scale water freezes at **0 degrees**, the mark where liquid water becomes ice. 100 degrees is its boiling point, 32 is that same freezing point in Fahrenheit and 273 is it in kelvin.',
+  'Water boils at what temperature on the Celsius scale?':
+    'At normal sea-level pressure water boils at **100 degrees Celsius**, the point where it turns to steam throughout. 0 degrees is the freezing point, 212 is the boiling point in Fahrenheit and 50 is far too cool to boil.',
+  '0 degrees Celsius equals':
+    'Adding 273 to 0 gives **273 kelvin**, because the kelvin scale starts at absolute zero, 273 degrees below the freezing point of water. 0 kelvin is absolute zero itself, which is far colder, so it cannot be the same reading.',
+  'Why is a laboratory thermometer not used to measure body temperature?':
+    'A clinical thermometer has a narrow **constriction** that holds the liquid in place, so the reading stays after you take it out. A laboratory thermometer has no such neck, so its column falls back at once and you lose the reading.',
+  'Two people may disagree about how hot water is because':
+    '**Touch only compares and does not measure**, so two people can feel the same water differently and both be describing it honestly. Blaming the thermometers, denying heat or saying water heats itself misses that the senses are the weak point.',
+  'Normal human body temperature is about':
+    'Normal **human body temperature is about 37 degrees Celsius**, which is why a reading above this is treated as fever. 27 degrees is a cold room, 50 is far too hot to survive and 100 would be boiling.',
+  'The Kelvin scale starts at':
+    'The kelvin scale begins at **absolute zero**, the coldest possible temperature, where particles have as little heat motion as possible. Body temperature, 100 degrees and the freezing point of water are all marks higher up the same scale.',
+  'What is the process of conversion of water into its vapour state called?':
+    '**Evaporation** is water changing into vapour at the surface of a liquid, which happens even far below boiling point. Melting turns ice into water, condensation turns vapour back to liquid and freezing turns water into ice.',
+  'Which statement correctly describes the three states of water?':
+    'Ice keeps a **fixed shape**, water flows to fit its container, and vapour spreads out to fill all the space it can. Saying all three keep a shape, or that ice spreads through the air, reverses what each state actually does.',
+  'Why do tiny water droplets appear on the outer surface of a glass tumbler filled with cold water and ice cubes?':
+    'The cold surface chills the air beside it, so **water vapour** in that air condenses into droplets on the outside of the glass. The water is not leaking through the glass - it comes from the air around the tumbler.',
+  'Why do clouds form when moist air rises high above the Earth\'s surface?':
+    'Rising air expands and cools, so its **water vapour condenses** into tiny droplets around specks of dust, and those droplets make a cloud. Hotter air would hold more vapour rather than turn it into cloud, and dust does not melt.',
+  'The process of conversion of a liquid into a solid state is called':
+    '**Freezing** is the change from liquid to solid, as when water turns to ice in a freezer. Evaporation goes liquid to gas, condensation gas to liquid and melting solid to liquid, so each word names a different step.',
+  'An ice cube taken out of a freezer and kept on a table turns into water after some time. What is this change called, and what causes it?':
+    'The ice absorbs heat from the warm room and changes into water, which is **melting**. Evaporation would turn it into vapour, freezing would need cooling and condensation would mean vapour turning back into liquid.',
+  'What happens to the water vapour present in air as the air rises higher above the Earth\'s surface?':
+    'As air rises it expands and cools, so the vapour in it **condenses into tiny droplets** that stay afloat as a cloud. Warm vapour drifting into space or vanishing for good does not match what we see, and not every cloud is ice.',
+  'Which of these best describes the water cycle?':
+    'The **water cycle** is the endless movement of water from the ground and sea into the air and back again as rain. A river reaching the sea, stored groundwater or pipes to homes are only single pieces of that loop.',
+  'Evaporation changes a liquid into':
+    'When a liquid gains heat, particles escape from its surface as a gas, so evaporation changes it into **vapour**. A solid or a plasma is a different state, and a mixture is about substances combined rather than a change of state.',
+  'Wet clothes dry faster on a hot windy day because':
+    'Heat and moving air both speed up **evaporation**, so water leaves the cloth quickly and the cloth dries sooner. Water is not created during drying - it simply moves into the air as invisible vapour.',
+  'Condensation changes a vapour into':
+    '**Condensation** is the change from gas to liquid, as when vapour in the air touches a cold surface. A solid or a crystal would need freezing, and turning back into gas would simply undo the condensation.',
+  'Water droplets on the outside of a cold glass come from':
+    '**Water vapour** already present in the air is chilled by the cold glass and condenses into droplets on the outside. The glass is not leaking and the drink stays inside, so the water on the outside must come from the air.',
+  'Ice is water in the':
+    'Ice is water in the **solid state**, with its particles locked in fixed positions, which is why a cube keeps its shape. Liquid water flows to fit a container, and the gaseous or vapour state is the invisible gas in the air.',
+  'Melting is the change from':
+    '**Melting** is the change from solid to liquid, exactly what happens when an ice cube becomes water. Liquid to solid is freezing, liquid to gas is evaporation and gas to solid is deposition, so the direction matters.',
+  'Clouds form when water vapour':
+    'Warm vapour rises, cools and **condenses into tiny droplets** around dust specks, and those droplets gather as a cloud. Ice blocks would need freezing first, and vapour merely rising faster does not by itself make a cloud.',
+  'The water cycle keeps the amount of water on Earth':
+    'Water keeps moving between the ground, the air and back again, so the **total amount stays about the same**. Saying it always increases or always decreases would mean water were being created or destroyed.',
+  'Water vapour is water in the':
+    'Water vapour is water in the **gaseous state**, an invisible gas mixed into the air around us. The solid state is ice and the liquid state is water, so neither of those describes a gas.',
+  'Rain falls when cloud droplets':
+    'Droplets inside a cloud keep bumping into each other and **join** until they are too heavy for rising air to hold, then they fall as rain. Freezing into rock, turning into air or evaporating again would never bring water down.',
+  'What is the method of removing small stones from wheat by picking them with the hand called?':
+    'Stones are big enough to see and pick out one by one, so **handpicking** is all that is needed for a few small stones in wheat. Winnowing would not help here because both stones and grain are heavy and the wind cannot tell them apart.',
+  'Why does sieving separate bran and small stones from flour?':
+    'A sieve is a mesh with holes of one fixed size, so the fine **flour** falls through while the larger bran flakes and stones stay on top. The bran cannot dissolve in flour because both are solids, so that idea fails.',
+  'How would you separate iron nails that have fallen into sawdust, and why does this method work?':
+    'Iron is a **magnetic** substance and sawdust is not, so a magnet dragged through the mixture pulls out only the nails. Trying to sieve them would fail because nails and sawdust particles are of similar size.',
+  'Seawater is kept in shallow pits and exposed to sunlight and air for a few days. What happens in the pits?':
+    'Sun and air slowly turn the liquid water into vapour, leaving the dissolved **salt** behind as solid crystals in the pit. Salt does not evaporate with the water, so saying the salts leave and the water stays is backwards.',
+  'The process of beating stalks to separate grains from them is called':
+    'Threshing is the beating or rubbing of harvested stalks so the **grain** loosens and falls free of the straw. Winnowing is done only afterwards, to blow away the lighter husk from the grain.',
+  'A farmer separates husk from wheat grains by moving the grains in a bamboo tray in the direction of the wind. Why does this separation happen?':
+    'Husk is much lighter than grain, so moving air carries the **husk** away while the heavier grains drop straight down near the feet. Colour plays no part, and swapping which one is blown away reverses the truth.',
+  'The settling down of a heavier insoluble component at the bottom of a liquid is called':
+    'Heavier insoluble particles sink slowly under gravity and collect as a layer at the bottom, which is **sedimentation**. Decantation is the next step, pouring the clear liquid off, not the settling itself.',
+  'Tea leaves settle at the bottom of a pan of tea, and then the clear tea is gently poured into a cup by tilting the pan. Which two processes are being used here?':
+    'The leaves first sink to the bottom (**sedimentation**) and then the clear tea is poured off gently without disturbing them (**decantation**). Filtration would need a filter paper to trap the leaves rather than simply letting them settle.',
+  'Handpicking is used to separate':
+    'Handpicking works only when the unwanted bits are big enough to see and grab, such as **stones or husk** in grain. Dissolved salt cannot be picked out by hand because its particles are mixed into the water itself.',
+  'Removing stones from rice is done by':
+    'Rice grains and stones are both dry and easy to see, so **handpicking** removes the stones from a small quantity. Filtration needs a liquid and sedimentation needs water to settle in, neither of which is present here.',
+  'Winnowing separates':
+    'Winnowing uses moving air to carry off the light **chaff** while the heavier grain falls near the feet. Salt from water needs evaporation, and iron from sand needs a magnet, not wind.',
+  'Threshing is done to separate grain from':
+    'Threshing loosens the **grain** from the dried stalk or ear after harvesting, usually by beating or rubbing. Water and salt are removed by evaporation, so neither fits the act of separating grain from straw.',
+  'Sieving separates particles':
+    'A sieve has holes of a fixed width, so particles smaller than the holes pass and bigger ones stay, which sorts them **by size**. Weight and magnetism are irrelevant because the mesh cannot weigh or attract anything.',
+  'Flour with bran is cleaned by':
+    'Bran flakes are larger than flour particles, so a **sieve** lets the flour through and holds the bran back. Evaporation would only drive off water, and magnetism would do nothing to flour.',
+  'Salt is obtained from seawater by':
+    'The Sun evaporates the water from the shallow **salt pans** and the dissolved salt is left behind as solid crystals. Filtration cannot help because the salt is dissolved, so its particles pass straight through any filter.',
+  'In salt pans, seawater is left in shallow beds so that':
+    'Sunlight and air slowly remove the water as vapour, so the dissolved **salt** concentrates and finally crystallises in the bed. Salt does not float up, since it is heavier than water and is dissolved in it.',
+  'Sedimentation means letting heavy particles':
+    'Sedimentation is the slow sinking of heavier insoluble particles until they lie in a layer at the **bottom**. Floating on top is the opposite behaviour, shown by light things like oil or husk, not by mud.',
+  'Decantation means':
+    'After the solid has settled, **decantation** means tilting the container and letting the clear liquid flow out slowly. Stirring only mixes things again, and filtering through cloth is a different method entirely.',
+  'Filtration separates':
+    'A filter paper has tiny pores that let the liquid through but trap solid particles, so it removes an **insoluble solid**. A dissolved solid passes with the liquid, so filtration cannot separate salt from water.',
+  'Iron filings can be separated from sand using':
+    'Iron filings are **magnetic**, so a magnet lifts them out of the sand without touching the sand at all. Filter paper and winnowing fail here because both materials are dry solids of similar particle size.',
+  'A car can move on a road, yet it is not a living being. Why?':
+    'A car moves and needs fuel, but it never grows, respires, excretes or reproduces, and those are the **life processes** that define living things. Needing no fuel is simply untrue for a car, which runs on petrol or diesel.',
+  'Four pots with bean seeds were kept in different conditions. In which pot did the seeds germinate?':
+    'A seed needs water, air and a suitable temperature, and only **moist soil in sunlight** supplies all three at once. Pot B drowns the seed in standing water so it gets no air, and Pot C has water but no warmth from light.',
+  'Describe the direction of growth of the root and the shoot when a plant is upright, when it is kept inverted, and when light reaches it from only one direction.':
+    'Roots always grow down towards gravity and water while shoots grow up, so an inverted seedling bends until each part is the right way round. With light from one side, the **shoot** bends towards it because the shaded side grows faster.',
+  'Why does spraying kerosene oil on stagnant water kill mosquito larvae and pupae?':
+    'Larvae and pupae hang at the surface to breathe air through tubes, and the oil film blocks that **air supply** so they suffocate. Oil does not feed them or chill the water, and it cannot speed up their growth into adults.',
+  'In the life cycle of a bean plant, which part develops into a fruit containing seeds?':
+    'After pollination the flower\'s ovary swells and ripens into the **fruit**, which holds the seeds. Roots absorb water and leaves make food, so neither can turn into a fruit.',
+  'Which of these shows the correct order of stages in the life cycle of a bean plant?':
+    'A bean starts as a **seed**, sprouts into a seedling with leaves, then bears flowers and finally a fruit full of new seeds. Any order that puts the fruit before the flower gets the cause and the result backwards.',
+  'What is the jelly-like cluster of frog eggs found in a pond called?':
+    'Frogs lay their eggs in a jelly-like mass called **spawn**, which floats in clusters among water plants. A tadpole is the hatchling and a froglet is the young frog, so neither names the egg cluster.',
+  'In the life cycle of a frog, which stage comes immediately after a tadpole with a tail?':
+    'A tadpole first grows hind legs and then front legs while its tail shortens, so the next stage is a **tadpole with legs**. The froglet comes later, once the tail has almost gone.',
+  'Which is a characteristic of all living things?':
+    'Every living thing takes in oxygen and gives out carbon dioxide to release energy, which is **respiration**. Being made of metal is a property of non-living objects, and living things do change constantly as they grow.',
+  'Which of these is non-living?':
+    'A stone does not grow, respire, excrete or reproduce, so it is **non-living**. A mushroom is a fungus and a grasshopper is an insect, and both are very much alive.',
+  'A seed needs which conditions to germinate?':
+    'A seed sprouts only when it gets **water** to soften the coat, **air** for respiration and a **warm enough temperature** for growth. Sunlight alone or soil alone will not do, and total darkness stops the seedling making food.',
+  'Why do seeds kept in a fridge not germinate?':
+    'A fridge holds seeds near 4 degrees Celsius, far below the warmth they need, so the chemistry of **germination** works too slowly. They are not over-watered or over-lit inside a fridge, and age is not what the cold is testing.',
+  'The root of a germinating seed grows':
+    'The root grows down towards gravity and moisture so it can anchor the plant and take up **water** from the soil. Growing upwards would leave the young root drying in the air and unable to hold the seedling.',
+  'The shoot of a seedling grows':
+    'The shoot grows up and bends towards **light** so the leaves can make food by photosynthesis. Growing downwards would bury the leaves in darkness, where they cannot trap sunlight at all.',
+  'The correct order of a plant\'s life cycle is':
+    'A plant passes from **seed** to seedling, then to a grown plant that flowers and sets fruit holding the next seeds. Any list that begins with the fruit or ends with the seed ignores which stage produces which.',
+  'The larva of a mosquito is called a':
+    'A mosquito\'s larva lives in water and jerks about at the surface, which is why it is called a **wriggler**. A tadpole is a frog\'s larva, and a caterpillar is the larva of a butterfly or moth.',
+  'Mosquitoes breed in':
+    'Mosquitoes lay eggs in still, standing water such as pools, tanks and blocked drains, where the **larvae** can hang at the surface. Fast-flowing rivers wash the larvae away, and dry sand or bark holds no water for them.',
+  'The young of a frog is called a':
+    'A frog\'s egg hatches into a **tadpole**, which lives in water with gills and a tail before it changes. A wriggler is a mosquito larva and a nymph is the young of an insect like a grasshopper.',
+  'Which gas occupies about 78 per cent of the air around us?':
+    '**Nitrogen** makes up about 78 per cent of the air, with oxygen second at about 21 per cent. Oxygen is the gas we breathe in, but it is the smaller share, not the largest.',
+  'Which group of fuels is commonly called fossil fuels?':
+    '**Coal, petroleum and natural gas** are the three fossil fuels, all formed underground from ancient living remains. Petrol and diesel are refined products made from petroleum, not raw fuels dug from the earth.',
+  'Why do we need freshwater, and where is most of the Earth\'s freshwater found?':
+    'We need **freshwater** for drinking, cooking, washing and farming because sea water is too salty to use. Most of it is locked in ice sheets and glaciers or lies deep underground, which is why usable water is scarce.',
+  'Why are fossil fuels called non-renewable resources?':
+    'Fossil fuels took millions of years to form from buried remains, and the amount underground is **limited**, so it runs out once burnt. They are not renewed in weeks, and no factory can manufacture coal or petroleum.',
+  'What is a forest?':
+    'A forest is a large stretch of land covered with a **dense growth** of many kinds of trees, shrubs and herbs. A patch of only grass is grassland, and a garden of a few medicinal plants is far too small and too uniform.',
+  'How do the leaves that fall on the floor of a forest help the forest?':
+    'Fallen leaves are broken down by bacteria and fungi into humus, which adds **nutrients** to the soil and helps it hold water. Saying they are useless ignores this natural recycling, and they certainly do not make soil salty.',
+  'How is soil formed?':
+    '**Soil** forms when rock is broken into tiny pieces by heat, rain, wind, roots and lichens, a process that takes thousands of years. Rock melting deep underground makes magma, not soil, and evaporation only leaves salts behind.',
+  'Rocks are made up of':
+    'Rocks are natural solids built of one or more **minerals**, which are the substances we see as quartz, mica or feldspar grains. Decayed leaves and water are not rock material, and fossil fuels formed from once-living matter.',
+  'Which gas is the largest part of air?':
+    '**Nitrogen** is about 78 per cent of the air, so it is by far the largest component. Oxygen is only about 21 per cent, and carbon dioxide and hydrogen are present in very small amounts.',
+  'About what fraction of air is oxygen?':
+    'Oxygen is about 21 per cent of the air, which is close to **one fifth** of the whole. One half or three quarters would leave almost no room for the 78 per cent that nitrogen takes up.',
+  'Most of the fresh water we can use comes from':
+    'The water we can actually draw and drink comes from **rivers, lakes and wells**, because ocean water is salty and glaciers are far away. Rain clouds hold water only briefly, and ocean water needs costly desalination.',
+  'Which practice saves water at home?':
+    'A dripping tap wastes many litres a day, so **repairing leaks** saves water without any effort from the user. Washing the road daily and long showers do the opposite, spending clean water on things that do not need it.',
+  'Forests help by':
+    'Tree roots grip the **soil** and stop it washing away, while the leaves release water vapour that helps clouds form and brings rain. Forests do not create pollution or dry up rivers, so that idea reverses their role.',
+  'Fossil fuels were formed from':
+    'Coal, oil and gas formed from plants and tiny sea creatures buried under mud, squeezed and heated over **millions of years**. Melting rock makes magma, and rain or sunlight cannot turn into a fuel.',
+  'Which of these is a fossil fuel?':
+    '**Coal** is a fossil fuel, formed from ancient swamp plants buried and compressed underground. Wind and sunlight are renewable and never burnt as fuel, and wood is a biofuel grown today, not a fossil.',
+  'Why should we use renewable resources?':
+    'Renewable sources like sun, wind and water are **replenished by nature** and give off little or no smoke, so they last and keep the air cleaner. They are not hard to find, and they are certainly not free to build.',
+  'Soil is formed by the breaking down of':
+    '**Soil** is the crumbly top layer that forms when rocks are broken down by sun, rain, wind and living things over centuries. Plastic is man-made, and water or leaves alone cannot become soil without rock particles.',
+  'Which resource is non-renewable?':
+    '**Petroleum** formed from buried sea life over millions of years, so once pumped out it cannot be replaced. Sunlight and wind are constantly renewed, and river water is restored by rain.',
+  'What does the word constellation mean today?':
+    'Astronomers now use **constellation** for a fixed patch of sky with official borders, with the star pattern inside it only part of that region. Calling it a group of planets or a cloud of dust mixes stars up with planets and nebula gas, which are never constellations.',
+  'Why is the Pole Star useful for finding directions?':
+    '**Pole Star** lies almost directly above Earth\'s north axis, so it seems to hold still while the other stars wheel across the sky. Assuming it must be the brightest star is the common slip, since brightness has nothing to do with a star holding a fixed direction.',
+  'What is a satellite? Name the Earth\'s natural satellite and state how long it takes to go once around the Earth.':
+    'A **satellite** is any object that revolves around a planet, and the Moon is Earth\'s natural one, taking about 27 days for one trip around us. The usual error is to call the Moon a planet or a star, but it orbits Earth and shines only by reflected sunlight.',
+  'Why does a comet grow a long tail as it comes close to the Sun?':
+    'Near the Sun a comet\'s ice, dust and gas turn to vapour, and sunlight and the solar wind blow that vapour into a long glowing **tail**. Thinking the tail is broken rock, or that a comet swims through space, misses that it is gas and dust pushed away from the Sun.',
+  'Which statement about the Sun is correct?':
+    'The Sun is a **star**, a huge ball of burning gases that gives out light and heat, and it is the main source of energy for life on Earth. Naming it the largest planet, or a satellite of Earth, confuses a star with planets and moons that only reflect its light.',
+  'Which option lists the planets in the correct order of their increasing distance from the Sun?':
+    'The order from the Sun is **Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune**, so Mercury is first and Neptune last. Swapping Mercury and Venus, or putting Saturn before Jupiter, breaks the distance order, since Jupiter is closer to the Sun than Saturn.',
+  'What is the Milky Way?':
+    'The **Milky Way** is the galaxy we live in, a huge disc of gas, dust and billions of stars that includes the Sun. Calling it a constellation or a nearby star shrinks a whole galaxy down to a small star pattern or a single object.',
+  'Our Solar System is a part of':
+    'The Sun, its eight planets and their moons all lie inside the **Milky Way**, our home galaxy of billions of stars. The asteroid belt and Jupiter are pieces of the Solar System itself, and Orion is only a star pattern, so neither can contain it.',
+  'A constellation is':
+    'A **constellation** is a recognisable pattern of stars in the sky, such as Orion, which people use to find their way around the night sky. A group of planets is a different thing, since planets wander across the sky, and a telescope is a tool rather than a star pattern.',
+  'Which is a well-known constellation?':
+    '**Orion** is a famous constellation, a pattern of bright stars that is easy to spot in the winter night sky. Jupiter is a planet, the Moon is our satellite and Halley is a comet, so none of them is a group of stars.',
+  'The Pole Star appears to stay fixed because it is':
+    '**Pole Star** seems fixed because it lies almost exactly above the Earth\'s axis, so as the Earth spins the star stays in nearly the same spot. Being brightest or closest has nothing to do with it, and it is nowhere inside our Solar System.',
+  'The Pole Star helps travellers to find':
+    'Because **Pole Star** sits over the Earth\'s north axis, facing it points you north, which travellers used long before compasses. It says nothing about the time of day or the height of a hill, since it is a star and not a clock or a measuring tool.',
+  'How many planets are there in the solar system?':
+    'Since Pluto was reclassified in 2006 the Solar System has **eight planets**, counting from Mercury out to Neptune. Keeping the old count of nine, or packing in a tenth, uses a list that no longer matches the planets we count today.',
+  'The Moon is a natural':
+    'The Moon is a natural **satellite**, a body that orbits a planet, and it goes around the Earth about every 27 days. It is not a planet because it circles the Earth rather than the Sun, and it is not a star because it makes no light.',
+  'The Moon has no light of its own; it':
+    'The **Moon** shines by reflecting sunlight, which is why its lit half is bright while the far side stays dark. It does not burn like a star or glow electrically, since it has no fuel or power source of its own.',
+  'Asteroids are found mainly':
+    'Most **asteroids** orbit in a wide belt between Mars and Jupiter, where they circle the Sun like tiny planets. They are not inside the Sun, and only a few stray near Earth, so placing them around the Earth or beyond the Moon gets their home wrong.',
+  'A comet is made mostly of':
+    'A **comet** is a frozen mixture of ice, dust and gas, which is why it melts into a glowing head and tail near the Sun. It is not solid rock, liquid water or molten metal, because its ice turns straight to vapour in the Sun\'s heat.',
+  'Our solar system is part of the':
+    'The Sun and its planets sit inside the **Milky Way**, the galaxy of billions of stars that shows as a faint band across the night sky. Andromeda is another galaxy far away, while Orion is only a star pattern and the asteroid belt lies inside our own system.',
+  'Which statement best describes science as the chapter presents it?':
+    'Science is presented as a **way of thinking** that begins with curiosity, asks questions and stays open to the unknown. Treating it as answers to memorise, or as facts that never change, freezes a process that grows whenever new evidence appears.',
+  'The chapter asks why some fruits are sour and what happens when a haldi stain is washed. What do such questions show?':
+    'Everyday puzzles such as why fruit is sour or how a haldi stain washes out are real starting points, since a **question from daily life** can lead to a testable answer. Assuming only laboratory work counts, or that all is already explained, shuts out curiosity.',
+  'How were shadows used before clocks and watches were invented, and what else does the chapter say shadows can cause?':
+    'Long before clocks, people watched how the **shadow** of a stick moved with the Sun and used its position and length to tell the time. The chapter adds that big bodies like the Earth and the Moon also cast shadows, and when one falls on another we get an eclipse.',
+  'The chapter says that animals must eat and breathe, and that blood must carry nutrients from food all over the body. What is the best conclusion from this?':
+    'Eating, breathing and blood carrying food are separate **life processes**, and an animal lives only because all of them work together. Saying eating alone is enough ignores that food must be digested and carried to every cell, which needs breathing and blood.',
+  'In the activity \'Question the Answer\', what are you asked to do?':
+    'In **Question the Answer** you are given a statement and must invent a question that this statement could correctly answer, which drills enquiry in reverse. Simply answering given questions, or matching printed pairs, is routine work and not this reversed task.',
+  'In the journey through this book, the question \'What kind of materials do we need to make a lamp glow?\' leads directly to which study?':
+    'The question of what makes a **lamp glow** leads to conductors, so the chapter sorts materials into metals and non-metals by their properties. Pendulums, Moon phases and the water cycle belong to other chapters, so they are not the direct next study.',
+  'What does \'question the answer\' mean in science?':
+    'To **question the answer** is to treat any claim as something to be checked, testing it against evidence before believing it. Memorising the textbook or trusting the first idea skips that test and turns science into something to recite.',
+  'Why do scientific ideas change over time?':
+    'Scientific explanations change because fresh **evidence** can contradict an old idea, and the better-supported explanation then takes its place. Saying scientists disagree for fun or that nothing is ever proved mistakes careful revision for confusion or doubt.',
+  'Science is best described as':
+    'Science is a **process** of asking questions, testing ideas against evidence and revising them when the tests disagree. A single experiment, a machine or a fixed list of facts is only one piece or tool of that process, not the whole of it.',
+  'Which step comes first in a scientific study?':
+    'A study begins with **observation**, because noticing something and asking a question about it is what tells you what to test. Drawing a conclusion or publishing comes only after the experiment, and repeating comes after a first result exists.',
+  'Why are everyday observations useful to a scientist?':
+    'Everyday observations matter because they supply **questions worth testing**, such as why a wet cloth dries faster on a windy day. They do not replace experiments, and they are not automatically right, so a careful scientist records and checks them.',
+  'Which is a careful observation rather than an opinion?':
+    'The statement that the ice melted in **6 minutes** gives a measured fact anyone could check with a clock, which is what an observation is. Calling the ice sad or melting boring is a personal feeling, and kinder than steam is a preference, so neither can be tested.',
+  'Which is a property of a material?':
+    'Being a good **conductor of heat** is a property, a behaviour of the material you can test with a spoon and a flame. Being a favourite, old or expensive describes your taste, its age or its price, not how the material itself behaves.',
+  'Why do we test a material\'s properties?':
+    'Testing a material\'s **properties** tells you what job it suits, which is why copper is chosen for wires and clay for pots. Changing colour, price or weight is not the aim, since a property test only tells you how the material behaves.',
+  'Which of these is a life process?':
+    '**Respiration** is a life process because living things use it to release energy from food, and it happens in every cell all the time. Rusting, evaporation and melting are non-living changes that happen to metals and water, so they cannot be life processes.',
+  'Life processes are the activities that':
+    '**Life processes** such as nutrition, respiration and growth are exactly the activities that keep an organism alive and working. They go on day and night and happen in plants and animals alike, so saying they occur only in plants is wrong.',
+  'A shadow forms when an object':
+    'A **shadow** appears where an object blocks light, leaving a dark patch on the surface behind it because no light reaches there. A transparent object lets light pass and can reflect it, so it makes only a faint or no shadow rather than a dark one.',
+  'The size of a shadow depends on':
+    'A shadow grows larger as the object moves nearer the **light source** and smaller as it moves away, which is why a hand near a torch casts a huge shape. Colour, weight and room temperature do not change the shadow, because only the light path and the distances matter.',
+  'What happens to blue litmus paper when it is dipped in an acidic solution?':
+    '**Blue litmus** turns red in an acid, so a red result tells you the liquid has more acid than base. Expecting it to stay blue is the common error, since blue litmus only keeps its colour in a base or a neutral liquid.',
+  'A drop of an unknown liquid is put on turmeric paper and the yellow paper turns red. What is the nature of the liquid?':
+    'Turmeric stays yellow in acid and neutral liquids, so a **red** colour means the liquid is basic. Calling it acidic reverses the test, while saying this one result decides nothing ignores that the colour change already answers the question.',
+  'What is neutralisation, and what products are formed when an acid reacts with a base?':
+    'Mixing an acid with a base in the right amounts cancels both and leaves a neutral solution, which is what neutralisation means. The products are **salt and water** with heat given out, so expecting only a gas or only an acid misses both.',
+  'Excessive use of chemical fertilisers has made a farmer\'s soil too acidic, and the plants are not growing well. What should be added to the soil?':
+    'Very **acidic soil** is corrected with lime, a base that neutralises the excess acid so plants can grow again. Adding more of the same fertiliser or pouring vinegar would add even more acid, while a salt solution would not cancel it.',
+  'A few drops of lime water are added to some red rose extract. What colour does the extract turn?':
+    'Lime water is **basic**, and red rose petal extract turns green when a base is added to it, which is how a natural indicator behaves. Yellow and blue are what turmeric or litmus might give, so expecting the red to stay red ignores that this extract does change.',
+  'A red ant bite injects an acidic liquid into the skin. Why is moist baking soda rubbed on the bite?':
+    'Baking soda is a **base**, so rubbing it on the bite neutralises the acid the ant injected and the sting eases. The reverse claim, that baking soda is an acid, swaps the two natures, and cooling or sealing the skin would leave the acid in place.',
+  'Red litmus paper turns blue in':
+    '**Red litmus** turns blue only in a base, which is why it is used to detect soap solution or lime water. It stays red in an acid and hardly changes in pure water or salt water, so none of those can be the answer.',
+  'Litmus is obtained from':
+    'Litmus is a dye extracted from **lichens**, the small plant-like growths found on rocks and tree bark. Chalk is calcium carbonate and gives no dye, while turmeric and rose petals are separate natural indicators, not the source of litmus.',
+  'Turmeric turns red in':
+    'Turmeric is yellow and turns **red** only when it meets a base, which is why a curry stain reddens in soap. Salt, acid and neutral water leave it yellow, so expecting an acid to redden it reverses the test.',
+  'A yellow stain of turmeric on cloth turns red with':
+    'Soap solution is **basic**, so it turns the yellow turmeric stain red, which is why the stain darkens during washing. Lemon juice and vinegar are acids and plain water is neutral, so none of them can make turmeric red.',
+  'Rose petal extract is used as an indicator because it':
+    'Rose petal extract works as an **indicator** because its colour depends on whether the liquid is acidic or basic, so the change itself carries information. Being always red or merely pleasant-smelling tells you nothing about the liquid.',
+  'Natural indicators are useful because they are':
+    '**Natural indicators** such as turmeric, rose petals and litmus come from plants or lichens that are easy to find and safe to handle at home. They are not always more accurate than litmus, and they are certainly not made in factories or found only in cities.',
+  'Neutralisation produces':
+    'In neutralisation the acid and the base react together and give **salt and water**, with heat released as the solution becomes neutral. Claiming only a gas or only an acid appears forgets that both partners react and both products form at the same time.',
+  'Which pair will neutralise each other?':
+    'Vinegar is an **acid** and baking soda is a base, so mixing them neutralises both and gives a salt, water and fizz. Baking soda with soap pairs two bases, and vinegar with lemon juice pairs two acids, so neither of those neutralises.',
+  'An ant bite is treated with baking soda because the bite is':
+    'An ant bite injects **formic acid**, so the bite is acidic and a base like baking soda can cancel it. Calling the bite basic would mean treating a base with a base, which would leave the acid untouched and the sting would go on.',
+  'Why does rubbing baking soda relieve the sting?':
+    'Baking soda is a base that **neutralises** the acid in the ant\'s sting, so the burning feeling fades soon after it is rubbed on. Cooling the skin without reacting, adding more acid or blocking the air would leave the acid in place and the sting would continue.',
+  'Farmers add lime to soil to':
+    'Lime is a **base**, so spreading it on sour soil neutralises part of the acid and brings the soil closer to neutral. Drying the soil, adding more acid or giving it colour would not help, since the problem is the excess acid itself.',
+  'Why does soil acidity matter for crops?':
+    'Most crops take up nutrients best in **soil that is not too acidic**, because strongly acidic soil locks up nutrients and stunts roots. Believing acid soil is always best, or that acidity has no effect, ignores why farmers add lime before sowing.',
+  'How many terminals does an electric cell have, and what are they called?':
+    'Every **electric cell** has exactly two terminals, a positive one at the metal cap and a negative one at the flat metal disc, and the circuit connects there to take current out. Saying it has one terminal mistakes the cap for the whole cell.',
+  'An LED has a longer wire and a shorter wire. How must it be connected so that it lights up?':
+    'An LED lets current pass in only one direction, so the **longer wire goes to the positive terminal** and the shorter wire to the negative terminal, and only then does it glow. Reversing them leaves the LED dark, because it is not a two-way path.',
+  'Why does a lamp glow when the circuit is closed but not when the circuit is open?':
+    'A **closed circuit** gives the current an unbroken path from the cell through the lamp and back, so current keeps flowing and heats the filament into light. In an open circuit the gap stops the current at that point, so no current reaches the lamp and it stays dark.',
+  'A student connects a piece of material between the two ends of a circuit, and the lamp does not glow even though the cell is working. What can be concluded about the material?':
+    'Since no current is flowing at all, the material must be blocking it, which is what an **insulator** such as rubber or plastic does. Calling it a conductor is wrong because a conductor would let current pass and the lamp would glow.',
+  'What does a switch do in an electric circuit?':
+    'A switch is a gap you can open and close, so it **completes or breaks the path** and current starts or stops flowing. A switch produces no voltage of its own, so it cannot raise the push given by the cell.',
+  'In the symbol used for an electric cell in a circuit diagram, what does the longer line represent?':
+    'In the **cell symbol** the long line marks the positive terminal and the short thick line marks the negative one, so the two ends can be told apart. A switch has a separate symbol of its own, so the long line cannot stand for it.',
+  'In a circuit diagram, what do the two arrows in the symbol for an LED indicate?':
+    'The two small arrows point outward from the symbol to show that the **LED gives out light** when current passes through it. The arrows do not mean current can go both ways, because an LED allows only one direction.',
+  'A battery is':
+    'A **battery** is two or more cells joined together, which is why it lasts longer and pushes current harder than a single cell. A bulb is the part that glows, not a source of current, so it is not a battery.',
+  'The two terminals of a cell are':
+    'The two ends of a cell are its **positive and negative terminals**, and current leaves one and returns to the other when the circuit is closed. Hot and cold describe temperature, not the electrical ends of a cell.',
+  'The filament of a bulb glows because of':
+    'Current passing through the thin filament meets resistance and turns electrical energy into heat, so the wire glows from the **heating effect of current**. A magnetic effect would swing a compass needle, not light up a bulb.',
+  'An LED is better than a filament bulb because it':
+    'An **LED** turns almost all the current into light instead of heat, so it **uses less electricity and lasts longer** than a filament bulb. An LED still needs a cell and a closed circuit, so it cannot work on its own.',
+  'A bulb glows only when the circuit is':
+    'Current can flow only along an unbroken path, so the bulb glows only when the circuit is **closed**. An open or broken circuit has a gap, and no current reaches the filament.',
+  'What happens in an open circuit?':
+    'In an **open circuit** the gap stops the current at that point, so **current cannot flow** anywhere in the loop. Current does not speed up through a gap; the flow simply stops.',
+  'A switch is used to':
+    'A switch is a controlled gap that **makes or breaks a circuit**, which is how a lamp is turned on and off. It has no chemical or coil inside, so it cannot store electricity or raise the voltage.',
+  'Why do circuit diagrams use symbols?':
+    '**Circuit symbols** are simple standard shapes, so a circuit can be drawn quickly and **understood by everyone** in the same way without drawing a real bulb or cell. They do not save electricity; they only save drawing effort and confusion.',
+  'Which is a good conductor of electricity?':
+    '**Copper** is a metal whose free electrons move easily, so it carries current well and is used for wires. Plastic, wood and rubber hold their electrons tightly, which makes them insulators.',
+  'Why are electric wires covered with plastic?':
+    '**Plastic is an insulator**, so it stops current from leaking out of the wire to your hand and gives a safe grip. Plastic actually conducts far worse than copper, so it cannot make current flow faster.',
+  'A switch works by':
+    'Inside a switch a metal strip either touches both contacts or lifts away, so it **completes or breaks the circuit** and current starts or stops. It adds no energy and holds no charge, so it cannot increase the current.',
+  'What is the property by which a material can be beaten into thin sheets called?':
+    '**Malleability** is the property that lets a metal be hammered or rolled into thin sheets without cracking, which is how aluminium foil is made. Ductility is a different property, the ability to be drawn into wires.',
+  'A metal plate makes a ringing sound when it is struck, while a piece of wood does not. What is this property of metals called?':
+    'A metal that rings when struck is showing **sonority**, which is why bells and gongs are made of metal. Lustre only means shininess, so it cannot explain the sound.',
+  'What is rusting, and how can rusting of iron objects be prevented?':
+    '**Rusting** is the brown coating that forms when iron meets moist air, and it is prevented by painting, oiling or galvanising so air and water cannot reach the metal. Galvanisation coats the iron with zinc, which corrodes first and shields the iron underneath.',
+  'Magnesium burns in oxygen to form magnesium oxide, and sulfur burns in oxygen to form sulfur dioxide. How do these two oxides differ?':
+    'Magnesium oxide is **basic** and turns red litmus blue, while sulfur dioxide is acidic and turns blue litmus red, so the metal oxide and the non-metal oxide behave oppositely. Calling both acidic ignores that the metal oxide acts like a base.',
+  'Metals are commonly used both for cooking vessels and for electric wires. Which property of metals explains both of these uses?':
+    'Metals are **good conductors of heat and electricity** because their free electrons move easily, so the same property lets a pot heat food and a wire carry current. Sonority only means ringing when struck, which does not cook anything.',
+  'A metal spoon and a wooden spoon of about the same size and thickness are dipped in hot water. After a few minutes, the upper end of the metal spoon is hot while the upper end of the wooden spoon is not. What does this show?':
+    'Metal is a **good conductor of heat**, so heat travels up the spoon from the hot water, while wood is a poor conductor and the heat stays near the water end. Saying both conduct equally would predict two equally hot handles, which is not what happens.',
+  'A copper vessel left in the open develops a green coating, and a silver article turns black over time. What is this gradual deterioration of metal surfaces called?':
+    'A green coat on copper and a black coat on silver are both **corrosion**, the slow attack of air and moisture on a metal surface. Galvanisation is the opposite, a zinc coating that protects iron from such damage.',
+  'Malleability is the ability of a metal to be':
+    '**Malleability** means the metal can be **hammered into thin sheets** without breaking. Being drawn into wires is ductility, which is a separate property.',
+  'Which metal is used to make thin foils for wrapping food?':
+    '**Aluminium** is malleable enough to be rolled into very thin foil that still holds food safely, which is why it wraps sandwiches. Carbon, iodine and sulphur are non-metals and are brittle, so they cannot be beaten into foil.',
+  'Sonority means a metal':
+    '**Sonority** is the ringing note a metal gives when it is struck, a property bells are chosen for. Being shiny is lustre and being stretchable is ductility, so neither one describes the sound.',
+  'Which property makes a metal suitable for a temple bell?':
+    'A bell must **ring clearly when struck**, and that property is **sonority**, so metals such as brass are chosen. Malleability only lets the metal be shaped into a bell; it does not produce the sound.',
+  'Which metal is the best conductor of electricity?':
+    'Among common metals **copper** lets current pass most easily, which is why wires are made of it. Sulphur is a non-metal and does not conduct at all, so it cannot be the best conductor.',
+  'Rusting of iron needs':
+    'Rust forms only when both **oxygen and moisture** reach the iron, which is why iron stays clean in dry air. Sunlight alone cannot cause rust, and carbon dioxide is not the gas that attacks iron.',
+  'Painting an iron gate prevents rusting because':
+    'Paint seals the surface so that **air and water cannot reach the iron**, and without them the rusting reaction cannot start. Paint is not a metal and does not cool the gate, so neither can explain the protection.',
+  'Corrosion damages metals by':
+    'Corrosion is a chemical attack that **eats away the metal surface** layer by layer, so the object weakens and loses its shine. Polishing only cleans the surface; it does not describe the damage.',
+  'Which metal forms a green layer on long exposure to air?':
+    '**Copper** slowly reacts with moist air and carbon dioxide to form a green corrosion layer called verdigris. Gold and platinum are unreactive, which is why they keep their shine instead of turning green.',
+  'Oxides of non-metals are usually':
+    'Non-metal oxides such as sulfur dioxide dissolve in water to give an **acid**, so they turn blue litmus red. Basic oxides come from metals, so calling these basic mixes up the two groups.',
+  'Which of these is a non-metal?':
+    '**Sulphur** is a yellow brittle non-metal that does not conduct and breaks when hit. Zinc, copper and aluminium are all shiny malleable metals, so they belong on the other side.',
+  'Which of these is a physical change?':
+    'Melting ice only turns solid water into liquid water, with **no new substance** formed, so it is a physical change. Burning magnesium and rusting iron both create new substances, so those are chemical.',
+  'What is a chemical reaction in which a substance reacts with oxygen and produces heat and light called?':
+    '**Combustion** is burning, a reaction with oxygen that gives out heat and light, which is why a flame is both hot and bright. Evaporation and condensation are only changes of state, with no burning involved.',
+  'What is ignition temperature, and what three things are needed for combustion to occur?':
+    'The **ignition temperature** is the lowest temperature at which a substance catches fire, so a flame must first heat the fuel to that point. Below it nothing burns, and combustion also needs a fuel and oxygen, not heat alone.',
+  'A black basalt rock slowly develops a red-coloured layer after being exposed to air and water for a long time. What does this show?':
+    'The red layer is iron oxide formed by a reaction with air and water, so a **chemical change** has made a new substance. A mere change of shape would leave the rock black, not red.',
+  'Exhaled air is blown through lime water and the lime water turns milky. Why is this a chemical change?':
+    'Carbon dioxide from the breath reacts with lime water to form solid **calcium carbonate**, and that new white solid is what makes it look milky. If the gas had only dissolved, nothing new would form and the water would stay clear.',
+  'Which of the following changes can be reversed?':
+    'Ice melts to water and water freezes back to ice, so this change is **reversible** by simply cooling it again. Burning wood cannot be undone, because the wood has already turned into ash and gases.',
+  'A physical change usually':
+    'A physical change only alters shape, size or state, so **no new substance** appears and the material keeps its identity. Chemical changes are the ones that form new substances and are usually hard to reverse.',
+  'Which is a physical change?':
+    'Melting wax only softens and liquefies it, and cooling makes it solid again, so **no new substance** is formed. Curdling milk and burning paper both produce new substances, so they are chemical.',
+  'Which is a chemical change?':
+    'Burning a magnesium ribbon leaves a white powder, magnesium oxide, which is a **new substance**, so the change is chemical. Dissolving sugar or cutting paper leaves the same substance behind, only spread out or smaller.',
+  'A chemical change is usually':
+    'A chemical change builds a new substance, so the original **cannot easily be recovered**, such as turning ash back into wood. A change of shape only is the mark of a physical change, not a chemical one.',
+  'Combustion is a reaction in which a substance':
+    '**Combustion** means a substance burns in oxygen and gives out heat and light, which is why a burning match is hot and bright. Freezing and dissolving involve no burning and release little or no light.',
+  'Which gas is needed for combustion?':
+    'Burning needs **oxygen** from the air, which is why a candle under a glass jar goes out once the oxygen is used up. Carbon dioxide and nitrogen do not support burning, and carbon dioxide is used to put fires out.',
+  'Ignition temperature is the temperature at which a substance':
+    'The **ignition temperature** is the heat level at which a substance catches fire and starts burning on its own. Boiling and melting are changes of state and do not start a fire.',
+  'Paper catches fire more easily than coal because it has':
+    'Paper catches fire at a **lower ignition temperature** than coal, so a small flame is enough to start it. Coal needs much more heating before it burns, which is why a coal fire is harder to light.',
+  'Which change is reversible?':
+    'Water freezes to ice and the ice melts back to water, so the change can be **reversed** just by warming it. Baking a cake cannot be undone, because new substances have already formed.',
+  'Most reversible changes are':
+    'Reversible changes only alter state or shape, so they are **physical changes** that can be undone by heating or cooling. Combustion is chemical and leaves new substances that cannot be turned back.',
+  'Weathering is the breaking down of rocks by':
+    'Weathering is the slow breaking of rocks by **wind, water and temperature changes**, such as water freezing in cracks and splitting stone. Gravity alone only pulls loose pieces down; it does not break solid rock.',
+  'Erosion is the':
+    'Erosion is the **carrying away** of weathered rock and soil by water, wind or ice, after weathering has broken it up. Breaking the rock is weathering itself, so the two terms are not the same.',
+  'What are features that help to distinguish a male from a female but are not directly involved in reproduction called?':
+    'Features like a beard in boys or a high-pitched voice in girls separate the sexes but take no direct part in reproduction, so they are **secondary sexual characteristics**. Hormones are the chemicals that cause such features, not the features themselves.',
+  'Why does the voice of many adolescent boys become hoarse?':
+    'At puberty the **voice box**, or larynx, grows bigger and its vocal cords stretch, so the voice drops and often sounds hoarse while it settles. The other choices blame the tongue or the ears, which play no part in making sound.',
+  'Describe the menstrual cycle as explained in the chapter.':
+    'Adolescence in girls begins with the **menstrual cycle**: blood is discharged roughly every 28 to 30 days, a process called menstruation that starts at puberty and usually stops between 45 and 55 years. It is a natural sign of reproductive maturity, not an illness.',
+  'The physical, emotional and behavioural changes of adolescence are primarily controlled by what?':
+    'These changes are switched on by **hormones**, chemical messengers made in glands and carried in the blood to the organs they act on. Clothes or hours spent at school cannot alter body chemistry, so those choices confuse surroundings with the real cause.',
+  'What is puberty?':
+    '**Puberty** is the stage when the body changes inside and out so that it becomes able to reproduce, which is why growth spurts and voice changes appear together. The choice about menstruation stopping describes menopause, which is the other end of the same journey.',
+  'Which nutrient is supplied by spinach, kidney beans and dried fruits such as raisins and figs, and helps in the formation of blood?':
+    'Spinach, kidney beans, raisins and figs are rich in **iron**, which the body uses to make haemoglobin, the red pigment that carries oxygen in blood. Calcium builds bones and teeth, so it cannot do the blood-forming job asked about.',
+  'How should a used sanitary pad be disposed of?':
+    'A used pad should be **wrapped in newspaper and put in a dustbin**, so it is handled safely and does not block pipes or spread germs. Flushing it or throwing it into a drain chokes the drains, and burning it in the open gives off harmful smoke.',
+  'Puberty is the stage when a child':
+    '**Puberty** is the stage when a child\'s body matures so that it becomes capable of reproduction, which is why growth, voice and skin changes arrive together. Losing teeth or learning to walk belong to early childhood, long before this stage begins.',
+  'Puberty in humans usually begins between':
+    'In humans puberty usually begins between **10 and 14 years**, when the pituitary gland starts sending out growth and sex hormones. Ages 2 to 5 belong to early childhood and 30 to 40 is well after adolescence, so those ranges are far too early or too late.',
+  'Which is a secondary sexual characteristic in boys?':
+    'A beard and moustache appear in boys only after puberty begins, so **growth of facial hair** is a secondary sexual characteristic. Having two eyes and ten fingers are features every child is born with, so they cannot mark the change from child to adult.',
+  'Which change occurs in girls at puberty?':
+    'In girls the voice box grows only a little, so the voice stays **high-pitched** instead of breaking and deepening. A deep voice, a beard and an Adam\'s apple are changes seen in boys, so they describe the wrong sex.',
+  'The voice box is also called the':
+    'The voice box in the throat, which holds the vocal cords that make sound, is called the **larynx**. The trachea is the windpipe that carries air to the lungs, so it moves air rather than producing voice.',
+  'Why does a boy\'s voice become deeper at puberty?':
+    'In boys the **voice box grows larger and the vocal cords lengthen**, so they vibrate more slowly and the voice comes out deeper. Bigger ears or a wider nose change nothing inside the throat, where sound is actually produced.',
+  'The menstrual cycle in girls repeats about':
+    'The cycle repeats about **every 28 days**, though anything from 28 to 30 days is normal, with bleeding lasting a few days each time. A yearly or 90-day cycle would allow only a handful of periods in a lifetime, which does not fit how the cycle works.',
+  'Menstruation stops permanently at':
+    '**Menopause** is the stage, usually between 45 and 55 years, when the menstrual cycle stops permanently. Puberty is when the cycles begin and adolescence is the growing stage around it, so both mark the start rather than the end.',
+  'Why is a balanced diet especially important in adolescence?':
+    'In adolescence the body grows faster than at any time since infancy, so it needs more **nutrients** such as protein, iron and calcium to build new tissue and blood. Cheap food or freedom from illness is not the reason, since no diet makes anyone immune to all disease.',
+  'Which gland controls growth and puberty?':
+    'The **pituitary gland** at the base of the brain releases growth hormone and the hormones that switch on puberty in both boys and girls. The liver, kidney and heart carry out other jobs and do not control growth or sexual development.',
+  'Hormones are':
+    '**Hormones** are chemical messengers made by glands, poured into the blood and carried to the organ they control, which is why a tiny amount can change growth far away. Waste products are removed from the body, so they carry no message.',
+  'In which process does heat travel from the hotter part of an object to a colder part without the particles moving from their positions?':
+    'In **conduction** heat passes from particle to particle as each one jiggles faster and bumps its neighbour, while the particles themselves stay in place. Convection needs the fluid itself to move, so it does not fit a still object.',
+  'Why is a cooking pan usually made of metal but given a handle made of plastic or wood?':
+    'Metal is a good **conductor**, so heat spreads quickly through the pan base to cook the food, while plastic and wood are poor conductors that keep that heat away from your hand. Saying both are good conductors would make the handle as hot as the pan.',
+  'What is a land breeze, and when does it blow?':
+    'A **land breeze** blows at night from the land towards the sea, because land cools faster than water, so cooler air over land slides out to replace the warmer air rising over the sea. It is the reverse of the daytime sea breeze, which blows from sea to land.',
+  'How does heat from the Sun reach the Earth through the empty space between them?':
+    '**Radiation** carries heat as invisible waves that need no medium, which is how the Sun\'s warmth crosses millions of kilometres of empty space. Conduction needs touching particles and convection needs a moving fluid, and space has neither.',
+  'Water at the bottom of a beaker is heated. Why does the heated water rise?':
+    'Warm water **expands, becomes less dense and rises**, while cooler water from above sinks to the bottom to be heated in turn, setting up a convection current. Heated particles do not stop moving, they move faster, which is why the water spreads out.',
+  'What is the process in which water vapour rises, cools and changes into tiny droplets that form clouds called?':
+    '**Condensation** is the change of water vapour back into tiny liquid droplets as it cools, and those droplets gather together as clouds. Evaporation is the opposite change, liquid to vapour, so it describes water leaving a surface rather than forming a cloud.',
+  'Water enters the atmosphere from trees and other plants through which process?':
+    'Plants release water vapour through tiny pores in their leaves, and this loss is called **transpiration**, which adds a large share of moisture to the air. Infiltration is water soaking into the soil, so it moves water downwards, not into the sky.',
+  'Conduction is the transfer of heat through':
+    '**Conduction** moves heat by **direct contact of particles in a solid**, as fast-moving particles pass energy to slower neighbours. Waves through space describe radiation and moving air describes convection, so both name different ways heat travels.',
+  'A metal spoon in hot tea becomes hot at the handle because of':
+    'Heat travels along the spoon from the hot tea to your hand by **conduction**, passing from particle to particle through the solid metal. Convection would need the metal itself to flow like a liquid, which a solid cannot do.',
+  'Which is a poor conductor of heat?':
+    '**Wood** is a poor conductor, so heat creeps through it very slowly, which is why it is used for handles and lids. Iron, copper and aluminium are all metals, and metals are good conductors that pass heat quickly.',
+  'Why are cooking pans made of metal but their handles of plastic?':
+    'Metal lets heat travel quickly from the flame to the food, while **plastic** is a poor conductor that blocks that heat from reaching your hand. Plastic being heavier or melting in water has nothing to do with how heat flows.',
+  'Convection happens because':
+    'In **convection** the heated fluid expands and becomes lighter, so **warm fluid rises and cooler fluid sinks** to take its place, carrying heat around the pot. Heat travelling as light is radiation, and particles that stay still could never form a current.',
+  'Why is water heated at the bottom of a pot?':
+    'Heating at the **bottom** lets warm water rise and cooler water sink, so a convection current carries heat through the whole pot. Heating at the top would leave a warm layer sitting above cold water, which would hardly mix.',
+  'A sea breeze blows during the day from':
+    'By day the land heats faster than the sea, so warm air rises over land and cooler air flows in, making a **sea breeze** blow from the sea towards the land. Land to sea is the night-time land breeze, the reverse of this flow.',
+  'Why does land heat up faster than the sea?':
+    '**Land** warms and cools quickly because heat stays in only its thin top layer, while water mixes and holds heat much longer. Being darker or closer to the Sun is not the reason, since both sit the same distance from the Sun.',
+  'Heat from the Sun reaches the Earth by':
+    'The Sun\'s heat crosses space as **radiation**, waves that travel without any particles to carry them. Conduction and convection both need matter that can touch or flow, and the space between Sun and Earth is empty.',
+  'Radiation can travel through':
+    '**Radiation** is the only way heat moves without a medium, so it easily crosses **empty space**, which is how sunlight reaches us. Limiting it to liquids, gases or solids would leave no path through a vacuum.',
+  'The Sun drives the water cycle by causing':
+    'The Sun\'s heat makes water **evaporate** from oceans, lakes and soil, lifting it into the air as vapour, and the same energy carries the whole cycle forward. Rain and condensation come only after that evaporation, so they cannot be the starting push.',
+  'What is the time taken by a pendulum to complete one oscillation called?':
+    'The time for one complete to-and-fro swing is the pendulum\'s **time period**, and it depends mainly on the length of the string. Speed measures distance covered per unit time, so it cannot describe how long one swing takes.',
+  'What is the SI unit of time, and what is its symbol?':
+    'The SI unit of time is the **second**, written as s, and bigger units like the minute and hour are built from it. Metre measures length rather than time, so it belongs to a different quantity.',
+  'A car travels a distance of 150 metres in 10 seconds. Calculate its speed and show your working.':
+    'Speed is distance divided by time, so 150 m divided by 10 s gives **15 m/s**. Multiplying the two numbers instead of dividing would give 1500, a wildly larger and wrong figure.',
+  'A car covers 60 km in the first hour, 70 km in the second hour and 50 km in the third hour. What is its average speed for the whole journey?':
+    'Total distance is 60 + 70 + 50 = 180 km and total time is 3 hours, so the average speed is 180 / 3 = **60 km/h**. Answering 180 km/h forgets to divide the distance by the three hours.',
+  'What is uniform linear motion?':
+    '**Uniform linear motion** means moving in a straight line while covering equal distances in equal times, so the speed never changes. Motion along a circle is not linear, and motion that keeps speeding up is not uniform.',
+  'Which is an example of uniform linear motion?':
+    'A car on a straight road at a steady 40 km/h covers equal distances in equal times, so it shows **uniform linear motion**. A swing and a rotating fan keep changing direction, and a thrown ball speeds up then slows down.',
+  'In uniform motion, the distance covered in each second is':
+    'By definition, uniform motion covers **the same** distance in every second, so the speed stays constant. Distances that always increase or always decrease would mean the speed is changing, which is non-uniform motion.',
+  'What is non-uniform motion?':
+    '**Non-uniform motion** is motion in which the speed changes, so different distances are covered in equal intervals of time. A straight line at constant speed is uniform motion, the exact opposite, while a circle changes direction rather than showing this.',
+  'Which is an example of non-uniform motion?':
+    'A bus that stops at every stop speeds up, slows down and halts, so its speed keeps changing and the motion is **non-uniform**. A train at constant speed on a straight track keeps the same speed, so it is uniform.',
+  'A car covers 10 m, then 20 m, then 5 m in equal intervals of time. Its motion is':
+    'Equal times but distances of 10 m, 20 m and 5 m mean the speed keeps changing, so the motion is **non-uniform**. Had the distances been equal each time, the motion would have been uniform.',
+  'The time period of a simple pendulum depends on':
+    'The **time period** of a simple pendulum depends almost entirely on **its length**, so a longer string swings more slowly. The mass of the bob does not change the time period, which is why a heavy and a light bob of equal length keep the same beat.',
+  'A pendulum takes 2 s for one oscillation. How long for 10 oscillations?':
+    'One oscillation takes 2 s, so 10 oscillations take 10 x 2 = **20 s**. Answering 2 s describes a single swing, and 5 s or 12 s do not match the multiplication at all.',
+  'The SI unit of time is the':
+    'The SI unit of time is the **second**, and units such as the minute and hour are defined from it. The metre is the SI unit of length, so it measures a different quantity entirely.',
+  'How many seconds are there in one hour?':
+    'One hour has 60 minutes and each minute has 60 seconds, so 60 x 60 = **3600 s**. The value 60 counts only the minutes, and 7200 would be two whole hours.',
+  'Speed equals':
+    '**Speed** is distance divided by time, so a car covering 100 m in 5 s moves at 20 m/s. Multiplying or adding the two values gives units that make no sense, and time divided by distance gives the wrong quantity.',
+  'A cyclist covers 30 km in 2 hours. The speed is':
+    'Speed is distance divided by time, so 30 km / 2 h = **15 km/h**. Answering 30 km/h ignores the two hours, and 60 km/h would be reached only if the trip took half an hour.',
+  'Average speed is':
+    '**Average speed** is the **total distance divided by total time**, which smooths out the speeding up and slowing down of a journey. The highest or lowest speed alone says nothing about the whole trip.',
+  'A bus travels 60 km in 1 h and 40 km in the next hour. Its average speed is':
+    'Total distance is 60 + 40 = 100 km over 2 hours, so the average speed is 100 / 2 = **50 km/h**. Answering 60 km/h uses only the first hour and ignores the slower second hour.',
+  'Where does the alimentary canal begin and end?':
+    'Food enters the body at the **mouth** and the undigested waste leaves at the anus, so the tube runs from mouth to anus. Saying it begins at the stomach ignores the mouth and food pipe, which are part of the same canal.',
+  'Why does a piece of chapati begin to taste sweet when it is chewed for a long time?':
+    'Saliva contains an enzyme that breaks the **starch** of chapati into sugar, so the longer you chew the more sugar you taste. The tongue does not make sugar from water; it only mixes the food and helps you taste it.',
+  'How is the small intestine suited for absorbing nutrients from digested food?':
+    'Its inner lining is thin and carries thousands of **finger-like projections**, so digested food passes quickly into the blood and is carried to every part of the body. A smooth, thick-walled tube would offer far less surface, so absorption would be slow.',
+  'What happens in the alveoli of the lungs?':
+    'In the alveoli **oxygen** moves from the air into the blood while carbon dioxide moves from the blood out into the air. Swapping the two gases describes what body cells do while using oxygen, not what happens in the lungs.',
+  'What is rumination?':
+    '**Rumination** is chewing the cud, where partly digested grass is brought back to the mouth and ground again. Breathing through the skin is how an earthworm respires and has nothing to do with the mouth or cud.',
+  'Which of these animals ruminates?':
+    'A **cow** is a ruminant: it swallows grass into a rumen, softens it and brings it back to chew as cud. Dogs and cats are not ruminants, as their sharp teeth tear meat that is digested in one pass.',
+  'Why do ruminants chew the cud?':
+    'Grass is tough, so chewing the cud grinds it a second time and lets **digestive juices** break it down more completely. Cooling the body is done by sweating or panting, not by chewing food again.',
+  'What is breathing?':
+    '**Breathing** is only the taking in and giving out of air, drawing oxygen in and pushing carbon dioxide out. Digesting food is a separate job done by the alimentary canal, not by the lungs.',
+  'What is respiration?':
+    '**Respiration** is the breakdown of food inside cells to release energy, and oxygen is needed for it. Just moving air is breathing, which only brings oxygen in and is not the energy-releasing step itself.',
+  'Which gas do we take in when we breathe?':
+    'We take in air and use the **oxygen** in it, which is about one fifth of the air we breathe. Nitrogen is the largest part of air but our body cannot use it, and carbon dioxide is the gas we breathe out.',
+  'The alimentary canal begins at the':
+    'Digestion starts in the **mouth**, where teeth grind the food and saliva begins breaking down starch. The stomach lies further down the same tube, reached only after food has travelled down the food pipe.',
+  'Which is the longest part of the alimentary canal?':
+    'The **small intestine** is a long coiled tube about six to seven metres long, far longer than any other part. The oesophagus is only a short tube of about 25 cm joining the mouth to the stomach.',
+  'Saliva begins the digestion of':
+    'Saliva holds an enzyme that starts breaking **starch** into sugar, which is why chewed chapati slowly tastes sweet. Protein and fat are digested later, mainly by juices in the stomach and small intestine.',
+  'Teeth help digestion by':
+    'Teeth cut and grind food into **smaller pieces**, giving saliva and later juices more surface to act on and making the food easy to swallow. Teeth do not absorb nutrients, since that work belongs to the small intestine.',
+  'Most nutrients are absorbed in the':
+    'The **small intestine** has a huge folded inner surface and a rich blood supply, so most digested food is taken into the blood there. The large intestine mainly absorbs water from the leftover waste, not nutrients.',
+  'Why is the inner surface of the small intestine folded?':
+    'The folds and finger-like projections give the lining a much **larger area for absorption**, so more food can enter the blood in the same time. Slowing the food down is not the reason, as the fold is about surface, not speed.',
+  'Alveoli are tiny air sacs found in the':
+    '**Alveoli** are the tiny air sacs at the ends of the air tubes inside the lungs, where air and blood meet. Kidneys filter blood and make urine and hold no air sacs at all.',
+  'Gas exchange in the lungs happens because the alveoli have':
+    'Alveoli have **very thin walls and a rich blood supply**, so gases cross quickly in both directions. Thick muscular walls would slow the diffusion down, and having no blood vessels would leave oxygen nowhere to go.',
+  'Why are the leaves of a plant called its food factories?':
+    'Leaves hold chlorophyll and use sunlight, water and carbon dioxide to make **food by photosynthesis**, so the food is actually made there. Roots only draw water and minerals from the soil and do not supply ready-made food.',
+  'What is the role of chlorophyll in the leaves?':
+    '**Chlorophyll** traps sunlight, and the trapped energy is used to combine carbon dioxide and water into food. Carrying water up from the roots is the xylem\'s job, not something the green pigment does.',
+  'What is transported by the xylem and by the phloem in a plant?':
+    '**Xylem** carries water and minerals up from the roots, while **phloem** carries the food made in the leaves to every other part. The two are separate tubes, so neither carries both materials nor works in the same direction.',
+  'A leaf is coated with a substance that blocks all its stomata. What will be affected first?':
+    'Stomata are the leaf\'s **pores**, so blocking them stops gases moving in and out, shutting down oxygen and carbon dioxide exchange at once. Water moving up the xylem travels inside the veins, so a coating on the surface does not stop it directly.',
+  'Why do plants need sunlight?':
+    'Sunlight supplies the **energy** that chlorophyll uses to turn carbon dioxide and water into food. Roots grow using that food afterwards, so sunlight is not needed only for the roots to grow.',
+  'Which gas do plants take in during photosynthesis?':
+    'Plants take in **carbon dioxide** through their stomata and use its carbon to build food. Oxygen is the gas given out during photosynthesis, not the gas taken in.',
+  'What happens to a plant kept in a dark room for many days?':
+    'Without light the leaf cannot carry out **photosynthesis**, so it makes no new food and its chlorophyll fades, leaving the leaves pale. Nothing speeds up in the dark, as a plant kept there steadily loses its stored food.',
+  'What is the role of carbon dioxide in photosynthesis?':
+    'Carbon dioxide supplies the **carbon** that is built into sugar and starch during photosynthesis, so it is a raw material for food. The green colour comes from chlorophyll, not from the carbon dioxide the plant takes in.',
+  'Which gas is released by plants during photosynthesis?':
+    'Photosynthesis splits water and gives out **oxygen** as a by-product, which leaves through the stomata. Carbon dioxide is used up while food is made, so it is not the gas released.',
+  'Through which part of the leaf does carbon dioxide enter?':
+    'Carbon dioxide enters through tiny pores called **stomata**, mostly on the underside of the leaf. Roots draw water and minerals from the soil, so they do not supply the carbon dioxide the leaf needs.',
+  'Leaves are called food factories because they':
+    'The leaf holds chlorophyll and all the machinery for **photosynthesis**, so it is where the plant actually makes its food. Storing water is something fleshy stems and roots do in some plants, not the reason leaves exist.',
+  'Which three things does a leaf need to make food?':
+    'A leaf needs **sunlight, water and carbon dioxide**: sunlight gives energy, water comes up the xylem and carbon dioxide enters through the stomata. Salt and sugar are not raw materials, because the leaf makes its own sugar.',
+  'Chlorophyll is the green pigment that':
+    '**Chlorophyll** absorbs sunlight, which drives photosynthesis, and it looks green because green light is reflected rather than absorbed. Carrying water is the task of the xylem, not of the green pigment.',
+  'A variegated leaf with white patches will':
+    'Food is made only where chlorophyll is, so a leaf with white patches makes food **only in its green parts**. The white patches have no chlorophyll, so they cannot photosynthesise at all.',
+  'Stomata are':
+    '**Stomata** are tiny pores on the leaf surface, each guarded by two cells that open and close it. Veins are bundles of xylem and phloem that carry water and food, not gases.',
+  'Stomata also allow water to leave the plant as':
+    'Water escapes through the stomata as **water vapour** in transpiration, and this loss also helps pull water up the plant. Liquid water does not stream out of the leaf, as it leaves as vapour.',
+  'Xylem carries':
+    '**Xylem** is the pipeline that carries water and dissolved minerals upwards from the roots to the stem and leaves. Food travels in the phloem, so the xylem is not the plant\'s food pipe.',
+  'Phloem carries food':
+    '**Phloem** carries food made in the leaves to growing tips, roots, fruits and storage parts, and it can move it in either direction. Upward-only transport describes the xylem, which moves water and minerals instead of food.',
+  'Which of these is a luminous object?':
+    'The **Sun** makes its own light, and that is what makes an object luminous. The Moon and Mars only reflect sunlight, and a plane mirror only reflects light that falls on it.',
+  'A ball is held in front of a fixed torch and its shadow falls on a wall. What happens to the shadow when the ball is moved closer to the torch?':
+    'Moving the ball nearer the torch lets the light spread out wider behind it, so the **shadow becomes larger** on the wall. The shadow cannot vanish completely while the ball still blocks the torch light.',
+  'State three characteristics of the image formed by a plane mirror.':
+    'A plane mirror gives an image of the **same size** as the object, erect and laterally inverted, and it cannot be caught on a screen because it is virtual. A real image, like the one in a pinhole camera, is inverted and can be caught on a screen.',
+  'What kind of image does a pinhole camera form on its screen?':
+    'Light from the top of the object travels straight through the hole to the bottom of the screen, so the camera forms an **inverted image**. A plane mirror gives an erect image, but that is reflection rather than a pinhole projection.',
+  'Which observation shows that light travels in a straight line?':
+    'A **shadow** with clear edges forms only because light travels straight and cannot bend around the object. A mirror warming up shows that light carries heat, and boiling water shows heating, not the path of light.',
+  'What is a shadow?':
+    'A **shadow** is the dark patch behind an object where light could not reach because the object blocked it. Light rays themselves are not dark, since a shadow is simply the absence of light.',
+  'Light travels in':
+    'Light travels in a **straight line** until something reflects or bends it, which is why shadows and pinhole images have sharp outlines. In a medium like air it does not zigzag or follow a curve.',
+  'What is a transparent material?':
+    'A **transparent** material lets almost all the light pass through, so you can see clearly through it, as with clear window glass. Letting only some light through makes a material translucent, not transparent.',
+  'Which of these materials is translucent?':
+    '**Frosted glass** lets light through but scatters it, so you see a glow without a clear picture. Clear window glass is transparent, and a wooden door or metal sheet blocks light completely.',
+  'Which of these materials is opaque?':
+    'A **brick wall** blocks light completely, so nothing passes through and it casts a strong shadow. Air and clear water let light through, which makes them transparent rather than opaque.',
+  'A luminous object':
+    'A luminous object **gives out its own light**, like the Sun, a candle flame or a glowing bulb. An object that only reflects light is non-luminous, such as the Moon, even though we can see it.',
+  'Which of these is non-luminous?':
+    'The **Moon** has no light of its own and only reflects sunlight, so it is non-luminous. The Sun, a burning candle and a glowing bulb all produce their own light.',
+  'For a shadow to form we need':
+    'A **light source, an object and a screen** are all needed, because the light must be blocked and then fail to reach a surface. An object alone or light alone gives no visible shadow, as the blocked patch needs a surface to land on.',
+  'A shadow is always':
+    'A shadow is **dark and shows only the outline** of the object, because no light reaches that patch to show colour or detail. It is not coloured like the object, since colour needs light and the shadow has none.',
+  'An image in a plane mirror is':
+    'A plane mirror image is **virtual and laterally inverted**: it cannot be caught on a screen and left and right are swapped. It is the same size as the object, not smaller, and it keeps the object\'s colours.',
+  'The image in a plane mirror is as far behind the mirror as':
+    'For a plane mirror the image distance equals the object distance, so the image is **as far behind the mirror as the object is in front** of it. The thickness of the mirror glass does not change that distance.',
+  'The image formed by a pinhole camera is':
+    'Light from the top of the object passes straight through the hole to the bottom of the screen, so the image is **upside down**. It is never the right way up, because the straight rays cross at the hole and swap top and bottom.',
+  'A pinhole camera works because light travels':
+    'It works only because light travels **in straight lines**, so rays from each point of the object cross at the hole and land separately on the screen. If light curved, the rays would smear together and no sharp image would form.',
+  'What is the area of a square of side 12 cm?':
+    'The area of a square is side x side, so 12 x 12 = **144 cm^2**, and the unit is squared because two lengths are multiplied. Multiplying 12 by 4 gives 48 cm, which is the perimeter, a length rather than a surface.',
+  'A triangle and a parallelogram stand on the same base and have the same height. The area of the triangle is ___ the area of the parallelogram.':
+    'A triangle sharing a base and height with a parallelogram covers exactly **half** of it, because its area formula carries an extra factor of one half. Calling the two areas equal ignores that the triangle is only the parallelogram cut along one diagonal.',
+  'A parallelogram has base 14 cm and height 9 cm. What is its area?':
+    'The area of a parallelogram is base x height, so 14 x 9 = **126 cm^2**. Doubling it to 252 treats the shape like a pair of triangles, and 23 is simply 14 + 9, adding sides instead of multiplying them.',
+  'The diagonals of a rhombus are 16 cm and 12 cm. Find its area and the length of one side.':
+    'The area of a rhombus is half the product of its diagonals, so (16 x 12) / 2 = **96 cm^2**, and the half diagonals 8 and 6 make each side the hypotenuse sqrt(64 + 36) = **10 cm**. Dropping the halving gives 192 cm^2, which is the rectangle around the rhombus.',
+  'What is the area of a rectangle 8 cm by 5 cm?':
+    'The area of a rectangle is length x width, so 8 x 5 = **40 square cm**. Adding the sides to get 13 measures only part of the boundary, and 80 doubles a product that needs no doubling.',
+  'What is the area of a triangle with base 10 cm and height 6 cm?':
+    'The area of a triangle is half base x height, so (10 x 6) / 2 = **30 square cm**. Leaving out the half gives 60, which is the area of the whole rectangle the triangle sits inside.',
+  'The area of a parallelogram equals':
+    'A parallelogram can be cut and rearranged into a rectangle of the same base and height, so its area is **base x height**. Adding the sides measures only the boundary, which is perimeter, and side x side works only for a square.',
+  'The area of a trapezium equals':
+    'A trapezium splits into two triangles that share the same height on its parallel sides, giving **half the sum of the parallel sides x height**. Using base x height is the parallelogram rule and pretends the second parallel side does not exist.',
+  'The area of a triangle is':
+    'A triangle is exactly half of the parallelogram drawn on the same base and height, so its area is **half the base times the height**. Using base times height forgets the halving and returns the parallelogram\'s area instead.',
+  'A parallelogram has base 12 cm and height 5 cm. Its area is':
+    'The area of a parallelogram is base x height, so 12 x 5 = **60 square cm**. The value 120 doubles a product that needs no doubling, and 34 is 2 x (12 + 5), a boundary sum rather than an area.',
+  'The area of a rhombus with diagonals 8 cm and 6 cm is':
+    'The area of a rhombus is half the product of its diagonals, so (8 x 6) / 2 = **24 square cm**. Keeping the full product gives 48, the rectangle around the rhombus, and 14 merely adds the two diagonals together.',
+  'The area of a square of side 7 cm is':
+    'The area of a square is side x side, so 7 x 7 = **49 square cm**. Multiplying 7 by 4 gives 28, which is the perimeter, so it is a length and not a surface.',
+  'In about how much time does the Earth complete one rotation on its own axis?':
+    'The Earth spins once on its **axis** in about 24 hours, which is why the Sun rises and sets once each day. Twelve hours would be only half a turn, while a month belongs to the Moon\'s cycle and a year to the Earth\'s orbit.',
+  'What causes day and night on the Earth?':
+    'As the Earth **rotates** from west to east, each place rolls into sunlight and then into shadow once every 24 hours, making day and night. Revolution around the Sun takes a whole year and causes the seasons, not the daily change.',
+  'What is a solar eclipse, and when does it occur?':
+    'A **solar eclipse** happens when the Moon passes between the Sun and the Earth on a new moon day, so the Moon\'s shadow falls on part of the Earth and blocks sunlight. Confusing it with a lunar eclipse puts the Earth in the middle, which darkens the Moon instead.',
+  'Around 21 March and 23 September, daytime lasts for about 12 hours in the Northern Hemisphere. What are these two days called?':
+    'On these dates the Sun stands over the equator, so every place gets roughly 12 hours of daylight and 12 of darkness: they are the **equinoxes**. The solstices are the longest and shortest days, and eclipses are shadow events with no fixed date.',
+  'Why do we have seasons?':
+    'The Earth\'s axis stays tilted at about 23.5 degrees as it orbits, so each hemisphere leans towards the Sun for part of the year and away for the rest, giving **seasons**. Distance from the Sun cannot explain them, since the two hemispheres have opposite seasons at the same time.',
+  'When the Northern Hemisphere is tilted towards the Sun, it has':
+    'When a hemisphere leans towards the Sun its rays strike more directly and the days grow longer, so that half has **summer**. Leaning away brings winter, and rainfall depends on winds and moisture rather than on the tilt alone.',
+  'How long does the Earth take to complete one orbit of the Sun?':
+    'One complete trip around the Sun takes about 365 and a quarter days, which is a **year** and the reason we add a leap day every four years. One rotation takes a day, and a month comes from the Moon\'s cycle, not from the orbit.',
+  'When does a lunar eclipse happen?':
+    'A **lunar eclipse** occurs when the Earth lies between the Sun and the Moon, so the Earth\'s shadow falls across the Moon. The Moon passing in front of the Sun is the solar eclipse, where the shadow lands on the Earth instead.',
+  'What causes the Moon to darken during a lunar eclipse?':
+    'During a lunar eclipse the Earth blocks sunlight, so its **shadow** sweeps over the Moon and the Moon dims or glows reddish. A lunar eclipse needs the Earth in the middle, so the Moon cannot shade itself, and clouds would hide the whole sky.',
+  'During which phase of the Moon can a lunar eclipse happen?':
+    'A lunar eclipse needs the Earth exactly between the Sun and the Moon, which only happens when the Moon sits opposite the Sun, that is at **full moon**. At new moon the Moon is on the Sun\'s side, so any shadow there falls on the Earth instead.',
+  'The Earth rotates about an imaginary line called the':
+    'The Earth spins about an imaginary line through its poles called the **axis**, tilted at about 23.5 degrees. The equator is a circle around the middle and the orbit is the path around the Sun, so neither is the line of spin.',
+  'One rotation of the Earth takes about':
+    'One full spin of the Earth takes about **24 hours**, and that is the length of our day. 365 days is one orbit, 30 days is roughly a lunar cycle, and 12 hours would be only half a turn.',
+  'Day and night are caused by':
+    'As the Earth **rotates**, the half facing the Sun is lit while the other half stays dark, so the spin gives us day and night. The tilt alone changes how long the day is across the year but cannot make the Sun set.',
+  'The side of the Earth facing away from the Sun has':
+    'The half of the Earth turned away from the Sun receives no direct sunlight, so it has **night** while the other half has day. Summer is a season built up over weeks by the tilt, not the nightly switching of light.',
+  'On an equinox, day and night are':
+    'On an **equinox** the Sun stands directly over the equator, so the line dividing light from dark passes through both poles and day and night are almost equal. Very unequal days belong to the solstices, when one hemisphere is tilted towards the Sun.',
+  'A solstice occurs when the Sun is':
+    'At a **solstice** the Sun reaches its greatest distance north or south of the equator, giving one hemisphere its longest day and the other its shortest. Standing directly over the equator describes the equinox, and distance to the Earth does not set the seasons.',
+  'A solar eclipse happens when':
+    'In a **solar eclipse** the Moon slides between the Sun and the Earth and its shadow falls on us, hiding the Sun. The Earth lying between the Sun and the Moon is the arrangement for a lunar eclipse, which darkens the Moon instead.',
+  'A solar eclipse can occur only on a':
+    'A solar eclipse needs the Moon between the Sun and the Earth, and that alignment happens only at **new moon**, when the unlit face points at us. At full moon the Earth is in the middle, which produces a lunar eclipse instead.',
 };
