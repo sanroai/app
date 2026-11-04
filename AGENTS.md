@@ -72,6 +72,10 @@ node scripts/qa/merge-explanations.mjs --dir artifacts/qa/explanations  # Valida
 node scripts/qa/export-concept-notes-input.mjs --list # Concepts still needing a micro-note, with counts
 node scripts/qa/export-concept-notes-input.mjs --grade 10 --out artifacts/qa/concept-notes/input-a.json
 node scripts/qa/merge-concept-notes.mjs --dir artifacts/qa/concept-notes  # Validate + merge concept micro-notes
+node scripts/qa/audit-duplicate-questions.mjs   # Near-duplicate questions (report only; the set filter drops the second)
+npx tsx scripts/qa/audit-distinct-questions.mts # Concepts with fewer than 3 distinct questions (must be 0)
+npx tsx scripts/qa/export-distinct-question-input.mts --out artifacts/qa/questions/distinct-a.json
+node scripts/qa/build-question-additions.mjs --dir artifacts/qa/questions  # Authored questions -> the additions map
 node scripts/qa/probe-latency.mjs              # Cold vs warm latency per screen against a live API
 node scripts/qa/align-class10-maths.mjs        # Realign the class-10 maths codes with the 2026 book (14 chapters)
 node scripts/qa/merge-seed-fragments.mjs --dir artifacts/qa/<date>  # Merge a class curriculum fragment into the seed
@@ -581,6 +585,18 @@ Android 11+.
   while an alternative exists, but one question of the chosen concept always
   survives so that concept's mastery row updates. Selection is Fisher-Yates
   shuffled (no comparator shuffle), auto-gradable first.
+- **A set never asks the same question twice.** The bank holds a handful of
+  questions that were authored twice ("What is the degree of the polynomial
+  4x^3 - 2x + 7?" and "The degree of the polynomial 4x^3 - 2x + 7 is:"), and two
+  of them in one set is the same question twice - no second piece of evidence,
+  and it reads as a bug. `withoutRepeats` (`learning/question-fingerprint.ts`)
+  drops the second one *before* the set is cut, so the freed slot goes to the next
+  candidate in the same preference order (fresh before recent) and the set never
+  comes back short. The questions are deliberately **not deleted**: most sit on
+  concepts that carry exactly the three mastery needs
+  (`MASTERY_EVIDENCE_MIN_QUESTIONS`), and `audit-distinct-questions.mts` reports
+  any concept left with fewer than three *distinct* questions - 27 were, and each
+  gained one authored question (`content/question-additions.ts`).
 - **Hot read payloads are cached 30 s per account**
   (`common/cache/response-cache.service.ts`) and invalidated on practice submit,
   lesson complete/undo and **class-enrolment changes**. Content-level changes
@@ -676,12 +692,17 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
 ## CBSE Curriculum
 - Board: CBSE (Classes 1-10)
 - Seeded: **229 chapters**, **1089 concepts**, **543 topics**, **241 video + 241 notes lessons**
-  and **3335 practice questions** (1309 original, 26 authored top-ups in
-  `apps/api/prisma/question-topups.ts`, and 2004 authored concept-coverage questions).
+  and **3362 practice questions** (1309 original, 26 authored top-ups in
+  `apps/api/prisma/question-topups.ts`, 2004 authored concept-coverage questions and
+  27 gap-closing questions in `apps/api/src/content/question-additions.ts`).
   Every chapter in every class carries at least one video, one notes lesson and three questions,
   and **every one of the 1089 concepts now carries at least one question** — before the
   2026-11-01 coverage batch, 167 concepts had none, so their mastery could never leave
   `INSUFFICIENT_EVIDENCE` (see BUG-AA in `docs/qa/BUG_REPORT.md`).
+  **Three is the number that matters, and it must be three *distinct* questions**: 27 concepts
+  held three rows that were really two questions (two rewrites of the same one), so no set
+  could ever give them three pieces of evidence. `audit-distinct-questions.mts` reports them
+  and the 27 additions close them; the list is now empty.
   - Class 10: 13 Science + 15 Math + 9 English chapters (the 2026 maths book has **14**
     chapters - *Constructions* was rationalised out - so `MAT-10-1..14` follow the book and
     *Constructions* is `MAT-10-15`, the one chapter with no textbook PDF)
@@ -697,7 +718,7 @@ tree is ignored in `.gitignore` — never commit PDFs/PNGs.
     Science + Mathematics stay at 2 chapters each (class 3 Science has 3)
 - **Every chapter has a video lesson** and no lesson video is under two minutes; the durations in
   the seed are the real YouTube lengths, enforced by `audit-video-durations.mjs --min 120`.
-- All ten classes are **practisable**: 3335 questions cover every chapter and every concept,
+- All ten classes are **practisable**: 3362 questions cover every chapter and every concept,
   authored from the chapter's own textbook text where a book exists. The chapter-coverage audit
   (`audit-question-coverage.mjs`) fails when any chapter
   loses its questions. Class 10 carries >= 2 questions on every concept (a curated +184 batch:

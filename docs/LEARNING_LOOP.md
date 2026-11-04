@@ -178,6 +178,30 @@ cannot be built.
 `startConceptGroupPractice` (chapter practice and the review queue): fresh first,
 recent only to fill a set that would otherwise be short.
 
+**A set never asks the same question twice.** Eighteen questions in the bank were
+authored twice - "What is the degree of the polynomial 4x^3 - 2x + 7?" and "The
+degree of the polynomial 4x^3 - 2x + 7 is:" are one question with two wordings. A
+student who meets both in one set has answered one question and been told twice,
+which also reads as a bug.
+
+`withoutRepeats` (`learning/question-fingerprint.ts`) drops the second copy
+**before** the set is cut, so the freed slot goes to the next candidate in the same
+preference order. Ordering first and cutting second is the whole point: cutting
+first and then filtering hands back a short set, and widening the window instead
+pulled recently-answered questions into sets that had enough fresh ones (three
+unit tests said so). The fingerprint keeps figures and brackets, because those are
+what make two questions different: `6:40-8:15` is not `6:15-8:00`, and
+`3 + 4 x 2` (11) is not `(3 + 4) x 2` (14).
+
+The duplicate rows are deliberately **not deleted**. Most sit on concepts holding
+exactly the three questions `MASTERY_EVIDENCE_MIN_QUESTIONS` needs, so removing one
+would leave that concept unable to produce enough evidence in a single session.
+What matters is that three of them be three *different* questions, so
+`audit-distinct-questions.mts` measures exactly that: **27 concepts held three rows
+that were two questions**, and each gained one authored question through
+`content/question-additions.ts` (`POST /questions/sync-additions` applies them to a
+deployment, which is never re-seeded). The audit now reports 0.
+
 Both shuffle with Fisher-Yates (the old `.sort(() => Math.random() - 0.5)`
 comparator is biased and repeats pairs).
 

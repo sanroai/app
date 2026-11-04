@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-04 — A set never asks the same question twice, and 27 concepts gain the third distinct question
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-04 |
+| Task | Stop practice sets repeating a question, and make every concept able to produce the three pieces of evidence mastery needs |
+| Reason | Eighteen questions were authored twice (same question, two wordings). Two of them in one set = one question answered twice - no second piece of evidence, and it looks like a bug. Worse, 27 concepts held three question rows that were really two questions, so their mastery could **never** leave `INSUFFICIENT_EVIDENCE` (`MASTERY_EVIDENCE_MIN_QUESTIONS = 3`) |
+| Entities affected | `Question`, `QuestionOption` (27 new rows); `PracticeSet` selection |
+| Database changes | Dev and production: **27** questions inserted (3,335 → 3,362). No rows deleted or archived |
+| API changes | **New** `POST /questions/sync-additions` (SUPER_ADMIN, idempotent, keyed by question text) |
+| Frontend changes | none |
+| Seed/import changes | New `apps/api/src/content/question-additions.ts` applied by `seedQuestionAdditions`; new tooling `export-distinct-question-input.mts`, `build-question-additions.mjs`, `audit-distinct-questions.mts`, `audit-duplicate-questions.mjs` |
+| Migration | none |
+| Verification | `audit-distinct-questions.mts`: **0** concepts below three distinct questions (was 27), 1,089 concepts, 3,362 approved questions. Live: 34 practice sets across the three affected concepts and two chapter practices - **0** contained a repeat, concept sets stayed at 3 and chapter sets at 10. `audit-question-explanations`: 3,362/3,362 authored, 0 answer-only. Tests 686/686 |
+| Known issues | The two duplicate rows per affected concept are still in the bank on purpose - the set filter is what stops a student seeing both. A future batch that adds questions should run `audit-distinct-questions.mts`, not just a count |
+
 ### 2026-11-04 — Concept micro-notes: all 848 concepts have their own three-line note
 
 | Field | Detail |
