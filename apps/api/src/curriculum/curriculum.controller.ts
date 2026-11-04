@@ -142,6 +142,19 @@ export class ContentController {
     return this.service.browse(user, query);
   }
 
+  /**
+   * Applies the authored concept micro-notes to this database.
+   *
+   * Super-admin only and idempotent. The curriculum is never re-seeded in
+   * production, so this is the path that gives the 847 concepts without content
+   * their own three-line note instead of the chapter's.
+   */
+  @Roles(Role.SUPER_ADMIN)
+  @Post('concept-notes/sync')
+  syncConceptNotes() {
+    return this.service.syncConceptNotes();
+  }
+
   @Get('videos')
   listVideos(@CurrentUser() user: RequestUser, @Query('chapterId') chapterId?: string) {
     if (!chapterId) throw new BadRequestException('chapterId is required');

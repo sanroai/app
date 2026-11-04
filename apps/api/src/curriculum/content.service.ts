@@ -11,6 +11,7 @@ import {
 import { ContentStatus, Visibility, Prisma, ContentType } from '@prisma/client';
 import { StudentIdentityService } from '../common/services/student-identity.service';
 import { ResponseCacheService } from '../common/cache/response-cache.service';
+import { CONCEPT_MICRO_NOTES } from '../content/concept-notes';
 
 const YOUTUBE_HOSTS = new Set([
   'youtube.com',
@@ -100,6 +101,146 @@ export class ContentService {
     // short per-account cache removes the whole cost on the second look.
     const key = `${user.sub}|browse|${JSON.stringify(query)}`;
     return this.cache.wrap(key, () => this.buildBrowse(user, query));
+  }
+
+  /**
+   * Applies the concept micro-notes to this database.
+   *
+   * 847 of the 1,089 concepts have no content of their own, so their page shows
+   * the chapter's notes - written for the chapter, not for that idea. Each map
+   * entry becomes a NOTES item on the concept ("<concept> - Key Idea"), which the
+   * concept page already renders under Study notes - no client change needed.
+   *
+   * Idempotent and safe to re-run: the item is matched by concept + title, and its
+   * description is only written when it differs. A key that no longer matches a
+   * concept is reported, never created.
+   */
+  async syncConceptNotes() {
+    const entries = Object.entries(CONCEPT_MICRO_NOTES);
+    let created = 0;
+    let updated = 0;
+    let unchanged = 0;
+    const missing: string[] = [];
+
+    // Platform content is only visible to an institution-bound student through an
+    // assignment, so every note is assigned to every institution (the same shape
+    // the seeded chapter notes use).
+    const institutions = await this.prisma.institution.findMany({
+      where: { archivedAt: null },
+      select: { id: true },
+    });
+
+    const ensureAssignments = async (contentId: string) => {
+      if (institutions.length === 0) return;
+      await this.prisma.contentAssignment.createMany({
+        data: institutions.map((institution) => ({ contentId, institutionId: institution.id })),
+        skipDuplicates: true,
+      });
+    };
+
+    for (const [key, notes] of entries) {
+      const separator = key.indexOf('|');
+      if (separator < 0) {
+        missing.push(key);
+        continue;
+      }
+      const chapterCode = key.slice(0, separator);
+      const conceptName = key.slice(separator + 1);
+
+      const concept = await this.prisma.concept.findFirst({
+        where: { name: conceptName, topic: { chapter: { code: chapterCode } } },
+        select: {
+          id: true,
+          name: true,
+          topic: {
+            select: {
+              chapter: {
+                select: { id: true, grade: true, subjectId: true, subject: { select: { boardId: true } } },
+              },
+            },
+          },
+        },
+      });
+      if (!concept) {
+        missing.push(key);
+        continue;
+      }
+
+      const chapter = concept.topic.chapter;
+      const title = `${concept.name} - Key Idea`;
+      const existing = await this.prisma.contentItem.findFirst({
+        where: { conceptId: concept.id, type: ContentType.NOTES, title },
+        select: {
+          id: true,
+          description: true,
+          visibility: true,
+          ownerType: true,
+          directSanroAvailable: true,
+          _count: { select: { assignments: true } },
+        },
+      });
+
+      if (existing) {
+        const scopeIsRight =
+          existing.visibility === Visibility.PUBLIC &&
+          existing.ownerType === 'PLATFORM' &&
+          existing.directSanroAvailable;
+        if (scopeIsRight && existing.description === notes) {
+          if (existing._count.assignments === 0) await ensureAssignments(existing.id);
+          unchanged += 1;
+          continue;
+        }
+        await this.prisma.contentItem.update({
+          where: { id: existing.id },
+          data: {
+            description: notes,
+            visibility: Visibility.PUBLIC,
+            ownerType: 'PLATFORM',
+            directSanroAvailable: true,
+          },
+        });
+        if (existing._count.assignments === 0) await ensureAssignments(existing.id);
+        updated += 1;
+        continue;
+      }
+
+      const createdItem = await this.prisma.contentItem.create({
+        data: {
+          type: ContentType.NOTES,
+          status: ContentStatus.APPROVED,
+          // Platform content, visible to every institution: an institution-scoped
+          // row with no institution is filtered out of the student's concept page.
+          visibility: Visibility.PUBLIC,
+          ownerType: 'PLATFORM',
+          directSanroAvailable: true,
+          title,
+          description: notes,
+          boardId: chapter.subject.boardId,
+          subjectId: chapter.subjectId,
+          chapterId: chapter.id,
+          conceptId: concept.id,
+          grade: chapter.grade,
+          order: 0,
+          sourceType: 'NOTES',
+        },
+        select: { id: true },
+      });
+      await ensureAssignments(createdItem.id);
+      created += 1;
+    }
+
+    // Content itself changed, so every cached chapter/concept payload is stale and
+    // cannot be attributed to one account.
+    if (created > 0 || updated > 0) this.cache.clear();
+
+    return {
+      authored: entries.length,
+      created,
+      updated,
+      unchanged,
+      missing: missing.length,
+      missingKeys: missing.slice(0, 10),
+    };
   }
 
   private async buildBrowse(

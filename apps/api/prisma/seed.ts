@@ -17,6 +17,7 @@ import {
 } from './primary-english';
 import { TOPUP_QUESTIONS, TOPUP_QUESTION_CONCEPTS } from './question-topups';
 import { QUESTION_EXPLANATIONS } from '../src/content/question-explanations';
+import { CONCEPT_MICRO_NOTES } from '../src/content/concept-notes';
 
 loadApiEnv();
 
@@ -33493,6 +33494,85 @@ async function syncAuthoredExplanations(db: PrismaClient) {
   return { updated, missing };
 }
 
+/**
+ * Creates the concept micro-notes on a fresh install.
+ *
+ * 847 concepts carry no content of their own, so their page would otherwise show
+ * the chapter's notes. Each map entry becomes a NOTES item on the concept; the
+ * deployed copy is applied by `POST /content/concept-notes/sync`, because the
+ * curriculum is never re-seeded in production.
+ */
+async function seedConceptMicroNotes(db: PrismaClient) {
+  let created = 0;
+  let updated = 0;
+  const institutions = await db.institution.findMany({ where: { archivedAt: null }, select: { id: true } });
+  const assign = async (contentId: string) => {
+    if (institutions.length === 0) return;
+    await db.contentAssignment.createMany({
+      data: institutions.map((institution) => ({ contentId, institutionId: institution.id })),
+      skipDuplicates: true,
+    });
+  };
+
+  for (const [key, notes] of Object.entries(CONCEPT_MICRO_NOTES)) {
+    const separator = key.indexOf('|');
+    if (separator < 0) continue;
+    const chapterCode = key.slice(0, separator);
+    const conceptName = key.slice(separator + 1);
+
+    const concept = await db.concept.findFirst({
+      where: { name: conceptName, topic: { chapter: { code: chapterCode } } },
+      select: {
+        id: true,
+        name: true,
+        topic: { select: { chapter: { select: { id: true, grade: true, subjectId: true, subject: { select: { boardId: true } } } } } },
+      },
+    });
+    if (!concept) continue;
+
+    const chapter = concept.topic.chapter;
+    const title = `${concept.name} - Key Idea`;
+    const existing = await db.contentItem.findFirst({
+      where: { conceptId: concept.id, type: 'NOTES', title },
+      select: { id: true, description: true, directSanroAvailable: true, _count: { select: { assignments: true } } },
+    });
+    if (existing) {
+      const needsFix = !existing.directSanroAvailable || existing.description !== notes;
+      if (needsFix) {
+        await db.contentItem.update({
+          where: { id: existing.id },
+          data: { description: notes, visibility: 'PUBLIC', ownerType: 'PLATFORM', directSanroAvailable: true },
+        });
+        updated += 1;
+      }
+      if (existing._count.assignments === 0) await assign(existing.id);
+      continue;
+    }
+    const item = await db.contentItem.create({
+      data: {
+        type: 'NOTES',
+        status: 'APPROVED',
+        visibility: 'PUBLIC',
+        ownerType: 'PLATFORM',
+        directSanroAvailable: true,
+        title,
+        description: notes,
+        boardId: chapter.subject.boardId,
+        subjectId: chapter.subjectId,
+        chapterId: chapter.id,
+        conceptId: concept.id,
+        grade: chapter.grade,
+        order: 0,
+        sourceType: 'NOTES',
+      },
+      select: { id: true },
+    });
+    await assign(item.id);
+    created += 1;
+  }
+  return { created, updated };
+}
+
 async function main() {
   const target = parseTarget(TARGET_URL);
   const modeLabel = MODE === 'system' ? 'system only' : MODE === 'qa' ? 'QA fixtures' : 'system + demo';
@@ -33537,6 +33617,10 @@ async function main() {
   }
 
   await seedCurriculum();
+  const microNotes = await seedConceptMicroNotes(prisma);
+  if (microNotes.created || microNotes.updated) {
+    console.log(`[seed] concept micro-notes: ${microNotes.created} created, ${microNotes.updated} updated`);
+  }
   await ensureSystemInstitution();
   const { academicYear, institution } = await seedPlansAndInstitution();
   const demoUsers = await seedUsers(institution.id, academicYear.id);

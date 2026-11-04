@@ -80,4 +80,9 @@ export class ResponseCacheService {
   size(): number {
     return this.store.size;
   }
+
+  /** Drop everything. Used when content itself changed (not one account's work). */
+  clear(): void {
+    this.store.clear();
+  }
 }
