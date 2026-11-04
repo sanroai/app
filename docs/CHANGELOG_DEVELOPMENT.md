@@ -53,6 +53,22 @@ Copy this block for each new entry:
 
 ## Entries
 
+### 2026-11-04 — Concept micro-notes complete: 874 notes, every concept reads about itself
+
+| Field | Detail |
+|---|---|
+| Date | 2026-11-04 |
+| Task | Finish the micro-notes (classes 1-7) and close the concepts whose notes were about a neighbouring topic |
+| Reason | 847 concepts showed the chapter's notes; a further 26 showed a note about a *different* topic in the same chapter (e.g. **Degree** showed "Polynomial Zeroes - Notes"). A student opening a concept to learn *that* concept found material for something else |
+| Entities affected | `ContentItem` (type NOTES), `ContentAssignment` |
+| Database changes | Dev and production: **566** more notes (281 → 847), then **26** more (→ 873 authored in the map, 874 rows live incl. the earlier `Graph` note). Each `PUBLIC` + `directSanroAvailable` + assigned to every institution |
+| API changes | none (existing `POST /content/concept-notes/sync`) |
+| Frontend changes | none |
+| Seed/import changes | `concept-notes.ts` grew to 873 entries; new guard `audit-concept-note-relevance.mts`; `export-concept-notes-input.mjs` now filters on "has notes", not "has any content" |
+| Migration | none |
+| Verification | Dev sync `{"authored":874,"created":26,"unchanged":848,"missing":0}`; `audit-concept-note-relevance.mts` → `notes about something else: 0` (874 own notes + 215 that name the concept); live class-1 concept returns the note; the tutor answers from it in **6-8 ms** with 100% of its content words (`probe-concept-grounding.mjs`); explanations 3,362/3,362; tests 686/686 |
+| Known issues | A concept that had a note about a neighbouring topic now shows both; the micro-note is the one titled `<concept> - Key Idea`. Deleting the other was rejected - it is still the chapter's material, and some students arrive wanting it |
+
 ### 2026-11-04 — A set never asks the same question twice, and 27 concepts gain the third distinct question
 
 | Field | Detail |

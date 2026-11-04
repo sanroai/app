@@ -75,6 +75,7 @@ node scripts/qa/export-concept-notes-input.mjs --grade 10 --out artifacts/qa/con
 node scripts/qa/merge-concept-notes.mjs --dir artifacts/qa/concept-notes  # Validate + merge concept micro-notes
 node scripts/qa/audit-duplicate-questions.mjs   # Near-duplicate questions (report only; the set filter drops the second)
 npx tsx scripts/qa/audit-distinct-questions.mts # Concepts with fewer than 3 distinct questions (must be 0)
+npx tsx scripts/qa/audit-concept-note-relevance.mts # Concepts whose notes are about a different topic (must be 0)
 npx tsx scripts/qa/export-distinct-question-input.mts --out artifacts/qa/questions/distinct-a.json
 node scripts/qa/build-question-additions.mjs --dir artifacts/qa/questions  # Authored questions -> the additions map
 node scripts/qa/probe-latency.mjs              # Cold vs warm latency per screen against a live API

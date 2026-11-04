@@ -234,12 +234,16 @@ A micro-note answers it in three blocks, on one line:
   row with no institution is filtered out by `ContentScopeService` - that was the
   first bug this feature hit.
 
-**All 848 are authored** - every concept from class 1 to class 10 now carries a note
-of its own, so `export-concept-notes-input.mjs --list` reports `0 concepts need a
-micro-note`. The last one was found by asking a sharper question than "does it have
-content": *does it have notes?* A concept that carries only a video is not empty, so
-it never fell back to the chapter - and (exactly one, `MAT-10-2|Graph`) rendered no
-reading material at all. The export now filters on **notes**, not on any content.
+**All 874 are authored** - 848 concepts had no notes at all, and 26 more were showing a
+note written about a *different* part of the chapter ("Degree" showed "Polynomial
+Zeroes - Notes"), so `audit-concept-note-relevance.mts` reports `0` concepts whose
+notes never mention them. `export-concept-notes-input.mjs --list` reports `0 concepts
+need a micro-note`.
+
+The first 848 were found by asking "does it have content?" - a question that misses a
+concept carrying only a video, which is not empty, never falls back to the chapter, and
+(exactly one, `MAT-10-2|Graph`) rendered no reading material at all; the export now
+filters on **notes**. The last 26 were found by asking "are its notes about *it*?".
 
 ## 5. Keeping it fast
 
